@@ -1,7 +1,7 @@
 {
-  "name": "AL is well",
-  "short_name": "AL is well",
-  "description": "Progressive Web App for AL is well",
+  "name": "Mini Office",
+  "short_name": "Mini Office",
+  "description": "Progressive Web App for Mini Office",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#ffffff",

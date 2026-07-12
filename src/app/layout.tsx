@@ -23,12 +23,12 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'AL is well',
-  description: 'AL is well PWA Application',
+  title: 'Mini Office',
+  description: 'Mini Office PWA Application',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'AL is well',
+    title: 'Mini Office',
   },
   formatDetection: {
     telephone: false,
@@ -55,7 +55,10 @@ export default async function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover" />
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover"
+        />
         {/* Force unregister any existing service workers to fix OOM issues from previous next-pwa installs */}
         <script
           dangerouslySetInnerHTML={{

@@ -7,13 +7,14 @@ import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
 import FolderRoundedIcon from '@mui/icons-material/FolderRounded';
 import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
 import HeadphonesRoundedIcon from '@mui/icons-material/HeadphonesRounded';
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 
 const ICONS = {
   folder: <FolderRoundedIcon fontSize="small" />,
   practice: <AssignmentRoundedIcon fontSize="small" />,
   listening: <HeadphonesRoundedIcon fontSize="small" />,
-
   home: <HomeRoundedIcon fontSize="small" />,
+  search: <SearchRoundedIcon fontSize="small" />,
 };
 
 // ----------------------------------------------------------------------
@@ -60,7 +61,12 @@ export const navData: NavSectionProps['data'] = [
           { title: '랜덤 듣기', path: paths.listening.random },
         ],
       },
-
+      {
+        title: 'Public',
+        path: paths.public.root,
+        icon: ICONS.search,
+        children: [{ title: '주소 검색', path: paths.public.postcode }],
+      },
     ],
   },
 ];
@@ -102,5 +108,4 @@ export const mainNavData: NavMainProps['data'] = [
       },
     ],
   },
-
 ];

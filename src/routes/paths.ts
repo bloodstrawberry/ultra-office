@@ -18,5 +18,8 @@ export const paths = {
     playlist: `/listening/playlist`,
     random: `/listening/random`,
   },
-
+  public: {
+    root: `/public`,
+    postcode: `/public/postcode`,
+  },
 };
