@@ -22,4 +22,14 @@ export const paths = {
     root: `/public`,
     postcode: `/public/postcode`,
   },
+  drawing: {
+    root: `/drawing`,
+    ladder: `/drawing/ladder`,
+    roulette: `/drawing/roulette`,
+  },
+  text: {
+    root: `/text`,
+    diff: `/text/diff`,
+    extract: `/text/extract`,
+  },
 };

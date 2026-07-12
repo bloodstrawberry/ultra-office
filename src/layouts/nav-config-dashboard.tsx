@@ -1,13 +1,15 @@
-import type { NavSectionProps } from 'src/components/nav-section';
 import type { NavMainProps } from './main/nav/types';
-
-import { paths } from 'src/routes/paths';
+import type { NavSectionProps } from 'src/components/nav-section';
 
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
 import FolderRoundedIcon from '@mui/icons-material/FolderRounded';
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import CasinoRoundedIcon from '@mui/icons-material/CasinoRounded';
 import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
 import HeadphonesRoundedIcon from '@mui/icons-material/HeadphonesRounded';
-import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import TextFieldsRoundedIcon from '@mui/icons-material/TextFieldsRounded';
+
+import { paths } from 'src/routes/paths';
 
 const ICONS = {
   folder: <FolderRoundedIcon fontSize="small" />,
@@ -15,6 +17,8 @@ const ICONS = {
   listening: <HeadphonesRoundedIcon fontSize="small" />,
   home: <HomeRoundedIcon fontSize="small" />,
   search: <SearchRoundedIcon fontSize="small" />,
+  text: <TextFieldsRoundedIcon fontSize="small" />,
+  drawing: <CasinoRoundedIcon fontSize="small" />,
 };
 
 // ----------------------------------------------------------------------
@@ -62,10 +66,28 @@ export const navData: NavSectionProps['data'] = [
         ],
       },
       {
+        title: '텍스트',
+        path: paths.text.root,
+        icon: ICONS.text,
+        children: [
+          { title: 'Diff', path: paths.text.diff },
+          { title: '추출', path: paths.text.extract },
+        ],
+      },
+      {
         title: 'Public',
         path: paths.public.root,
         icon: ICONS.search,
         children: [{ title: '주소 검색', path: paths.public.postcode }],
+      },
+      {
+        title: 'Drawing',
+        path: paths.drawing.root,
+        icon: ICONS.drawing,
+        children: [
+          { title: '사다리', path: paths.drawing.ladder },
+          { title: '룰렛', path: paths.drawing.roulette },
+        ],
       },
     ],
   },

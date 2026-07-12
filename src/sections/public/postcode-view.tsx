@@ -1,8 +1,9 @@
 'use client';
 
+import type { Address } from 'react-daum-postcode';
+
 import { useRef, useState } from 'react';
 import DaumPostcodeEmbed from 'react-daum-postcode';
-import type { Address } from 'react-daum-postcode';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
