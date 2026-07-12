@@ -65,10 +65,10 @@ export function HeaderSection({
       disableElevation={disableElevation}
       className={mergeClasses([layoutClasses.header, className])}
       sx={[
-        (theme) => ({
+        (t) => ({
           ...(isOffset
             ? {
-                '--color': `var(--offset-color, ${theme.vars.palette.text.primary})`,
+                '--color': `var(--offset-color, ${t.vars.palette.text.primary})`,
               }
             : {}),
         }),

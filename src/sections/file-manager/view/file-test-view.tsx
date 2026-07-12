@@ -120,21 +120,6 @@ export function FileTestView({ title, category }: Props) {
 
   // ----------------------------------------------------------------------
 
-  function sanitizeTreeData(nodes: any[]): any[] {
-    const now = new Date().toISOString();
-    return nodes.map((node) => {
-      const updatedNode = {
-        ...node,
-        createdAt: node.createdAt || now,
-        modifiedAt: node.modifiedAt || now,
-      };
-      if (node.children) {
-        updatedNode.children = sanitizeTreeData(node.children);
-      }
-      return updatedNode;
-    });
-  }
-
   const filters = useSetState<IFileFilters>({
     name: '',
     type: [],
@@ -440,7 +425,7 @@ type ApplyFilterProps = {
 };
 
 function applyFilter({ inputData, comparator, filters }: ApplyFilterProps) {
-  const { name, type, startDate, endDate } = filters;
+  const { name, type } = filters;
 
   const stabilizedThis = inputData.map((el, index) => [el, index] as const);
 
@@ -461,4 +446,21 @@ function applyFilter({ inputData, comparator, filters }: ApplyFilterProps) {
   }
 
   return inputData;
+}
+
+// ----------------------------------------------------------------------
+
+function sanitizeTreeData(nodes: any[]): any[] {
+  const now = new Date().toISOString();
+  return nodes.map((node) => {
+    const updatedNode = {
+      ...node,
+      createdAt: node.createdAt || now,
+      modifiedAt: node.modifiedAt || now,
+    };
+    if (node.children) {
+      updatedNode.children = sanitizeTreeData(node.children);
+    }
+    return updatedNode;
+  });
 }

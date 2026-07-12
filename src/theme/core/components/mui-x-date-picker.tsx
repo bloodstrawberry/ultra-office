@@ -175,37 +175,39 @@ const inputComponents: Components<Theme> = {
   },
   MuiPickersInputBase: {
     styleOverrides: {
-      root: ({ theme }) => ({
-        ...inputBaseStyles.root('picker', theme, {
-          input: pickersSectionListClasses.root,
-          disabled: pickersInputBaseClasses.disabled,
-        }),
-      }),
-      sectionsContainer: ({ theme }) => ({
-        ...inputBaseStyles.input('picker', theme),
-        variants: [
-          ...inputBaseVariants.input,
-          {
-            props: (props) => !props.isFieldFocused && !!props.isFieldValueEmpty,
-            style: {
-              opacity: 1,
-              color: theme.vars.palette.text.disabled,
+      root: ({ theme }) =>
+        ({
+          ...inputBaseStyles.root('picker', theme, {
+            input: pickersSectionListClasses.root,
+            disabled: pickersInputBaseClasses.disabled,
+          }),
+        }) as any,
+      sectionsContainer: ({ theme }) =>
+        ({
+          ...inputBaseStyles.input('picker', theme),
+          variants: [
+            ...inputBaseVariants.input,
+            {
+              props: (props: any) => !props.isFieldFocused && !!props.isFieldValueEmpty,
+              style: {
+                opacity: 1,
+                color: theme.vars.palette.text.disabled,
+              },
             },
-          },
-        ],
-      }),
+          ],
+        }) as any,
     },
   },
   MuiPickersInput: {
     styleOverrides: {
-      root: ({ theme }) => inputStyles.root(theme),
+      root: ({ theme }) => inputStyles.root(theme) as any,
     },
   },
   MuiPickersOutlinedInput: {
     styleOverrides: {
-      root: ({ theme }) => outlinedInputStyles.root(theme, pickersOutlinedInputClasses),
-      sectionsContainer: { variants: [...outlinedInputVariants.input] },
-      notchedOutline: ({ theme }) => outlinedInputStyles.notchedOutline(theme),
+      root: ({ theme }) => outlinedInputStyles.root(theme, pickersOutlinedInputClasses) as any,
+      sectionsContainer: { variants: [...outlinedInputVariants.input] as any },
+      notchedOutline: ({ theme }) => outlinedInputStyles.notchedOutline(theme) as any,
     },
   },
   MuiPickersFilledInput: {
@@ -213,8 +215,8 @@ const inputComponents: Components<Theme> = {
       disableUnderline: true,
     },
     styleOverrides: {
-      root: ({ theme }) => filledInputStyles.root(theme, pickersFilledInputClasses),
-      sectionsContainer: { variants: [...filledInputVariants.input] },
+      root: ({ theme }) => filledInputStyles.root(theme, pickersFilledInputClasses) as any,
+      sectionsContainer: { variants: [...filledInputVariants.input] as any },
     },
   },
 };
@@ -234,14 +236,14 @@ const toolbarComponents: Components<Theme> = {
     styleOverrides: {
       separator: { marginLeft: 2, marginRight: 2 },
       ampmLandscape: { gap: 16, justifyContent: 'flex-start' },
-      ampmLabel: ({ theme }) => ({ ...theme.typography.subtitle1 }),
+      ampmLabel: ({ theme }) => ({ ...theme.typography.subtitle1 }) as any,
     },
   },
   MuiDateTimePickerToolbar: {
     styleOverrides: {
       separator: { marginLeft: 2, marginRight: 2 },
       ampmLandscape: { gap: 16, justifyContent: 'flex-start' },
-      ampmLabel: ({ theme }) => ({ ...theme.typography.subtitle1 }),
+      ampmLabel: ({ theme }) => ({ ...theme.typography.subtitle1 }) as any,
       timeDigitsContainer: { alignItems: 'center' },
     },
   },

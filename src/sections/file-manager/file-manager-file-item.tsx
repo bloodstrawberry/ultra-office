@@ -58,7 +58,7 @@ export const FileManagerFileItem = memo(
 
     const [isMobileDevice, setIsMobileDevice] = useState(false);
 
-    const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    const { attributes, listeners, setNodeRef, transform } = useDraggable({
       id: file.id,
     });
 

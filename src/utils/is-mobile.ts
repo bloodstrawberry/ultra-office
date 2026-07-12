@@ -9,9 +9,8 @@ export const getIsMobile = () => {
   );
 
   // iOS 13+ iPad detection (which defaults to Desktop mode)
-  // @ts-ignore
   const isIPad =
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
+    ((navigator as any).platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
     (userAgent.includes('Macintosh') && 'ontouchend' in document);
 
   // Check for PWA standalone mode

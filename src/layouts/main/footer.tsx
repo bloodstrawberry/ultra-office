@@ -10,8 +10,6 @@ import Typography from '@mui/material/Typography';
 
 import { RouterLink } from 'src/routes/components';
 
-const _socials: any[] = [];
-
 import { Logo } from 'src/components/logo';
 
 // ----------------------------------------------------------------------

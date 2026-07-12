@@ -195,198 +195,200 @@ export function RouletteView() {
   useEffect(() => {
     let animId: number;
     const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        // Handle high DPI
+        const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+        canvas.width = canvasSize * dpr;
+        canvas.height = canvasSize * dpr;
+        ctx.scale(dpr, dpr);
 
-    // Handle high DPI
-    const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
-    canvas.width = canvasSize * dpr;
-    canvas.height = canvasSize * dpr;
-    ctx.scale(dpr, dpr);
+        const isDark = theme.palette.mode === 'dark';
 
-    const isDark = theme.palette.mode === 'dark';
+        const draw = () => {
+          // 1. Clear Canvas
+          ctx.clearRect(0, 0, canvasSize, canvasSize);
 
-    const draw = () => {
-      // 1. Clear Canvas
-      ctx.clearRect(0, 0, canvasSize, canvasSize);
+          const center = canvasSize / 2;
+          const arcSize = (2 * Math.PI) / N;
 
-      const center = canvasSize / 2;
-      const arcSize = (2 * Math.PI) / N;
+          // 2. Physics logic (if spinning)
+          if (isSpinning) {
+            // Apply friction decay
+            angularVelocityRef.current *= 0.982; // decel rate
 
-      // 2. Physics logic (if spinning)
-      if (isSpinning) {
-        // Apply friction decay
-        angularVelocityRef.current *= 0.982; // decel rate
+            // Stop condition
+            if (angularVelocityRef.current < 0.002) {
+              angularVelocityRef.current = 0;
+              setIsSpinning(false);
 
-        // Stop condition
-        if (angularVelocityRef.current < 0.002) {
-          angularVelocityRef.current = 0;
-          setIsSpinning(false);
+              // Determine winner
+              const finalWinningIndex = getWinningIndex(angleRef.current);
+              const winItem = items[finalWinningIndex];
+              if (winItem) {
+                setWinner(winItem);
+                setDialogOpen(true);
+                spawnConfetti();
+              }
+            }
 
-          // Determine winner
-          const finalWinningIndex = getWinningIndex(angleRef.current);
-          const winItem = items[finalWinningIndex];
-          if (winItem) {
-            setWinner(winItem);
-            setDialogOpen(true);
-            spawnConfetti();
-          }
-        }
+            // Apply rotation
+            angleRef.current = (angleRef.current + angularVelocityRef.current) % (2 * Math.PI);
 
-        // Apply rotation
-        angleRef.current = (angleRef.current + angularVelocityRef.current) % (2 * Math.PI);
-
-        // Detect Ticker Trigger (index change)
-        const currentWinIdx = getWinningIndex(angleRef.current);
-        if (currentWinIdx !== prevWinningIndexRef.current) {
-          tickerStateRef.current = 1.0; // Trigger pointer vibration
-          prevWinningIndexRef.current = currentWinIdx;
-        }
-      }
-
-      // 3. Draw Roulette Wheel Slices
-      ctx.save();
-      ctx.translate(center, center);
-      ctx.rotate(angleRef.current);
-
-      for (let i = 0; i < N; i++) {
-        const startAngle = i * arcSize;
-        const endAngle = startAngle + arcSize;
-
-        // Draw Wedge Slice
-        ctx.fillStyle = items[i].color;
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.arc(0, 0, radius, startAngle, endAngle);
-        ctx.closePath();
-        ctx.fill();
-
-        // Wedge division stroke
-        ctx.strokeStyle = isDark ? '#1C1C1E' : '#FFFFFF';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        // Draw text rotated outwards
-        ctx.save();
-        ctx.fillStyle = '#FFFFFF';
-        ctx.font = 'bold 15px Inter, sans-serif';
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
-        ctx.shadowBlur = 4;
-        ctx.textAlign = 'right';
-        ctx.textBaseline = 'middle';
-
-        // Rotate to the center angle of the wedge
-        const midAngle = startAngle + arcSize / 2;
-        ctx.rotate(midAngle);
-
-        // Place text close to outer radius
-        ctx.fillText(items[i].text, radius - 25, 0);
-        ctx.restore();
-      }
-
-      // Outer gold/silver border ring
-      ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.15)';
-      ctx.lineWidth = 6;
-      ctx.beginPath();
-      ctx.arc(0, 0, radius + 3, 0, Math.PI * 2);
-      ctx.stroke();
-
-      // Outer rim decoration pins
-      ctx.fillStyle = '#FFFFFF';
-      for (let i = 0; i < N * 2; i++) {
-        ctx.save();
-        ctx.rotate((i * Math.PI) / N);
-        ctx.beginPath();
-        ctx.arc(radius + 2, 0, 3, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-      }
-
-      ctx.restore(); // Restore center translation
-
-      // Center cap (Inner logo/circle)
-      ctx.save();
-      ctx.translate(center, center);
-      ctx.fillStyle = isDark ? '#2C2C2E' : '#FFFFFF';
-      ctx.shadowColor = 'rgba(0,0,0,0.2)';
-      ctx.shadowBlur = 8;
-      ctx.beginPath();
-      ctx.arc(0, 0, 30, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.shadowBlur = 0; // reset
-
-      ctx.strokeStyle = isDark ? '#FFFFFF' : 'rgba(0, 0, 0, 0.1)';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      // Small target dot in the absolute center
-      ctx.fillStyle = theme.palette.primary.main;
-      ctx.beginPath();
-      ctx.arc(0, 0, 8, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-
-      // 4. Draw pointer ticking physics
-      let pointerVibe = 0;
-      if (tickerStateRef.current > 0) {
-        // Ticking spring harmonic motion
-        pointerVibe = Math.sin(tickerStateRef.current * Math.PI * 3) * 12 * tickerStateRef.current;
-        tickerStateRef.current -= 0.08; // fade out vibration
-      }
-
-      // Draw Top Arrow Indicator (Pointer)
-      ctx.save();
-      ctx.translate(center, center - radius - 5);
-      // Apply vibration offset rotation
-      ctx.rotate((pointerVibe * Math.PI) / 180);
-
-      ctx.fillStyle = '#FF3B30';
-      ctx.strokeStyle = '#FFFFFF';
-      ctx.lineWidth = 3;
-      ctx.shadowColor = 'rgba(0,0,0,0.3)';
-      ctx.shadowBlur = 5;
-
-      ctx.beginPath();
-      ctx.moveTo(0, 20); // Tip of pointer pointing down to wheel
-      ctx.lineTo(-12, -10); // Top left
-      ctx.lineTo(12, -10); // Top right
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-      ctx.restore();
-
-      // 5. Confetti/particles rendering
-      if (particlesRef.current.length > 0) {
-        particlesRef.current.forEach((p, idx) => {
-          p.x += p.vx;
-          p.y += p.vy;
-          p.vy += 0.12; // Gravity
-          p.alpha -= p.decay;
-
-          if (p.alpha <= 0) {
-            return;
+            // Detect Ticker Trigger (index change)
+            const currentWinIdx = getWinningIndex(angleRef.current);
+            if (currentWinIdx !== prevWinningIndexRef.current) {
+              tickerStateRef.current = 1.0; // Trigger pointer vibration
+              prevWinningIndexRef.current = currentWinIdx;
+            }
           }
 
+          // 3. Draw Roulette Wheel Slices
           ctx.save();
-          ctx.globalAlpha = p.alpha;
-          ctx.fillStyle = p.color;
+          ctx.translate(center, center);
+          ctx.rotate(angleRef.current);
+
+          for (let i = 0; i < N; i++) {
+            const startAngle = i * arcSize;
+            const endAngle = startAngle + arcSize;
+
+            // Draw Wedge Slice
+            ctx.fillStyle = items[i].color;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.arc(0, 0, radius, startAngle, endAngle);
+            ctx.closePath();
+            ctx.fill();
+
+            // Wedge division stroke
+            ctx.strokeStyle = isDark ? '#1C1C1E' : '#FFFFFF';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Draw text rotated outwards
+            ctx.save();
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = 'bold 15px Inter, sans-serif';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+            ctx.shadowBlur = 4;
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+
+            // Rotate to the center angle of the wedge
+            const midAngle = startAngle + arcSize / 2;
+            ctx.rotate(midAngle);
+
+            // Place text close to outer radius
+            ctx.fillText(items[i].text, radius - 25, 0);
+            ctx.restore();
+          }
+
+          // Outer gold/silver border ring
+          ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.15)';
+          ctx.lineWidth = 6;
           ctx.beginPath();
-          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.arc(0, 0, radius + 3, 0, Math.PI * 2);
+          ctx.stroke();
+
+          // Outer rim decoration pins
+          ctx.fillStyle = '#FFFFFF';
+          for (let i = 0; i < N * 2; i++) {
+            ctx.save();
+            ctx.rotate((i * Math.PI) / N);
+            ctx.beginPath();
+            ctx.arc(radius + 2, 0, 3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+          }
+
+          ctx.restore(); // Restore center translation
+
+          // Center cap (Inner logo/circle)
+          ctx.save();
+          ctx.translate(center, center);
+          ctx.fillStyle = isDark ? '#2C2C2E' : '#FFFFFF';
+          ctx.shadowColor = 'rgba(0,0,0,0.2)';
+          ctx.shadowBlur = 8;
+          ctx.beginPath();
+          ctx.arc(0, 0, 30, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.shadowBlur = 0; // reset
+
+          ctx.strokeStyle = isDark ? '#FFFFFF' : 'rgba(0, 0, 0, 0.1)';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          // Small target dot in the absolute center
+          ctx.fillStyle = theme.palette.primary.main;
+          ctx.beginPath();
+          ctx.arc(0, 0, 8, 0, Math.PI * 2);
           ctx.fill();
           ctx.restore();
-        });
 
-        // Filter active particles
-        particlesRef.current = particlesRef.current.filter((p) => p.alpha > 0);
+          // 4. Draw pointer ticking physics
+          let pointerVibe = 0;
+          if (tickerStateRef.current > 0) {
+            // Ticking spring harmonic motion
+            pointerVibe = Math.sin(tickerStateRef.current * Math.PI * 3) * 12 * tickerStateRef.current;
+            tickerStateRef.current -= 0.08; // fade out vibration
+          }
+
+          // Draw Top Arrow Indicator (Pointer)
+          ctx.save();
+          ctx.translate(center, center - radius - 5);
+          // Apply vibration offset rotation
+          ctx.rotate((pointerVibe * Math.PI) / 180);
+
+          ctx.fillStyle = '#FF3B30';
+          ctx.strokeStyle = '#FFFFFF';
+          ctx.lineWidth = 3;
+          ctx.shadowColor = 'rgba(0,0,0,0.3)';
+          ctx.shadowBlur = 5;
+
+          ctx.beginPath();
+          ctx.moveTo(0, 20); // Tip of pointer pointing down to wheel
+          ctx.lineTo(-12, -10); // Top left
+          ctx.lineTo(12, -10); // Top right
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+          ctx.restore();
+
+          // 5. Confetti/particles rendering
+          if (particlesRef.current.length > 0) {
+            particlesRef.current.forEach((p, idx) => {
+              p.x += p.vx;
+              p.y += p.vy;
+              p.vy += 0.12; // Gravity
+              p.alpha -= p.decay;
+
+              if (p.alpha <= 0) {
+                return;
+              }
+
+              ctx.save();
+              ctx.globalAlpha = p.alpha;
+              ctx.fillStyle = p.color;
+              ctx.beginPath();
+              ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.restore();
+            });
+
+            // Filter active particles
+            particlesRef.current = particlesRef.current.filter((p) => p.alpha > 0);
+          }
+
+          animId = requestAnimationFrame(draw);
+        };
+
+        draw();
+
+        return () => cancelAnimationFrame(animId);
       }
-
-      animId = requestAnimationFrame(draw);
-    };
-
-    draw();
-
-    return () => cancelAnimationFrame(animId);
+    }
+    return undefined;
   }, [
     items,
     N,
@@ -470,7 +472,7 @@ export function RouletteView() {
                     py: 1,
                     borderRadius: 1,
                     bgcolor: 'background.neutral',
-                    border: (theme) => `1px solid ${theme.palette.divider}`,
+                    border: (t) => `1px solid ${t.palette.divider}`,
                   }}
                 >
                   <Stack direction="row" spacing={1.5} alignItems="center">
@@ -590,7 +592,7 @@ export function RouletteView() {
             maxWidth: 360,
             width: '100%',
             borderRadius: 2,
-            boxShadow: (theme) => theme.customShadows?.z24,
+            boxShadow: (t) => t.customShadows?.z24,
           },
         }}
       >

@@ -23,8 +23,6 @@ import { FileManagerCreateFolderDialog } from './file-manager-create-folder-dial
 
 // ----------------------------------------------------------------------
 
-const INVALID_CHARACTERS = /[<>:"/\\|?*]/;
-
 // ----------------------------------------------------------------------
 
 type Props = {
@@ -142,40 +140,32 @@ export function FileManagerGridView({
     </CustomPopover>
   );
 
-  const renderSelectedActions = () => {
-    const selectedItems = dataFiltered.filter((item) => selected.includes(item.id));
-    const hasNonEmptyFolder = selectedItems.some(
-      (item) => item.type === 'folder' && (item as any).totalFiles > 0
+  const renderSelectedActions = () =>
+    !!selected?.length && (
+      <FileManagerActionSelected
+        numSelected={selected.length}
+        rowCount={dataFiltered.length}
+        selected={selected}
+        onSelectAllItems={(checked) =>
+          onSelectAllItems(
+            checked,
+            dataFiltered.map((row) => row.id)
+          )
+        }
+        action={
+          <Button
+            size="small"
+            color="error"
+            variant="contained"
+            startIcon={<DeleteIcon />}
+            onClick={onOpenConfirm}
+            sx={{ mr: 1 }}
+          >
+            Delete
+          </Button>
+        }
+      />
     );
-
-    return (
-      !!selected?.length && (
-        <FileManagerActionSelected
-          numSelected={selected.length}
-          rowCount={dataFiltered.length}
-          selected={selected}
-          onSelectAllItems={(checked) =>
-            onSelectAllItems(
-              checked,
-              dataFiltered.map((row) => row.id)
-            )
-          }
-          action={
-            <Button
-              size="small"
-              color="error"
-              variant="contained"
-              startIcon={<DeleteIcon />}
-              onClick={onOpenConfirm}
-              sx={{ mr: 1 }}
-            >
-              Delete
-            </Button>
-          }
-        />
-      )
-    );
-  };
 
   return (
     <>

@@ -7,8 +7,9 @@ import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import { Box, Card, Grid, Stack, Tooltip, Typography, IconButton } from '@mui/material';
 
-import { Scrollbar } from 'src/components/scrollbar';
 import { DashboardContent } from 'src/layouts/dashboard';
+
+import { Scrollbar } from 'src/components/scrollbar';
 
 import { useTextDiff } from './text-diff/use-text-diff';
 import { TextDiffToolbar } from './text-diff/text-diff-toolbar';

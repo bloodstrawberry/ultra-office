@@ -5,7 +5,6 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Container from '@mui/material/Container';
-import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import DescriptionIcon from '@mui/icons-material/Description';
 
@@ -43,8 +42,6 @@ type Props = {
 };
 
 export function OpicTestLiveView({ fileId, fileName, onBack, onEdit, storageKey }: Props) {
-  const theme = useTheme();
-
   const isMobile = getIsMobile();
 
   const [playlist, setPlaylist] = useState<PlaylistData | null>(null);
@@ -115,7 +112,7 @@ export function OpicTestLiveView({ fileId, fileName, onBack, onEdit, storageKey 
         str
           ?.toLowerCase()
           .replace(/’/g, "'")
-          .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, '') || '';
+          .replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, '') || '';
       const uClean = uWords.map(clean);
       const cClean = cWords.map(clean);
 
@@ -466,7 +463,7 @@ export function OpicTestLiveView({ fileId, fileName, onBack, onEdit, storageKey 
 
     sequenceRef.current = 'question';
     toggleSpeak(questionText, 'auto-question');
-  }, [scriptData, playContent, toggleSpeak]);
+  }, [scriptData, playlist, playContent, toggleSpeak]);
 
   // Effect to start sequence when script changes
   useEffect(() => {
@@ -700,7 +697,13 @@ export function OpicTestLiveView({ fileId, fileName, onBack, onEdit, storageKey 
           if (newAutoPlay && storageKey === 'listening') {
             if (sequenceRef.current === 'question') playQuestion();
             else if (sequenceRef.current === 'content') playContent();
-            else playlist?.playQuestion === false ? playContent() : playQuestion();
+            else {
+              if (playlist?.playQuestion === false) {
+                playContent();
+              } else {
+                playQuestion();
+              }
+            }
           }
         }}
       />

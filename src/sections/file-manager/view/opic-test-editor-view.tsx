@@ -387,7 +387,7 @@ export function OpicTestEditorView({
               sx={{
                 bgcolor: 'primary.main',
                 color: 'primary.contrastText',
-                boxShadow: (theme) => theme.customShadows?.primary,
+                boxShadow: (t) => t.customShadows?.primary,
                 '&:hover': { bgcolor: 'primary.dark' },
               }}
             >
@@ -406,7 +406,7 @@ export function OpicTestEditorView({
                 sx={{
                   bgcolor: 'info.main',
                   color: 'info.contrastText',
-                  boxShadow: (theme) => theme.customShadows?.info,
+                  boxShadow: (t) => t.customShadows?.info,
                   '&:hover': { bgcolor: 'info.dark' },
                 }}
               >
@@ -434,7 +434,7 @@ export function OpicTestEditorView({
               isOptionEqualToValue={(option, value) => option.id === value.id}
               renderTags={() => null}
               renderOption={(props, option, { selected }) => {
-                const { key, ...optionProps } = props;
+                const optionProps = props;
                 return (
                   <li key={option.id} {...optionProps}>
                     <Stack
@@ -446,7 +446,7 @@ export function OpicTestEditorView({
                         py: 0.5,
                         px: 1,
                         borderRadius: 1,
-                        transition: (theme) => theme.transitions.create('background-color'),
+                        transition: (t) => t.transitions.create('background-color'),
                         '&:hover': {
                           bgcolor: 'action.hover',
                         },
@@ -510,8 +510,8 @@ export function OpicTestEditorView({
             sx={{
               p: 1.5,
               px: 2,
-              bgcolor: (theme) => alpha(theme.palette.info.main, 0.04),
-              border: (theme) => `dashed 1px ${alpha(theme.palette.info.main, 0.2)}`,
+              bgcolor: (t) => alpha(t.palette.info.main, 0.04),
+              border: (t) => `dashed 1px ${alpha(t.palette.info.main, 0.2)}`,
             }}
           >
             <Stack
@@ -599,12 +599,12 @@ export function OpicTestEditorView({
                       sx={{
                         width: 28,
                         height: 28,
-                        bgcolor: (theme) =>
+                        bgcolor: (t) =>
                           playlist.randomPlay
-                            ? alpha(theme.palette.primary.main, 0.1)
+                            ? alpha(t.palette.primary.main, 0.1)
                             : 'background.neutral',
-                        border: (theme) =>
-                          `solid 1px ${playlist.randomPlay ? alpha(theme.palette.primary.main, 0.2) : 'transparent'}`,
+                        border: (t) =>
+                          `solid 1px ${playlist.randomPlay ? alpha(t.palette.primary.main, 0.2) : 'transparent'}`,
                       }}
                     >
                       <ShuffleIcon sx={{ width: 16, height: 16 }} />
@@ -621,12 +621,12 @@ export function OpicTestEditorView({
                       sx={{
                         width: 28,
                         height: 28,
-                        bgcolor: (theme) =>
+                        bgcolor: (t) =>
                           playlist.playQuestion
-                            ? alpha(theme.palette.info.main, 0.1)
+                            ? alpha(t.palette.info.main, 0.1)
                             : 'background.neutral',
-                        border: (theme) =>
-                          `solid 1px ${playlist.playQuestion ? alpha(theme.palette.info.main, 0.2) : 'transparent'}`,
+                        border: (t) =>
+                          `solid 1px ${playlist.playQuestion ? alpha(t.palette.info.main, 0.2) : 'transparent'}`,
                       }}
                     >
                       <QuestionAnswerIcon sx={{ width: 16, height: 16 }} />
@@ -653,19 +653,19 @@ export function OpicTestEditorView({
                   sx={{
                     width: 32,
                     height: 32,
-                    bgcolor: (theme) =>
+                    bgcolor: (t) =>
                       playlist.randomPlay
-                        ? alpha(theme.palette.primary.main, 0.1)
+                        ? alpha(t.palette.primary.main, 0.1)
                         : 'background.neutral',
-                    border: (theme) =>
-                      `solid 1px ${playlist.randomPlay ? alpha(theme.palette.primary.main, 0.2) : 'transparent'}`,
-                    transition: (theme) =>
-                      theme.transitions.create(['background-color', 'border-color']),
+                    border: (t) =>
+                      `solid 1px ${playlist.randomPlay ? alpha(t.palette.primary.main, 0.2) : 'transparent'}`,
+                    transition: (t) =>
+                      t.transitions.create(['background-color', 'border-color']),
                     '&:hover': {
-                      bgcolor: (theme) =>
+                      bgcolor: (t) =>
                         playlist.randomPlay
-                          ? alpha(theme.palette.primary.main, 0.2)
-                          : alpha(theme.palette.action.hover, 0.1),
+                          ? alpha(t.palette.primary.main, 0.2)
+                          : alpha(t.palette.action.hover, 0.1),
                     },
                   }}
                 >
@@ -701,7 +701,7 @@ export function OpicTestEditorView({
                 textAlign: 'center',
                 bgcolor: 'background.neutral',
                 borderRadius: 2,
-                border: (theme) => `dashed 1px ${theme.vars.palette.divider}`,
+                border: (t) => `dashed 1px ${t.vars.palette.divider}`,
               }}
             >
               <NoteAddIcon sx={{ color: 'text.disabled', mb: 2, width: 48, height: 48 }} />

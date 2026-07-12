@@ -126,7 +126,13 @@ export const OpicScriptItem = memo(
       onChangeAnswer(index, localValue);
 
       if (type === 'check') onCheckAnswer(index, localValue);
-      else if (type === 'listening') isListening ? onStopListening() : onStartListening(index);
+      else if (type === 'listening') {
+        if (isListening) {
+          onStopListening();
+        } else {
+          onStartListening(index);
+        }
+      }
       else if (type === 'audio') onPlayRecordedAudio(index);
     };
 

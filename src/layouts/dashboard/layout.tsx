@@ -42,8 +42,6 @@ export function DashboardLayout({
 }: DashboardLayoutProps) {
   const theme = useTheme();
 
-  const user = null;
-
   const navVars = dashboardNavColorVars(theme, 'integrate', 'vertical');
 
   const { value: open, onFalse: onClose, onTrue: onOpen } = useBoolean();

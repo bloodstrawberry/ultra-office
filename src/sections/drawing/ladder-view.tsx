@@ -289,64 +289,64 @@ export function LadderView() {
 
   // Animation controller logic
   useEffect(() => {
-    if (!isAnimating || balls.length === 0) return;
+    if (isAnimating && balls.length > 0) {
+      // Check if all balls have finished
+      const allFinished = balls.every((b) => b.isFinished);
+      if (allFinished) {
+        setIsAnimating(false);
+      } else {
+        const animId = requestAnimationFrame(() => {
+          setBalls((prevBalls) =>
+            prevBalls.map((ball) => {
+              if (ball.isFinished) return ball;
 
-    // Check if all balls have finished
-    const allFinished = balls.every((b) => b.isFinished);
-    if (allFinished) {
-      setIsAnimating(false);
-      return;
+              const target = ball.path[ball.currentPointIndex];
+              if (!target) {
+                // Path complete
+                const finalX = ball.path[ball.path.length - 1].x;
+                const finalCol = Math.round((finalX - sidePadding) / colSpacing);
+                const rewardText = rewards[finalCol]?.text || '';
+                const participantName = participants[ball.colIndex].name;
+
+                setResults((prev) => ({
+                  ...prev,
+                  [participantName]: rewardText,
+                }));
+
+                return { ...ball, isFinished: true };
+              }
+
+              // Move ball towards target point
+              const dx = target.x - ball.x;
+              const dy = target.y - ball.y;
+              const distance = Math.sqrt(dx * dx + dy * dy);
+
+              if (distance <= ball.speed) {
+                // Snapped to target point, advance index
+                return {
+                  ...ball,
+                  x: target.x,
+                  y: target.y,
+                  currentPointIndex: ball.currentPointIndex + 1,
+                };
+              }
+
+              // Step towards target
+              const ux = dx / distance;
+              const uy = dy / distance;
+              return {
+                ...ball,
+                x: ball.x + ux * ball.speed,
+                y: ball.y + uy * ball.speed,
+              };
+            })
+          );
+        });
+
+        return () => cancelAnimationFrame(animId);
+      }
     }
-
-    const animId = requestAnimationFrame(() => {
-      setBalls((prevBalls) =>
-        prevBalls.map((ball) => {
-          if (ball.isFinished) return ball;
-
-          const target = ball.path[ball.currentPointIndex];
-          if (!target) {
-            // Path complete
-            const finalX = ball.path[ball.path.length - 1].x;
-            const finalCol = Math.round((finalX - sidePadding) / colSpacing);
-            const rewardText = rewards[finalCol]?.text || '';
-            const participantName = participants[ball.colIndex].name;
-
-            setResults((prev) => ({
-              ...prev,
-              [participantName]: rewardText,
-            }));
-
-            return { ...ball, isFinished: true };
-          }
-
-          // Move ball towards target point
-          const dx = target.x - ball.x;
-          const dy = target.y - ball.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-
-          if (distance <= ball.speed) {
-            // Snapped to target point, advance index
-            return {
-              ...ball,
-              x: target.x,
-              y: target.y,
-              currentPointIndex: ball.currentPointIndex + 1,
-            };
-          }
-
-          // Step towards target
-          const ux = dx / distance;
-          const uy = dy / distance;
-          return {
-            ...ball,
-            x: ball.x + ux * ball.speed,
-            y: ball.y + uy * ball.speed,
-          };
-        })
-      );
-    });
-
-    return () => cancelAnimationFrame(animId);
+    return undefined;
   }, [isAnimating, balls, colSpacing, sidePadding, rewards, participants]);
 
   // Start animation for a specific column
@@ -584,7 +584,7 @@ export function LadderView() {
                         py: 0.8,
                         borderRadius: 1,
                         bgcolor: 'background.neutral',
-                        border: (theme) => `1px solid ${theme.palette.divider}`,
+                        border: (t) => `1px solid ${t.palette.divider}`,
                         color: 'text.primary',
                         fontSize: '0.875rem',
                         fontWeight: 'medium',
@@ -621,7 +621,7 @@ export function LadderView() {
                         p: 2,
                         borderRadius: 1.5,
                         bgcolor: 'background.neutral',
-                        border: (theme) => `1px solid ${theme.palette.divider}`,
+                        border: (t) => `1px solid ${t.palette.divider}`,
                         display: 'flex',
                         flexDirection: 'column',
                         gap: 0.5,

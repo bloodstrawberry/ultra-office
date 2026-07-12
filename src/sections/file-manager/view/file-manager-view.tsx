@@ -43,7 +43,7 @@ import { toast } from 'src/components/snackbar';
 import { fileFormat } from 'src/components/file-thumbnail';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { LoadingScreen } from 'src/components/loading-screen';
-import { useTable, rowInPage, getComparator } from 'src/components/table';
+import { useTable, getComparator } from 'src/components/table';
 
 import { OpicLiveView } from './opic-live-view';
 import { OpicEditorView } from './opic-editor-view';
@@ -373,8 +373,6 @@ export function FileManagerView() {
     [dataForGrid, table.order, table.orderBy, currentFilters]
   );
 
-  const dataInPage = rowInPage(dataFiltered, table.page, table.rowsPerPage);
-
   const canReset =
     !!currentFilters.name ||
     currentFilters.type.length > 0 ||
@@ -501,7 +499,7 @@ export function FileManagerView() {
             setPendingUploadData(json);
             setPendingAction('upload');
             backupConfirm.onTrue();
-          } catch (error) {
+          } catch {
             toast.error('Failed to parse JSON');
           }
         };

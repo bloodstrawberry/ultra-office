@@ -5,7 +5,6 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Container from '@mui/material/Container';
-import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import DescriptionRoundedIcon from '@mui/icons-material/DescriptionRounded';
 
@@ -33,8 +32,6 @@ type Props = {
 };
 
 export function OpicLiveView({ fileId, fileName, onBack, onEdit }: Props) {
-  const theme = useTheme();
-
   const isMobile = getIsMobile();
 
   const [scriptData, setScriptData] = useState<any>(null);
@@ -42,14 +39,12 @@ export function OpicLiveView({ fileId, fileName, onBack, onEdit }: Props) {
   const [revealedLines, setRevealedLines] = useState<Record<string, boolean>>({});
   const [allRevealed, setAllRevealed] = useState(false);
   const [audioReady, setAudioReady] = useState(false);
-  const [showKoQuestion, setShowKoQuestion] = useState(false);
   const [testMode, setTestMode] = useState(false);
 
   const {
     userAnswers,
     setUserAnswers,
     recordedAudios,
-    setRecordedAudios,
     isListening,
     isPreparing,
     playingIndex,
@@ -213,7 +208,7 @@ export function OpicLiveView({ fileId, fileName, onBack, onEdit }: Props) {
         str
           ?.toLowerCase()
           .replace(/’/g, "'")
-          .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, '') || '';
+          .replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, '') || '';
 
       // LCS-based Alignment
       const uClean = uWords.map(clean);

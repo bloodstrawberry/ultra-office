@@ -174,7 +174,7 @@ const SidebarTreeItem = memo(
 
     const inputRef = useRef<HTMLInputElement>(null);
 
-    const { setNodeRef, isOver } = useDroppable({
+    const { setNodeRef } = useDroppable({
       id: node.id,
       disabled: node.type !== 'folder',
     });
@@ -514,7 +514,7 @@ export function FileManagerSidebar({
   const displayCollapsed = isMounted ? isCollapsed : true;
 
   // Add droppable for root at sidebar level
-  const { setNodeRef: setRootDropRef, isOver: isRootOver } = useDroppable({
+  const { setNodeRef: setRootDropRef } = useDroppable({
     id: 'root',
   });
 
@@ -578,7 +578,7 @@ export function FileManagerSidebar({
               />
             )}
             renderOption={(props, option) => {
-              const { key, ...optionProps } = props as any;
+              const optionProps = props as any;
               return (
                 <li
                   key={option.id}

@@ -52,7 +52,7 @@ export function useOpicSpeech() {
         recognitionRef.current.onend = null;
         recognitionRef.current.onresult = null;
         recognitionRef.current.stop();
-      } catch (e) {
+      } catch {
         /* 이미 중지됨 */
       }
       recognitionRef.current = null;
@@ -168,7 +168,9 @@ export function useOpicSpeech() {
         if (!isManualStopRef.current && isListeningRef.current === index) {
           try {
             recognition.start();
-          } catch (e) {}
+          } catch {
+            // ignore
+          }
         }
       };
 
@@ -198,7 +200,9 @@ export function useOpicSpeech() {
           recognitionRef.current.onend = null;
           recognitionRef.current.onresult = null;
           recognitionRef.current.stop();
-        } catch (e) {}
+        } catch {
+          // ignore
+        }
       }
       if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
       if (typeof window !== 'undefined' && window.speechSynthesis) {

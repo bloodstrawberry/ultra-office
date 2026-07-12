@@ -50,7 +50,7 @@ export function useOpicSpeech() {
     if (recognitionRef.current) {
       try {
         recognitionRef.current.stop();
-      } catch (e) {
+      } catch {
         /* already stopped */
       }
       recognitionRef.current = null;
@@ -59,7 +59,7 @@ export function useOpicSpeech() {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       try {
         mediaRecorderRef.current.stop();
-      } catch (e) {
+      } catch {
         /* already stopped */
       }
       mediaRecorderRef.current = null;
@@ -176,12 +176,16 @@ export function useOpicSpeech() {
       if (recognitionRef.current) {
         try {
           recognitionRef.current.abort();
-        } catch (e) {}
+        } catch {
+          // ignore
+        }
       }
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
         try {
           mediaRecorderRef.current.stop();
-        } catch (e) {}
+        } catch {
+          // ignore
+        }
       }
       if (mediaStreamRef.current) {
         mediaStreamRef.current.getTracks().forEach((t) => t.stop());
@@ -248,7 +252,7 @@ export function useOpicSpeech() {
 
       initializeRecording();
     },
-    [setupRecognition, stopListening]
+    [setupRecognition]
   );
 
   const recordedAudiosRef = useRef<Record<number, string>>({});
@@ -272,7 +276,9 @@ export function useOpicSpeech() {
       Object.values(recordedAudiosRef.current).forEach((url) => {
         try {
           URL.revokeObjectURL(url);
-        } catch (e) {}
+        } catch {
+          // ignore
+        }
       });
     },
     []

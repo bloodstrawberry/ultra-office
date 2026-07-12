@@ -11,6 +11,7 @@ import Dialog from '@mui/material/Dialog';
 import Select from '@mui/material/Select';
 import Divider from '@mui/material/Divider';
 import Tooltip from '@mui/material/Tooltip';
+import { alpha } from '@mui/material/styles';
 import MenuItem from '@mui/material/MenuItem';
 import AddIcon from '@mui/icons-material/Add';
 import TextField from '@mui/material/TextField';
@@ -23,7 +24,6 @@ import DialogTitle from '@mui/material/DialogTitle';
 import FormControl from '@mui/material/FormControl';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ToggleButton from '@mui/material/ToggleButton';
-import { alpha, useTheme } from '@mui/material/styles';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import SwapVertIcon from '@mui/icons-material/SwapVert';
@@ -93,8 +93,6 @@ type Props = {
 };
 
 export function OpicEditorView({ fileId, fileName, onBack, onSaveSuccess, onSave }: Props) {
-  const theme = useTheme();
-
   const [scriptData, setScriptData] = useState<ScriptData>({
     questions: [{ en: '', ko: '' }],
     audioUrl: '',
@@ -116,7 +114,6 @@ export function OpicEditorView({ fileId, fileName, onBack, onSaveSuccess, onSave
     userAnswers,
     setUserAnswers,
     recordedAudios,
-    setRecordedAudios,
     isListening,
     isPreparing,
     playingIndex,
@@ -137,7 +134,7 @@ export function OpicEditorView({ fileId, fileName, onBack, onSaveSuccess, onSave
         handleChangeLine(index, 'en', text);
       }
     });
-  }, [userAnswers, scriptData.lines]);
+  }, [userAnswers, scriptData.lines, handleChangeLine]);
 
   useEffect(() => {
     const loadScript = async () => {
@@ -326,7 +323,7 @@ export function OpicEditorView({ fileId, fileName, onBack, onSaveSuccess, onSave
             color="primary"
             onClick={handleSave}
             startIcon={<SaveIcon />}
-            sx={{ boxShadow: (theme) => theme.customShadows?.primary }}
+            sx={{ boxShadow: (t) => t.customShadows?.primary }}
           >
             Save
           </Button>
@@ -361,7 +358,7 @@ export function OpicEditorView({ fileId, fileName, onBack, onSaveSuccess, onSave
                 bgcolor: 'background.paper',
                 borderRadius: 1.5,
                 '& .MuiOutlinedInput-notchedOutline': {
-                  borderColor: (theme) => alpha(theme.palette.grey[500], 0.2),
+                  borderColor: (t) => alpha(t.palette.grey[500], 0.2),
                 },
               }}
             >
@@ -403,7 +400,7 @@ export function OpicEditorView({ fileId, fileName, onBack, onSaveSuccess, onSave
                   bgcolor: 'background.paper',
                   borderRadius: 1.5,
                   '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: (theme) => alpha(theme.palette.grey[500], 0.2),
+                    borderColor: (t) => alpha(t.palette.grey[500], 0.2),
                   },
                 }}
               >
@@ -433,7 +430,7 @@ export function OpicEditorView({ fileId, fileName, onBack, onSaveSuccess, onSave
                 borderRadius: 1.5,
                 position: 'relative',
                 bgcolor: 'background.paper',
-                border: (theme) => `solid 1px ${alpha(theme.palette.grey[500], 0.2)}`,
+                border: (t) => `solid 1px ${alpha(t.palette.grey[500], 0.2)}`,
                 flexShrink: 0,
                 alignSelf: { xs: 'flex-end', md: 'center' },
                 ...((scriptData.category === '자기소개' ||
@@ -442,7 +439,7 @@ export function OpicEditorView({ fileId, fileName, onBack, onSaveSuccess, onSave
                   (scriptData.category === '14, 15' &&
                     (scriptData.subCategory === '과거 현재 비교' ||
                       scriptData.subCategory === '사회 이슈'))) && {
-                  bgcolor: (theme) => alpha(theme.palette.action.disabledBackground, 0.12),
+                  bgcolor: (t) => alpha(t.palette.action.disabledBackground, 0.12),
                   opacity: 0.9,
                   pointerEvents: 'none',
                 }),
@@ -525,7 +522,7 @@ export function OpicEditorView({ fileId, fileName, onBack, onSaveSuccess, onSave
         </Stack>
 
         {/* Question Configuration */}
-        <Card sx={{ p: 3, border: (theme) => `solid 1px ${theme.vars.palette.divider}` }}>
+        <Card sx={{ p: 3, border: (t) => `solid 1px ${t.vars.palette.divider}` }}>
           <Stack spacing={3}>
             <Typography variant="h6" sx={{ fontWeight: 800 }}>
               Configuration
@@ -625,7 +622,7 @@ export function OpicEditorView({ fileId, fileName, onBack, onSaveSuccess, onSave
                   borderColor: 'divider',
                   '&:hover': {
                     borderColor: 'primary.main',
-                    bgcolor: (theme) => alpha(theme.palette.primary.main, 0.04),
+                    bgcolor: (t) => alpha(t.palette.primary.main, 0.04),
                   },
                 }}
               >
@@ -763,7 +760,7 @@ export function OpicEditorView({ fileId, fileName, onBack, onSaveSuccess, onSave
               borderColor: 'divider',
               '&:hover': {
                 borderColor: 'primary.main',
-                bgcolor: (theme) => alpha(theme.palette.primary.main, 0.04),
+                bgcolor: (t) => alpha(t.palette.primary.main, 0.04),
               },
             }}
           >
@@ -784,7 +781,7 @@ export function OpicEditorView({ fileId, fileName, onBack, onSaveSuccess, onSave
               px: 8,
               height: 56,
               borderRadius: 2,
-              boxShadow: (theme) => theme.customShadows?.primary,
+              boxShadow: (t) => t.customShadows?.primary,
             }}
           >
             Save Script
