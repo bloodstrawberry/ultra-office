@@ -8,6 +8,7 @@ import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import { Box, Card, Grid, Stack, Tooltip, Typography, IconButton } from '@mui/material';
 
 import { Scrollbar } from 'src/components/scrollbar';
+import { DashboardContent } from 'src/layouts/dashboard';
 
 import { useTextDiff } from './text-diff/use-text-diff';
 import { TextDiffToolbar } from './text-diff/text-diff-toolbar';
@@ -18,16 +19,43 @@ import { ResizeHandle, TextAreaPanel } from './common/shared-text-area';
 
 export function TextDiffView() {
   const diff = useTextDiff();
+  const [isResized, setIsResized] = React.useState(false);
+  const containerRef = React.useRef<HTMLDivElement | null>(null);
+
+  const handleDrag = React.useCallback(
+    (deltaY: number) => {
+      if (!isResized && containerRef.current) {
+        const currentHeight = containerRef.current.getBoundingClientRect().height;
+        diff.setInputHeight(currentHeight);
+        setIsResized(true);
+      }
+      diff.handleDrag(deltaY);
+    },
+    [isResized, diff]
+  );
 
   return (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', p: 1 }}>
+    <DashboardContent
+      maxWidth={false}
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        height:
+          'calc(100vh - var(--layout-header-desktop-height) - var(--layout-dashboard-content-pt) - 24px)',
+        pb: 2,
+        minHeight: 0,
+      }}
+    >
       <Box
+        ref={containerRef}
         sx={{
-          height: `${diff.inputHeight}px`,
           minHeight: '100px',
           display: 'flex',
           flexDirection: 'column',
           flexShrink: 0,
+          ...(!isResized
+            ? { flex: '1 1 50%', height: 'auto' }
+            : { height: `${diff.inputHeight}px` }),
         }}
       >
         <Card sx={{ p: 2, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -73,18 +101,18 @@ export function TextDiffView() {
         </Card>
       </Box>
 
-      <ResizeHandle onDrag={diff.handleDrag} />
+      <ResizeHandle onDrag={handleDrag} />
 
       <TextDiffToolbar hook={diff} />
 
       <Scrollbar
         sx={{
-          flex: 1,
           borderRadius: 1,
           border: '1px solid',
           borderColor: 'divider',
           bgcolor: diff.useDarkTheme ? 'grey.900' : 'common.white',
           minHeight: 0,
+          ...(!isResized ? { flex: '1 1 50%' } : { flex: 1 }),
         }}
       >
         <ReactDiffViewer
@@ -115,6 +143,6 @@ export function TextDiffView() {
           </Box>
         )}
       </Scrollbar>
-    </Box>
+    </DashboardContent>
   );
 }

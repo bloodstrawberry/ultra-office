@@ -14,7 +14,7 @@ export function useTextDiff() {
   const debouncedNewValue = useDebounce(newValue, 300);
 
   const [splitView, setSplitView] = useState(true);
-  const [showDiffOnly, setShowDiffOnly] = useState(false);
+  const [showDiffOnly, setShowDiffOnly] = useState(true);
   const [useDarkTheme, setUseDarkTheme] = useState(theme.palette.mode === 'dark');
   const [disableWordDiff, setDisableWordDiff] = useState(false);
   const [hideLineNumbers, setHideLineNumbers] = useState(false);
@@ -120,6 +120,7 @@ export function useTextDiff() {
     compareMethod,
     setCompareMethod,
     inputHeight,
+    setInputHeight,
     handleDrag,
     handleSwap,
     handleClear,
