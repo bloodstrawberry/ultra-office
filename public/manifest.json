@@ -1,7 +1,7 @@
 {
-  "name": "Mini Office",
-  "short_name": "Mini Office",
-  "description": "Progressive Web App for Mini Office",
+  "name": "Ultra Office",
+  "short_name": "Ultra Office",
+  "description": "Progressive Web App for Ultra Office",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#ffffff",

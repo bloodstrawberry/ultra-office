@@ -85,7 +85,6 @@ export function OpicLiveView({ fileId, fileName, onBack, onEdit }: Props) {
       setScriptData(null);
       setRevealedLines({});
       setAllRevealed(false);
-      setShowKoQuestion(false);
       setTestResults({});
       setRevealedAnswers({});
       resetStates();
@@ -132,7 +131,6 @@ export function OpicLiveView({ fileId, fileName, onBack, onEdit }: Props) {
   const toggleAll = useCallback(() => {
     const newState = !allRevealed;
     setAllRevealed(newState);
-    setShowKoQuestion(newState);
     const newRevealed: Record<string, boolean> = {};
     if (scriptData?.lines) {
       scriptData.lines.forEach((_: any, index: number) => {

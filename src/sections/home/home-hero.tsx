@@ -64,7 +64,7 @@ export function HomeHero() {
             variant="caption"
             sx={{ fontWeight: 700, color: 'primary.main', letterSpacing: 0.5 }}
           >
-            MINI OFFICE
+            Ultra Office
           </Typography>
         </Box>
       </Box>

@@ -132,8 +132,7 @@ export const OpicScriptItem = memo(
         } else {
           onStartListening(index);
         }
-      }
-      else if (type === 'audio') onPlayRecordedAudio(index);
+      } else if (type === 'audio') onPlayRecordedAudio(index);
     };
 
     const renderActionButtons = (

@@ -23,12 +23,12 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'Mini Office',
-  description: 'Mini Office PWA Application',
+  title: 'Ultra Office',
+  description: 'Ultra Office PWA Application',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Mini Office',
+    title: 'Ultra Office',
   },
   formatDetection: {
     telephone: false,

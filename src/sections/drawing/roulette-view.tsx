@@ -330,7 +330,8 @@ export function RouletteView() {
           let pointerVibe = 0;
           if (tickerStateRef.current > 0) {
             // Ticking spring harmonic motion
-            pointerVibe = Math.sin(tickerStateRef.current * Math.PI * 3) * 12 * tickerStateRef.current;
+            pointerVibe =
+              Math.sin(tickerStateRef.current * Math.PI * 3) * 12 * tickerStateRef.current;
             tickerStateRef.current -= 0.08; // fade out vibration
           }
 

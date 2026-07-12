@@ -126,6 +126,24 @@ export function OpicEditorView({ fileId, fileName, onBack, onSaveSuccess, onSave
     resetStates,
   } = useOpicSpeech();
 
+  const handleChangeLine = useCallback(
+    (index: number, field: keyof Line, value: string) => {
+      if (field === 'en') {
+        setUserAnswers((prev) => {
+          if (prev[index] === value) return prev;
+          return { ...prev, [index]: value };
+        });
+      }
+      setScriptData((prev) => {
+        const newLines = [...prev.lines];
+        if (newLines[index] && newLines[index][field] === value) return prev;
+        newLines[index] = { ...newLines[index], [field]: value };
+        return { ...prev, lines: newLines };
+      });
+    },
+    [setUserAnswers]
+  );
+
   // Sync userAnswers from speech to scriptData
   useEffect(() => {
     Object.entries(userAnswers).forEach(([idx, text]) => {
@@ -214,24 +232,6 @@ export function OpicEditorView({ fileId, fileName, onBack, onSaveSuccess, onSave
       lines: prev.lines.filter((_, i) => i !== index),
     }));
   }, []);
-
-  const handleChangeLine = useCallback(
-    (index: number, field: keyof Line, value: string) => {
-      if (field === 'en') {
-        setUserAnswers((prev) => {
-          if (prev[index] === value) return prev;
-          return { ...prev, [index]: value };
-        });
-      }
-      setScriptData((prev) => {
-        const newLines = [...prev.lines];
-        if (newLines[index] && newLines[index][field] === value) return prev;
-        newLines[index] = { ...newLines[index], [field]: value };
-        return { ...prev, lines: newLines };
-      });
-    },
-    [setUserAnswers]
-  );
 
   const setInputRef = useCallback(
     (index: number, el: any) => {

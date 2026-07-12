@@ -434,9 +434,9 @@ export function OpicTestEditorView({
               isOptionEqualToValue={(option, value) => option.id === value.id}
               renderTags={() => null}
               renderOption={(props, option, { selected }) => {
-                const optionProps = props;
+                const { key, ...optionProps } = props;
                 return (
-                  <li key={option.id} {...optionProps}>
+                  <li key={key} {...optionProps}>
                     <Stack
                       direction="row"
                       alignItems="center"
@@ -659,8 +659,7 @@ export function OpicTestEditorView({
                         : 'background.neutral',
                     border: (t) =>
                       `solid 1px ${playlist.randomPlay ? alpha(t.palette.primary.main, 0.2) : 'transparent'}`,
-                    transition: (t) =>
-                      t.transitions.create(['background-color', 'border-color']),
+                    transition: (t) => t.transitions.create(['background-color', 'border-color']),
                     '&:hover': {
                       bgcolor: (t) =>
                         playlist.randomPlay
