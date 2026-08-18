@@ -8,13 +8,14 @@ import type {
   VerificationResult,
 } from './types';
 
-import alasql from 'alasql';
 import { useRef, useState, useEffect, useCallback } from 'react';
 
 import { SAMPLE_DATASETS } from './sample-datasets';
 
 const STORAGE_KEY_SOLVED = 'ultra_sql_solved_problems';
 const STORAGE_KEY_HISTORY = 'ultra_sql_query_history';
+
+type AlasqlFn = (sql: string, params?: unknown[]) => any;
 
 // ----------------------------------------------------------------------
 
@@ -26,8 +27,28 @@ export function useSqlEngine() {
   const [queryHistory, setQueryHistory] = useState<QueryHistoryItem[]>([]);
   const [hasLoadedStorage, setHasLoadedStorage] = useState(false);
 
-  // Separate database instances by dataset id in alasql
+  const alasqlRef = useRef<AlasqlFn | null>(null);
   const initializedDatasets = useRef<Set<string>>(new Set());
+
+  // Dynamically load alasql in browser client to prevent SSR/Turbopack node resolution issues
+  useEffect(() => {
+    let isMounted = true;
+    if (typeof window !== 'undefined') {
+      import('alasql')
+        .then((mod) => {
+          if (isMounted) {
+            alasqlRef.current = (mod.default || mod) as AlasqlFn;
+            setIsDbReady(true);
+          }
+        })
+        .catch((err) => {
+          console.error('Failed to load SQL engine', err);
+        });
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Load localStorage data safely after mounting
   useEffect(() => {
@@ -71,6 +92,9 @@ export function useSqlEngine() {
 
   // Initialize or reset database tables for a specific dataset
   const initDatasetDb = useCallback((datasetId: string, forceReset = false) => {
+    const alasql = alasqlRef.current;
+    if (!alasql) return;
+
     const dataset = SAMPLE_DATASETS.find((d) => d.id === datasetId);
     if (!dataset) return;
 
@@ -79,11 +103,9 @@ export function useSqlEngine() {
     }
 
     try {
-      // Create separate database if not exists and switch context
       alasql(`CREATE DATABASE IF NOT EXISTS db_${datasetId}`);
       alasql(`USE db_${datasetId}`);
 
-      // Drop existing tables and recreate
       dataset.tables.forEach((table) => {
         try {
           alasql(`DROP TABLE IF EXISTS ${table.name}`);
@@ -92,7 +114,6 @@ export function useSqlEngine() {
         }
         alasql(table.ddl);
         if (table.initialData.length > 0) {
-          // Insert initial data records
           const columns = Object.keys(table.initialData[0]).join(', ');
           table.initialData.forEach((row) => {
             const values = Object.values(row)
@@ -113,11 +134,12 @@ export function useSqlEngine() {
     }
   }, []);
 
-  // Initialize DB on dataset change
+  // Initialize DB when engine is ready or dataset changes
   useEffect(() => {
-    initDatasetDb(currentDatasetId);
-    setIsDbReady(true);
-  }, [currentDatasetId, initDatasetDb]);
+    if (isDbReady) {
+      initDatasetDb(currentDatasetId);
+    }
+  }, [isDbReady, currentDatasetId, initDatasetDb]);
 
   // Reset current dataset to original state
   const resetCurrentDb = useCallback(() => {
@@ -140,11 +162,32 @@ export function useSqlEngine() {
         };
       }
 
+      if (trimmedQuery.includes('...')) {
+        return {
+          columns: [],
+          rows: [],
+          executionTimeMs: 0,
+          rowCount: 0,
+          error:
+            '⚠️ 쿼리에 미완성된 부분(`...`)이 포함되어 있습니다. 문제 요구사항에 맞게 조건이나 컬럼을 채운 후 실행해 주세요.',
+        };
+      }
+
+      const alasql = alasqlRef.current;
+      if (!alasql) {
+        return {
+          columns: [],
+          rows: [],
+          executionTimeMs: 0,
+          rowCount: 0,
+          error: 'SQL 엔진 초기화 중입니다. 잠시 후 다시 시도해 주세요.',
+        };
+      }
+
       try {
         initDatasetDb(targetDatasetId);
         alasql(`USE db_${targetDatasetId}`);
 
-        // Handle single or multi queries
         const rawResult: unknown = alasql(trimmedQuery);
         const endTime = performance.now();
         const executionTimeMs = Math.round((endTime - startTime) * 10) / 10;
@@ -153,7 +196,6 @@ export function useSqlEngine() {
         let columns: string[] = [];
 
         if (Array.isArray(rawResult)) {
-          // If multi statements, get the last statement's result
           const lastItem =
             rawResult.length > 0 && Array.isArray(rawResult[0])
               ? (rawResult[rawResult.length - 1] as unknown[])
@@ -179,7 +221,6 @@ export function useSqlEngine() {
           columns = ['affected_rows'];
         }
 
-        // Add to query history
         const newHistoryItem: QueryHistoryItem = {
           id: `${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
           query: trimmedQuery,
@@ -203,7 +244,6 @@ export function useSqlEngine() {
         const executionTimeMs = Math.round((endTime - startTime) * 10) / 10;
         const errorMessage = err instanceof Error ? err.message : String(err);
 
-        // Add error to query history
         const newHistoryItem: QueryHistoryItem = {
           id: `${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
           query: trimmedQuery,
@@ -226,17 +266,14 @@ export function useSqlEngine() {
     [currentDatasetId, initDatasetDb]
   );
 
-  // Normalize cell value for comparison
   const normalizeValue = (val: unknown): string => {
     if (val === null || val === undefined) return '__NULL__';
     if (typeof val === 'number') {
-      // Rounded float check to avoid minor float precision diffs
       return Number(val.toFixed(4)).toString();
     }
     return String(val).trim().toLowerCase();
   };
 
-  // Verify user's solution against expected solution query
   const verifySolution = useCallback(
     (userSql: string, problem: SqlProblem): VerificationResult => {
       const userRes = runQuery(userSql, problem.datasetId);
@@ -248,7 +285,6 @@ export function useSqlEngine() {
         };
       }
 
-      // Run expected solution query
       const expectedRes = runQuery(problem.solutionQuery, problem.datasetId);
       if (expectedRes.error) {
         return {
@@ -259,7 +295,6 @@ export function useSqlEngine() {
         };
       }
 
-      // Compare column counts
       if (userRes.columns.length !== expectedRes.columns.length) {
         return {
           isCorrect: false,
@@ -270,7 +305,6 @@ export function useSqlEngine() {
         };
       }
 
-      // Compare row counts
       if (userRes.rowCount !== expectedRes.rowCount) {
         return {
           isCorrect: false,
@@ -281,14 +315,12 @@ export function useSqlEngine() {
         };
       }
 
-      // Compare contents of each row
       for (let r = 0; r < userRes.rowCount; r++) {
         const userRow = userRes.rows[r];
         const expectedRow = expectedRes.rows[r];
         const userVals = Object.values(userRow).map(normalizeValue);
         const expectedVals = Object.values(expectedRow).map(normalizeValue);
 
-        // Check if values in row match (considering column order or values match)
         const rowMatches = userVals.every((uVal, cIdx) => uVal === expectedVals[cIdx]);
         if (!rowMatches) {
           return {
@@ -301,7 +333,6 @@ export function useSqlEngine() {
         }
       }
 
-      // Mark problem as solved if not already
       if (!solvedProblemIds.includes(problem.id)) {
         setSolvedProblemIds((prev) => [...prev, problem.id]);
       }

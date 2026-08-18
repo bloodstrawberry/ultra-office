@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 import { CONFIG } from 'src/global-config';
 
-import { SqlPracticeView } from 'src/sections/public/sql';
+import { SqlPracticeView } from 'src/sections/public/sql/sql-practice-view';
 
 // ----------------------------------------------------------------------
 
