@@ -839,9 +839,12 @@ export function CompareView() {
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 {entityOnlyA.map((e) => (
                   <Card key={e.id} variant="outlined" sx={{ p: 1.2, borderRadius: 1.5 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 800 }}>
-                      {e.name} <Chip label={e.role} size="small" sx={{ ml: 0.5, height: 20 }} />
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.3 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 800 }}>
+                        {e.name}
+                      </Typography>
+                      <Chip label={e.role} size="small" sx={{ height: 20 }} />
+                    </Box>
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                       {e.dept} ({e.id})
                     </Typography>
@@ -862,10 +865,12 @@ export function CompareView() {
                     variant="outlined"
                     sx={{ p: 1.2, borderRadius: 1.5, borderColor: 'info.light' }}
                   >
-                    <Typography variant="body2" sx={{ fontWeight: 800 }}>
-                      {e.name}{' '}
-                      <Chip label={e.role} color="info" size="small" sx={{ ml: 0.5, height: 20 }} />
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.3 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 800 }}>
+                        {e.name}
+                      </Typography>
+                      <Chip label={e.role} color="info" size="small" sx={{ height: 20 }} />
+                    </Box>
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                       {e.dept} ({e.id})
                     </Typography>
@@ -885,9 +890,12 @@ export function CompareView() {
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 {entityOnlyB.map((e) => (
                   <Card key={e.id} variant="outlined" sx={{ p: 1.2, borderRadius: 1.5 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 800 }}>
-                      {e.name} <Chip label={e.role} size="small" sx={{ ml: 0.5, height: 20 }} />
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.3 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 800 }}>
+                        {e.name}
+                      </Typography>
+                      <Chip label={e.role} size="small" sx={{ height: 20 }} />
+                    </Box>
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                       {e.dept} ({e.id})
                     </Typography>
