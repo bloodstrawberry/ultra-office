@@ -27,10 +27,16 @@ export const paths = {
     ladder: `/drawing/ladder`,
     roulette: `/drawing/roulette`,
   },
+  compare: '/compare',
+  imageTool: '/image-tool',
+  fileConvert: '/file-convert',
+  agent: '/agent',
+  spreadsheet: '/spreadsheet',
   text: {
     root: `/text`,
     diff: `/text/diff`,
     extract: `/text/extract`,
+    transform: `/text/transform`,
   },
   photo: {
     root: `/photo`,

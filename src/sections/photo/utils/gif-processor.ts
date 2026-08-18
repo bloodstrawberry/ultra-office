@@ -1,5 +1,4 @@
 import JSZip from 'jszip';
-// @ts-expect-error - gifshot does not have official ts types
 import gifshot from 'gifshot';
 import { parseGIF, decompressFrames, type ParsedFrame } from 'gifuct-js';
 

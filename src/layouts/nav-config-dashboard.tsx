@@ -5,10 +5,15 @@ import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
 import FolderRoundedIcon from '@mui/icons-material/FolderRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import CasinoRoundedIcon from '@mui/icons-material/CasinoRounded';
+import TableViewRoundedIcon from '@mui/icons-material/TableViewRounded';
 import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
 import HeadphonesRoundedIcon from '@mui/icons-material/HeadphonesRounded';
 import TextFieldsRoundedIcon from '@mui/icons-material/TextFieldsRounded';
+import PhotoFilterRoundedIcon from '@mui/icons-material/PhotoFilterRounded';
+import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import PhotoLibraryRoundedIcon from '@mui/icons-material/PhotoLibraryRounded';
+import CompareArrowsRoundedIcon from '@mui/icons-material/CompareArrowsRounded';
+import SwapHorizontalCircleRoundedIcon from '@mui/icons-material/SwapHorizontalCircleRounded';
 
 import { paths } from 'src/routes/paths';
 
@@ -21,6 +26,11 @@ const ICONS = {
   text: <TextFieldsRoundedIcon fontSize="small" />,
   photo: <PhotoLibraryRoundedIcon fontSize="small" />,
   drawing: <CasinoRoundedIcon fontSize="small" />,
+  compare: <CompareArrowsRoundedIcon fontSize="small" />,
+  imageTool: <PhotoFilterRoundedIcon fontSize="small" />,
+  agent: <AutoAwesomeRoundedIcon fontSize="small" />,
+  spreadsheet: <TableViewRoundedIcon fontSize="small" />,
+  fileConvert: <SwapHorizontalCircleRoundedIcon fontSize="small" />,
 };
 
 // ----------------------------------------------------------------------
@@ -68,12 +78,38 @@ export const navData: NavSectionProps['data'] = [
         ],
       },
       {
+        title: 'AI Agent',
+        path: paths.agent,
+        icon: ICONS.agent,
+      },
+      {
+        title: '스프레드시트',
+        path: paths.spreadsheet,
+        icon: ICONS.spreadsheet,
+      },
+      {
+        title: '데이터 비교',
+        path: paths.compare,
+        icon: ICONS.compare,
+      },
+      {
+        title: '이미지 도구',
+        path: paths.imageTool,
+        icon: ICONS.imageTool,
+      },
+      {
+        title: '파일 변환',
+        path: paths.fileConvert,
+        icon: ICONS.fileConvert,
+      },
+      {
         title: '텍스트',
         path: paths.text.root,
         icon: ICONS.text,
         children: [
-          { title: 'Diff', path: paths.text.diff },
-          { title: '추출', path: paths.text.extract },
+          { title: 'Diff 비교', path: paths.text.diff },
+          { title: '텍스트 추출', path: paths.text.extract },
+          { title: '텍스트 변환', path: paths.text.transform },
         ],
       },
       {
