@@ -6,8 +6,6 @@ import FolderRoundedIcon from '@mui/icons-material/FolderRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import CasinoRoundedIcon from '@mui/icons-material/CasinoRounded';
 import TableViewRoundedIcon from '@mui/icons-material/TableViewRounded';
-import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
-import HeadphonesRoundedIcon from '@mui/icons-material/HeadphonesRounded';
 import TextFieldsRoundedIcon from '@mui/icons-material/TextFieldsRounded';
 import PhotoFilterRoundedIcon from '@mui/icons-material/PhotoFilterRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
@@ -19,8 +17,6 @@ import { paths } from 'src/routes/paths';
 
 const ICONS = {
   folder: <FolderRoundedIcon fontSize="small" />,
-  practice: <AssignmentRoundedIcon fontSize="small" />,
-  listening: <HeadphonesRoundedIcon fontSize="small" />,
   home: <HomeRoundedIcon fontSize="small" />,
   search: <SearchRoundedIcon fontSize="small" />,
   text: <TextFieldsRoundedIcon fontSize="small" />,
@@ -59,24 +55,6 @@ export const navData: NavSectionProps['data'] = [
     items: [
       { title: 'Home', path: paths.home, icon: ICONS.home },
       { title: 'Drive', path: paths.fileManager, icon: ICONS.folder },
-      {
-        title: 'Practice',
-        path: paths.practice.root,
-        icon: ICONS.practice,
-        children: [
-          { title: '내 모의고사', path: paths.practice.myTests },
-          { title: '랜덤 모의고사', path: paths.practice.randomTest },
-        ],
-      },
-      {
-        title: 'Listening',
-        path: paths.listening.root,
-        icon: ICONS.listening,
-        children: [
-          { title: 'Playlist', path: paths.listening.playlist },
-          { title: '랜덤 듣기', path: paths.listening.random },
-        ],
-      },
       {
         title: 'AI Agent',
         path: paths.agent,
@@ -141,7 +119,10 @@ export const navData: NavSectionProps['data'] = [
         title: 'Public',
         path: paths.public.root,
         icon: ICONS.search,
-        children: [{ title: '주소 검색', path: paths.public.postcode }],
+        children: [
+          { title: '주소 검색', path: paths.public.postcode },
+          { title: 'SQL 연습', path: paths.public.sql },
+        ],
       },
       {
         title: 'Drawing',
@@ -164,33 +145,5 @@ export const mainNavData: NavMainProps['data'] = [
     title: 'Drive',
     path: paths.fileManager,
     icon: <FolderRoundedIcon sx={{ width: 22, height: 22 }} />,
-  },
-  {
-    title: 'Practice',
-    path: paths.practice.root,
-    icon: <AssignmentRoundedIcon sx={{ width: 22, height: 22 }} />,
-    children: [
-      {
-        subheader: 'Practice',
-        items: [
-          { title: '내 모의고사', path: paths.practice.myTests },
-          { title: '랜덤 모의고사', path: paths.practice.randomTest },
-        ],
-      },
-    ],
-  },
-  {
-    title: 'Listening',
-    path: paths.listening.root,
-    icon: <HeadphonesRoundedIcon sx={{ width: 22, height: 22 }} />,
-    children: [
-      {
-        subheader: 'Listening',
-        items: [
-          { title: 'Playlist', path: paths.listening.playlist },
-          { title: '랜덤 듣기', path: paths.listening.random },
-        ],
-      },
-    ],
   },
 ];

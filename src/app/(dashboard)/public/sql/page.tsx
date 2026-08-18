@@ -2,12 +2,12 @@ import type { Metadata } from 'next';
 
 import { CONFIG } from 'src/global-config';
 
-import { ListeningRandomView } from 'src/sections/listening/view';
+import { SqlPracticeView } from 'src/sections/public/sql';
 
 // ----------------------------------------------------------------------
 
-export const metadata: Metadata = { title: `랜덤 듣기 | Dashboard - ${CONFIG.appName}` };
+export const metadata: Metadata = { title: `SQL 연습 | Dashboard - ${CONFIG.appName}` };
 
 export default function Page() {
-  return <ListeningRandomView />;
+  return <SqlPracticeView />;
 }

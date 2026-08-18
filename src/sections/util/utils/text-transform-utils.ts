@@ -1,6 +1,6 @@
-import * as yaml from 'js-yaml';
 import xml2js from 'xml-js';
 import Papa from 'papaparse';
+import * as yaml from 'js-yaml';
 import CryptoJS from 'crypto-js';
 
 export type SupportedDataFormat = 'json' | 'csv' | 'xml' | 'yaml';
