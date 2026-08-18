@@ -8,6 +8,7 @@ import CasinoRoundedIcon from '@mui/icons-material/CasinoRounded';
 import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
 import HeadphonesRoundedIcon from '@mui/icons-material/HeadphonesRounded';
 import TextFieldsRoundedIcon from '@mui/icons-material/TextFieldsRounded';
+import PhotoLibraryRoundedIcon from '@mui/icons-material/PhotoLibraryRounded';
 
 import { paths } from 'src/routes/paths';
 
@@ -18,6 +19,7 @@ const ICONS = {
   home: <HomeRoundedIcon fontSize="small" />,
   search: <SearchRoundedIcon fontSize="small" />,
   text: <TextFieldsRoundedIcon fontSize="small" />,
+  photo: <PhotoLibraryRoundedIcon fontSize="small" />,
   drawing: <CasinoRoundedIcon fontSize="small" />,
 };
 
@@ -72,6 +74,31 @@ export const navData: NavSectionProps['data'] = [
         children: [
           { title: 'Diff', path: paths.text.diff },
           { title: '추출', path: paths.text.extract },
+        ],
+      },
+      {
+        title: '이미지 편집',
+        path: paths.photo.root,
+        icon: ICONS.photo,
+        children: [
+          { title: '전체 도구 허브', path: paths.photo.root },
+          { title: '화풍 변환', path: paths.photo.artStyle },
+          { title: '아스키 아트', path: paths.photo.ascii },
+          { title: '픽셀 아트', path: paths.photo.pixel },
+          { title: '글리치 효과', path: paths.photo.glitch },
+          { title: '인생네컷', path: paths.photo.fourCut },
+          { title: '배경색 변경', path: paths.photo.color },
+          { title: '스포이드 색상 추출', path: paths.photo.colorPicker },
+          { title: '사진 용량 압축', path: paths.photo.compress },
+          { title: '확장자 변환', path: paths.photo.convert },
+          { title: '도형 자르기', path: paths.photo.shapeCrop },
+          { title: '모자이크 & 블러', path: paths.photo.mosaic },
+          { title: '워터마크 각인', path: paths.photo.watermark },
+          { title: 'GIF 스튜디오', path: paths.photo.gif },
+          { title: 'PDF 스튜디오', path: paths.photo.pdf },
+          { title: '로고 만들기', path: paths.photo.logo },
+          { title: '세로 썸네일', path: paths.photo.sero },
+          { title: '가로 썸네일', path: paths.photo.garo },
         ],
       },
       {
