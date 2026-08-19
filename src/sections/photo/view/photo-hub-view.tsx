@@ -190,108 +190,110 @@ const TOOL_SECTIONS: { category: string; desc: string; tools: PhotoToolItem[] }[
 export function PhotoHubView() {
   return (
     <DashboardContent>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
+      <Box sx={{ mb: { xs: 2.5, md: 3 }, flexShrink: 0 }}>
+        <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
           이미지 편집 허브 (Photo Studio)
         </Typography>
-        <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
           브라우저 기반 100% 안전한 고속 이미지 편집 도구 모음입니다. 서버 업로드 없이
           클라이언트에서 즉시 처리됩니다.
         </Typography>
       </Box>
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-        {TOOL_SECTIONS.map((sec) => (
-          <Box key={sec.category}>
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                {sec.category}
-              </Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                {sec.desc}
-              </Typography>
-            </Box>
+      <Box sx={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', pb: 3 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3.5 }}>
+          {TOOL_SECTIONS.map((sec) => (
+            <Box key={sec.category}>
+              <Box sx={{ mb: 1.5 }}>
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                  {sec.category}
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                  {sec.desc}
+                </Typography>
+              </Box>
 
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: {
-                  xs: '1fr',
-                  sm: 'repeat(2, 1fr)',
-                  md: 'repeat(3, 1fr)',
-                  lg: 'repeat(4, 1fr)',
-                },
-                gap: 2,
-              }}
-            >
-              {sec.tools.map((tool) => (
-                <Card
-                  key={tool.id}
-                  component={Link}
-                  href={tool.href}
-                  sx={{
-                    p: 2.5,
-                    borderRadius: 3,
-                    textDecoration: 'none',
-                    color: 'text.primary',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    minHeight: 150,
-                    transition: 'transform 0.2s, box-shadow 0.2s',
-                    '&:hover': {
-                      transform: 'translateY(-4px)',
-                      boxShadow: (theme) => theme.shadows[8],
-                      borderColor: 'primary.main',
-                    },
-                  }}
-                >
-                  <Box>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        mb: 1.5,
-                      }}
-                    >
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: {
+                    xs: '1fr',
+                    sm: 'repeat(2, 1fr)',
+                    md: 'repeat(3, 1fr)',
+                    lg: 'repeat(4, 1fr)',
+                  },
+                  gap: 2,
+                }}
+              >
+                {sec.tools.map((tool) => (
+                  <Card
+                    key={tool.id}
+                    component={Link}
+                    href={tool.href}
+                    sx={{
+                      p: 2.5,
+                      borderRadius: 2,
+                      textDecoration: 'none',
+                      color: 'text.primary',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      minHeight: 150,
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: (theme) => theme.customShadows?.z8 || theme.shadows[8],
+                        borderColor: 'primary.main',
+                      },
+                    }}
+                  >
+                    <Box>
                       <Box
                         sx={{
-                          width: 44,
-                          height: 44,
-                          borderRadius: 2,
-                          bgcolor: 'action.hover',
                           display: 'flex',
+                          justifyContent: 'space-between',
                           alignItems: 'center',
-                          justifyContent: 'center',
+                          mb: 1.5,
                         }}
                       >
-                        {tool.icon}
+                        <Box
+                          sx={{
+                            width: 44,
+                            height: 44,
+                            borderRadius: 2,
+                            bgcolor: 'action.hover',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          {tool.icon}
+                        </Box>
+                        {tool.tag && (
+                          <Chip
+                            label={tool.tag}
+                            size="small"
+                            color={tool.badgeColor || 'primary'}
+                            sx={{ fontWeight: 700, height: 22, fontSize: '0.7rem' }}
+                          />
+                        )}
                       </Box>
-                      {tool.tag && (
-                        <Chip
-                          label={tool.tag}
-                          size="small"
-                          color={tool.badgeColor || 'primary'}
-                          sx={{ fontWeight: 700, height: 22, fontSize: '0.7rem' }}
-                        />
-                      )}
+                      <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 0.5 }}>
+                        {tool.title}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{ color: 'text.secondary', fontSize: '0.8rem', lineHeight: 1.4 }}
+                      >
+                        {tool.desc}
+                      </Typography>
                     </Box>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 0.5 }}>
-                      {tool.title}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{ color: 'text.secondary', fontSize: '0.8rem', lineHeight: 1.4 }}
-                    >
-                      {tool.desc}
-                    </Typography>
-                  </Box>
-                </Card>
-              ))}
+                  </Card>
+                ))}
+              </Box>
             </Box>
-          </Box>
-        ))}
+          ))}
+        </Box>
       </Box>
     </DashboardContent>
   );

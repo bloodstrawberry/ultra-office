@@ -15,9 +15,6 @@ const nextConfig: any = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   env: {
     BUILD_STATIC_EXPORT: JSON.stringify(isStaticExport),
   },

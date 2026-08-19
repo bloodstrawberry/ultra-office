@@ -22,12 +22,10 @@ export function DashboardContent({
   children,
   className,
   disablePadding,
-  maxWidth = 'lg',
+  maxWidth = false,
   layoutQuery = 'lg',
   ...other
 }: DashboardContentProps) {
-  const isNavHorizontal = false;
-
   return (
     <Container
       className={mergeClasses([layoutClasses.content, className])}
@@ -37,13 +35,13 @@ export function DashboardContent({
           display: 'flex',
           flex: '1 1 auto',
           flexDirection: 'column',
+          minHeight: 0,
+          width: '100%',
+          maxWidth: 'none !important',
+          overflow: 'hidden',
           pt: 'var(--layout-dashboard-content-pt)',
           pb: 'var(--layout-dashboard-content-pb)',
-          [theme.breakpoints.up(layoutQuery)]: {
-            px: 'var(--layout-dashboard-content-px)',
-            ...(isNavHorizontal ? { '--layout-dashboard-content-pt': '40px' } : {}),
-            ...{ maxWidth: '90%' },
-          },
+          px: disablePadding ? 0 : { xs: 2, sm: 3 },
           ...(disablePadding
             ? {
                 p: {

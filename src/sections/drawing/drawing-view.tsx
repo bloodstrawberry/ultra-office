@@ -3,7 +3,6 @@
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
-import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
@@ -43,70 +42,85 @@ export function DrawingView() {
   ];
 
   return (
-    <DashboardContent maxWidth="lg">
-      <Stack spacing={2} sx={{ mb: 5 }}>
-        <Typography variant="h4">그리기 및 게임</Typography>
+    <DashboardContent>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1,
+          mb: { xs: 3, md: 4 },
+          flexShrink: 0,
+        }}
+      >
+        <Typography variant="h4" sx={{ fontWeight: 800 }}>
+          그리기 및 게임
+        </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
           친구들과의 내기, 벌칙 정하기, 혹은 결정을 내려야 할 때 복불복 게임을 통해 쉽고 재밌게
           결정해보세요.
         </Typography>
-      </Stack>
+      </Box>
 
-      <Grid container spacing={3}>
-        {games.map((game) => (
-          <Grid size={{ xs: 12, md: 6 }} key={game.title}>
-            <Card
-              sx={{
-                height: '100%',
-                transition: (theme) =>
-                  theme.transitions.create(['transform', 'box-shadow'], {
-                    duration: theme.transitions.duration.shortest,
-                  }),
-                '&:hover': {
-                  transform: 'translateY(-6px)',
-                  boxShadow: (theme) => theme.customShadows?.z16 || theme.shadows[16],
-                },
-              }}
-            >
-              <CardActionArea
-                component={RouterLink}
-                href={game.path}
+      <Box sx={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', pb: 2 }}>
+        <Grid container spacing={3}>
+          {games.map((game) => (
+            <Grid size={{ xs: 12, md: 6 }} key={game.title}>
+              <Card
                 sx={{
+                  borderRadius: 2,
                   height: '100%',
-                  display: 'flex',
-                  alignItems: 'stretch',
-                  textAlign: 'left',
+                  transition: (theme) =>
+                    theme.transitions.create(['transform', 'box-shadow'], {
+                      duration: theme.transitions.duration.shortest,
+                    }),
+                  '&:hover': {
+                    transform: 'translateY(-6px)',
+                    boxShadow: (theme) => theme.customShadows?.z16 || theme.shadows[16],
+                  },
                 }}
               >
-                <CardContent sx={{ p: 4, width: '100%', display: 'flex', flexDirection: 'column' }}>
-                  <Box sx={{ mb: 3 }}>{game.icon}</Box>
-
-                  <Typography variant="h5" sx={{ mb: 1.5 }}>
-                    {game.title}
-                  </Typography>
-
-                  <Typography
-                    variant="body2"
-                    sx={{ color: 'text.secondary', flexGrow: 1, mb: 3, lineHeight: 1.6 }}
+                <CardActionArea
+                  component={RouterLink}
+                  href={game.path}
+                  sx={{
+                    height: '100%',
+                    display: 'flex',
+                    alignItems: 'stretch',
+                    textAlign: 'left',
+                  }}
+                >
+                  <CardContent
+                    sx={{ p: 4, width: '100%', display: 'flex', flexDirection: 'column' }}
                   >
-                    {game.description}
-                  </Typography>
+                    <Box sx={{ mb: 3 }}>{game.icon}</Box>
 
-                  <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <Button
-                      variant="soft"
-                      color={game.color as 'primary' | 'secondary'}
-                      endIcon={<span>&rarr;</span>}
+                    <Typography variant="h5" sx={{ mb: 1.5, fontWeight: 700 }}>
+                      {game.title}
+                    </Typography>
+
+                    <Typography
+                      variant="body2"
+                      sx={{ color: 'text.secondary', flexGrow: 1, mb: 3, lineHeight: 1.6 }}
                     >
-                      게임하러 가기
-                    </Button>
-                  </Box>
-                </CardContent>
-              </CardActionArea>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+                      {game.description}
+                    </Typography>
+
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <Button
+                        variant="soft"
+                        color={game.color as 'primary' | 'secondary'}
+                        endIcon={<span>&rarr;</span>}
+                      >
+                        게임하러 가기
+                      </Button>
+                    </Box>
+                  </CardContent>
+                </CardActionArea>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
     </DashboardContent>
   );
 }

@@ -4,7 +4,6 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
-import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import TextField from '@mui/material/TextField';
@@ -407,247 +406,263 @@ export function LadderView() {
   };
 
   return (
-    <DashboardContent maxWidth="lg">
-      <Stack spacing={2} sx={{ mb: 4 }}>
-        <Typography variant="h4">사다리 타기</Typography>
+    <DashboardContent>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1,
+          mb: { xs: 2.5, md: 3 },
+          flexShrink: 0,
+        }}
+      >
+        <Typography variant="h4" sx={{ fontWeight: 800 }}>
+          사다리 타기
+        </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
           참여자의 이름과 당첨/벌칙 내용을 작성한 뒤 사다리를 돌려서 결과를 맞춰보세요.
         </Typography>
-      </Stack>
+      </Box>
 
-      <Stack spacing={3} direction={{ xs: 'column', lg: 'row' }}>
-        {/* Left Side: Setup Column */}
-        <Card sx={{ flexShrink: 0, width: { xs: '100%', lg: 380 } }}>
-          <CardHeader
-            title="게임 설정"
-            subheader={`현재 참여자 수: ${N}명 (최소 2명, 최대 8명)`}
-            action={
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={handleAddParticipant}
-                disabled={participants.length >= 8 || isAnimating}
-                startIcon={<AddRoundedIcon />}
-              >
-                인원 추가
-              </Button>
-            }
-          />
-          <Divider />
-          <CardContent sx={{ maxHeight: 560, overflowY: 'auto' }}>
-            <Stack spacing={2.5}>
-              {participants.map((p, idx) => (
-                <Stack key={p.id} direction="row" spacing={1.5} alignItems="center">
-                  <Box
-                    sx={{
-                      width: 8,
-                      height: 36,
-                      borderRadius: 1,
-                      bgcolor: LINE_COLORS[idx % LINE_COLORS.length],
-                    }}
-                  />
-                  <TextField
-                    size="small"
-                    label={`참가자 ${idx + 1}`}
-                    value={p.name}
-                    onChange={(e) => handleNameChange(idx, e.target.value)}
-                    disabled={isAnimating}
-                    fullWidth
-                  />
-                  <TextField
-                    size="small"
-                    label={`결과 ${idx + 1}`}
-                    value={rewards[idx]?.text || ''}
-                    onChange={(e) => handleRewardChange(idx, e.target.value)}
-                    disabled={isAnimating}
-                    fullWidth
-                  />
-                  <IconButton
-                    color="error"
-                    onClick={() => handleRemoveParticipant(idx)}
-                    disabled={participants.length <= 2 || isAnimating}
-                    size="small"
-                  >
-                    <DeleteOutlineRoundedIcon />
-                  </IconButton>
-                </Stack>
-              ))}
-            </Stack>
-          </CardContent>
-          <Divider />
-          <Box sx={{ p: 2, display: 'flex', gap: 1.5 }}>
-            <Button
-              variant="outlined"
-              color="inherit"
-              fullWidth
-              onClick={generateLadder}
-              disabled={isAnimating}
-              startIcon={<AutorenewRoundedIcon />}
-            >
-              다시 그리기
-            </Button>
-            <Button
-              variant="contained"
-              color="primary"
-              fullWidth
-              onClick={startAll}
-              disabled={isAnimating}
-              startIcon={<PlayArrowRoundedIcon />}
-            >
-              전체 시작
-            </Button>
-          </Box>
-        </Card>
-
-        {/* Right Side: Game Board (Canvas) */}
-        <Stack spacing={3} sx={{ flexGrow: 1, minWidth: 0 }}>
-          <Card
-            sx={{
-              p: 3,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              overflowX: 'auto',
-              position: 'relative',
-            }}
-          >
-            <Box
-              sx={{
-                width: canvasWidth,
-                position: 'relative',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'stretch',
-              }}
-            >
-              {/* Top Participant Names */}
-              <Box sx={{ position: 'relative', mb: 2, height: 40, width: canvasWidth }}>
+      <Box sx={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', pb: 2 }}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, gap: 3 }}>
+          {/* Left Side: Setup Column */}
+          <Card sx={{ flexShrink: 0, width: { xs: '100%', lg: 380 }, borderRadius: 2 }}>
+            <CardHeader
+              title="게임 설정"
+              subheader={`현재 참여자 수: ${N}명 (최소 2명, 최대 8명)`}
+              action={
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={handleAddParticipant}
+                  disabled={participants.length >= 8 || isAnimating}
+                  startIcon={<AddRoundedIcon />}
+                >
+                  인원 추가
+                </Button>
+              }
+            />
+            <Divider />
+            <CardContent sx={{ maxHeight: 560, overflowY: 'auto' }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
                 {participants.map((p, idx) => (
                   <Box
                     key={p.id}
-                    sx={{
-                      position: 'absolute',
-                      left: getX(idx),
-                      top: 0,
-                    }}
-                  >
-                    <Button
-                      size="small"
-                      variant="soft"
-                      onClick={() => startSingle(idx)}
-                      disabled={isAnimating}
-                      sx={{
-                        transform: 'translateX(-50%)',
-                        whiteSpace: 'nowrap',
-                        px: 1.5,
-                        py: 0.5,
-                        minWidth: 70,
-                        backgroundColor: LINE_COLORS[idx % LINE_COLORS.length] + '20',
-                        color: LINE_COLORS[idx % LINE_COLORS.length],
-                        border: `1px solid ${LINE_COLORS[idx % LINE_COLORS.length]}`,
-                        fontWeight: 'bold',
-                        zIndex: 10,
-                      }}
-                    >
-                      {p.name}
-                    </Button>
-                  </Box>
-                ))}
-              </Box>
-
-              {/* Canvas Board */}
-              <canvas
-                ref={canvasRef}
-                style={{
-                  width: canvasWidth,
-                  height: canvasHeight,
-                  display: 'block',
-                }}
-              />
-
-              {/* Bottom Rewards Text */}
-              <Box sx={{ position: 'relative', mt: 2, height: 40, width: canvasWidth }}>
-                {rewards.map((r, idx) => (
-                  <Box
-                    key={r.id}
-                    sx={{
-                      position: 'absolute',
-                      left: getX(idx),
-                      top: 0,
-                    }}
+                    sx={{ display: 'flex', flexDirection: 'row', gap: 1.5, alignItems: 'center' }}
                   >
                     <Box
                       sx={{
-                        transform: 'translateX(-50%)',
-                        whiteSpace: 'nowrap',
-                        px: 2,
-                        py: 0.8,
+                        width: 8,
+                        height: 36,
                         borderRadius: 1,
-                        bgcolor: 'background.neutral',
-                        border: (t) => `1px solid ${t.palette.divider}`,
-                        color: 'text.primary',
-                        fontSize: '0.875rem',
-                        fontWeight: 'medium',
+                        bgcolor: LINE_COLORS[idx % LINE_COLORS.length],
                       }}
+                    />
+                    <TextField
+                      size="small"
+                      label={`참가자 ${idx + 1}`}
+                      value={p.name}
+                      onChange={(e) => handleNameChange(idx, e.target.value)}
+                      disabled={isAnimating}
+                      fullWidth
+                    />
+                    <TextField
+                      size="small"
+                      label={`결과 ${idx + 1}`}
+                      value={rewards[idx]?.text || ''}
+                      onChange={(e) => handleRewardChange(idx, e.target.value)}
+                      disabled={isAnimating}
+                      fullWidth
+                    />
+                    <IconButton
+                      color="error"
+                      onClick={() => handleRemoveParticipant(idx)}
+                      disabled={participants.length <= 2 || isAnimating}
+                      size="small"
                     >
-                      {r.text}
-                    </Box>
+                      <DeleteOutlineRoundedIcon />
+                    </IconButton>
                   </Box>
                 ))}
               </Box>
+            </CardContent>
+            <Divider />
+            <Box sx={{ p: 2, display: 'flex', gap: 1.5 }}>
+              <Button
+                variant="outlined"
+                color="inherit"
+                fullWidth
+                onClick={generateLadder}
+                disabled={isAnimating}
+                startIcon={<AutorenewRoundedIcon />}
+              >
+                다시 그리기
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                fullWidth
+                onClick={startAll}
+                disabled={isAnimating}
+                startIcon={<PlayArrowRoundedIcon />}
+              >
+                전체 시작
+              </Button>
             </Box>
           </Card>
 
-          {/* Results Summary Card */}
-          {Object.keys(results).length > 0 && (
-            <Card sx={{ p: 3 }}>
-              <Typography variant="subtitle1" sx={{ mb: 2 }}>
-                🎯 결과 요약
-              </Typography>
+          {/* Right Side: Game Board (Canvas) */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, flexGrow: 1, minWidth: 0 }}>
+            <Card
+              sx={{
+                p: 3,
+                borderRadius: 2,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                overflowX: 'auto',
+                position: 'relative',
+              }}
+            >
               <Box
                 sx={{
-                  display: 'grid',
-                  gap: 2,
-                  gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' },
+                  width: canvasWidth,
+                  position: 'relative',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'stretch',
                 }}
               >
-                {participants.map((p) => {
-                  const rewardVal = results[p.name];
-                  if (!rewardVal) return null;
-                  return (
+                {/* Top Participant Names */}
+                <Box sx={{ position: 'relative', mb: 2, height: 40, width: canvasWidth }}>
+                  {participants.map((p, idx) => (
                     <Box
                       key={p.id}
                       sx={{
-                        p: 2,
-                        borderRadius: 1.5,
-                        bgcolor: 'background.neutral',
-                        border: (t) => `1px solid ${t.palette.divider}`,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 0.5,
+                        position: 'absolute',
+                        left: getX(idx),
+                        top: 0,
                       }}
                     >
-                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                        참가자
-                      </Typography>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                      <Button
+                        size="small"
+                        variant="soft"
+                        onClick={() => startSingle(idx)}
+                        disabled={isAnimating}
+                        sx={{
+                          transform: 'translateX(-50%)',
+                          whiteSpace: 'nowrap',
+                          px: 1.5,
+                          py: 0.5,
+                          minWidth: 70,
+                          backgroundColor: LINE_COLORS[idx % LINE_COLORS.length] + '20',
+                          color: LINE_COLORS[idx % LINE_COLORS.length],
+                          border: `1px solid ${LINE_COLORS[idx % LINE_COLORS.length]}`,
+                          fontWeight: 'bold',
+                          zIndex: 10,
+                        }}
+                      >
                         {p.name}
-                      </Typography>
-                      <Divider sx={{ my: 1 }} />
-                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                        결과
-                      </Typography>
-                      <Typography variant="body2" color="primary" sx={{ fontWeight: 'bold' }}>
-                        {rewardVal}
-                      </Typography>
+                      </Button>
                     </Box>
-                  );
-                })}
+                  ))}
+                </Box>
+
+                {/* Canvas Board */}
+                <canvas
+                  ref={canvasRef}
+                  style={{
+                    width: canvasWidth,
+                    height: canvasHeight,
+                    display: 'block',
+                  }}
+                />
+
+                {/* Bottom Rewards Text */}
+                <Box sx={{ position: 'relative', mt: 2, height: 40, width: canvasWidth }}>
+                  {rewards.map((r, idx) => (
+                    <Box
+                      key={r.id}
+                      sx={{
+                        position: 'absolute',
+                        left: getX(idx),
+                        top: 0,
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          transform: 'translateX(-50%)',
+                          whiteSpace: 'nowrap',
+                          px: 2,
+                          py: 0.8,
+                          borderRadius: 1,
+                          bgcolor: 'background.neutral',
+                          border: (t) => `1px solid ${t.palette.divider}`,
+                          color: 'text.primary',
+                          fontSize: '0.875rem',
+                          fontWeight: 'medium',
+                        }}
+                      >
+                        {r.text}
+                      </Box>
+                    </Box>
+                  ))}
+                </Box>
               </Box>
             </Card>
-          )}
-        </Stack>
-      </Stack>
+
+            {/* Results Summary Card */}
+            {Object.keys(results).length > 0 && (
+              <Card sx={{ p: 3, borderRadius: 2 }}>
+                <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 700 }}>
+                  🎯 결과 요약
+                </Typography>
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gap: 2,
+                    gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' },
+                  }}
+                >
+                  {participants.map((p) => {
+                    const rewardVal = results[p.name];
+                    if (!rewardVal) return null;
+                    return (
+                      <Box
+                        key={p.id}
+                        sx={{
+                          p: 2,
+                          borderRadius: 1.5,
+                          bgcolor: 'background.neutral',
+                          border: (t) => `1px solid ${t.palette.divider}`,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 0.5,
+                        }}
+                      >
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                          참가자
+                        </Typography>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                          {p.name}
+                        </Typography>
+                        <Divider sx={{ my: 1 }} />
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                          결과
+                        </Typography>
+                        <Typography variant="body2" color="primary" sx={{ fontWeight: 'bold' }}>
+                          {rewardVal}
+                        </Typography>
+                      </Box>
+                    );
+                  })}
+                </Box>
+              </Card>
+            )}
+          </Box>
+        </Box>
+      </Box>
     </DashboardContent>
   );
 }

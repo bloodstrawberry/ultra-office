@@ -5,7 +5,7 @@ import ReactDiffViewer from 'react-diff-viewer-continued';
 
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
-import { Box, Card, Grid, Stack, Tooltip, Typography, IconButton } from '@mui/material';
+import { Box, Card, Grid, Tooltip, Typography, IconButton } from '@mui/material';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
@@ -41,10 +41,9 @@ export function TextDiffView() {
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        height:
-          'calc(100vh - var(--layout-header-desktop-height) - var(--layout-dashboard-content-pt) - 24px)',
-        pb: 2,
+        flex: '1 1 auto',
         minHeight: 0,
+        pb: 2,
       }}
     >
       <Box
@@ -59,14 +58,23 @@ export function TextDiffView() {
             : { height: `${diff.inputHeight}px` }),
         }}
       >
-        <Card sx={{ p: 2, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <Card
+          sx={{
+            p: 2,
+            borderRadius: 2,
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+          }}
+        >
           <Box
             sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}
           >
-            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+            <Typography variant="h6" sx={{ fontWeight: 800 }}>
               비교하고 싶은 텍스트를 입력해주세요.
             </Typography>
-            <Stack direction="row" spacing={1}>
+            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1 }}>
               <Tooltip title="텍스트 스왑">
                 <IconButton size="small" onClick={diff.handleSwap}>
                   <SwapHorizIcon />
@@ -77,7 +85,7 @@ export function TextDiffView() {
                   <DeleteSweepIcon />
                 </IconButton>
               </Tooltip>
-            </Stack>
+            </Box>
           </Box>
           <Grid container spacing={2} sx={{ flex: 1, minHeight: 0 }}>
             <Grid size={{ xs: 12, md: 6 }} sx={{ height: '100%' }}>
@@ -108,10 +116,10 @@ export function TextDiffView() {
 
       <Scrollbar
         sx={{
-          borderRadius: 1,
+          borderRadius: 2,
           border: '1px solid',
           borderColor: 'divider',
-          bgcolor: diff.useDarkTheme ? 'grey.900' : 'common.white',
+          bgcolor: diff.useDarkTheme ? 'grey.900' : 'background.paper',
           minHeight: 0,
           ...(!isResized ? { flex: '1 1 50%' } : { flex: 1 }),
         }}

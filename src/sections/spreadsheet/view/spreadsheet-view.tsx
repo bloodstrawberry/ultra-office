@@ -2,7 +2,7 @@
 
 import { toast } from 'sonner';
 import dynamic from 'next/dynamic';
-import React, { useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -20,17 +20,18 @@ import FormatListBulletedRoundedIcon from '@mui/icons-material/FormatListBullete
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import {
-  loadPlTemplate,
-  loadKpiTemplate,
-  loadWbsTemplate,
-  loadBudgetTemplate,
-  generateEmptySheet,
-  exportFortuneToCSV,
-  importCSVToFortune,
-  exportFortuneToXLSX,
-  importXLSXToFortune,
-  type FortuneSheetData,
   applyDropdownValidation,
+  exportFortuneToCSV,
+  exportFortuneToXLSX,
+  type FortuneSheetData,
+  generateEmptySheet,
+  importCSVToFortune,
+  importXLSXToFortune,
+  loadBudgetTemplate,
+  loadKpiTemplate,
+  loadPlTemplate,
+  loadWbsTemplate,
+  type WorkbookInstance,
 } from 'src/components/fortune-spreadsheet';
 
 // Dynamically import FortuneSpreadsheet with SSR disabled
@@ -41,7 +42,8 @@ const FortuneSpreadsheet = dynamic(
     loading: () => (
       <Box
         sx={{
-          height: 'calc(100vh - 280px)',
+          height: '100%',
+          minHeight: 400,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -63,6 +65,7 @@ export function SpreadsheetView() {
   const [activeTemplate, setActiveTemplate] = useState<'kpi' | 'budget' | 'wbs' | 'pl' | 'custom'>(
     'kpi'
   );
+  const workbookRef = useRef<WorkbookInstance>(null);
 
   const handleSheetChange = useCallback((newData: FortuneSheetData[]) => {
     setSheetData(newData);
@@ -104,16 +107,45 @@ export function SpreadsheetView() {
   };
 
   const handleExportXlsx = () => {
-    if (sheetData[0]) {
-      exportFortuneToXLSX(sheetData[0]);
+    const liveSheets = workbookRef.current?.getAllSheets?.();
+    const sheetsToExport =
+      liveSheets && liveSheets.length > 0
+        ? (liveSheets as unknown as FortuneSheetData[])
+        : sheetData;
+
+    if (!sheetsToExport || sheetsToExport.length === 0) {
+      toast.warning('내보낼 시트 데이터가 없습니다.');
+      return;
+    }
+
+    const currentSheetName = sheetsToExport[0]?.name || 'spreadsheet';
+    const success = exportFortuneToXLSX(sheetsToExport, currentSheetName);
+    if (success) {
       toast.success('Excel (.xlsx) 파일이 다운로드되었습니다.');
+    } else {
+      toast.warning('시트에 작성된 내용이 없습니다.');
     }
   };
 
   const handleExportCsv = () => {
-    if (sheetData[0]) {
-      exportFortuneToCSV(sheetData[0]);
+    const liveSheets = workbookRef.current?.getAllSheets?.();
+    const sheetsToExport =
+      liveSheets && liveSheets.length > 0
+        ? (liveSheets as unknown as FortuneSheetData[])
+        : sheetData;
+    const targetSheet = sheetsToExport?.[0];
+
+    if (!targetSheet) {
+      toast.warning('내보낼 시트 데이터가 없습니다.');
+      return;
+    }
+
+    const currentSheetName = targetSheet.name || 'spreadsheet';
+    const success = exportFortuneToCSV(targetSheet, currentSheetName);
+    if (success) {
       toast.success('CSV 파일이 다운로드되었습니다.');
+    } else {
+      toast.warning('시트에 작성된 내용이 없습니다.');
     }
   };
 
@@ -166,7 +198,7 @@ export function SpreadsheetView() {
 
   return (
     <DashboardContent>
-      <Box sx={{ mb: 2.5 }}>
+      <Box sx={{ mb: 2, flexShrink: 0 }}>
         <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
           스마트 스프레드시트 (Enterprise Spreadsheet)
         </Typography>
@@ -187,6 +219,7 @@ export function SpreadsheetView() {
           justifyContent: 'space-between',
           flexWrap: 'wrap',
           gap: 1.5,
+          flexShrink: 0,
         }}
       >
         {/* Template Selectors */}
@@ -281,12 +314,15 @@ export function SpreadsheetView() {
       </Card>
 
       {/* Spreadsheet Canvas */}
-      <FortuneSpreadsheet
-        key={resetCounter}
-        data={sheetData}
-        onChange={handleSheetChange}
-        height="calc(100vh - 280px)"
-      />
+      <Box sx={{ flex: '1 1 auto', minHeight: 0, pb: 2, display: 'flex', flexDirection: 'column' }}>
+        <FortuneSpreadsheet
+          ref={workbookRef}
+          key={resetCounter}
+          data={sheetData}
+          onChange={handleSheetChange}
+          height="100%"
+        />
+      </Box>
     </DashboardContent>
   );
 }

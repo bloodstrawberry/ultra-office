@@ -1,7 +1,7 @@
 'use client';
 
 import { toast } from 'sonner';
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
@@ -23,6 +23,8 @@ import ArrowUpwardRoundedIcon from '@mui/icons-material/ArrowUpwardRounded';
 import RotateRightRoundedIcon from '@mui/icons-material/RotateRightRounded';
 import PictureAsPdfRoundedIcon from '@mui/icons-material/PictureAsPdfRounded';
 import ArrowDownwardRoundedIcon from '@mui/icons-material/ArrowDownwardRounded';
+
+import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
@@ -58,8 +60,7 @@ export function PdfView() {
   const pdfInputRef = useRef<HTMLInputElement>(null);
 
   // Tab 1: Upload Images
-  const handleImagesUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
+  const addImages = useCallback((files: File[]) => {
     if (files.length === 0) return;
 
     const newPages: PdfImageItem[] = [];
@@ -84,7 +85,11 @@ export function PdfView() {
       };
       reader.readAsDataURL(file);
     });
+  }, []);
 
+  const handleImagesUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    addImages(files);
     if (e.target) e.target.value = '';
   };
 
@@ -135,10 +140,7 @@ export function PdfView() {
   };
 
   // Tab 2: Extract PDF pages
-  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const processPdfFile = useCallback(async (file: File) => {
     setExtractPdfFile(file);
     setIsExtracting(true);
     toast.info('PDF 페이지를 이미지로 변환하고 있습니다...');
@@ -153,9 +155,29 @@ export function PdfView() {
     } finally {
       setIsExtracting(false);
     }
+  }, []);
 
+  const handlePdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    processPdfFile(file);
     if (e.target) e.target.value = '';
   };
+
+  const createDrop = useImageDropPaste({
+    onFiles: addImages,
+    multiple: true,
+    disabled: currentTab !== 'create',
+  });
+
+  const extractDrop = useImageDropPaste({
+    onFiles: (files) => {
+      if (files[0]) processPdfFile(files[0]);
+    },
+    accept: ['application/pdf', '.pdf'],
+    multiple: false,
+    disabled: currentTab !== 'extract',
+  });
 
   const toggleSelectExtractPage = (id: string) => {
     setSelectedExtractPages((prev) => {
@@ -228,7 +250,9 @@ export function PdfView() {
 
           {pages.length === 0 ? (
             <Card
-              onClick={() => fileInputRef.current?.click()}
+              {...createDrop.getRootProps({
+                onClick: () => fileInputRef.current?.click(),
+              })}
               sx={{
                 p: 6,
                 display: 'flex',
@@ -237,9 +261,12 @@ export function PdfView() {
                 justifyContent: 'center',
                 cursor: 'pointer',
                 border: '2px dashed',
-                borderColor: 'divider',
+                borderColor: createDrop.isDragActive ? 'primary.main' : 'divider',
+                bgcolor: createDrop.isDragActive ? 'action.hover' : 'transparent',
                 borderRadius: 3,
                 minHeight: 320,
+                transition: (theme) =>
+                  theme.transitions.create(['border-color', 'background-color']),
                 '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
               }}
             >
@@ -494,7 +521,9 @@ export function PdfView() {
 
           {!extractPdfFile ? (
             <Card
-              onClick={() => pdfInputRef.current?.click()}
+              {...extractDrop.getRootProps({
+                onClick: () => pdfInputRef.current?.click(),
+              })}
               sx={{
                 p: 6,
                 display: 'flex',
@@ -503,9 +532,12 @@ export function PdfView() {
                 justifyContent: 'center',
                 cursor: 'pointer',
                 border: '2px dashed',
-                borderColor: 'divider',
+                borderColor: extractDrop.isDragActive ? 'primary.main' : 'divider',
+                bgcolor: extractDrop.isDragActive ? 'action.hover' : 'transparent',
                 borderRadius: 3,
                 minHeight: 320,
+                transition: (theme) =>
+                  theme.transitions.create(['border-color', 'background-color']),
                 '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
               }}
             >

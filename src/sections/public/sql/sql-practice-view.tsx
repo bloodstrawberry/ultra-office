@@ -6,7 +6,6 @@ import React, { useState, useCallback } from 'react';
 
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
-import Grid from '@mui/material/Grid';
 import Tabs from '@mui/material/Tabs';
 import Button from '@mui/material/Button';
 import Select from '@mui/material/Select';
@@ -119,8 +118,7 @@ export function SqlPracticeView() {
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        height:
-          'calc(100vh - var(--layout-header-desktop-height) - var(--layout-dashboard-content-pt) - 24px)',
+        flex: '1 1 auto',
         pb: 1,
         minHeight: 0,
         overflow: 'hidden',
@@ -142,7 +140,7 @@ export function SqlPracticeView() {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <StorageRoundedIcon color="primary" sx={{ fontSize: 28 }} />
-            <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+            <Typography variant="h4" sx={{ fontWeight: 800 }}>
               SQL 연습실
             </Typography>
           </Box>
@@ -235,59 +233,65 @@ export function SqlPracticeView() {
       </Box>
 
       {/* Main Workspace Panels */}
-      <Box sx={{ flex: 1, minHeight: 0, display: 'flex' }}>
-        <Grid container spacing={2} sx={{ height: '100%', minHeight: 0, flex: 1 }}>
-          {/* Left Panel: Problem List or Schema Browser */}
-          <Grid
-            size={{ xs: 12, md: mode === 'challenges' ? 4 : 3.5 }}
-            sx={{ height: '100%', minHeight: 0 }}
-          >
-            {mode === 'challenges' ? (
-              <SqlProblemPanel
-                problems={SAMPLE_PROBLEMS}
-                selectedProblem={selectedProblem}
-                onSelectProblem={handleSelectProblem}
-                solvedProblemIds={solvedProblemIds}
-                verificationResult={verificationResult}
-                onInsertSolution={handleInsertQuery}
-              />
-            ) : (
-              <SchemaBrowser dataset={currentDataset} onInsertQuery={handleInsertQuery} />
-            )}
-          </Grid>
+      <Box
+        sx={{
+          flex: 1,
+          minHeight: 0,
+          display: 'grid',
+          gridTemplateColumns: {
+            xs: '1fr',
+            md: mode === 'challenges' ? '380px 1fr' : '320px 1fr',
+          },
+          gap: 2,
+          width: '100%',
+        }}
+      >
+        {/* Left Panel: Problem List or Schema Browser */}
+        <Box sx={{ height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+          {mode === 'challenges' ? (
+            <SqlProblemPanel
+              problems={SAMPLE_PROBLEMS}
+              selectedProblem={selectedProblem}
+              onSelectProblem={handleSelectProblem}
+              solvedProblemIds={solvedProblemIds}
+              verificationResult={verificationResult}
+              onInsertSolution={handleInsertQuery}
+            />
+          ) : (
+            <SchemaBrowser dataset={currentDataset} onInsertQuery={handleInsertQuery} />
+          )}
+        </Box>
 
-          {/* Right Panel: Editor (Top) & Result Table (Bottom) */}
-          <Grid
-            size={{ xs: 12, md: mode === 'challenges' ? 8 : 8.5 }}
-            sx={{
-              height: '100%',
-              minHeight: 0,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 2,
-            }}
-          >
-            {/* Editor Top (45% height) */}
-            <Box sx={{ flex: '1 1 45%', minHeight: 180, display: 'flex' }}>
-              <SqlEditorPanel
-                value={editorSql}
-                onChange={setEditorSql}
-                onRun={handleRunQuery}
-                onSubmit={mode === 'challenges' ? handleSubmitChallenge : undefined}
-                isChallengeMode={mode === 'challenges'}
-                datasetName={currentDataset.name}
-              />
-            </Box>
+        {/* Right Panel: Editor (Top) & Result Table (Bottom) */}
+        <Box
+          sx={{
+            height: '100%',
+            minHeight: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+          }}
+        >
+          {/* Editor Top (45% height) */}
+          <Box sx={{ flex: '1 1 45%', minHeight: 180, display: 'flex' }}>
+            <SqlEditorPanel
+              value={editorSql}
+              onChange={setEditorSql}
+              onRun={handleRunQuery}
+              onSubmit={mode === 'challenges' ? handleSubmitChallenge : undefined}
+              isChallengeMode={mode === 'challenges'}
+              datasetName={currentDataset.name}
+            />
+          </Box>
 
-            {/* Result Table Bottom (55% height) */}
-            <Box sx={{ flex: '1 1 55%', minHeight: 200, display: 'flex' }}>
-              <SqlResultTable
-                result={queryResult}
-                title={mode === 'challenges' ? '내 쿼리 실행 결과' : '실행 결과'}
-              />
-            </Box>
-          </Grid>
-        </Grid>
+          {/* Result Table Bottom (55% height) */}
+          <Box sx={{ flex: '1 1 55%', minHeight: 200, display: 'flex' }}>
+            <SqlResultTable
+              result={queryResult}
+              title={mode === 'challenges' ? '내 쿼리 실행 결과' : '실행 결과'}
+            />
+          </Box>
+        </Box>
       </Box>
 
       {/* Query History Dialog */}

@@ -141,7 +141,10 @@ export function DashboardLayout({
       cssVars={{ ...dashboardLayoutVars(theme), ...navVars.layout, ...cssVars }}
       sx={[
         {
+          height: '100dvh',
+          overflow: 'hidden',
           [`& .${layoutClasses.sidebarContainer}`]: {
+            overflow: 'hidden',
             [theme.breakpoints.up(layoutQuery)]: {
               pl: isNavMini ? 'var(--layout-nav-mini-width)' : 'var(--layout-nav-vertical-width)',
               transition: theme.transitions.create(['padding-left'], {

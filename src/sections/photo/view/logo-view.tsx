@@ -1,7 +1,7 @@
 'use client';
 
 import { toast } from 'sonner';
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -13,6 +13,8 @@ import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import CropSquareRoundedIcon from '@mui/icons-material/CropSquareRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
+
+import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
@@ -27,10 +29,7 @@ export function LogoView() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const processFile = useCallback((file: File) => {
     const reader = new FileReader();
     reader.onload = (event) => {
       const src = event.target?.result as string;
@@ -52,6 +51,19 @@ export function LogoView() {
       img.src = src;
     };
     reader.readAsDataURL(file);
+  }, []);
+
+  const { isDragActive, getRootProps } = useImageDropPaste({
+    onFiles: (files) => {
+      if (files[0]) processFile(files[0]);
+    },
+    multiple: false,
+  });
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    processFile(file);
     if (e.target) e.target.value = '';
   };
 
@@ -123,7 +135,9 @@ export function LogoView() {
 
       {!imageSrc ? (
         <Card
-          onClick={() => fileInputRef.current?.click()}
+          {...getRootProps({
+            onClick: () => fileInputRef.current?.click(),
+          })}
           sx={{
             p: 6,
             display: 'flex',
@@ -132,9 +146,11 @@ export function LogoView() {
             justifyContent: 'center',
             cursor: 'pointer',
             border: '2px dashed',
-            borderColor: 'divider',
+            borderColor: isDragActive ? 'primary.main' : 'divider',
+            bgcolor: isDragActive ? 'action.hover' : 'transparent',
             borderRadius: 3,
             minHeight: 320,
+            transition: (theme) => theme.transitions.create(['border-color', 'background-color']),
             '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
           }}
         >

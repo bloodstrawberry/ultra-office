@@ -11,7 +11,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 export function DashboardHomeView() {
   return (
-    <DashboardContent maxWidth="xl">
+    <DashboardContent>
       <Typography variant="h4" sx={{ mb: { xs: 3, md: 5 } }}>
         Hi, Welcome back 👋
       </Typography>

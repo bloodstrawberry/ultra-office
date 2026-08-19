@@ -16,6 +16,8 @@ import ColorLensRoundedIcon from '@mui/icons-material/ColorLensRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 
+import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
+
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { downloadDataUrl, shareToKakaoTalk } from '../utils/image-processor';
@@ -62,40 +64,53 @@ export function ColorPickerView() {
     }
   }, []);
 
+  const processFile = useCallback(
+    (file: File) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const src = event.target?.result as string;
+        setImageSrc(src);
+
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          const canvas = canvasRef.current;
+          if (!canvas) return;
+          const ctx = canvas.getContext('2d', { willReadFrequently: true });
+          if (!ctx) return;
+
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+
+          const centerData = ctx.getImageData(
+            Math.floor(img.width / 2),
+            Math.floor(img.height / 2),
+            1,
+            1
+          ).data;
+          const toHex = (n: number) => n.toString(16).padStart(2, '0');
+          const hex = `#${toHex(centerData[0])}${toHex(centerData[1])}${toHex(centerData[2])}`;
+          updateColor(hex);
+        };
+        img.src = src;
+      };
+      reader.readAsDataURL(file);
+    },
+    [updateColor]
+  );
+
+  const { isDragActive, getRootProps } = useImageDropPaste({
+    onFiles: (files) => {
+      if (files[0]) processFile(files[0]);
+    },
+    multiple: false,
+  });
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const src = event.target?.result as string;
-      setImageSrc(src);
-
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        if (!ctx) return;
-
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
-
-        const centerData = ctx.getImageData(
-          Math.floor(img.width / 2),
-          Math.floor(img.height / 2),
-          1,
-          1
-        ).data;
-        const toHex = (n: number) => n.toString(16).padStart(2, '0');
-        const hex = `#${toHex(centerData[0])}${toHex(centerData[1])}${toHex(centerData[2])}`;
-        updateColor(hex);
-      };
-      img.src = src;
-    };
-    reader.readAsDataURL(file);
+    processFile(file);
     if (e.target) e.target.value = '';
   };
 
@@ -182,7 +197,9 @@ export function ColorPickerView() {
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {!imageSrc ? (
             <Card
-              onClick={() => fileInputRef.current?.click()}
+              {...getRootProps({
+                onClick: () => fileInputRef.current?.click(),
+              })}
               sx={{
                 p: 6,
                 display: 'flex',
@@ -191,9 +208,12 @@ export function ColorPickerView() {
                 justifyContent: 'center',
                 cursor: 'pointer',
                 border: '2px dashed',
-                borderColor: 'divider',
+                borderColor: isDragActive ? 'primary.main' : 'divider',
+                bgcolor: isDragActive ? 'action.hover' : 'transparent',
                 borderRadius: 3,
                 minHeight: 320,
+                transition: (theme) =>
+                  theme.transitions.create(['border-color', 'background-color']),
                 '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
               }}
             >

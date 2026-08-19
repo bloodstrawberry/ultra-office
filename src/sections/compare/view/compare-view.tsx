@@ -260,7 +260,7 @@ export function CompareView() {
 
   return (
     <DashboardContent>
-      <Box sx={{ mb: 3 }}>
+      <Box sx={{ mb: 2, flexShrink: 0 }}>
         <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
           데이터 비교 스튜디오 (Data Diff & Compare)
         </Typography>
@@ -270,642 +270,661 @@ export function CompareView() {
         </Typography>
       </Box>
 
-      <Tabs
-        value={currentTab}
-        onChange={(_, v) => setCurrentTab(v)}
-        sx={{ mb: 2.5, borderBottom: 1, borderColor: 'divider' }}
-      >
-        <Tab
-          label="텍스트 Diff 비교"
-          value="text"
-          icon={<TextSnippetRoundedIcon />}
-          iconPosition="start"
-        />
-        <Tab
-          label="라인 목록 비교 (교집합·차집합)"
-          value="line"
-          icon={<FormatListNumberedRoundedIcon />}
-          iconPosition="start"
-        />
-        <Tab
-          label="항목 & 인력 비교"
-          value="entity"
-          icon={<PeopleAltRoundedIcon />}
-          iconPosition="start"
-        />
-      </Tabs>
+      <Box sx={{ flexShrink: 0, mb: 2 }}>
+        <Tabs
+          value={currentTab}
+          onChange={(_, v) => setCurrentTab(v)}
+          sx={{ borderBottom: 1, borderColor: 'divider' }}
+        >
+          <Tab
+            label="텍스트 Diff 비교"
+            value="text"
+            icon={<TextSnippetRoundedIcon />}
+            iconPosition="start"
+          />
+          <Tab
+            label="라인 목록 비교 (교집합·차집합)"
+            value="line"
+            icon={<FormatListNumberedRoundedIcon />}
+            iconPosition="start"
+          />
+          <Tab
+            label="항목 & 인력 비교"
+            value="entity"
+            icon={<PeopleAltRoundedIcon />}
+            iconPosition="start"
+          />
+        </Tabs>
+      </Box>
 
-      {/* TAB 1: TEXT DIFF */}
-      {currentTab === 'text' && (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {/* Preset Buttons */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-            <Typography
-              variant="caption"
-              sx={{ fontWeight: 700, color: 'text.secondary', mr: 0.5 }}
+      <Box sx={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', pb: 2 }}>
+        {/* TAB 1: TEXT DIFF */}
+        {currentTab === 'text' && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {/* Preset Buttons */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+              <Typography
+                variant="caption"
+                sx={{ fontWeight: 700, color: 'text.secondary', mr: 0.5 }}
+              >
+                ⚡ 예제 프리셋:
+              </Typography>
+              {TEXT_DIFF_PRESETS.map((preset, i) => (
+                <Chip
+                  key={i}
+                  label={preset.name}
+                  size="small"
+                  onClick={() => {
+                    setOldText(preset.oldVal);
+                    setNewText(preset.newVal);
+                    toast.info(`${preset.name} 예제가 로드되었습니다.`);
+                  }}
+                  clickable
+                  color="primary"
+                  variant="outlined"
+                  sx={{ borderRadius: 1.5, fontWeight: 600 }}
+                />
+              ))}
+            </Box>
+
+            {/* Editors Grid */}
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                gap: 2,
+                height: inputHeight,
+              }}
             >
-              ⚡ 예제 프리셋:
-            </Typography>
-            {TEXT_DIFF_PRESETS.map((preset, i) => (
-              <Chip
-                key={i}
-                label={preset.name}
-                size="small"
-                onClick={() => {
-                  setOldText(preset.oldVal);
-                  setNewText(preset.newVal);
-                  toast.info(`${preset.name} 예제가 로드되었습니다.`);
-                }}
-                clickable
-                color="primary"
-                variant="outlined"
-                sx={{ borderRadius: 1.5, fontWeight: 600 }}
-              />
-            ))}
-          </Box>
+              <TextAreaPanel
+                title="이전 내용 (Original / Left)"
+                actions={
+                  <Box sx={{ display: 'flex', gap: 0.5 }}>
+                    <Tooltip title="클립보드 복사">
+                      <IconButton size="small" onClick={() => handleCopy(oldText)}>
+                        <ContentCopyRoundedIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="스왑">
+                      <IconButton
+                        size="small"
+                        onClick={() => {
+                          const temp = oldText;
+                          setOldText(newText);
+                          setNewText(temp);
+                        }}
+                      >
+                        <SwapHorizRoundedIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="비우기">
+                      <IconButton size="small" color="error" onClick={() => setOldText('')}>
+                        <DeleteSweepRoundedIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                }
+              >
+                <LineNumberTextField
+                  value={oldText}
+                  onChange={setOldText}
+                  placeholder="비교할 원본 텍스트를 입력하세요..."
+                />
+              </TextAreaPanel>
 
-          {/* Editors Grid */}
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-              gap: 2,
-              height: inputHeight,
-            }}
-          >
-            <TextAreaPanel
-              title="이전 내용 (Original / Left)"
-              actions={
-                <Box sx={{ display: 'flex', gap: 0.5 }}>
-                  <Tooltip title="클립보드 복사">
-                    <IconButton size="small" onClick={() => handleCopy(oldText)}>
-                      <ContentCopyRoundedIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="스왑">
-                    <IconButton
+              <TextAreaPanel
+                title="변경 내용 (Modified / Right)"
+                actions={
+                  <Box sx={{ display: 'flex', gap: 0.5 }}>
+                    <Tooltip title="클립보드 복사">
+                      <IconButton size="small" onClick={() => handleCopy(newText)}>
+                        <ContentCopyRoundedIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="비우기">
+                      <IconButton size="small" color="error" onClick={() => setNewText('')}>
+                        <DeleteSweepRoundedIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                }
+              >
+                <LineNumberTextField
+                  value={newText}
+                  onChange={setNewText}
+                  placeholder="비교할 변경된 텍스트를 입력하세요..."
+                />
+              </TextAreaPanel>
+            </Box>
+
+            <ResizeHandle
+              onDrag={(delta) => setInputHeight((h) => Math.max(160, Math.min(600, h + delta)))}
+            />
+
+            {/* Diff Controls Toolbar */}
+            <Card
+              sx={{
+                p: 1.5,
+                borderRadius: 2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 1,
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                <ToggleButtonGroup
+                  value={splitView ? 'split' : 'unified'}
+                  exclusive
+                  onChange={(_, v) => v && setSplitView(v === 'split')}
+                  size="small"
+                >
+                  <ToggleButton value="split">나란히 보기 (Split)</ToggleButton>
+                  <ToggleButton value="unified">통합 보기 (Unified)</ToggleButton>
+                </ToggleButtonGroup>
+
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={disableWordDiff}
+                      onChange={(e) => setDisableWordDiff(e.target.checked)}
                       size="small"
-                      onClick={() => {
-                        const temp = oldText;
-                        setOldText(newText);
-                        setNewText(temp);
+                    />
+                  }
+                  label={
+                    <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                      단어 단위 강조 끄기
+                    </Typography>
+                  }
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={hideLineNumbers}
+                      onChange={(e) => setHideLineNumbers(e.target.checked)}
+                      size="small"
+                    />
+                  }
+                  label={
+                    <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                      줄 번호 숨기기
+                    </Typography>
+                  }
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={useDarkTheme}
+                      onChange={(e) => setUseDarkTheme(e.target.checked)}
+                      size="small"
+                    />
+                  }
+                  label={
+                    <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                      다크 모드 뷰어
+                    </Typography>
+                  }
+                />
+              </Box>
+
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={<DownloadRoundedIcon />}
+                  onClick={() =>
+                    handleDownload(
+                      `=== ORIGINAL ===\n${oldText}\n\n=== MODIFIED ===\n${newText}`,
+                      'diff_export.txt'
+                    )
+                  }
+                >
+                  Diff 텍스트 내보내기
+                </Button>
+              </Box>
+            </Card>
+
+            {/* Diff Viewer Canvas */}
+            <Card
+              sx={{
+                p: 1.5,
+                borderRadius: 2,
+                minHeight: 280,
+                bgcolor: useDarkTheme ? 'grey.900' : 'background.paper',
+                overflow: 'auto',
+                border: '1px solid',
+                borderColor: 'divider',
+              }}
+            >
+              <ReactDiffViewer
+                oldValue={oldText}
+                newValue={newText}
+                splitView={splitView}
+                useDarkTheme={useDarkTheme}
+                hideLineNumbers={hideLineNumbers}
+                disableWordDiff={disableWordDiff}
+                codeFoldMessageRenderer={(total) => (
+                  <Box sx={{ py: 0.8, px: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      {total}개의 변경 없는 줄이 접혀 있습니다. 클릭하여 펼치기
+                    </Typography>
+                  </Box>
+                )}
+              />
+            </Card>
+          </Box>
+        )}
+
+        {/* TAB 2: LINE COMPARE */}
+        {currentTab === 'line' && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {/* Preset Buttons */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+              <Typography
+                variant="caption"
+                sx={{ fontWeight: 700, color: 'text.secondary', mr: 0.5 }}
+              >
+                ⚡ 예제 프리셋:
+              </Typography>
+              {LINE_COMPARE_PRESETS.map((preset, i) => (
+                <Chip
+                  key={i}
+                  label={preset.name}
+                  size="small"
+                  onClick={() => {
+                    setLineTextA(preset.listA);
+                    setLineTextB(preset.listB);
+                    toast.info(`${preset.name} 예제가 로드되었습니다.`);
+                  }}
+                  clickable
+                  color="secondary"
+                  variant="outlined"
+                  sx={{ borderRadius: 1.5, fontWeight: 600 }}
+                />
+              ))}
+            </Box>
+
+            {/* Options */}
+            <Card
+              sx={{
+                p: 1.5,
+                borderRadius: 2,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 3,
+                flexWrap: 'wrap',
+              }}
+            >
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={trimLines}
+                    onChange={(e) => setTrimLines(e.target.checked)}
+                    size="small"
+                  />
+                }
+                label={
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    공백 자동 제거 (Trim)
+                  </Typography>
+                }
+              />
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={ignoreCase}
+                    onChange={(e) => setIgnoreCase(e.target.checked)}
+                    size="small"
+                  />
+                }
+                label={
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    대소문자 구분 안함
+                  </Typography>
+                }
+              />
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={dedup}
+                    onChange={(e) => setDedup(e.target.checked)}
+                    size="small"
+                  />
+                }
+                label={
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    중복 항목 자동 제거
+                  </Typography>
+                }
+              />
+            </Card>
+
+            {/* Input Lists Grid */}
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                gap: 2,
+                height: 260,
+              }}
+            >
+              <TextAreaPanel title="A 목록 입력">
+                <LineNumberTextField
+                  value={lineTextA}
+                  onChange={setLineTextA}
+                  placeholder="줄 단위로 A 목록 항목을 입력하세요..."
+                />
+              </TextAreaPanel>
+              <TextAreaPanel title="B 목록 입력">
+                <LineNumberTextField
+                  value={lineTextB}
+                  onChange={setLineTextB}
+                  placeholder="줄 단위로 B 목록 항목을 입력하세요..."
+                />
+              </TextAreaPanel>
+            </Box>
+
+            {/* 3-Column Results (Only A, Common, Only B) */}
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' },
+                gap: 2,
+              }}
+            >
+              {/* Only A */}
+              <Card
+                sx={{
+                  p: 2,
+                  borderRadius: 2,
+                  bgcolor: 'error.lighter',
+                  border: '1px solid',
+                  borderColor: 'error.light',
+                }}
+              >
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    mb: 1.5,
+                  }}
+                >
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'error.dark' }}>
+                    A에만 있는 항목 ({onlyA.length}건)
+                  </Typography>
+                  <IconButton size="small" onClick={() => handleCopy(onlyA.join('\n'))}>
+                    <ContentCopyRoundedIcon fontSize="small" />
+                  </IconButton>
+                </Box>
+                <Box
+                  sx={{
+                    maxHeight: 240,
+                    overflowY: 'auto',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 0.5,
+                  }}
+                >
+                  {onlyA.map((item, idx) => (
+                    <Box
+                      key={idx}
+                      sx={{
+                        p: 0.8,
+                        borderRadius: 1,
+                        bgcolor: 'background.paper',
+                        fontSize: '0.85rem',
+                        fontWeight: 600,
                       }}
                     >
-                      <SwapHorizRoundedIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="비우기">
-                    <IconButton size="small" color="error" onClick={() => setOldText('')}>
-                      <DeleteSweepRoundedIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
+                      {item}
+                    </Box>
+                  ))}
+                  {onlyA.length === 0 && (
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      해당 항목 없음
+                    </Typography>
+                  )}
                 </Box>
-              }
-            >
-              <LineNumberTextField
-                value={oldText}
-                onChange={setOldText}
-                placeholder="비교할 원본 텍스트를 입력하세요..."
-              />
-            </TextAreaPanel>
+              </Card>
 
-            <TextAreaPanel
-              title="변경 내용 (Modified / Right)"
-              actions={
-                <Box sx={{ display: 'flex', gap: 0.5 }}>
-                  <Tooltip title="클립보드 복사">
-                    <IconButton size="small" onClick={() => handleCopy(newText)}>
-                      <ContentCopyRoundedIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="비우기">
-                    <IconButton size="small" color="error" onClick={() => setNewText('')}>
-                      <DeleteSweepRoundedIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                </Box>
-              }
-            >
-              <LineNumberTextField
-                value={newText}
-                onChange={setNewText}
-                placeholder="비교할 변경된 텍스트를 입력하세요..."
-              />
-            </TextAreaPanel>
-          </Box>
-
-          <ResizeHandle
-            onDrag={(delta) => setInputHeight((h) => Math.max(160, Math.min(600, h + delta)))}
-          />
-
-          {/* Diff Controls Toolbar */}
-          <Card
-            sx={{
-              p: 1.5,
-              borderRadius: 2,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: 1,
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-              <ToggleButtonGroup
-                value={splitView ? 'split' : 'unified'}
-                exclusive
-                onChange={(_, v) => v && setSplitView(v === 'split')}
-                size="small"
+              {/* Common AB */}
+              <Card
+                sx={{
+                  p: 2,
+                  borderRadius: 2,
+                  bgcolor: 'info.lighter',
+                  border: '1px solid',
+                  borderColor: 'info.light',
+                }}
               >
-                <ToggleButton value="split">나란히 보기 (Split)</ToggleButton>
-                <ToggleButton value="unified">통합 보기 (Unified)</ToggleButton>
-              </ToggleButtonGroup>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    mb: 1.5,
+                  }}
+                >
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'info.dark' }}>
+                    A & B 공통 항목 (교집합 {commonAB.length}건)
+                  </Typography>
+                  <IconButton size="small" onClick={() => handleCopy(commonAB.join('\n'))}>
+                    <ContentCopyRoundedIcon fontSize="small" />
+                  </IconButton>
+                </Box>
+                <Box
+                  sx={{
+                    maxHeight: 240,
+                    overflowY: 'auto',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 0.5,
+                  }}
+                >
+                  {commonAB.map((item, idx) => (
+                    <Box
+                      key={idx}
+                      sx={{
+                        p: 0.8,
+                        borderRadius: 1,
+                        bgcolor: 'background.paper',
+                        fontSize: '0.85rem',
+                        fontWeight: 600,
+                      }}
+                    >
+                      {item}
+                    </Box>
+                  ))}
+                  {commonAB.length === 0 && (
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      해당 항목 없음
+                    </Typography>
+                  )}
+                </Box>
+              </Card>
 
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={disableWordDiff}
-                    onChange={(e) => setDisableWordDiff(e.target.checked)}
-                    size="small"
-                  />
-                }
-                label={
-                  <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                    단어 단위 강조 끄기
+              {/* Only B */}
+              <Card
+                sx={{
+                  p: 2,
+                  borderRadius: 2,
+                  bgcolor: 'success.lighter',
+                  border: '1px solid',
+                  borderColor: 'success.light',
+                }}
+              >
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    mb: 1.5,
+                  }}
+                >
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'success.dark' }}>
+                    B에만 있는 항목 ({onlyB.length}건)
                   </Typography>
-                }
-              />
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={hideLineNumbers}
-                    onChange={(e) => setHideLineNumbers(e.target.checked)}
-                    size="small"
-                  />
-                }
-                label={
-                  <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                    줄 번호 숨기기
-                  </Typography>
-                }
-              />
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={useDarkTheme}
-                    onChange={(e) => setUseDarkTheme(e.target.checked)}
-                    size="small"
-                  />
-                }
-                label={
-                  <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                    다크 모드 뷰어
-                  </Typography>
-                }
-              />
+                  <IconButton size="small" onClick={() => handleCopy(onlyB.join('\n'))}>
+                    <ContentCopyRoundedIcon fontSize="small" />
+                  </IconButton>
+                </Box>
+                <Box
+                  sx={{
+                    maxHeight: 240,
+                    overflowY: 'auto',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 0.5,
+                  }}
+                >
+                  {onlyB.map((item, idx) => (
+                    <Box
+                      key={idx}
+                      sx={{
+                        p: 0.8,
+                        borderRadius: 1,
+                        bgcolor: 'background.paper',
+                        fontSize: '0.85rem',
+                        fontWeight: 600,
+                      }}
+                    >
+                      {item}
+                    </Box>
+                  ))}
+                  {onlyB.length === 0 && (
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      해당 항목 없음
+                    </Typography>
+                  )}
+                </Box>
+              </Card>
+            </Box>
+          </Box>
+        )}
+
+        {/* TAB 3: ENTITY COMPARE */}
+        {currentTab === 'entity' && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+            {/* Summary Metric Cards */}
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}>
+              <Card sx={{ p: 2, borderRadius: 2, textAlign: 'center', bgcolor: 'error.lighter' }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: 'error.dark' }}>
+                  A 조직에만 있는 인원
+                </Typography>
+                <Typography variant="h4" sx={{ fontWeight: 800, color: 'error.main', my: 0.5 }}>
+                  {entityOnlyA.length}명
+                </Typography>
+              </Card>
+              <Card sx={{ p: 2, borderRadius: 2, textAlign: 'center', bgcolor: 'info.lighter' }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: 'info.dark' }}>
+                  양쪽 공통 소속 인원
+                </Typography>
+                <Typography variant="h4" sx={{ fontWeight: 800, color: 'info.main', my: 0.5 }}>
+                  {entityCommon.length}명
+                </Typography>
+              </Card>
+              <Card sx={{ p: 2, borderRadius: 2, textAlign: 'center', bgcolor: 'success.lighter' }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: 'success.dark' }}>
+                  B 조직에만 있는 인원
+                </Typography>
+                <Typography variant="h4" sx={{ fontWeight: 800, color: 'success.main', my: 0.5 }}>
+                  {entityOnlyB.length}명
+                </Typography>
+              </Card>
             </Box>
 
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button
-                size="small"
-                variant="outlined"
-                startIcon={<DownloadRoundedIcon />}
-                onClick={() =>
-                  handleDownload(
-                    `=== ORIGINAL ===\n${oldText}\n\n=== MODIFIED ===\n${newText}`,
-                    'diff_export.txt'
-                  )
-                }
-              >
-                Diff 텍스트 내보내기
-              </Button>
-            </Box>
-          </Card>
-
-          {/* Diff Viewer Canvas */}
-          <Card
-            sx={{
-              p: 1.5,
-              borderRadius: 2,
-              minHeight: 280,
-              bgcolor: useDarkTheme ? '#0f172a' : '#ffffff',
-              overflow: 'auto',
-              border: '1px solid',
-              borderColor: 'divider',
-            }}
-          >
-            <ReactDiffViewer
-              oldValue={oldText}
-              newValue={newText}
-              splitView={splitView}
-              useDarkTheme={useDarkTheme}
-              hideLineNumbers={hideLineNumbers}
-              disableWordDiff={disableWordDiff}
-              codeFoldMessageRenderer={(total) => (
-                <Box sx={{ py: 0.8, px: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                    {total}개의 변경 없는 줄이 접혀 있습니다. 클릭하여 펼치기
-                  </Typography>
+            {/* 3-Column Entity Cards */}
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' },
+                gap: 2,
+              }}
+            >
+              {/* Only A */}
+              <Card sx={{ p: 2, borderRadius: 2 }}>
+                <Typography
+                  variant="subtitle2"
+                  sx={{ fontWeight: 700, mb: 1.5, color: 'error.main' }}
+                >
+                  A 전용 인력 명단
+                </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  {entityOnlyA.map((e) => (
+                    <Card key={e.id} variant="outlined" sx={{ p: 1.2, borderRadius: 1.5 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.3 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 800 }}>
+                          {e.name}
+                        </Typography>
+                        <Chip label={e.role} size="small" sx={{ height: 20 }} />
+                      </Box>
+                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                        {e.dept} ({e.id})
+                      </Typography>
+                    </Card>
+                  ))}
                 </Box>
-              )}
-            />
-          </Card>
-        </Box>
-      )}
+              </Card>
 
-      {/* TAB 2: LINE COMPARE */}
-      {currentTab === 'line' && (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {/* Preset Buttons */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-            <Typography
-              variant="caption"
-              sx={{ fontWeight: 700, color: 'text.secondary', mr: 0.5 }}
-            >
-              ⚡ 예제 프리셋:
-            </Typography>
-            {LINE_COMPARE_PRESETS.map((preset, i) => (
-              <Chip
-                key={i}
-                label={preset.name}
-                size="small"
-                onClick={() => {
-                  setLineTextA(preset.listA);
-                  setLineTextB(preset.listB);
-                  toast.info(`${preset.name} 예제가 로드되었습니다.`);
-                }}
-                clickable
-                color="secondary"
-                variant="outlined"
-                sx={{ borderRadius: 1.5, fontWeight: 600 }}
-              />
-            ))}
-          </Box>
-
-          {/* Options */}
-          <Card
-            sx={{
-              p: 1.5,
-              borderRadius: 2,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 3,
-              flexWrap: 'wrap',
-            }}
-          >
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={trimLines}
-                  onChange={(e) => setTrimLines(e.target.checked)}
-                  size="small"
-                />
-              }
-              label={
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  공백 자동 제거 (Trim)
+              {/* Common */}
+              <Card sx={{ p: 2, borderRadius: 2 }}>
+                <Typography
+                  variant="subtitle2"
+                  sx={{ fontWeight: 700, mb: 1.5, color: 'info.main' }}
+                >
+                  공통 참여 인력 명단
                 </Typography>
-              }
-            />
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={ignoreCase}
-                  onChange={(e) => setIgnoreCase(e.target.checked)}
-                  size="small"
-                />
-              }
-              label={
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  대소문자 구분 안함
-                </Typography>
-              }
-            />
-            <FormControlLabel
-              control={
-                <Switch checked={dedup} onChange={(e) => setDedup(e.target.checked)} size="small" />
-              }
-              label={
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  중복 항목 자동 제거
-                </Typography>
-              }
-            />
-          </Card>
-
-          {/* Input Lists Grid */}
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-              gap: 2,
-              height: 260,
-            }}
-          >
-            <TextAreaPanel title="A 목록 입력">
-              <LineNumberTextField
-                value={lineTextA}
-                onChange={setLineTextA}
-                placeholder="줄 단위로 A 목록 항목을 입력하세요..."
-              />
-            </TextAreaPanel>
-            <TextAreaPanel title="B 목록 입력">
-              <LineNumberTextField
-                value={lineTextB}
-                onChange={setLineTextB}
-                placeholder="줄 단위로 B 목록 항목을 입력하세요..."
-              />
-            </TextAreaPanel>
-          </Box>
-
-          {/* 3-Column Results (Only A, Common, Only B) */}
-          <Box
-            sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, gap: 2 }}
-          >
-            {/* Only A */}
-            <Card
-              sx={{
-                p: 2,
-                borderRadius: 2,
-                bgcolor: 'error.lighter',
-                border: '1px solid',
-                borderColor: 'error.light',
-              }}
-            >
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  mb: 1.5,
-                }}
-              >
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'error.dark' }}>
-                  A에만 있는 항목 ({onlyA.length}건)
-                </Typography>
-                <IconButton size="small" onClick={() => handleCopy(onlyA.join('\n'))}>
-                  <ContentCopyRoundedIcon fontSize="small" />
-                </IconButton>
-              </Box>
-              <Box
-                sx={{
-                  maxHeight: 240,
-                  overflowY: 'auto',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 0.5,
-                }}
-              >
-                {onlyA.map((item, idx) => (
-                  <Box
-                    key={idx}
-                    sx={{
-                      p: 0.8,
-                      borderRadius: 1,
-                      bgcolor: '#ffffff',
-                      fontSize: '0.85rem',
-                      fontWeight: 600,
-                    }}
-                  >
-                    {item}
-                  </Box>
-                ))}
-                {onlyA.length === 0 && (
-                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                    해당 항목 없음
-                  </Typography>
-                )}
-              </Box>
-            </Card>
-
-            {/* Common AB */}
-            <Card
-              sx={{
-                p: 2,
-                borderRadius: 2,
-                bgcolor: 'info.lighter',
-                border: '1px solid',
-                borderColor: 'info.light',
-              }}
-            >
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  mb: 1.5,
-                }}
-              >
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'info.dark' }}>
-                  A & B 공통 항목 (교집합 {commonAB.length}건)
-                </Typography>
-                <IconButton size="small" onClick={() => handleCopy(commonAB.join('\n'))}>
-                  <ContentCopyRoundedIcon fontSize="small" />
-                </IconButton>
-              </Box>
-              <Box
-                sx={{
-                  maxHeight: 240,
-                  overflowY: 'auto',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 0.5,
-                }}
-              >
-                {commonAB.map((item, idx) => (
-                  <Box
-                    key={idx}
-                    sx={{
-                      p: 0.8,
-                      borderRadius: 1,
-                      bgcolor: '#ffffff',
-                      fontSize: '0.85rem',
-                      fontWeight: 600,
-                    }}
-                  >
-                    {item}
-                  </Box>
-                ))}
-                {commonAB.length === 0 && (
-                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                    해당 항목 없음
-                  </Typography>
-                )}
-              </Box>
-            </Card>
-
-            {/* Only B */}
-            <Card
-              sx={{
-                p: 2,
-                borderRadius: 2,
-                bgcolor: 'success.lighter',
-                border: '1px solid',
-                borderColor: 'success.light',
-              }}
-            >
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  mb: 1.5,
-                }}
-              >
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'success.dark' }}>
-                  B에만 있는 항목 ({onlyB.length}건)
-                </Typography>
-                <IconButton size="small" onClick={() => handleCopy(onlyB.join('\n'))}>
-                  <ContentCopyRoundedIcon fontSize="small" />
-                </IconButton>
-              </Box>
-              <Box
-                sx={{
-                  maxHeight: 240,
-                  overflowY: 'auto',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 0.5,
-                }}
-              >
-                {onlyB.map((item, idx) => (
-                  <Box
-                    key={idx}
-                    sx={{
-                      p: 0.8,
-                      borderRadius: 1,
-                      bgcolor: '#ffffff',
-                      fontSize: '0.85rem',
-                      fontWeight: 600,
-                    }}
-                  >
-                    {item}
-                  </Box>
-                ))}
-                {onlyB.length === 0 && (
-                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                    해당 항목 없음
-                  </Typography>
-                )}
-              </Box>
-            </Card>
-          </Box>
-        </Box>
-      )}
-
-      {/* TAB 3: ENTITY COMPARE */}
-      {currentTab === 'entity' && (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-          {/* Summary Metric Cards */}
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}>
-            <Card sx={{ p: 2, borderRadius: 2, textAlign: 'center', bgcolor: 'error.lighter' }}>
-              <Typography variant="caption" sx={{ fontWeight: 700, color: 'error.dark' }}>
-                A 조직에만 있는 인원
-              </Typography>
-              <Typography variant="h4" sx={{ fontWeight: 800, color: 'error.main', my: 0.5 }}>
-                {entityOnlyA.length}명
-              </Typography>
-            </Card>
-            <Card sx={{ p: 2, borderRadius: 2, textAlign: 'center', bgcolor: 'info.lighter' }}>
-              <Typography variant="caption" sx={{ fontWeight: 700, color: 'info.dark' }}>
-                양쪽 공통 소속 인원
-              </Typography>
-              <Typography variant="h4" sx={{ fontWeight: 800, color: 'info.main', my: 0.5 }}>
-                {entityCommon.length}명
-              </Typography>
-            </Card>
-            <Card sx={{ p: 2, borderRadius: 2, textAlign: 'center', bgcolor: 'success.lighter' }}>
-              <Typography variant="caption" sx={{ fontWeight: 700, color: 'success.dark' }}>
-                B 조직에만 있는 인원
-              </Typography>
-              <Typography variant="h4" sx={{ fontWeight: 800, color: 'success.main', my: 0.5 }}>
-                {entityOnlyB.length}명
-              </Typography>
-            </Card>
-          </Box>
-
-          {/* 3-Column Entity Cards */}
-          <Box
-            sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, gap: 2 }}
-          >
-            {/* Only A */}
-            <Card sx={{ p: 2, borderRadius: 2 }}>
-              <Typography
-                variant="subtitle2"
-                sx={{ fontWeight: 700, mb: 1.5, color: 'error.main' }}
-              >
-                A 전용 인력 명단
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                {entityOnlyA.map((e) => (
-                  <Card key={e.id} variant="outlined" sx={{ p: 1.2, borderRadius: 1.5 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.3 }}>
-                      <Typography variant="body2" sx={{ fontWeight: 800 }}>
-                        {e.name}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  {entityCommon.map((e) => (
+                    <Card
+                      key={e.id}
+                      variant="outlined"
+                      sx={{ p: 1.2, borderRadius: 1.5, borderColor: 'info.light' }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.3 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 800 }}>
+                          {e.name}
+                        </Typography>
+                        <Chip label={e.role} color="info" size="small" sx={{ height: 20 }} />
+                      </Box>
+                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                        {e.dept} ({e.id})
                       </Typography>
-                      <Chip label={e.role} size="small" sx={{ height: 20 }} />
-                    </Box>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      {e.dept} ({e.id})
-                    </Typography>
-                  </Card>
-                ))}
-              </Box>
-            </Card>
+                    </Card>
+                  ))}
+                </Box>
+              </Card>
 
-            {/* Common */}
-            <Card sx={{ p: 2, borderRadius: 2 }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5, color: 'info.main' }}>
-                공통 참여 인력 명단
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                {entityCommon.map((e) => (
-                  <Card
-                    key={e.id}
-                    variant="outlined"
-                    sx={{ p: 1.2, borderRadius: 1.5, borderColor: 'info.light' }}
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.3 }}>
-                      <Typography variant="body2" sx={{ fontWeight: 800 }}>
-                        {e.name}
+              {/* Only B */}
+              <Card sx={{ p: 2, borderRadius: 2 }}>
+                <Typography
+                  variant="subtitle2"
+                  sx={{ fontWeight: 700, mb: 1.5, color: 'success.main' }}
+                >
+                  B 전용 인력 명단
+                </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  {entityOnlyB.map((e) => (
+                    <Card key={e.id} variant="outlined" sx={{ p: 1.2, borderRadius: 1.5 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.3 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 800 }}>
+                          {e.name}
+                        </Typography>
+                        <Chip label={e.role} size="small" sx={{ height: 20 }} />
+                      </Box>
+                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                        {e.dept} ({e.id})
                       </Typography>
-                      <Chip label={e.role} color="info" size="small" sx={{ height: 20 }} />
-                    </Box>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      {e.dept} ({e.id})
-                    </Typography>
-                  </Card>
-                ))}
-              </Box>
-            </Card>
-
-            {/* Only B */}
-            <Card sx={{ p: 2, borderRadius: 2 }}>
-              <Typography
-                variant="subtitle2"
-                sx={{ fontWeight: 700, mb: 1.5, color: 'success.main' }}
-              >
-                B 전용 인력 명단
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                {entityOnlyB.map((e) => (
-                  <Card key={e.id} variant="outlined" sx={{ p: 1.2, borderRadius: 1.5 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.3 }}>
-                      <Typography variant="body2" sx={{ fontWeight: 800 }}>
-                        {e.name}
-                      </Typography>
-                      <Chip label={e.role} size="small" sx={{ height: 20 }} />
-                    </Box>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      {e.dept} ({e.id})
-                    </Typography>
-                  </Card>
-                ))}
-              </Box>
-            </Card>
+                    </Card>
+                  ))}
+                </Box>
+              </Card>
+            </Box>
           </Box>
-        </Box>
-      )}
+        )}
+      </Box>
     </DashboardContent>
   );
 }

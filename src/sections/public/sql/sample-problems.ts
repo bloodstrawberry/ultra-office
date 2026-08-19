@@ -230,4 +230,90 @@ export const SAMPLE_PROBLEMS: SqlProblem[] = [
     explanation:
       '다중 테이블 조인 시 1:N:M 관계로 인한 행 증폭을 해결하기 위해 DISTINCT 카운트를 적절히 조합합니다.',
   },
+
+  // -------------------------------------------------------------------------
+  // SQLD / SQLP 자격증 핵심 실전 문제
+  // -------------------------------------------------------------------------
+  {
+    id: 'prob-sqld-null',
+    datasetId: 'sqld_sqlp',
+    level: 1,
+    category: '[SQLD] NULL 함수 & 조건식',
+    title: '커미션(NULL)을 포함한 총 지급액(급여+커미션) 계산',
+    description:
+      '`emp` 테이블에서 사원명(`ename`), 급여(`sal`), 커미션(`comm`), 그리고 급여와 커미션을 더한 총 지급액(`total_pay`)을 계산하세요. 커미션이 NULL인 경우 0으로 치환해야 하며, 총 지급액(`total_pay`) 내림차순으로 정렬하세요.',
+    initialQuery: `SELECT ename, sal, comm,\n  -- 여기에 NULL 치환 함수(COALESCE 또는 NVL)를 사용한 총지급액 계산식을 작성하세요\n  sal + COALESCE(comm, 0) AS total_pay\nFROM emp\nORDER BY total_pay DESC;`,
+    solutionQuery: `SELECT ename, sal, comm, sal + COALESCE(comm, 0) AS total_pay FROM emp ORDER BY total_pay DESC`,
+    hint: 'NULL과의 산술 연산은 NULL이 되므로 `COALESCE(comm, 0)` 또는 `IFNULL(comm, 0)`을 사용하여 0으로 치환 후 더합니다.',
+    explanation:
+      'NULL 연산 특성을 이해하고 대체 함수(COALESCE, NVL 등)를 정확히 활용하는 것이 SQLD의 핵심입니다.',
+  },
+  {
+    id: 'prob-sqld-rollup',
+    datasetId: 'sqld_sqlp',
+    level: 2,
+    category: '[SQLD] 다차원 소계 (ROLLUP)',
+    title: '부서별, 직책별 급여 합계 및 계층적 소계 산출',
+    description:
+      '`emp` 테이블에서 부서 번호(`deptno`), 직책(`job`), 급여 합계(`sum_sal`), 사원 수(`emp_cnt`)를 조회하세요. `ROLLUP(deptno, job)`을 적용하여 (부서, 직책)별 소계, (부서)별 소계, 전체 총계를 산출하세요.',
+    initialQuery: `SELECT deptno, job, SUM(sal) AS sum_sal, COUNT(*) AS emp_cnt\nFROM emp\n-- 여기에 GROUP BY ROLLUP을 작성하세요\nGROUP BY ROLLUP(deptno, job);`,
+    solutionQuery: `SELECT deptno, job, SUM(sal) AS sum_sal, COUNT(*) AS emp_cnt FROM emp GROUP BY ROLLUP(deptno, job)`,
+    hint: '`GROUP BY ROLLUP(deptno, job)`을 사용하면 컬럼 우측부터 순차적으로 그룹을 축소하며 소계를 계산합니다.',
+    explanation: 'ROLLUP은 지정된 컬럼 수 N개에 대해 N+1개의 집계 그룹핑 결과를 생성합니다.',
+  },
+  {
+    id: 'prob-sqld-window',
+    datasetId: 'sqld_sqlp',
+    level: 3,
+    category: '[SQLD] 윈도우 순위 함수',
+    title: '부서별 급여 순위 (RANK, DENSE_RANK, ROW_NUMBER) 비교',
+    description:
+      '`emp` 테이블에서 부서 번호(`deptno`), 사원 이름(`ename`), 급여(`sal`), 그리고 부서별 급여 순위인 `rank_val`, `dense_rank_val`, `row_num`을 각각 구하세요. 부서별로 급여가 높은 순으로 순위를 매기고 `deptno` 오름차순, `sal` 내림차순 정렬하세요.',
+    initialQuery: `SELECT deptno, ename, sal,\n  RANK() OVER (PARTITION BY deptno ORDER BY sal DESC) AS rank_val,\n  DENSE_RANK() OVER (PARTITION BY deptno ORDER BY sal DESC) AS dense_rank_val,\n  ROW_NUMBER() OVER (PARTITION BY deptno ORDER BY sal DESC) AS row_num\nFROM emp\nORDER BY deptno ASC, sal DESC;`,
+    solutionQuery: `SELECT deptno, ename, sal, RANK() OVER (PARTITION BY deptno ORDER BY sal DESC) AS rank_val, DENSE_RANK() OVER (PARTITION BY deptno ORDER BY sal DESC) AS dense_rank_val, ROW_NUMBER() OVER (PARTITION BY deptno ORDER BY sal DESC) AS row_num FROM emp ORDER BY deptno ASC, sal DESC`,
+    hint: '`PARTITION BY deptno ORDER BY sal DESC`를 OVER 절 내부에 동일하게 지정합니다.',
+    explanation:
+      '동점자가 발생했을 때 RANK는 번호를 건너뛰고, DENSE_RANK는 연속 번호를 부여하며, ROW_NUMBER는 고유 순번을 매깁니다.',
+  },
+  {
+    id: 'prob-sqlp-outer-join',
+    datasetId: 'sqld_sqlp',
+    level: 4,
+    category: '[SQLD/SQLP] 아우터 조인 & 데이터 보존',
+    title: '사원이 배치되지 않은 부서까지 포함한 부서별 총 급여 집계',
+    description:
+      '`dept` 테이블을 기준으로 `emp` 테이블을 `LEFT JOIN`하여, 모든 부서의 `deptno`, 부서명(`dname`), 소속 사원 수(`emp_count`), 총 급여 합계(`total_sal`)를 구하세요. 사원이 없는 부서의 사원 수와 총 급여는 0 또는 NULL이 정확히 집계되어야 하며, `deptno` 오름차순으로 정렬하세요.',
+    initialQuery: `SELECT d.deptno, d.dname, COUNT(e.empno) AS emp_count, COALESCE(SUM(e.sal), 0) AS total_sal\nFROM dept d\n-- 여기에 LEFT JOIN 및 GROUP BY를 작성하세요\nLEFT JOIN emp e ON d.deptno = e.deptno\nGROUP BY d.deptno, d.dname\nORDER BY d.deptno ASC;`,
+    solutionQuery: `SELECT d.deptno, d.dname, COUNT(e.empno) AS emp_count, COALESCE(SUM(e.sal), 0) AS total_sal FROM dept d LEFT JOIN emp e ON d.deptno = e.deptno GROUP BY d.deptno, d.dname ORDER BY d.deptno ASC`,
+    hint: '`LEFT JOIN` 시 `COUNT(e.empno)`처럼 우측 테이블의 키 컬럼을 집계해야 0으로 카운트됩니다.',
+    explanation:
+      '기준 테이블의 행을 누락 없이 보존하면서 조인 대상의 결측치(NULL)를 올바르게 핸들링합니다.',
+  },
+  {
+    id: 'prob-sqld-crosstab',
+    datasetId: 'sqld_sqlp',
+    level: 4,
+    category: '[고난이도] 크로스탭 매트릭스 피벗',
+    title: '부서별 직책(CLERK, SALESMAN, MANAGER) 급여 피벗 집계',
+    description:
+      '`dept`와 `emp` 테이블을 결합하여, 각 부서별(`deptno`, `dname`)로 직책이 **CLERK**인 사원의 급여 합(`clerk_sal`), **SALESMAN**인 사원의 급여 합(`sales_sal`), **MANAGER**인 사원의 급여 합(`mgr_sal`) 및 부서 전체 급여 합(`total_dept_sal`)을 구하세요. 해당 직책이 없으면 0으로 처리하고 `deptno` 오름차순으로 정렬하세요.',
+    initialQuery: `SELECT \n  d.deptno,\n  d.dname,\n  SUM(CASE WHEN e.job = 'CLERK' THEN e.sal ELSE 0 END) AS clerk_sal,\n  SUM(CASE WHEN e.job = 'SALESMAN' THEN e.sal ELSE 0 END) AS sales_sal,\n  SUM(CASE WHEN e.job = 'MANAGER' THEN e.sal ELSE 0 END) AS mgr_sal,\n  COALESCE(SUM(e.sal), 0) AS total_dept_sal\nFROM dept d\n-- 여기에 LEFT JOIN 및 GROUP BY를 작성하세요\nLEFT JOIN emp e ON d.deptno = e.deptno\nGROUP BY d.deptno, d.dname\nORDER BY d.deptno ASC;`,
+    solutionQuery: `SELECT d.deptno, d.dname, SUM(CASE WHEN e.job = 'CLERK' THEN e.sal ELSE 0 END) AS clerk_sal, SUM(CASE WHEN e.job = 'SALESMAN' THEN e.sal ELSE 0 END) AS sales_sal, SUM(CASE WHEN e.job = 'MANAGER' THEN e.sal ELSE 0 END) AS mgr_sal, COALESCE(SUM(e.sal), 0) AS total_dept_sal FROM dept d LEFT JOIN emp e ON d.deptno = e.deptno GROUP BY d.deptno, d.dname ORDER BY d.deptno ASC`,
+    hint: '`SUM(CASE WHEN e.job = ... THEN e.sal ELSE 0 END)` 구문으로 특정 조건의 행만 가로 컬럼으로 모아 집계합니다.',
+    explanation:
+      'PIVOT 연산자가 지원되지 않거나 복합 집계가 필요할 때 조건부 집계(SUM + CASE) 패턴은 실무 및 시험에서 가장 널리 쓰이는 표준 기법입니다.',
+  },
+  {
+    id: 'prob-sqlp-self-join-gap',
+    datasetId: 'sqld_sqlp',
+    level: 4,
+    category: '[고난이도] 셀프 조인 & 상관 조건 필터링',
+    title: '직속 상사보다 급여를 더 많이 받는 사원 및 급여 격차 분석',
+    description:
+      '`emp` 테이블을 셀프 조인하여 직속 상사(`mgr`)보다 급여(`sal`)가 높은 사원의 사번(`emp_id`), 사원명(`emp_name`), 사원 급여(`emp_salary`), 직속 상사 사번(`mgr_id`), 직속 상사명(`mgr_name`), 상사 급여(`mgr_salary`), 그리고 두 사람 간의 급여 격차(`salary_gap` = 사원급여 - 상사급여)를 구하세요. 급여 격차(`salary_gap`) 내림차순으로 정렬하세요.',
+    initialQuery: `SELECT \n  e.empno AS emp_id,\n  e.ename AS emp_name,\n  e.sal AS emp_salary,\n  m.empno AS mgr_id,\n  m.ename AS mgr_name,\n  m.sal AS mgr_salary,\n  e.sal - m.sal AS salary_gap\nFROM emp e\n-- 여기에 셀프 조인(JOIN emp m ON ...) 및 급여 비교 조건을 작성하세요\nJOIN emp m ON e.mgr = m.empno\nWHERE e.sal > m.sal\nORDER BY salary_gap DESC;`,
+    solutionQuery: `SELECT e.empno AS emp_id, e.ename AS emp_name, e.sal AS emp_salary, m.empno AS mgr_id, m.ename AS mgr_name, m.sal AS mgr_salary, e.sal - m.sal AS salary_gap FROM emp e JOIN emp m ON e.mgr = m.empno WHERE e.sal > m.sal ORDER BY salary_gap DESC`,
+    hint: '사원 인스턴스 `e`와 상사 인스턴스 `m`을 `e.mgr = m.empno`로 결합하고 `WHERE e.sal > m.sal` 조건을 부여합니다.',
+    explanation: '동일 테이블 내의 계층 관계를 비교 분석하는 셀프 조인의 대표적인 심화 패턴입니다.',
+  },
 ];

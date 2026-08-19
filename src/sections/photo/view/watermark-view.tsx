@@ -21,6 +21,8 @@ import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 import BrandingWatermarkRoundedIcon from '@mui/icons-material/BrandingWatermarkRounded';
 
+import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
+
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { downloadDataUrl } from '../utils/image-processor';
@@ -61,8 +63,7 @@ export function WatermarkView() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = Array.from(e.target.files || []);
+  const addFiles = useCallback((selectedFiles: File[]) => {
     if (selectedFiles.length === 0) return;
 
     const newItems: WatermarkedImageItem[] = selectedFiles.map((f) => ({
@@ -72,6 +73,16 @@ export function WatermarkView() {
     }));
 
     setItems((prev) => [...prev, ...newItems]);
+  }, []);
+
+  const { isDragActive, getRootProps } = useImageDropPaste({
+    onFiles: addFiles,
+    multiple: true,
+  });
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(e.target.files || []);
+    addFiles(selectedFiles);
     if (e.target) e.target.value = '';
   };
 
@@ -306,7 +317,9 @@ export function WatermarkView() {
 
       {items.length === 0 ? (
         <Card
-          onClick={() => fileInputRef.current?.click()}
+          {...getRootProps({
+            onClick: () => fileInputRef.current?.click(),
+          })}
           sx={{
             p: 6,
             display: 'flex',
@@ -315,9 +328,11 @@ export function WatermarkView() {
             justifyContent: 'center',
             cursor: 'pointer',
             border: '2px dashed',
-            borderColor: 'divider',
+            borderColor: isDragActive ? 'primary.main' : 'divider',
+            bgcolor: isDragActive ? 'action.hover' : 'transparent',
             borderRadius: 3,
             minHeight: 320,
+            transition: (theme) => theme.transitions.create(['border-color', 'background-color']),
             '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
           }}
         >

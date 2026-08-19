@@ -32,30 +32,106 @@ interface SqlEditorPanelProps {
 }
 
 const SQL_TEMPLATES = [
-  { label: '기본 SELECT 템플릿', query: 'SELECT *\nFROM customers\nLIMIT 10;' },
+  { label: '기본 SELECT 템플릿', query: 'SELECT *\nFROM emp\nLIMIT 10;' },
   {
-    label: '조건부 검색 (WHERE)',
+    label: '[SQLD] DUAL 내장 함수 및 계산',
     query:
-      "SELECT name, email, city\nFROM customers\nWHERE city = '서울'\nORDER BY customer_id ASC;",
+      "SELECT \n  ABS(-15) AS abs_val,\n  MOD(10, 3) AS mod_val,\n  ROUND(38.523, 1) AS round_val,\n  TRUNC(38.523, 1) AS trunc_val,\n  SUBSTR('SQLD_EXAM', 1, 4) AS sub_str,\n  UPPER('sqlp') AS upper_str\nFROM dual;",
   },
   {
-    label: '그룹화 및 집계 (GROUP BY)',
-    query: 'SELECT city, COUNT(*) AS count\nFROM customers\nGROUP BY city\nORDER BY count DESC;',
+    label: '[SQLD] NULL 함수 및 조건 분기 (NVL / COALESCE / CASE)',
+    query:
+      "SELECT \n  ename, \n  sal,\n  comm,\n  sal + COALESCE(comm, 0) AS total_pay,\n  NULLIF(deptno, 10) AS nullif_dept,\n  CASE \n    WHEN sal >= 3000 THEN 'HIGH'\n    WHEN sal >= 2000 THEN 'MID'\n    ELSE 'LOW'\n  END AS sal_grade\nFROM emp\nORDER BY sal DESC;",
   },
   {
-    label: '테이블 조인 (INNER JOIN)',
+    label: '[SQLD] 다차원 소계 (ROLLUP / CUBE / GROUPING SETS)',
     query:
-      'SELECT o.order_id, c.name, o.total_amount, o.status\nFROM orders o\nJOIN customers c ON o.customer_id = c.customer_id\nORDER BY o.order_id ASC;',
+      '-- 1. ROLLUP 소계 산출\nSELECT deptno, job, SUM(sal) AS sum_sal, COUNT(*) AS emp_cnt\nFROM emp\nGROUP BY ROLLUP(deptno, job);',
   },
   {
-    label: '서브쿼리 (Subquery)',
+    label: '[SQLD] 윈도우 순위 및 누적합 (RANK / SUM OVER / LAG)',
     query:
-      'SELECT product_name, price\nFROM products\nWHERE price > (SELECT AVG(price) FROM products)\nORDER BY price DESC;',
+      'SELECT \n  deptno,\n  ename,\n  sal,\n  RANK() OVER (PARTITION BY deptno ORDER BY sal DESC) AS dept_rank,\n  DENSE_RANK() OVER (PARTITION BY deptno ORDER BY sal DESC) AS dense_rank,\n  ROW_NUMBER() OVER (PARTITION BY deptno ORDER BY sal DESC) AS row_num,\n  SUM(sal) OVER (PARTITION BY deptno ORDER BY sal DESC) AS cum_sal,\n  LAG(sal, 1, 0) OVER (PARTITION BY deptno ORDER BY sal DESC) AS prev_sal\nFROM emp;',
   },
   {
-    label: '테이블 생성 (CREATE TABLE)',
+    label: '[SQLD] 조인 비교 (INNER / LEFT OUTER / FULL OUTER)',
     query:
-      'CREATE TABLE temp_logs (\n  id INT PRIMARY KEY,\n  message VARCHAR(100),\n  created_at DATE\n);',
+      'SELECT e.empno, e.ename, e.sal, d.deptno, d.dname, d.loc\nFROM dept d\nLEFT JOIN emp e ON d.deptno = e.deptno\nORDER BY d.deptno ASC, e.empno ASC;',
+  },
+  {
+    label: '[SQLP] MERGE INTO (Upsert 병합 연산)',
+    query:
+      'MERGE INTO target_table t\nUSING source_table s\n  ON (t.id = s.id)\nWHEN MATCHED THEN\n  UPDATE SET t.val = s.val\nWHEN NOT MATCHED THEN\n  INSERT (id, val) VALUES (s.id, s.val);',
+  },
+  {
+    label: '[SQLP] 튜닝: Top-N 페이징 및 인덱스 힌트',
+    query:
+      '-- 인덱스 선두 컬럼 기반 소트 연산 생략 및 Top-N Stopkey 유도\nSELECT /*+ INDEX_DESC(emp idx_emp_sal) */ \n  empno, ename, sal, deptno\nFROM emp\nWHERE sal > 0\nORDER BY sal DESC\nLIMIT 5;',
+  },
+  {
+    label: '[SQLP] 튜닝: 조인 방식 및 드라이빙 순서 힌트',
+    query:
+      "-- 작은 테이블(dept)을 드라이빙으로 NL/Hash 조인 유도\nSELECT /*+ LEADING(d) USE_HASH(e) */ \n  e.empno, e.ename, d.dname, d.loc\nFROM dept d\nJOIN emp e ON d.deptno = e.deptno\nWHERE d.loc = 'DALLAS';",
+  },
+  {
+    label: '[고난이도] 윈도우 프레임 이동평균 및 범위 집계 (ROWS BETWEEN)',
+    query:
+      '-- 본인 기준 이전 1명, 이후 1명 총 3명의 이동평균 및 부서내 최고/최저 급여와의 격차\nSELECT \n  deptno,\n  ename,\n  sal,\n  AVG(sal) OVER (\n    PARTITION BY deptno \n    ORDER BY sal ASC \n    ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING\n  ) AS moving_avg_sal,\n  MAX(sal) OVER (PARTITION BY deptno) - sal AS diff_from_max\nFROM emp\nORDER BY deptno ASC, sal ASC;',
+  },
+  {
+    label: '[고난이도] 크로스탭 매트릭스 피벗 (Cross-Tab Pivot)',
+    query:
+      "-- 부서별 x 직책별 급여 합계를 단일 쿼리로 피벗 테이블화\nSELECT \n  d.deptno,\n  d.dname,\n  SUM(CASE WHEN e.job = 'CLERK' THEN e.sal ELSE 0 END) AS clerk_sal,\n  SUM(CASE WHEN e.job = 'SALESMAN' THEN e.sal ELSE 0 END) AS sales_sal,\n  SUM(CASE WHEN e.job = 'MANAGER' THEN e.sal ELSE 0 END) AS mgr_sal,\n  SUM(CASE WHEN e.job = 'ANALYST' THEN e.sal ELSE 0 END) AS analyst_sal,\n  SUM(CASE WHEN e.job = 'PRESIDENT' THEN e.sal ELSE 0 END) AS pres_sal,\n  COALESCE(SUM(e.sal), 0) AS total_dept_sal\nFROM dept d\nLEFT JOIN emp e ON d.deptno = e.deptno\nGROUP BY d.deptno, d.dname\nORDER BY d.deptno ASC;",
+  },
+  {
+    label: '[고난이도] 직속 상사보다 급여 높은 사원 추출 (Self Join & Gap)',
+    query:
+      '-- 직속 상사(Manager)보다 급여를 더 많이 받는 사원과 상사 정보 매핑\nSELECT \n  e.empno AS emp_id,\n  e.ename AS emp_name,\n  e.sal AS emp_salary,\n  m.empno AS mgr_id,\n  m.ename AS mgr_name,\n  m.sal AS mgr_salary,\n  e.sal - m.sal AS salary_gap\nFROM emp e\nJOIN emp m ON e.mgr = m.empno\nWHERE e.sal > m.sal\nORDER BY salary_gap DESC;',
+  },
+  {
+    label: '[고난이도] 부서별 급여 상위 2명 추출 (Inline View Top-N)',
+    query:
+      '-- 부서별로 급여가 가장 높은 상위 2명(동점자 포함 Dense Rank)만 필터링\nSELECT deptno, ename, sal, dept_rank\nFROM (\n  SELECT \n    deptno,\n    ename,\n    sal,\n    DENSE_RANK() OVER (PARTITION BY deptno ORDER BY sal DESC) AS dept_rank\n  FROM emp\n)\nWHERE dept_rank <= 2\nORDER BY deptno ASC, dept_rank ASC;',
+  },
+  {
+    label: '[고난이도] 누적 급여 비율 및 등급 분할 (CUME_DIST / NTILE)',
+    query:
+      '-- 전체 급여 누적 백분율 및 4분위수(Tier 1~4) 등급 분할\nSELECT \n  empno,\n  ename,\n  sal,\n  ROUND(sal * 100.0 / SUM(sal) OVER (), 2) AS sal_pct_of_total,\n  SUM(sal) OVER (ORDER BY sal ASC) AS running_total,\n  NTILE(4) OVER (ORDER BY sal ASC) AS salary_quartile\nFROM emp\nORDER BY sal ASC;',
+  },
+  {
+    label: '[DDL] CREATE TABLE (신규 테이블 생성)',
+    query:
+      "-- 신규 프로젝트 태스크 관리 테이블 생성\nCREATE TABLE project_tasks (\n  task_id INT PRIMARY KEY,\n  empno INT NOT NULL,\n  task_name VARCHAR(100),\n  status VARCHAR(20) DEFAULT 'TODO',\n  due_date DATE\n);",
+  },
+  {
+    label: '[DDL] ALTER TABLE (컬럼 추가 및 스키마 변경)',
+    query:
+      '-- emp 테이블에 이메일 및 전화번호 컬럼 추가\nALTER TABLE emp ADD email VARCHAR(100);\nALTER TABLE emp ADD phone VARCHAR(30);',
+  },
+  {
+    label: '[DDL] CREATE VIEW (가상 뷰 생성 및 조회)',
+    query:
+      '-- 부서별 급여 요약 뷰 생성\nCREATE VIEW v_dept_sal_summary AS\nSELECT d.deptno, d.dname, COUNT(e.empno) AS emp_cnt, AVG(e.sal) AS avg_sal\nFROM dept d\nLEFT JOIN emp e ON d.deptno = e.deptno\nGROUP BY d.deptno, d.dname;\n\n-- 생성된 뷰 조회\nSELECT * FROM v_dept_sal_summary;',
+  },
+  {
+    label: '[DML] INSERT INTO (단일 삽입 및 서브쿼리 대량 적재)',
+    query:
+      "-- 1. 신규 사원 단일 삽입\nINSERT INTO emp (empno, ename, job, mgr, hiredate, sal, comm, deptno)\nVALUES (8001, 'LEON', 'DEVELOPER', 7566, '2026-08-19', 4500, 500, 20);\n\n-- 2. 서브쿼리를 통한 대량 적재 (고액 연봉자 대상)\nINSERT INTO target_table (id, val)\nSELECT empno, ename FROM emp WHERE sal >= 3000;\n\n-- 반영 결과 확인\nSELECT * FROM emp WHERE empno = 8001;",
+  },
+  {
+    label: '[DML] UPDATE (조건부 수정 및 서브쿼리 갱신)',
+    query:
+      "-- 커미션이 없는 사원에게 기본 보너스 300 지급\nUPDATE emp\nSET comm = 300\nWHERE comm IS NULL AND job = 'CLERK';\n\n-- 갱신된 결과 확인\nSELECT empno, ename, job, sal, comm\nFROM emp\nWHERE job = 'CLERK';",
+  },
+  {
+    label: '[DML] DELETE & TRUNCATE (데이터 삭제 및 초기화)',
+    query:
+      '-- 특정 조건(급여 1000 미만)의 사원 삭제\nDELETE FROM emp\nWHERE sal < 1000;\n\n-- 타깃 테이블 데이터 전체 초기화\nTRUNCATE TABLE target_table;\n\n-- 남은 데이터 확인\nSELECT COUNT(*) AS total_remaining FROM emp;',
+  },
+  {
+    label: '[통합 실습] DDL ➔ DML ➔ SELECT 연속 파이프라인',
+    query:
+      "-- 1) 테이블 생성\nCREATE TABLE team_bonus (\n  id INT PRIMARY KEY,\n  deptno INT,\n  bonus_title VARCHAR(50),\n  amount INT\n);\n\n-- 2) 데이터 삽입\nINSERT INTO team_bonus VALUES (1, 10, '회계팀 분기 성과금', 2000000);\nINSERT INTO team_bonus VALUES (2, 20, '연구개발 인센티브', 3500000);\nINSERT INTO team_bonus VALUES (3, 30, '영업 목표달성 보너스', 5000000);\n\n-- 3) 부서 테이블과 조인하여 최종 확인\nSELECT b.id, d.dname, b.bonus_title, b.amount\nFROM team_bonus b\nJOIN dept d ON b.deptno = d.deptno;",
   },
 ];
 

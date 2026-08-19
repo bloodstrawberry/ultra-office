@@ -19,6 +19,8 @@ import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 import InvertColorsRoundedIcon from '@mui/icons-material/InvertColorsRounded';
 import FormatColorFillRoundedIcon from '@mui/icons-material/FormatColorFillRounded';
 
+import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
+
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import {
@@ -101,10 +103,7 @@ export function ColorView() {
     pushHistory();
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const processFile = useCallback((file: File) => {
     const reader = new FileReader();
     reader.onload = (event) => {
       const src = event.target?.result as string;
@@ -128,6 +127,19 @@ export function ColorView() {
       img.src = src;
     };
     reader.readAsDataURL(file);
+  }, []);
+
+  const { isDragActive, getRootProps } = useImageDropPaste({
+    onFiles: (files) => {
+      if (files[0]) processFile(files[0]);
+    },
+    multiple: false,
+  });
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    processFile(file);
     if (e.target) e.target.value = '';
   };
 
@@ -186,7 +198,9 @@ export function ColorView() {
 
       {!imageSrc ? (
         <Card
-          onClick={() => fileInputRef.current?.click()}
+          {...getRootProps({
+            onClick: () => fileInputRef.current?.click(),
+          })}
           sx={{
             p: 6,
             display: 'flex',
@@ -195,9 +209,11 @@ export function ColorView() {
             justifyContent: 'center',
             cursor: 'pointer',
             border: '2px dashed',
-            borderColor: 'divider',
+            borderColor: isDragActive ? 'primary.main' : 'divider',
+            bgcolor: isDragActive ? 'action.hover' : 'transparent',
             borderRadius: 3,
             minHeight: 320,
+            transition: (theme) => theme.transitions.create(['border-color', 'background-color']),
             '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
           }}
         >

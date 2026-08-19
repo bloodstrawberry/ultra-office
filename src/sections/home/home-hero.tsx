@@ -1,5 +1,4 @@
 import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
@@ -31,7 +30,7 @@ export function HomeHero() {
   const router = useRouter();
 
   const renderTitle = () => (
-    <Stack spacing={2} alignItems="center">
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center' }}>
       {/* Top badge */}
       <Box>
         <Box
@@ -120,7 +119,7 @@ export function HomeHero() {
 
       {/* Subtitle */}
       <Box>
-        <Stack direction="row" alignItems="center" spacing={2} sx={{ mt: 1 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 2, mt: 1 }}>
           <Box
             sx={{
               width: { xs: 24, md: 40 },
@@ -147,14 +146,21 @@ export function HomeHero() {
               background: `linear-gradient(90deg, ${alpha(theme.palette.text.primary, 0.3)}, transparent)`,
             }}
           />
-        </Stack>
+        </Box>
       </Box>
-    </Stack>
+    </Box>
   );
 
   const renderFeatures = () => (
     <Box>
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 2, sm: 3 }} sx={{ mt: 2 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: { xs: 2, sm: 3 },
+          mt: 2,
+        }}
+      >
         {FEATURES.map((item) => (
           <Box
             key={item.label}
@@ -190,23 +196,23 @@ export function HomeHero() {
             >
               <Box sx={{ color: 'primary.main', display: 'inline-flex' }}>{item.icon}</Box>
             </Box>
-            <Stack spacing={0}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
               <Typography variant="subtitle2" sx={{ fontSize: '0.8rem' }}>
                 {item.label}
               </Typography>
               <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.7rem' }}>
                 {item.desc}
               </Typography>
-            </Stack>
+            </Box>
           </Box>
         ))}
-      </Stack>
+      </Box>
     </Box>
   );
 
   const renderCTA = () => (
     <Box>
-      <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 2 }}>
+      <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center', mt: 2 }}>
         <Button
           variant="contained"
           size="large"
@@ -245,7 +251,7 @@ export function HomeHero() {
         >
           드라이브로 이동
         </Button>
-      </Stack>
+      </Box>
     </Box>
   );
 
@@ -262,11 +268,19 @@ export function HomeHero() {
       }}
     >
       <Container sx={{ position: 'relative', zIndex: 9 }}>
-        <Stack spacing={{ xs: 3, md: 4 }} alignItems="center" sx={{ textAlign: 'center' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: { xs: 3, md: 4 },
+            alignItems: 'center',
+            textAlign: 'center',
+          }}
+        >
           {renderTitle()}
           {renderFeatures()}
           {renderCTA()}
-        </Stack>
+        </Box>
       </Container>
     </Box>
   );

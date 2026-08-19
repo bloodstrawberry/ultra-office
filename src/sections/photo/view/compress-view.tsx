@@ -2,7 +2,7 @@
 
 import { toast } from 'sonner';
 import imageCompression from 'browser-image-compression';
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -18,6 +18,8 @@ import ArchiveRoundedIcon from '@mui/icons-material/ArchiveRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import CompressRoundedIcon from '@mui/icons-material/CompressRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
+
+import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
@@ -47,8 +49,7 @@ export function CompressView() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = Array.from(e.target.files || []);
+  const addFiles = useCallback((selectedFiles: File[]) => {
     if (selectedFiles.length === 0) return;
 
     const newItems: CompressedItem[] = selectedFiles.map((f) => ({
@@ -60,6 +61,16 @@ export function CompressView() {
     }));
 
     setItems((prev) => [...prev, ...newItems]);
+  }, []);
+
+  const { isDragActive, getRootProps } = useImageDropPaste({
+    onFiles: addFiles,
+    multiple: true,
+  });
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(e.target.files || []);
+    addFiles(selectedFiles);
     if (e.target) e.target.value = '';
   };
 
@@ -169,7 +180,9 @@ export function CompressView() {
 
       {items.length === 0 ? (
         <Card
-          onClick={() => fileInputRef.current?.click()}
+          {...getRootProps({
+            onClick: () => fileInputRef.current?.click(),
+          })}
           sx={{
             p: 6,
             display: 'flex',
@@ -178,9 +191,11 @@ export function CompressView() {
             justifyContent: 'center',
             cursor: 'pointer',
             border: '2px dashed',
-            borderColor: 'divider',
+            borderColor: isDragActive ? 'primary.main' : 'divider',
+            bgcolor: isDragActive ? 'action.hover' : 'transparent',
             borderRadius: 3,
             minHeight: 320,
+            transition: (theme) => theme.transitions.create(['border-color', 'background-color']),
             '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
           }}
         >

@@ -4,7 +4,6 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
-import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import Divider from '@mui/material/Divider';
@@ -401,193 +400,230 @@ export function RouletteView() {
   ]);
 
   return (
-    <DashboardContent maxWidth="lg">
-      <Stack spacing={2} sx={{ mb: 4 }}>
-        <Typography variant="h4">룰렛 돌리기</Typography>
+    <DashboardContent>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1,
+          mb: { xs: 2.5, md: 3 },
+          flexShrink: 0,
+        }}
+      >
+        <Typography variant="h4" sx={{ fontWeight: 800 }}>
+          룰렛 돌리기
+        </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
           다양한 결정 옵션을 만들고 룰렛을 힘차게 돌려 복불복 결정을 즐겨보세요!
         </Typography>
-      </Stack>
+      </Box>
 
-      <Stack spacing={4} direction={{ xs: 'column', lg: 'row' }}>
-        {/* Left Side Settings Form */}
-        <Card sx={{ flexShrink: 0, width: { xs: '100%', lg: 380 } }}>
-          <CardHeader title="룰렛 설정" subheader={`현재 항목 수: ${N}개 (최대 12개)`} />
-          <Divider />
-          <CardContent>
-            {/* Quick Preset Buttons */}
-            <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.secondary' }}>
-              빠른 프리셋 적용
-            </Typography>
-            <Stack direction="row" spacing={1} sx={{ mb: 3 }} flexWrap="wrap" useFlexGap>
-              {PRESETS.map((p) => (
-                <Button
-                  key={p.name}
-                  variant="soft"
-                  color="inherit"
+      <Box sx={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', pb: 2 }}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, gap: 4 }}>
+          {/* Left Side Settings Form */}
+          <Card sx={{ flexShrink: 0, width: { xs: '100%', lg: 380 }, borderRadius: 2 }}>
+            <CardHeader title="룰렛 설정" subheader={`현재 항목 수: ${N}개 (최대 12개)`} />
+            <Divider />
+            <CardContent>
+              {/* Quick Preset Buttons */}
+              <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.secondary' }}>
+                빠른 프리셋 적용
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1, mb: 3, flexWrap: 'wrap' }}>
+                {PRESETS.map((p) => (
+                  <Button
+                    key={p.name}
+                    variant="soft"
+                    color="inherit"
+                    size="small"
+                    onClick={() => handleApplyPreset(p.items)}
+                    disabled={isSpinning}
+                  >
+                    {p.name}
+                  </Button>
+                ))}
+              </Box>
+
+              <Divider sx={{ my: 2, borderStyle: 'dashed' }} />
+
+              {/* Input Form */}
+              <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1, mb: 3 }}>
+                <TextField
                   size="small"
-                  onClick={() => handleApplyPreset(p.items)}
+                  label="항목 이름"
+                  placeholder="예: 돈까스"
+                  value={inputVal}
+                  onChange={(e) => setInputVal(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleAddItem();
+                  }}
                   disabled={isSpinning}
+                  fullWidth
+                />
+                <Button
+                  variant="contained"
+                  onClick={handleAddItem}
+                  disabled={isSpinning || !inputVal.trim() || items.length >= 12}
+                  startIcon={<AddRoundedIcon />}
                 >
-                  {p.name}
+                  추가
                 </Button>
-              ))}
-            </Stack>
+              </Box>
 
-            <Divider sx={{ my: 2, borderStyle: 'dashed' }} />
-
-            {/* Input Form */}
-            <Stack direction="row" spacing={1} sx={{ mb: 3 }}>
-              <TextField
-                size="small"
-                label="항목 이름"
-                placeholder="예: 돈까스"
-                value={inputVal}
-                onChange={(e) => setInputVal(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleAddItem();
+              {/* Item List */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 1,
+                  maxHeight: 320,
+                  overflowY: 'auto',
+                  pr: 0.5,
                 }}
-                disabled={isSpinning}
-                fullWidth
-              />
+              >
+                {items.map((item, idx) => (
+                  <Box
+                    key={item.id}
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      px: 1.5,
+                      py: 1,
+                      borderRadius: 1,
+                      bgcolor: 'background.neutral',
+                      border: (t) => `1px solid ${t.palette.divider}`,
+                    }}
+                  >
+                    <Box
+                      sx={{ display: 'flex', flexDirection: 'row', gap: 1.5, alignItems: 'center' }}
+                    >
+                      <Box
+                        sx={{
+                          width: 16,
+                          height: 16,
+                          borderRadius: '50%',
+                          bgcolor: item.color,
+                          border: '1px solid rgba(0,0,0,0.1)',
+                        }}
+                      />
+                      <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                        {item.text}
+                      </Typography>
+                    </Box>
+                    <IconButton
+                      size="small"
+                      color="error"
+                      onClick={() => handleRemoveItem(item.id)}
+                      disabled={isSpinning || items.length <= 2}
+                    >
+                      <DeleteOutlineRoundedIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
+                ))}
+              </Box>
+            </CardContent>
+            <Divider />
+            <Box sx={{ p: 2 }}>
               <Button
                 variant="contained"
-                onClick={handleAddItem}
-                disabled={isSpinning || !inputVal.trim() || items.length >= 12}
-                startIcon={<AddRoundedIcon />}
+                color="secondary"
+                fullWidth
+                size="large"
+                onClick={handleSpin}
+                disabled={isSpinning}
+                startIcon={<AutorenewRoundedIcon />}
+                sx={{ height: 48 }}
               >
-                추가
+                룰렛 돌리기
               </Button>
-            </Stack>
+            </Box>
+          </Card>
 
-            {/* Item List */}
-            <Stack spacing={1} sx={{ maxHeight: 320, overflowY: 'auto', pr: 0.5 }}>
-              {items.map((item, idx) => (
-                <Stack
-                  key={item.id}
-                  direction="row"
-                  alignItems="center"
-                  justifyContent="space-between"
-                  sx={{
-                    px: 1.5,
-                    py: 1,
-                    borderRadius: 1,
-                    bgcolor: 'background.neutral',
-                    border: (t) => `1px solid ${t.palette.divider}`,
-                  }}
-                >
-                  <Stack direction="row" spacing={1.5} alignItems="center">
-                    <Box
-                      sx={{
-                        width: 16,
-                        height: 16,
-                        borderRadius: '50%',
-                        bgcolor: item.color,
-                        border: '1px solid rgba(0,0,0,0.1)',
-                      }}
-                    />
-                    <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-                      {item.text}
-                    </Typography>
-                  </Stack>
-                  <IconButton
-                    size="small"
-                    color="error"
-                    onClick={() => handleRemoveItem(item.id)}
-                    disabled={isSpinning || items.length <= 2}
-                  >
-                    <DeleteOutlineRoundedIcon fontSize="small" />
-                  </IconButton>
-                </Stack>
-              ))}
-            </Stack>
-          </CardContent>
-          <Divider />
-          <Box sx={{ p: 2 }}>
-            <Button
-              variant="contained"
-              color="secondary"
-              fullWidth
-              size="large"
-              onClick={handleSpin}
-              disabled={isSpinning}
-              startIcon={<AutorenewRoundedIcon />}
-              sx={{ height: 48 }}
-            >
-              룰렛 돌리기
-            </Button>
-          </Box>
-        </Card>
-
-        {/* Right Side Wheel (Canvas) */}
-        <Stack spacing={3} sx={{ flexGrow: 1, alignItems: 'center' }}>
-          <Card
+          {/* Right Side Wheel (Canvas) */}
+          <Box
             sx={{
-              p: 3,
-              width: '100%',
               display: 'flex',
               flexDirection: 'column',
+              gap: 3,
+              flexGrow: 1,
               alignItems: 'center',
-              justifyContent: 'center',
-              position: 'relative',
-              minHeight: 480,
             }}
           >
-            {/* Spinning Guide Message */}
-            {!isSpinning && !winner && (
-              <Stack
-                direction="row"
-                spacing={1}
-                alignItems="center"
-                sx={{ mb: 2, color: 'text.secondary' }}
-              >
-                <InfoOutlinedIcon fontSize="small" />
-                <Typography variant="caption">
-                  아래 룰렛을 돌려서 당첨 항목을 뽑아보세요!
-                </Typography>
-              </Stack>
-            )}
-
-            {isSpinning && (
-              <Typography
-                variant="subtitle2"
-                color="secondary"
-                sx={{ mb: 2, fontWeight: 'bold', animation: 'pulse 1.5s infinite' }}
-              >
-                🌀 룰렛이 신나게 도는 중...
-              </Typography>
-            )}
-
-            {winner && !isSpinning && (
-              <Typography
-                variant="subtitle1"
-                color="success.main"
-                sx={{ mb: 2, fontWeight: 'bold' }}
-              >
-                🎉 당첨 항목: {winner.text}
-              </Typography>
-            )}
-
-            <canvas
-              ref={canvasRef}
-              style={{
-                width: canvasSize,
-                height: canvasSize,
-                maxWidth: '100%',
-                cursor: isSpinning ? 'not-allowed' : 'pointer',
+            <Card
+              sx={{
+                p: 3,
+                borderRadius: 2,
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative',
+                minHeight: 480,
               }}
-              onClick={handleSpin}
-            />
-          </Card>
-        </Stack>
-      </Stack>
+            >
+              {/* Spinning Guide Message */}
+              {!isSpinning && !winner && (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    gap: 1,
+                    alignItems: 'center',
+                    mb: 2,
+                    color: 'text.secondary',
+                  }}
+                >
+                  <InfoOutlinedIcon fontSize="small" />
+                  <Typography variant="caption">
+                    아래 룰렛을 돌려서 당첨 항목을 뽑아보세요!
+                  </Typography>
+                </Box>
+              )}
+
+              {isSpinning && (
+                <Typography
+                  variant="subtitle2"
+                  color="secondary"
+                  sx={{ mb: 2, fontWeight: 'bold', animation: 'pulse 1.5s infinite' }}
+                >
+                  🌀 룰렛이 신나게 도는 중...
+                </Typography>
+              )}
+
+              {winner && !isSpinning && (
+                <Typography
+                  variant="subtitle1"
+                  color="success.main"
+                  sx={{ mb: 2, fontWeight: 'bold' }}
+                >
+                  🎉 당첨 항목: {winner.text}
+                </Typography>
+              )}
+
+              <canvas
+                ref={canvasRef}
+                style={{
+                  width: canvasSize,
+                  height: canvasSize,
+                  maxWidth: '100%',
+                  cursor: isSpinning ? 'not-allowed' : 'pointer',
+                }}
+                onClick={handleSpin}
+              />
+            </Card>
+          </Box>
+        </Box>
+      </Box>
 
       {/* Winner Reveal Dialog */}
       <Dialog
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
-        PaperProps={{
-          sx: {
+        sx={{
+          '& .MuiDialog-paper': {
             p: 3,
             textAlign: 'center',
             maxWidth: 360,

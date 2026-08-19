@@ -35,6 +35,31 @@ export function UploadAvatar({
 
   const [preview, setPreview] = useState('');
 
+  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+    const clipboardFiles: File[] = [];
+    if (e.clipboardData?.files?.length) {
+      for (let i = 0; i < e.clipboardData.files.length; i += 1) {
+        clipboardFiles.push(e.clipboardData.files[i]);
+      }
+    } else if (e.clipboardData?.items) {
+      for (let i = 0; i < e.clipboardData.items.length; i += 1) {
+        const item = e.clipboardData.items[i];
+        if (item.kind === 'file') {
+          const file = item.getAsFile();
+          if (file) clipboardFiles.push(file);
+        }
+      }
+    }
+    if (clipboardFiles.length > 0) {
+      e.preventDefault();
+      if (other.onDrop) {
+        (other.onDrop as any)(clipboardFiles, [], e as any);
+      } else if (other.onDropAccepted) {
+        (other.onDropAccepted as any)(clipboardFiles, e as any);
+      }
+    }
+  };
+
   useEffect(() => {
     if (typeof value === 'string') {
       setPreview(value);
@@ -112,6 +137,8 @@ export function UploadAvatar({
     <>
       <Box
         {...getRootProps()}
+        tabIndex={0}
+        onPaste={handlePaste}
         className={mergeClasses([uploadClasses.uploadBox, className])}
         sx={[
           (theme) => ({

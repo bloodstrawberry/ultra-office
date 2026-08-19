@@ -18,6 +18,8 @@ import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import PhotoFilterRoundedIcon from '@mui/icons-material/PhotoFilterRounded';
 import AddPhotoAlternateRoundedIcon from '@mui/icons-material/AddPhotoAlternateRounded';
 
+import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
+
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { downloadDataUrl, shareToKakaoTalk } from '../utils/image-processor';
@@ -86,26 +88,37 @@ export function FourCutView() {
 
   const maxSlots = layout === 'strip4' || layout === 'grid4' ? 4 : layout === 'strip2' ? 2 : 1;
 
+  const addFiles = useCallback(
+    (selectedFiles: File[]) => {
+      if (selectedFiles.length === 0) return;
+
+      selectedFiles.forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const src = event.target?.result as string;
+          if (src) {
+            setImages((prev) => {
+              if (prev.length < maxSlots) {
+                return [...prev, src];
+              }
+              return prev;
+            });
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    },
+    [maxSlots]
+  );
+
+  const { isDragActive, getRootProps } = useImageDropPaste({
+    onFiles: addFiles,
+    multiple: true,
+  });
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
-    if (selectedFiles.length === 0) return;
-
-    selectedFiles.forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const src = event.target?.result as string;
-        if (src) {
-          setImages((prev) => {
-            if (prev.length < maxSlots) {
-              return [...prev, src];
-            }
-            return prev;
-          });
-        }
-      };
-      reader.readAsDataURL(file);
-    });
-
+    addFiles(selectedFiles);
     if (e.target) e.target.value = '';
   };
 
@@ -424,14 +437,18 @@ export function FourCutView() {
         {/* Left: Frame Preview */}
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Card
+            {...getRootProps()}
             sx={{
               p: 2,
               borderRadius: 3,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              bgcolor: '#0f172a',
+              bgcolor: isDragActive ? 'action.hover' : '#0f172a',
+              border: isDragActive ? '2px dashed' : 'none',
+              borderColor: 'primary.main',
               minHeight: 520,
+              transition: (t) => t.transitions.create(['border-color', 'background-color']),
             }}
           >
             {resultDataUrl ? (

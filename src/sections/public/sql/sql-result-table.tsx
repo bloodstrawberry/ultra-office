@@ -178,6 +178,24 @@ export function SqlResultTable({
         </Box>
       </Box>
 
+      {/* Execution Message Banner for DDL / DML */}
+      {result.executionMessage && (
+        <Alert
+          severity="success"
+          icon={<CheckCircleOutlineRoundedIcon fontSize="inherit" />}
+          sx={{
+            py: 0.6,
+            px: 2,
+            borderRadius: 0,
+            fontSize: 13,
+            fontWeight: 500,
+            borderBottom: (theme) => `1px solid ${theme.vars.palette.divider}`,
+          }}
+        >
+          {result.executionMessage}
+        </Alert>
+      )}
+
       {/* Table Content */}
       <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
         {result.columns.length === 0 ? (

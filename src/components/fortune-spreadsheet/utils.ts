@@ -1,8 +1,10 @@
+import type { Sheet, CellMatrix } from '@fortune-sheet/core';
+
 import * as XLSX from 'xlsx';
 
 export interface FortuneCellValue {
-  v: string | number; // cell value
-  m?: string; // formatted cell value (for display)
+  v?: string | number | boolean; // cell value
+  m?: string | number; // formatted cell value (for display)
   bg?: string; // background color
   bl?: 0 | 1; // bold
   it?: 0 | 1; // italic
@@ -12,12 +14,14 @@ export interface FortuneCellValue {
   vt?: 0 | 1 | 2; // vertical alignment (0: center, 1: top, 2: bottom)
   cl?: 0 | 1; // strike-through
   un?: 0 | 1; // underline
+  f?: string; // formula
+  [key: string]: unknown;
 }
 
 export interface FortuneCellData {
   r: number;
   c: number;
-  v: FortuneCellValue | string | number | null;
+  v: FortuneCellValue | string | number | boolean | null;
 }
 
 export interface FortuneDataVerification {
@@ -38,8 +42,10 @@ export interface FortuneSheetData {
   order?: number;
   row?: number;
   column?: number;
+  data?: CellMatrix | (FortuneCellValue | string | number | boolean | null)[][];
   celldata?: FortuneCellData[];
   dataVerification?: Record<string, FortuneDataVerification>;
+  [key: string]: unknown;
 }
 
 export function generateEmptySheet(name = 'Sheet1', rows = 60, cols = 26): FortuneSheetData {
@@ -281,101 +287,205 @@ export function loadPlTemplate(): FortuneSheetData {
 // Export & Import Handlers
 // ----------------------------------------------------------------------
 
-export function exportFortuneToCSV(sheet: FortuneSheetData): void {
-  if (!sheet.celldata || sheet.celldata.length === 0) return;
+export interface ExtractGridOptions {
+  useFormattedText?: boolean;
+}
 
-  let maxR = 0;
-  let maxC = 0;
-  sheet.celldata.forEach((cell) => {
-    if (cell.r > maxR) maxR = cell.r;
-    if (cell.c > maxC) maxC = cell.c;
-  });
+function extractValueFromCell(cell: unknown, useFormattedText: boolean): string | number {
+  if (cell === null || cell === undefined) return '';
 
-  const grid: string[][] = Array.from({ length: maxR + 1 }, () =>
+  if (typeof cell === 'number') return cell;
+  if (typeof cell === 'boolean') return cell ? 'TRUE' : 'FALSE';
+  if (typeof cell === 'string') return cell;
+
+  if (typeof cell === 'object') {
+    const cObj = cell as Record<string, unknown>;
+    if (useFormattedText && cObj.m !== undefined && cObj.m !== null) {
+      return String(cObj.m);
+    }
+    if (cObj.v !== undefined && cObj.v !== null) {
+      if (typeof cObj.v === 'number') return cObj.v;
+      if (typeof cObj.v === 'boolean') return cObj.v ? 'TRUE' : 'FALSE';
+      return String(cObj.v);
+    }
+    if (cObj.m !== undefined && cObj.m !== null) {
+      return String(cObj.m);
+    }
+    if (cObj.f !== undefined && cObj.f !== null) {
+      return String(cObj.f);
+    }
+  }
+
+  return '';
+}
+
+/**
+ * Extract a 2D array of (string | number) from FortuneSheetData or Sheet.
+ * Handles both `data` (2D matrix) and `celldata` (sparse array),
+ * and automatically trims empty trailing rows and columns.
+ */
+export function extractGridFromSheet(
+  sheet: FortuneSheetData | Sheet,
+  options: ExtractGridOptions = {}
+): (string | number)[][] {
+  if (!sheet) return [];
+
+  const { useFormattedText = false } = options;
+
+  let maxR = -1;
+  let maxC = -1;
+  const cellMap = new Map<string, string | number>();
+
+  // 1. Process 2D matrix (sheet.data) if present
+  if (Array.isArray(sheet.data) && sheet.data.length > 0) {
+    sheet.data.forEach((row, r) => {
+      if (!Array.isArray(row)) return;
+      row.forEach((cell, c) => {
+        if (cell === null || cell === undefined) return;
+        const val = extractValueFromCell(cell, useFormattedText);
+        if (val !== '') {
+          cellMap.set(`${r}_${c}`, val);
+          if (r > maxR) maxR = r;
+          if (c > maxC) maxC = c;
+        }
+      });
+    });
+  }
+
+  // 2. Process celldata (sparse array) if present (and supplement any missing cells)
+  if (Array.isArray(sheet.celldata) && sheet.celldata.length > 0) {
+    sheet.celldata.forEach((cell) => {
+      if (!cell || cell.r === undefined || cell.c === undefined) return;
+      const key = `${cell.r}_${cell.c}`;
+      if (!cellMap.has(key)) {
+        const val = extractValueFromCell(cell.v, useFormattedText);
+        if (val !== '') {
+          cellMap.set(key, val);
+          if (cell.r > maxR) maxR = cell.r;
+          if (cell.c > maxC) maxC = cell.c;
+        }
+      }
+    });
+  }
+
+  // If no data exists
+  if (maxR === -1 || maxC === -1) {
+    return [];
+  }
+
+  // Build rectangular grid up to maxR and maxC
+  const grid: (string | number)[][] = Array.from({ length: maxR + 1 }, () =>
     Array.from({ length: maxC + 1 }, () => '')
   );
 
-  sheet.celldata.forEach((cell) => {
-    let valStr = '';
-    if (cell.v !== null && cell.v !== undefined) {
-      if (typeof cell.v === 'object') {
-        const cellValObj = cell.v as FortuneCellValue;
-        valStr = cellValObj.m !== undefined ? String(cellValObj.m) : String(cellValObj.v ?? '');
-      } else {
-        valStr = String(cell.v);
-      }
+  cellMap.forEach((val, key) => {
+    const [rStr, cStr] = key.split('_');
+    const r = Number(rStr);
+    const c = Number(cStr);
+    if (r <= maxR && c <= maxC) {
+      grid[r][c] = val;
     }
-    grid[cell.r][cell.c] = valStr;
   });
 
-  const csvContent = grid
-    .map((row) =>
-      row
-        .map((val) => {
-          const formatted = val.replace(/"/g, '""');
-          return `"${formatted}"`;
-        })
-        .join(',')
-    )
-    .join('\n');
+  return grid;
+}
 
-  const blob = new Blob([new Uint8Array([0xef, 0xbb, 0xbf]), csvContent], {
-    type: 'text/csv;charset=utf-8;',
-  });
+function downloadBlob(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `${sheet.name || 'spreadsheet'}_export.csv`;
+  link.download = filename;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
 
-export function exportFortuneToXLSX(sheet: FortuneSheetData): void {
-  if (!sheet.celldata || sheet.celldata.length === 0) return;
+/**
+ * Export FortuneSheet to CSV file and trigger browser download
+ */
+export function exportFortuneToCSV(
+  sheet: FortuneSheetData | Sheet,
+  customFileName?: string
+): boolean {
+  if (!sheet) return false;
 
-  let maxR = 0;
-  let maxC = 0;
-  sheet.celldata.forEach((cell) => {
-    if (cell.r > maxR) maxR = cell.r;
-    if (cell.c > maxC) maxC = cell.c;
+  const grid = extractGridFromSheet(sheet, { useFormattedText: true });
+  if (grid.length === 0) {
+    return false;
+  }
+
+  const csvContent = grid
+    .map((row) =>
+      row
+        .map((val) => {
+          const str = String(val ?? '');
+          const formatted = str.replace(/"/g, '""');
+          return `"${formatted}"`;
+        })
+        .join(',')
+    )
+    .join('\r\n');
+
+  // Add UTF-8 BOM so Excel opens Korean text cleanly without encoding issues
+  const blob = new Blob([new Uint8Array([0xef, 0xbb, 0xbf]), csvContent], {
+    type: 'text/csv;charset=utf-8;',
   });
 
-  const grid: Array<Array<string | number>> = Array.from({ length: maxR + 1 }, () =>
-    Array.from({ length: maxC + 1 }, () => '')
-  );
+  const rawName = customFileName || sheet.name || 'spreadsheet';
+  const fileName = rawName.endsWith('.csv') ? rawName : `${rawName}.csv`;
 
-  sheet.celldata.forEach((cell) => {
-    let val: string | number = '';
-    if (cell.v !== null && cell.v !== undefined) {
-      if (typeof cell.v === 'object') {
-        const cellValObj = cell.v as FortuneCellValue;
-        val = cellValObj.v ?? '';
-      } else {
-        val = cell.v;
-      }
-    }
-    grid[cell.r][cell.c] = val;
-  });
+  downloadBlob(blob, fileName);
+  return true;
+}
+
+/**
+ * Export single sheet or multiple sheets to XLSX and trigger browser download
+ */
+export function exportFortuneToXLSX(
+  data: (FortuneSheetData | Sheet) | (FortuneSheetData | Sheet)[],
+  customFileName?: string
+): boolean {
+  const sheets = Array.isArray(data) ? data : [data];
+  if (sheets.length === 0) return false;
 
   const workbook = XLSX.utils.book_new();
-  const worksheet = XLSX.utils.aoa_to_sheet(grid);
-  XLSX.utils.book_append_sheet(workbook, worksheet, sheet.name || 'Sheet1');
+  let hasValidSheet = false;
+
+  sheets.forEach((sheet, idx) => {
+    if (!sheet) return;
+    const grid = extractGridFromSheet(sheet, { useFormattedText: false });
+    const rawSheetName = sheet.name || `Sheet${idx + 1}`;
+    // Excel sheet names cannot exceed 31 characters and cannot contain certain special chars
+    const sanitizedSheetName = rawSheetName.replace(/[:\\/?*[\]]/g, '_').substring(0, 31);
+
+    if (grid.length > 0) {
+      const worksheet = XLSX.utils.aoa_to_sheet(grid);
+      XLSX.utils.book_append_sheet(workbook, worksheet, sanitizedSheetName);
+      hasValidSheet = true;
+    } else if (sheets.length === 1) {
+      // If only 1 sheet and it's empty, append empty row so file can be generated
+      const worksheet = XLSX.utils.aoa_to_sheet([['']]);
+      XLSX.utils.book_append_sheet(workbook, worksheet, sanitizedSheetName);
+      hasValidSheet = true;
+    }
+  });
+
+  if (!hasValidSheet) {
+    return false;
+  }
 
   const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
   const blob = new Blob([excelBuffer], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   });
 
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `${sheet.name || 'spreadsheet'}_export.xlsx`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  const rawName =
+    customFileName || (sheets.length === 1 && sheets[0]?.name ? sheets[0].name : 'spreadsheet');
+  const fileName = rawName.endsWith('.xlsx') ? rawName : `${rawName}.xlsx`;
+
+  downloadBlob(blob, fileName);
+  return true;
 }
 
 export function importCSVToFortune(csvText: string, sheetName = 'CSV Import'): FortuneSheetData {
@@ -452,7 +562,10 @@ export async function importXLSXToFortune(file: File): Promise<FortuneSheetData>
         celldata.push({
           r,
           c,
-          v: r === 0 ? { v: cell.v, bl: 1, bg: '#e0f2fe', ht: 0 } : { v: cell.v },
+          v:
+            r === 0
+              ? { v: cell.v as string | number, bl: 1, bg: '#e0f2fe', ht: 0 }
+              : { v: cell.v as string | number },
         });
       }
     }

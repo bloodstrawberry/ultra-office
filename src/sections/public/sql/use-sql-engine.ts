@@ -194,6 +194,11 @@ export function useSqlEngine() {
 
         let rows: Record<string, unknown>[] = [];
         let columns: string[] = [];
+        let executionMessage: string | undefined;
+
+        const upperQuery = trimmedQuery.toUpperCase().trim();
+        const isDdl = /^(CREATE|ALTER|DROP|TRUNCATE|RENAME)\b/i.test(upperQuery);
+        const isDml = /^(INSERT|UPDATE|DELETE|MERGE)\b/i.test(upperQuery);
 
         if (Array.isArray(rawResult)) {
           const lastItem =
@@ -213,12 +218,58 @@ export function useSqlEngine() {
             rows = (lastItem as unknown[]).map((val, idx) => ({ [`col_${idx + 1}`]: val }));
             columns = rows.length > 0 ? Object.keys(rows[0]) : [];
           } else if (typeof lastItem === 'number' || typeof lastItem === 'string') {
-            rows = [{ result: lastItem }];
-            columns = ['result'];
+            if (isDdl) {
+              executionMessage = 'DDL 구문(테이블/뷰 정의)이 성공적으로 실행되었습니다.';
+              rows = [
+                { status: 'SUCCESS', message: '테이블 또는 스키마가 성공적으로 반영되었습니다.' },
+              ];
+              columns = ['status', 'message'];
+            } else if (isDml) {
+              executionMessage = `${lastItem}건의 데이터가 성공적으로 반영(DML)되었습니다.`;
+              rows = [
+                {
+                  status: 'SUCCESS',
+                  affected_rows: lastItem,
+                  message: `${lastItem}건의 데이터가 변경/추가되었습니다.`,
+                },
+              ];
+              columns = ['status', 'affected_rows', 'message'];
+            } else {
+              rows = [{ result: lastItem }];
+              columns = ['result'];
+            }
           }
         } else if (typeof rawResult === 'number') {
-          rows = [{ affected_rows: rawResult }];
-          columns = ['affected_rows'];
+          if (isDdl) {
+            executionMessage = 'DDL 구문(테이블/뷰 정의)이 성공적으로 실행되었습니다.';
+            rows = [
+              { status: 'SUCCESS', message: '테이블 또는 스키마가 성공적으로 반영되었습니다.' },
+            ];
+            columns = ['status', 'message'];
+          } else if (isDml) {
+            executionMessage = `${rawResult}건의 데이터가 성공적으로 반영(DML)되었습니다.`;
+            rows = [
+              {
+                status: 'SUCCESS',
+                affected_rows: rawResult,
+                message: `${rawResult}건의 데이터가 변경/추가되었습니다.`,
+              },
+            ];
+            columns = ['status', 'affected_rows', 'message'];
+          } else {
+            rows = [{ affected_rows: rawResult }];
+            columns = ['affected_rows'];
+          }
+        } else if (rawResult === undefined || rawResult === null) {
+          if (isDdl) {
+            executionMessage = 'DDL 구문(테이블/뷰 정의)이 오류 없이 성공적으로 실행되었습니다.';
+            rows = [{ status: 'SUCCESS', message: 'DDL 명령어가 성공적으로 실행되었습니다.' }];
+            columns = ['status', 'message'];
+          } else if (isDml) {
+            executionMessage = 'DML 데이터 조작 명령어가 오류 없이 실행되었습니다.';
+            rows = [{ status: 'SUCCESS', message: 'DML 데이터 조작이 완료되었습니다.' }];
+            columns = ['status', 'message'];
+          }
         }
 
         const newHistoryItem: QueryHistoryItem = {
@@ -237,6 +288,7 @@ export function useSqlEngine() {
           rows,
           executionTimeMs,
           rowCount: rows.length,
+          executionMessage,
           rawResult,
         };
       } catch (err: unknown) {

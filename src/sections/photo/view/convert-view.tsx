@@ -18,6 +18,8 @@ import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import TransformRoundedIcon from '@mui/icons-material/TransformRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 
+import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
+
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { downloadZipFile, type ZipFileEntry } from '../utils/zip-exporter';
@@ -59,8 +61,7 @@ export function ConvertView() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = Array.from(e.target.files || []);
+  const addFiles = useCallback((selectedFiles: File[]) => {
     if (selectedFiles.length === 0) return;
 
     const newItems: ConvertedFileItem[] = selectedFiles.map((f) => ({
@@ -72,6 +73,16 @@ export function ConvertView() {
     }));
 
     setItems((prev) => [...prev, ...newItems]);
+  }, []);
+
+  const { isDragActive, getRootProps } = useImageDropPaste({
+    onFiles: addFiles,
+    multiple: true,
+  });
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(e.target.files || []);
+    addFiles(selectedFiles);
     if (e.target) e.target.value = '';
   };
 
@@ -170,7 +181,9 @@ export function ConvertView() {
 
       {items.length === 0 ? (
         <Card
-          onClick={() => fileInputRef.current?.click()}
+          {...getRootProps({
+            onClick: () => fileInputRef.current?.click(),
+          })}
           sx={{
             p: 6,
             display: 'flex',
@@ -179,9 +192,11 @@ export function ConvertView() {
             justifyContent: 'center',
             cursor: 'pointer',
             border: '2px dashed',
-            borderColor: 'divider',
+            borderColor: isDragActive ? 'primary.main' : 'divider',
+            bgcolor: isDragActive ? 'action.hover' : 'transparent',
             borderRadius: 3,
             minHeight: 320,
+            transition: (theme) => theme.transitions.create(['border-color', 'background-color']),
             '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
           }}
         >

@@ -42,6 +42,7 @@ export interface QueryResult {
   executionTimeMs: number;
   rowCount: number;
   error?: string;
+  executionMessage?: string;
   rawResult?: unknown;
 }
 

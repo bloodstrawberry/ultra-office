@@ -7,6 +7,8 @@ import type { WorkbookInstance } from '@fortune-sheet/react';
 import type { FortuneSheetData } from './utils';
 import type { FortuneSpreadsheetOptions } from './options';
 
+export type { WorkbookInstance };
+
 import React, { forwardRef } from 'react';
 import { Workbook } from '@fortune-sheet/react';
 

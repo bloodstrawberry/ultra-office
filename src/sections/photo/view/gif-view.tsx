@@ -1,7 +1,7 @@
 'use client';
 
 import { toast } from 'sonner';
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
@@ -24,6 +24,8 @@ import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import CallSplitRoundedIcon from '@mui/icons-material/CallSplitRounded';
 import ColorLensRoundedIcon from '@mui/icons-material/ColorLensRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
+
+import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
@@ -107,8 +109,7 @@ export function GifView() {
   }, [isPlayingSplit, splitFrames, splitPlayerIndex]);
 
   // Tab 1: Handle Images upload
-  const handleCreateFilesUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
+  const addCreateFiles = useCallback((files: File[]) => {
     if (files.length === 0) return;
 
     const newItems: UploadedImageItem[] = [];
@@ -132,7 +133,11 @@ export function GifView() {
       };
       reader.readAsDataURL(file);
     });
+  }, []);
 
+  const handleCreateFilesUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    addCreateFiles(files);
     if (e.target) e.target.value = '';
   };
 
@@ -161,29 +166,25 @@ export function GifView() {
               text: overlayText,
               fontSize,
               fontColor,
-              position: 'bottom',
             }
           : undefined,
         onProgress: (p: number) => setCreateProgress(Math.round(p * 100)),
       });
 
       setCreateResultUrl(gifUrl);
-      toast.success('GIF 애니메이션이 완성되었습니다!');
+      toast.success('GIF 생성이 완료되었습니다!');
     } catch {
-      toast.error('GIF 생성 중 오류가 발생했습니다.');
+      toast.error('GIF 생성에 실패했습니다.');
     } finally {
       setIsCreating(false);
     }
   };
 
   // Tab 2: Split GIF
-  const handleSplitFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const processSplitFile = useCallback(async (file: File) => {
     setSplitFile(file);
     setIsExtracting(true);
-    toast.info('GIF 프레임을 분할 추출하고 있습니다...');
+    toast.info('GIF 프레임을 분석하고 추출하는 중입니다...');
 
     try {
       const res = await extractGifFrames(file);
@@ -195,7 +196,12 @@ export function GifView() {
     } finally {
       setIsExtracting(false);
     }
+  }, []);
 
+  const handleSplitFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    processSplitFile(file);
     if (e.target) e.target.value = '';
   };
 
@@ -221,10 +227,14 @@ export function GifView() {
   };
 
   // Tab 3: Background color
+  const processBgFile = useCallback((file: File) => {
+    setBgFile(file);
+  }, []);
+
   const handleBgFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setBgFile(file);
+    processBgFile(file);
     if (e.target) e.target.value = '';
   };
 
@@ -248,6 +258,31 @@ export function GifView() {
       setIsModifyingBg(false);
     }
   };
+
+  // Drop & Paste Hooks
+  const createDrop = useImageDropPaste({
+    onFiles: addCreateFiles,
+    multiple: true,
+    disabled: currentTab !== 'create',
+  });
+
+  const splitDrop = useImageDropPaste({
+    onFiles: (files) => {
+      if (files[0]) processSplitFile(files[0]);
+    },
+    accept: ['image/gif'],
+    multiple: false,
+    disabled: currentTab !== 'split',
+  });
+
+  const bgDrop = useImageDropPaste({
+    onFiles: (files) => {
+      if (files[0]) processBgFile(files[0]);
+    },
+    accept: ['image/gif'],
+    multiple: false,
+    disabled: currentTab !== 'bg',
+  });
 
   return (
     <DashboardContent>
@@ -273,7 +308,7 @@ export function GifView() {
           iconPosition="start"
         />
         <Tab
-          label="GIF 프레임 분할 (Split)"
+          label="GIF 프레임 분할 추출"
           value="split"
           icon={<CallSplitRoundedIcon />}
           iconPosition="start"
@@ -300,7 +335,9 @@ export function GifView() {
 
           {createImages.length === 0 ? (
             <Card
-              onClick={() => fileInputRef.current?.click()}
+              {...createDrop.getRootProps({
+                onClick: () => fileInputRef.current?.click(),
+              })}
               sx={{
                 p: 6,
                 display: 'flex',
@@ -648,7 +685,9 @@ export function GifView() {
 
           {!splitFile ? (
             <Card
-              onClick={() => splitInputRef.current?.click()}
+              {...splitDrop.getRootProps({
+                onClick: () => splitInputRef.current?.click(),
+              })}
               sx={{
                 p: 6,
                 display: 'flex',
@@ -657,9 +696,12 @@ export function GifView() {
                 justifyContent: 'center',
                 cursor: 'pointer',
                 border: '2px dashed',
-                borderColor: 'divider',
+                borderColor: splitDrop.isDragActive ? 'primary.main' : 'divider',
+                bgcolor: splitDrop.isDragActive ? 'action.hover' : 'transparent',
                 borderRadius: 3,
                 minHeight: 320,
+                transition: (theme) =>
+                  theme.transitions.create(['border-color', 'background-color']),
                 '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
               }}
             >
@@ -821,7 +863,9 @@ export function GifView() {
 
           {!bgFile ? (
             <Card
-              onClick={() => bgInputRef.current?.click()}
+              {...bgDrop.getRootProps({
+                onClick: () => bgInputRef.current?.click(),
+              })}
               sx={{
                 p: 6,
                 display: 'flex',
@@ -830,9 +874,12 @@ export function GifView() {
                 justifyContent: 'center',
                 cursor: 'pointer',
                 border: '2px dashed',
-                borderColor: 'divider',
+                borderColor: bgDrop.isDragActive ? 'primary.main' : 'divider',
+                bgcolor: bgDrop.isDragActive ? 'action.hover' : 'transparent',
                 borderRadius: 3,
                 minHeight: 320,
+                transition: (theme) =>
+                  theme.transitions.create(['border-color', 'background-color']),
                 '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
               }}
             >

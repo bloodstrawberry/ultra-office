@@ -13,6 +13,13 @@ import PhotoLibraryRoundedIcon from '@mui/icons-material/PhotoLibraryRounded';
 import CompareArrowsRoundedIcon from '@mui/icons-material/CompareArrowsRounded';
 import SwapHorizontalCircleRoundedIcon from '@mui/icons-material/SwapHorizontalCircleRounded';
 
+import PictureAsPdfRoundedIcon from '@mui/icons-material/PictureAsPdfRounded';
+import DocumentScannerRoundedIcon from '@mui/icons-material/DocumentScannerRounded';
+import AccountTreeRoundedIcon from '@mui/icons-material/AccountTreeRounded';
+import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
+import TerminalRoundedIcon from '@mui/icons-material/TerminalRounded';
+import QrCodeScannerRoundedIcon from '@mui/icons-material/QrCodeScannerRounded';
+
 import { paths } from 'src/routes/paths';
 
 const ICONS = {
@@ -27,6 +34,12 @@ const ICONS = {
   agent: <AutoAwesomeRoundedIcon fontSize="small" />,
   spreadsheet: <TableViewRoundedIcon fontSize="small" />,
   fileConvert: <SwapHorizontalCircleRoundedIcon fontSize="small" />,
+  pdfMaster: <PictureAsPdfRoundedIcon fontSize="small" />,
+  ocr: <DocumentScannerRoundedIcon fontSize="small" />,
+  diagram: <AccountTreeRoundedIcon fontSize="small" />,
+  schedule: <CalendarMonthRoundedIcon fontSize="small" />,
+  devTools: <TerminalRoundedIcon fontSize="small" />,
+  barcode: <QrCodeScannerRoundedIcon fontSize="small" />,
 };
 
 // ----------------------------------------------------------------------
@@ -74,6 +87,36 @@ export const navData: NavSectionProps['data'] = [
         title: '이미지 도구',
         path: paths.imageTool,
         icon: ICONS.imageTool,
+      },
+      {
+        title: 'PDF 마스터',
+        path: paths.pdfMaster,
+        icon: ICONS.pdfMaster,
+      },
+      {
+        title: '스마트 OCR',
+        path: paths.ocr,
+        icon: ICONS.ocr,
+      },
+      {
+        title: '조직도 & 마인드맵',
+        path: paths.diagram,
+        icon: ICONS.diagram,
+      },
+      {
+        title: '일정 & 간트차트',
+        path: paths.schedule,
+        icon: ICONS.schedule,
+      },
+      {
+        title: '개발자 툴킷',
+        path: paths.devTools,
+        icon: ICONS.devTools,
+      },
+      {
+        title: 'QR & 바코드',
+        path: paths.barcode,
+        icon: ICONS.barcode,
       },
       {
         title: '파일 변환',

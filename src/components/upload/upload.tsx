@@ -44,6 +44,32 @@ export function Upload({
 
   const hasError = isDragReject || !!error;
 
+  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+    const clipboardFiles: File[] = [];
+    if (e.clipboardData?.files?.length) {
+      for (let i = 0; i < e.clipboardData.files.length; i += 1) {
+        clipboardFiles.push(e.clipboardData.files[i]);
+      }
+    } else if (e.clipboardData?.items) {
+      for (let i = 0; i < e.clipboardData.items.length; i += 1) {
+        const item = e.clipboardData.items[i];
+        if (item.kind === 'file') {
+          const file = item.getAsFile();
+          if (file) clipboardFiles.push(file);
+        }
+      }
+    }
+    if (clipboardFiles.length > 0) {
+      e.preventDefault();
+      const files = multiple ? clipboardFiles : [clipboardFiles[0]];
+      if (other.onDrop) {
+        (other.onDrop as any)(files, [], e as any);
+      } else if (other.onDropAccepted) {
+        (other.onDropAccepted as any)(files, e as any);
+      }
+    }
+  };
+
   const renderMultiPreview = () =>
     hasFiles && (
       <>
@@ -79,6 +105,8 @@ export function Upload({
     >
       <Box
         {...getRootProps()}
+        tabIndex={0}
+        onPaste={handlePaste}
         sx={[
           (theme) => ({
             p: 5,

@@ -22,6 +22,8 @@ import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 import PictureAsPdfRoundedIcon from '@mui/icons-material/PictureAsPdfRounded';
 import PhotoLibraryRoundedIcon from '@mui/icons-material/PhotoLibraryRounded';
 
+import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
+
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { splitPdfFile, mergePdfFiles } from '../../util/utils/pdf-tool-utils';
@@ -64,6 +66,23 @@ export function FileConvertView() {
   const [imgFiles, setImgFiles] = useState<File[]>([]);
   const [targetImgExt, setTargetImgExt] = useState<string>('webp');
   const [isImgConverting, setIsImgConverting] = useState<boolean>(false);
+
+  // Drop & Paste Hooks for image uploads
+  const img2PdfDrop = useImageDropPaste({
+    onFiles: (files) => {
+      setImg2PdfFiles((prev) => [...prev, ...files]);
+    },
+    multiple: true,
+    disabled: currentTab !== 'pdf' || pdfSubTool !== 'img2pdf',
+  });
+
+  const imgConvertDrop = useImageDropPaste({
+    onFiles: (files) => {
+      setImgFiles((prev) => [...prev, ...files]);
+    },
+    multiple: true,
+    disabled: currentTab !== 'image',
+  });
 
   // --------------------------------------------------------------------
   // PDF Handlers
@@ -259,7 +278,7 @@ export function FileConvertView() {
 
   return (
     <DashboardContent>
-      <Box sx={{ mb: 3 }}>
+      <Box sx={{ mb: 2, flexShrink: 0 }}>
         <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
           파일 일괄 변환기 (File Converter)
         </Typography>
@@ -268,492 +287,538 @@ export function FileConvertView() {
         </Typography>
       </Box>
 
-      <Tabs
-        value={currentTab}
-        onChange={(_, v) => setCurrentTab(v)}
-        sx={{ mb: 3, borderBottom: 1, borderColor: 'divider' }}
-      >
-        <Tab
-          label="1. PDF 변환 / 병합 / 분할"
-          value="pdf"
-          icon={<PictureAsPdfRoundedIcon />}
-          iconPosition="start"
-        />
-        <Tab
-          label="2. 엑셀 (Excel ⇄ CSV · JSON)"
-          value="excel"
-          icon={<TableViewRoundedIcon />}
-          iconPosition="start"
-        />
-        <Tab
-          label="3. 이미지 포맷 일괄 변환"
-          value="image"
-          icon={<PhotoLibraryRoundedIcon />}
-          iconPosition="start"
-        />
-      </Tabs>
+      <Box sx={{ flexShrink: 0, mb: 2 }}>
+        <Tabs
+          value={currentTab}
+          onChange={(_, v) => setCurrentTab(v)}
+          sx={{ borderBottom: 1, borderColor: 'divider' }}
+        >
+          <Tab
+            label="1. PDF 변환 / 병합 / 분할"
+            value="pdf"
+            icon={<PictureAsPdfRoundedIcon />}
+            iconPosition="start"
+          />
+          <Tab
+            label="2. 엑셀 (Excel ⇄ CSV · JSON)"
+            value="excel"
+            icon={<TableViewRoundedIcon />}
+            iconPosition="start"
+          />
+          <Tab
+            label="3. 이미지 포맷 일괄 변환"
+            value="image"
+            icon={<PhotoLibraryRoundedIcon />}
+            iconPosition="start"
+          />
+        </Tabs>
+      </Box>
 
-      {/* TAB 1: PDF SUITE */}
-      {currentTab === 'pdf' && (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-          {/* Sub-tools switch */}
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button
-              variant={pdfSubTool === 'merge' ? 'contained' : 'outlined'}
-              startIcon={<MergeTypeRoundedIcon />}
-              onClick={() => setPdfSubTool('merge')}
-            >
-              PDF 파일 병합 (Merge)
-            </Button>
-            <Button
-              variant={pdfSubTool === 'split' ? 'contained' : 'outlined'}
-              startIcon={<CallSplitRoundedIcon />}
-              onClick={() => setPdfSubTool('split')}
-            >
-              페이지 추출 & 분할 (Split)
-            </Button>
-            <Button
-              variant={pdfSubTool === 'img2pdf' ? 'contained' : 'outlined'}
-              startIcon={<PictureAsPdfRoundedIcon />}
-              onClick={() => setPdfSubTool('img2pdf')}
-            >
-              이미지 → PDF 문서 생성
-            </Button>
-          </Box>
-
-          {/* Merge Card */}
-          {pdfSubTool === 'merge' && (
-            <Card
-              sx={{ p: 3, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2.5 }}
-            >
-              <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
-                여러 PDF 파일을 순서대로 단일 파일로 결합
-              </Typography>
-
+      <Box sx={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', pb: 2 }}>
+        {/* TAB 1: PDF SUITE */}
+        {currentTab === 'pdf' && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {/* Sub-tools switch */}
+            <Box sx={{ display: 'flex', gap: 1 }}>
               <Button
-                variant="outlined"
-                component="label"
-                startIcon={<CloudUploadRoundedIcon />}
-                sx={{
-                  py: 3,
-                  borderStyle: 'dashed',
-                  borderWidth: 2,
-                  borderRadius: 2,
-                  fontWeight: 700,
-                }}
+                variant={pdfSubTool === 'merge' ? 'contained' : 'outlined'}
+                startIcon={<MergeTypeRoundedIcon />}
+                onClick={() => setPdfSubTool('merge')}
               >
-                병합할 PDF 파일들 선택 (다중 선택)
-                <input
-                  type="file"
-                  hidden
-                  multiple
-                  accept="application/pdf"
-                  onChange={(e) => {
-                    if (e.target.files) setPdfMergeFiles(Array.from(e.target.files));
-                  }}
-                />
+                PDF 파일 병합 (Merge)
               </Button>
+              <Button
+                variant={pdfSubTool === 'split' ? 'contained' : 'outlined'}
+                startIcon={<CallSplitRoundedIcon />}
+                onClick={() => setPdfSubTool('split')}
+              >
+                페이지 추출 & 분할 (Split)
+              </Button>
+              <Button
+                variant={pdfSubTool === 'img2pdf' ? 'contained' : 'outlined'}
+                startIcon={<PictureAsPdfRoundedIcon />}
+                onClick={() => setPdfSubTool('img2pdf')}
+              >
+                이미지 → PDF 문서 생성
+              </Button>
+            </Box>
 
-              {pdfMergeFiles.length > 0 && (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <Typography variant="caption" sx={{ fontWeight: 700 }}>
-                    병합 순서 목록 ({pdfMergeFiles.length}개):
+            {/* Merge Card */}
+            {pdfSubTool === 'merge' && (
+              <Card
+                sx={{ p: 3, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2.5 }}
+              >
+                <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+                  여러 PDF 파일을 순서대로 단일 파일로 결합
+                </Typography>
+
+                <Button
+                  variant="outlined"
+                  component="label"
+                  startIcon={<CloudUploadRoundedIcon />}
+                  sx={{
+                    py: 3,
+                    borderStyle: 'dashed',
+                    borderWidth: 2,
+                    borderRadius: 2,
+                    fontWeight: 700,
+                  }}
+                >
+                  병합할 PDF 파일들 선택 (다중 선택)
+                  <input
+                    type="file"
+                    hidden
+                    multiple
+                    accept="application/pdf"
+                    onChange={(e) => {
+                      if (e.target.files) setPdfMergeFiles(Array.from(e.target.files));
+                    }}
+                  />
+                </Button>
+
+                {pdfMergeFiles.length > 0 && (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                      병합 순서 목록 ({pdfMergeFiles.length}개):
+                    </Typography>
+                    {pdfMergeFiles.map((f, i) => (
+                      <Card
+                        key={i}
+                        variant="outlined"
+                        sx={{ p: 1.2, display: 'flex', justifyContent: 'space-between' }}
+                      >
+                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                          {i + 1}. {f.name}
+                        </Typography>
+                        <Chip label={`${Math.round(f.size / 1024)} KB`} size="small" />
+                      </Card>
+                    ))}
+                  </Box>
+                )}
+
+                <Button
+                  variant="contained"
+                  size="large"
+                  disabled={pdfMergeFiles.length < 2 || isPdfLoading}
+                  onClick={handleMergePdf}
+                  startIcon={
+                    isPdfLoading ? (
+                      <CircularProgress size={20} color="inherit" />
+                    ) : (
+                      <DownloadRoundedIcon />
+                    )
+                  }
+                  sx={{ py: 1.3, fontWeight: 800 }}
+                >
+                  {isPdfLoading
+                    ? '병합 중...'
+                    : `${pdfMergeFiles.length}개 PDF 파일 병합 및 다운로드`}
+                </Button>
+              </Card>
+            )}
+
+            {/* Split Card */}
+            {pdfSubTool === 'split' && (
+              <Card
+                sx={{ p: 3, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2.5 }}
+              >
+                <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+                  PDF에서 특정 페이지만 선택하여 새 PDF로 추출
+                </Typography>
+
+                <Button
+                  variant="outlined"
+                  component="label"
+                  startIcon={<CloudUploadRoundedIcon />}
+                  sx={{
+                    py: 2.5,
+                    borderStyle: 'dashed',
+                    borderWidth: 2,
+                    borderRadius: 2,
+                    fontWeight: 700,
+                  }}
+                >
+                  분할할 PDF 파일 선택
+                  <input
+                    type="file"
+                    hidden
+                    accept="application/pdf"
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) setPdfSplitFile(e.target.files[0]);
+                    }}
+                  />
+                </Button>
+
+                {pdfSplitFile && (
+                  <Typography variant="body2" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                    선택된 파일: {pdfSplitFile.name} ({Math.round(pdfSplitFile.size / 1024)} KB)
                   </Typography>
-                  {pdfMergeFiles.map((f, i) => (
-                    <Card
-                      key={i}
-                      variant="outlined"
-                      sx={{ p: 1.2, display: 'flex', justifyContent: 'space-between' }}
-                    >
-                      <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                        {i + 1}. {f.name}
-                      </Typography>
-                      <Chip label={`${Math.round(f.size / 1024)} KB`} size="small" />
-                    </Card>
-                  ))}
-                </Box>
-              )}
+                )}
 
-              <Button
-                variant="contained"
-                size="large"
-                disabled={pdfMergeFiles.length < 2 || isPdfLoading}
-                onClick={handleMergePdf}
-                startIcon={
-                  isPdfLoading ? (
-                    <CircularProgress size={20} color="inherit" />
-                  ) : (
-                    <DownloadRoundedIcon />
-                  )
-                }
-                sx={{ py: 1.3, fontWeight: 800 }}
-              >
-                {isPdfLoading
-                  ? '병합 중...'
-                  : `${pdfMergeFiles.length}개 PDF 파일 병합 및 다운로드`}
-              </Button>
-            </Card>
-          )}
+                <TextField
+                  label="추출할 페이지 번호 (콤마 또는 범위 지정)"
+                  placeholder="예: 1, 3, 5-8"
+                  value={splitPageInput}
+                  onChange={(e) => setSplitPageInput(e.target.value)}
+                  helperText="1부터 시작하는 페이지 번호입니다."
+                />
 
-          {/* Split Card */}
-          {pdfSubTool === 'split' && (
-            <Card
-              sx={{ p: 3, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2.5 }}
-            >
-              <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
-                PDF에서 특정 페이지만 선택하여 새 PDF로 추출
-              </Typography>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  size="large"
+                  disabled={!pdfSplitFile || isPdfLoading}
+                  onClick={handleSplitPdf}
+                  startIcon={
+                    isPdfLoading ? (
+                      <CircularProgress size={20} color="inherit" />
+                    ) : (
+                      <CallSplitRoundedIcon />
+                    )
+                  }
+                  sx={{ py: 1.3, fontWeight: 800 }}
+                >
+                  {isPdfLoading ? '페이지 추출 중...' : '지정 페이지 추출 및 다운로드'}
+                </Button>
+              </Card>
+            )}
 
-              <Button
-                variant="outlined"
-                component="label"
-                startIcon={<CloudUploadRoundedIcon />}
+            {/* Images to PDF Card */}
+            {pdfSubTool === 'img2pdf' && (
+              <Card
+                {...img2PdfDrop.getRootProps()}
                 sx={{
-                  py: 2.5,
-                  borderStyle: 'dashed',
-                  borderWidth: 2,
+                  p: 3,
                   borderRadius: 2,
-                  fontWeight: 700,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2.5,
+                  bgcolor: img2PdfDrop.isDragActive ? 'action.hover' : 'background.paper',
+                  border: img2PdfDrop.isDragActive ? '2px dashed' : 'none',
+                  borderColor: 'primary.main',
+                  transition: (theme) =>
+                    theme.transitions.create(['border-color', 'background-color']),
                 }}
               >
-                분할할 PDF 파일 선택
-                <input
-                  type="file"
-                  hidden
-                  accept="application/pdf"
-                  onChange={(e) => {
-                    if (e.target.files?.[0]) setPdfSplitFile(e.target.files[0]);
-                  }}
-                />
-              </Button>
-
-              {pdfSplitFile && (
-                <Typography variant="body2" sx={{ fontWeight: 700, color: 'primary.main' }}>
-                  선택된 파일: {pdfSplitFile.name} ({Math.round(pdfSplitFile.size / 1024)} KB)
+                <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+                  다중 이미지(PNG, JPG)를 규격 A4 PDF 문서로 변환
                 </Typography>
-              )}
 
-              <TextField
-                label="추출할 페이지 번호 (콤마 또는 범위 지정)"
-                placeholder="예: 1, 3, 5-8"
-                value={splitPageInput}
-                onChange={(e) => setSplitPageInput(e.target.value)}
-                helperText="1부터 시작하는 페이지 번호입니다."
-              />
-
-              <Button
-                variant="contained"
-                color="secondary"
-                size="large"
-                disabled={!pdfSplitFile || isPdfLoading}
-                onClick={handleSplitPdf}
-                startIcon={
-                  isPdfLoading ? (
-                    <CircularProgress size={20} color="inherit" />
-                  ) : (
-                    <CallSplitRoundedIcon />
-                  )
-                }
-                sx={{ py: 1.3, fontWeight: 800 }}
-              >
-                {isPdfLoading ? '페이지 추출 중...' : '지정 페이지 추출 및 다운로드'}
-              </Button>
-            </Card>
-          )}
-
-          {/* Images to PDF Card */}
-          {pdfSubTool === 'img2pdf' && (
-            <Card
-              sx={{ p: 3, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2.5 }}
-            >
-              <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
-                다중 이미지(PNG, JPG)를 규격 A4 PDF 문서로 변환
-              </Typography>
-
-              <Button
-                variant="outlined"
-                component="label"
-                startIcon={<CloudUploadRoundedIcon />}
-                sx={{
-                  py: 3,
-                  borderStyle: 'dashed',
-                  borderWidth: 2,
-                  borderRadius: 2,
-                  fontWeight: 700,
-                }}
-              >
-                PDF로 묶을 이미지들 선택 (다중 선택)
-                <input
-                  type="file"
-                  hidden
-                  multiple
-                  accept="image/png,image/jpeg"
-                  onChange={(e) => {
-                    if (e.target.files) setImg2PdfFiles(Array.from(e.target.files));
+                <Button
+                  variant="outlined"
+                  component="label"
+                  startIcon={<CloudUploadRoundedIcon />}
+                  sx={{
+                    py: 3,
+                    borderStyle: 'dashed',
+                    borderWidth: 2,
+                    borderRadius: 2,
+                    fontWeight: 700,
                   }}
-                />
-              </Button>
+                >
+                  PDF로 묶을 이미지들 선택 (드래그 & 드롭 / 붙여넣기 지원)
+                  <input
+                    type="file"
+                    hidden
+                    multiple
+                    accept="image/png,image/jpeg"
+                    onChange={(e) => {
+                      if (e.target.files)
+                        setImg2PdfFiles((prev) => [...prev, ...Array.from(e.target.files || [])]);
+                    }}
+                  />
+                </Button>
 
-              {img2PdfFiles.length > 0 && (
-                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                  {img2PdfFiles.map((f, i) => (
-                    <Chip key={i} label={`${i + 1}p: ${f.name}`} size="small" />
-                  ))}
-                </Box>
-              )}
+                {img2PdfFiles.length > 0 && (
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                    {img2PdfFiles.map((f, i) => (
+                      <Chip key={i} label={`${i + 1}p: ${f.name}`} size="small" />
+                    ))}
+                  </Box>
+                )}
 
-              <Button
-                variant="contained"
-                color="success"
-                size="large"
-                disabled={img2PdfFiles.length === 0 || isPdfLoading}
-                onClick={handleImagesToPdf}
-                startIcon={
-                  isPdfLoading ? (
-                    <CircularProgress size={20} color="inherit" />
-                  ) : (
-                    <DownloadRoundedIcon />
-                  )
-                }
-                sx={{ py: 1.3, fontWeight: 800 }}
-              >
-                {isPdfLoading
-                  ? 'PDF 생성 중...'
-                  : `${img2PdfFiles.length}장 이미지 PDF 변환 및 다운로드`}
-              </Button>
-            </Card>
-          )}
-        </Box>
-      )}
-
-      {/* TAB 2: EXCEL SUITE */}
-      {currentTab === 'excel' && (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button
-              variant={excelSubTool === 'excel2csv' ? 'contained' : 'outlined'}
-              onClick={() => setExcelSubTool('excel2csv')}
-            >
-              Excel → CSV 변환
-            </Button>
-            <Button
-              variant={excelSubTool === 'excel2json' ? 'contained' : 'outlined'}
-              onClick={() => setExcelSubTool('excel2json')}
-            >
-              Excel → JSON 변환
-            </Button>
-            <Button
-              variant={excelSubTool === 'toExcel' ? 'contained' : 'outlined'}
-              onClick={() => setExcelSubTool('toExcel')}
-            >
-              CSV / JSON → Excel (.xlsx) 생성
-            </Button>
+                <Button
+                  variant="contained"
+                  color="success"
+                  size="large"
+                  disabled={img2PdfFiles.length === 0 || isPdfLoading}
+                  onClick={handleImagesToPdf}
+                  startIcon={
+                    isPdfLoading ? (
+                      <CircularProgress size={20} color="inherit" />
+                    ) : (
+                      <DownloadRoundedIcon />
+                    )
+                  }
+                  sx={{ py: 1.3, fontWeight: 800 }}
+                >
+                  {isPdfLoading
+                    ? 'PDF 생성 중...'
+                    : `${img2PdfFiles.length}장 이미지 PDF 변환 및 다운로드`}
+                </Button>
+              </Card>
+            )}
           </Box>
+        )}
 
-          {(excelSubTool === 'excel2csv' || excelSubTool === 'excel2json') && (
-            <Card
-              sx={{ p: 3, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2.5 }}
-            >
-              <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
-                {excelSubTool === 'excel2csv'
-                  ? 'Excel 파일 (.xlsx, .xls) → CSV 변환'
-                  : 'Excel 파일 (.xlsx, .xls) → JSON 변환'}
-              </Typography>
-
+        {/* TAB 2: EXCEL SUITE */}
+        {currentTab === 'excel' && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Box sx={{ display: 'flex', gap: 1 }}>
               <Button
-                variant="outlined"
-                component="label"
-                startIcon={<CloudUploadRoundedIcon />}
-                sx={{
-                  py: 3,
-                  borderStyle: 'dashed',
-                  borderWidth: 2,
-                  borderRadius: 2,
-                  fontWeight: 700,
-                }}
+                variant={excelSubTool === 'excel2csv' ? 'contained' : 'outlined'}
+                onClick={() => setExcelSubTool('excel2csv')}
               >
-                엑셀 파일 (.xlsx, .xls) 업로드
-                <input
-                  type="file"
-                  hidden
-                  accept=".xlsx,.xls"
-                  onChange={(e) => {
-                    if (e.target.files?.[0]) setExcelFile(e.target.files[0]);
+                Excel → CSV 변환
+              </Button>
+              <Button
+                variant={excelSubTool === 'excel2json' ? 'contained' : 'outlined'}
+                onClick={() => setExcelSubTool('excel2json')}
+              >
+                Excel → JSON 변환
+              </Button>
+              <Button
+                variant={excelSubTool === 'toExcel' ? 'contained' : 'outlined'}
+                onClick={() => setExcelSubTool('toExcel')}
+              >
+                CSV / JSON → Excel (.xlsx) 생성
+              </Button>
+            </Box>
+
+            {(excelSubTool === 'excel2csv' || excelSubTool === 'excel2json') && (
+              <Card
+                sx={{ p: 3, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2.5 }}
+              >
+                <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+                  {excelSubTool === 'excel2csv'
+                    ? 'Excel 파일 (.xlsx, .xls) → CSV 변환'
+                    : 'Excel 파일 (.xlsx, .xls) → JSON 변환'}
+                </Typography>
+
+                <Button
+                  variant="outlined"
+                  component="label"
+                  startIcon={<CloudUploadRoundedIcon />}
+                  sx={{
+                    py: 3,
+                    borderStyle: 'dashed',
+                    borderWidth: 2,
+                    borderRadius: 2,
+                    fontWeight: 700,
+                  }}
+                >
+                  엑셀 파일 (.xlsx, .xls) 업로드
+                  <input
+                    type="file"
+                    hidden
+                    accept=".xlsx,.xls"
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) setExcelFile(e.target.files[0]);
+                    }}
+                  />
+                </Button>
+
+                {excelFile && (
+                  <Typography variant="body2" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                    선택된 파일: {excelFile.name} ({Math.round(excelFile.size / 1024)} KB)
+                  </Typography>
+                )}
+
+                <Button
+                  variant="contained"
+                  size="large"
+                  disabled={!excelFile || isExcelLoading}
+                  onClick={excelSubTool === 'excel2csv' ? handleExcelToCsv : handleExcelToJson}
+                  startIcon={
+                    isExcelLoading ? (
+                      <CircularProgress size={20} color="inherit" />
+                    ) : (
+                      <DownloadRoundedIcon />
+                    )
+                  }
+                  sx={{ py: 1.3, fontWeight: 800 }}
+                >
+                  {isExcelLoading ? '변환 처리 중...' : '변환 및 다운로드'}
+                </Button>
+              </Card>
+            )}
+
+            {excelSubTool === 'toExcel' && (
+              <Card
+                sx={{ p: 3, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2.5 }}
+              >
+                <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+                  CSV 텍스트 또는 JSON 데이터 → 엑셀 파일 (.xlsx) 생성
+                </Typography>
+
+                <textarea
+                  value={rawTextData}
+                  onChange={(e) => setRawTextData(e.target.value)}
+                  placeholder="CSV 문자열 또는 JSON 배열을 붙여넣으세요..."
+                  style={{
+                    width: '100%',
+                    minHeight: 180,
+                    padding: 12,
+                    borderRadius: 8,
+                    border: '1px solid var(--palette-divider, #e2e8f0)',
+                    backgroundColor: 'transparent',
+                    color: 'inherit',
+                    fontFamily: 'monospace',
+                    fontSize: '0.9rem',
                   }}
                 />
-              </Button>
 
-              {excelFile && (
-                <Typography variant="body2" sx={{ fontWeight: 700, color: 'primary.main' }}>
-                  선택된 파일: {excelFile.name} ({Math.round(excelFile.size / 1024)} KB)
-                </Typography>
-              )}
+                <Button
+                  variant="contained"
+                  color="success"
+                  size="large"
+                  disabled={!rawTextData.trim()}
+                  onClick={handleDataToExcel}
+                  startIcon={<DownloadRoundedIcon />}
+                  sx={{ py: 1.3, fontWeight: 800 }}
+                >
+                  Excel (.xlsx) 파일로 내보내기
+                </Button>
+              </Card>
+            )}
+          </Box>
+        )}
 
-              <Button
-                variant="contained"
-                size="large"
-                disabled={!excelFile || isExcelLoading}
-                onClick={excelSubTool === 'excel2csv' ? handleExcelToCsv : handleExcelToJson}
-                startIcon={
-                  isExcelLoading ? (
-                    <CircularProgress size={20} color="inherit" />
-                  ) : (
-                    <DownloadRoundedIcon />
-                  )
-                }
-                sx={{ py: 1.3, fontWeight: 800 }}
-              >
-                {isExcelLoading ? '변환 처리 중...' : '변환 및 다운로드'}
-              </Button>
-            </Card>
-          )}
+        {/* TAB 3: IMAGE FORMAT BATCH CONVERT */}
+        {currentTab === 'image' && (
+          <Card
+            {...imgConvertDrop.getRootProps()}
+            sx={{
+              p: 3,
+              borderRadius: 2,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 2.5,
+              bgcolor: imgConvertDrop.isDragActive ? 'action.hover' : 'background.paper',
+              border: imgConvertDrop.isDragActive ? '2px dashed' : 'none',
+              borderColor: 'primary.main',
+              transition: (theme) => theme.transitions.create(['border-color', 'background-color']),
+            }}
+          >
+            <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+              이미지 다중 포맷 일괄 변환 & ZIP 다운로드
+            </Typography>
 
-          {excelSubTool === 'toExcel' && (
-            <Card
-              sx={{ p: 3, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2.5 }}
+            <Button
+              variant="outlined"
+              component="label"
+              startIcon={<CloudUploadRoundedIcon />}
+              sx={{
+                py: 3,
+                borderStyle: 'dashed',
+                borderWidth: 2,
+                borderRadius: 2,
+                fontWeight: 700,
+              }}
             >
-              <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
-                CSV 텍스트 또는 JSON 데이터 → 엑셀 파일 (.xlsx) 생성
-              </Typography>
-
-              <textarea
-                value={rawTextData}
-                onChange={(e) => setRawTextData(e.target.value)}
-                placeholder="CSV 문자열 또는 JSON 배열을 붙여넣으세요..."
-                style={{
-                  width: '100%',
-                  minHeight: 180,
-                  padding: 12,
-                  borderRadius: 8,
-                  border: '1px solid #e2e8f0',
-                  fontFamily: 'monospace',
-                  fontSize: '0.9rem',
+              이미지 파일들 선택 (드래그 & 드롭 / 붙여넣기 지원)
+              <input
+                type="file"
+                hidden
+                multiple
+                accept="image/*"
+                onChange={(e) => {
+                  if (e.target.files)
+                    setImgFiles((prev) => [...prev, ...Array.from(e.target.files || [])]);
                 }}
               />
+            </Button>
 
-              <Button
-                variant="contained"
-                color="success"
-                size="large"
-                disabled={!rawTextData.trim()}
-                onClick={handleDataToExcel}
-                startIcon={<DownloadRoundedIcon />}
-                sx={{ py: 1.3, fontWeight: 800 }}
-              >
-                Excel (.xlsx) 파일로 내보내기
-              </Button>
-            </Card>
-          )}
-        </Box>
-      )}
+            {imgFiles.length > 0 && (
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                {imgFiles.map((f, i) => (
+                  <Chip
+                    key={i}
+                    label={`${f.name} (${Math.round(f.size / 1024)} KB)`}
+                    size="small"
+                  />
+                ))}
+              </Box>
+            )}
 
-      {/* TAB 3: IMAGE FORMAT BATCH CONVERT */}
-      {currentTab === 'image' && (
-        <Card sx={{ p: 3, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
-            이미지 다중 포맷 일괄 변환 & ZIP 다운로드
-          </Typography>
-
-          <Button
-            variant="outlined"
-            component="label"
-            startIcon={<CloudUploadRoundedIcon />}
-            sx={{ py: 3, borderStyle: 'dashed', borderWidth: 2, borderRadius: 2, fontWeight: 700 }}
-          >
-            이미지 파일들 선택 (다중 선택)
-            <input
-              type="file"
-              hidden
-              multiple
-              accept="image/*"
-              onChange={(e) => {
-                if (e.target.files) setImgFiles(Array.from(e.target.files));
-              }}
-            />
-          </Button>
-
-          {imgFiles.length > 0 && (
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              {imgFiles.map((f, i) => (
-                <Chip key={i} label={`${f.name} (${Math.round(f.size / 1024)} KB)`} size="small" />
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              {['webp', 'png', 'jpeg'].map((fmt) => (
+                <Button
+                  key={fmt}
+                  variant={targetImgExt === fmt ? 'contained' : 'outlined'}
+                  onClick={() => setTargetImgExt(fmt)}
+                >
+                  {fmt.toUpperCase()} 포맷
+                </Button>
               ))}
             </Box>
-          )}
 
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            {['webp', 'png', 'jpeg'].map((fmt) => (
-              <Button
-                key={fmt}
-                variant={targetImgExt === fmt ? 'contained' : 'outlined'}
-                onClick={() => setTargetImgExt(fmt)}
-              >
-                {fmt.toUpperCase()} 포맷
-              </Button>
-            ))}
-          </Box>
-
-          <Button
-            variant="contained"
-            color="primary"
-            size="large"
-            disabled={imgFiles.length === 0 || isImgConverting}
-            onClick={async () => {
-              setIsImgConverting(true);
-              try {
-                const zip = new JSZip();
-                for (let i = 0; i < imgFiles.length; i += 1) {
-                  const file = imgFiles[i];
-                  const bitmap = await createImageBitmap(file);
-                  const canvas = document.createElement('canvas');
-                  canvas.width = bitmap.width;
-                  canvas.height = bitmap.height;
-                  const ctx = canvas.getContext('2d');
-                  if (ctx) {
-                    ctx.drawImage(bitmap, 0, 0);
-                    const mime =
-                      targetImgExt === 'png'
-                        ? 'image/png'
-                        : targetImgExt === 'webp'
-                          ? 'image/webp'
-                          : 'image/jpeg';
-                    const blob = await new Promise<Blob | null>((res) =>
-                      canvas.toBlob(res, mime, 0.9)
-                    );
-                    if (blob) {
-                      const base = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
-                      zip.file(`${base}.${targetImgExt}`, blob);
+            <Button
+              variant="contained"
+              color="primary"
+              size="large"
+              disabled={imgFiles.length === 0 || isImgConverting}
+              onClick={async () => {
+                setIsImgConverting(true);
+                try {
+                  const zip = new JSZip();
+                  for (let i = 0; i < imgFiles.length; i += 1) {
+                    const file = imgFiles[i];
+                    const bitmap = await createImageBitmap(file);
+                    const canvas = document.createElement('canvas');
+                    canvas.width = bitmap.width;
+                    canvas.height = bitmap.height;
+                    const ctx = canvas.getContext('2d');
+                    if (ctx) {
+                      ctx.drawImage(bitmap, 0, 0);
+                      const mime =
+                        targetImgExt === 'png'
+                          ? 'image/png'
+                          : targetImgExt === 'webp'
+                            ? 'image/webp'
+                            : 'image/jpeg';
+                      const blob = await new Promise<Blob | null>((res) =>
+                        canvas.toBlob(res, mime, 0.9)
+                      );
+                      if (blob) {
+                        const base =
+                          file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+                        zip.file(`${base}.${targetImgExt}`, blob);
+                      }
                     }
                   }
+                  const zipBlob = await zip.generateAsync({ type: 'blob' });
+                  const url = URL.createObjectURL(zipBlob);
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.download = `converted_images_${targetImgExt}.zip`;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  URL.revokeObjectURL(url);
+                  toast.success('ZIP 파일로 일괄 다운로드되었습니다.');
+                } catch {
+                  toast.error('변환 실패');
+                } finally {
+                  setIsImgConverting(false);
                 }
-                const zipBlob = await zip.generateAsync({ type: 'blob' });
-                const url = URL.createObjectURL(zipBlob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `converted_images_${targetImgExt}.zip`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
-                toast.success('ZIP 파일로 일괄 다운로드되었습니다.');
-              } catch {
-                toast.error('변환 실패');
-              } finally {
-                setIsImgConverting(false);
+              }}
+              startIcon={
+                isImgConverting ? (
+                  <CircularProgress size={20} color="inherit" />
+                ) : (
+                  <DownloadRoundedIcon />
+                )
               }
-            }}
-            startIcon={
-              isImgConverting ? (
-                <CircularProgress size={20} color="inherit" />
-              ) : (
-                <DownloadRoundedIcon />
-              )
-            }
-            sx={{ py: 1.3, fontWeight: 800 }}
-          >
-            {isImgConverting ? '일괄 변환 중...' : `${imgFiles.length}개 파일 변환 및 ZIP 다운로드`}
-          </Button>
-        </Card>
-      )}
+              sx={{ py: 1.3, fontWeight: 800 }}
+            >
+              {isImgConverting
+                ? '일괄 변환 중...'
+                : `${imgFiles.length}개 파일 변환 및 ZIP 다운로드`}
+            </Button>
+          </Card>
+        )}
+      </Box>
     </DashboardContent>
   );
 }

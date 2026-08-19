@@ -21,6 +21,12 @@ export const paths = {
   compare: '/compare',
   imageTool: '/image-tool',
   fileConvert: '/file-convert',
+  pdfMaster: '/pdf-master',
+  ocr: '/ocr',
+  diagram: '/diagram',
+  schedule: '/schedule',
+  devTools: '/dev-tools',
+  barcode: '/barcode',
   agent: '/agent',
   spreadsheet: '/spreadsheet',
   text: {

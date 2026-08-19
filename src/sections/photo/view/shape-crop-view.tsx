@@ -19,6 +19,8 @@ import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import CropRotateRoundedIcon from '@mui/icons-material/CropRotateRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 
+import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
+
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { downloadDataUrl, shareToKakaoTalk } from '../utils/image-processor';
@@ -57,15 +59,25 @@ export function ShapeCropView() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const processFile = useCallback((file: File) => {
     const reader = new FileReader();
     reader.onload = (event) => {
       setImageSrc(event.target?.result as string);
     };
     reader.readAsDataURL(file);
+  }, []);
+
+  const { isDragActive, getRootProps } = useImageDropPaste({
+    onFiles: (files) => {
+      if (files[0]) processFile(files[0]);
+    },
+    multiple: false,
+  });
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    processFile(file);
     if (e.target) e.target.value = '';
   };
 
@@ -309,7 +321,9 @@ export function ShapeCropView() {
 
       {!imageSrc ? (
         <Card
-          onClick={() => fileInputRef.current?.click()}
+          {...getRootProps({
+            onClick: () => fileInputRef.current?.click(),
+          })}
           sx={{
             p: 6,
             display: 'flex',
@@ -318,9 +332,11 @@ export function ShapeCropView() {
             justifyContent: 'center',
             cursor: 'pointer',
             border: '2px dashed',
-            borderColor: 'divider',
+            borderColor: isDragActive ? 'primary.main' : 'divider',
+            bgcolor: isDragActive ? 'action.hover' : 'transparent',
             borderRadius: 3,
             minHeight: 320,
+            transition: (theme) => theme.transitions.create(['border-color', 'background-color']),
             '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
           }}
         >

@@ -17,6 +17,8 @@ import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import LaptopMacRoundedIcon from '@mui/icons-material/LaptopMacRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 
+import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
+
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { SafeNumberInput } from '../components/safe-number-input';
@@ -101,8 +103,7 @@ export function GaroView() {
     processBatch,
   ]);
 
-  const handleFilesSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = Array.from(e.target.files || []);
+  const addFiles = useCallback((selectedFiles: File[]) => {
     if (selectedFiles.length === 0) return;
 
     const newUploadedFiles: UploadedFile[] = [];
@@ -127,7 +128,16 @@ export function GaroView() {
       };
       reader.readAsDataURL(file);
     });
+  }, []);
 
+  const { isDragActive, getRootProps } = useImageDropPaste({
+    onFiles: addFiles,
+    multiple: true,
+  });
+
+  const handleFilesSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(e.target.files || []);
+    addFiles(selectedFiles);
     if (e.target) e.target.value = '';
   };
 
@@ -201,7 +211,9 @@ export function GaroView() {
 
       {files.length === 0 ? (
         <Card
-          onClick={() => fileInputRef.current?.click()}
+          {...getRootProps({
+            onClick: () => fileInputRef.current?.click(),
+          })}
           sx={{
             p: 6,
             display: 'flex',
@@ -210,9 +222,11 @@ export function GaroView() {
             justifyContent: 'center',
             cursor: 'pointer',
             border: '2px dashed',
-            borderColor: 'divider',
+            borderColor: isDragActive ? 'primary.main' : 'divider',
+            bgcolor: isDragActive ? 'action.hover' : 'transparent',
             borderRadius: 3,
             minHeight: 320,
+            transition: (theme) => theme.transitions.create(['border-color', 'background-color']),
             '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
           }}
         >

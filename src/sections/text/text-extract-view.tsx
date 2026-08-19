@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
-import { Box, Card, Stack, Tooltip, Typography, IconButton } from '@mui/material';
+import { Box, Card, Tooltip, Typography, IconButton } from '@mui/material';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
@@ -65,10 +65,9 @@ export function TextExtractView() {
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        height:
-          'calc(100vh - var(--layout-header-desktop-height) - var(--layout-dashboard-content-pt) - 24px)',
-        pb: 2,
+        flex: '1 1 auto',
         minHeight: 0,
+        pb: 2,
       }}
     >
       <TextExtractToolbar
@@ -162,6 +161,7 @@ export function TextExtractView() {
               flexDirection: 'column',
               overflow: 'hidden',
               p: 2,
+              borderRadius: 2,
               border: '1px solid',
               borderColor: 'divider',
             }}
@@ -175,10 +175,10 @@ export function TextExtractView() {
                 minHeight: 40,
               }}
             >
-              <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+              <Typography variant="h6" sx={{ fontWeight: 800 }}>
                 추출된 텍스트
               </Typography>
-              <Stack direction="row" spacing={1}>
+              <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1 }}>
                 <Tooltip title="공백 제거">
                   <span>
                     <IconButton
@@ -197,7 +197,7 @@ export function TextExtractView() {
                     </IconButton>
                   </span>
                 </Tooltip>
-              </Stack>
+              </Box>
             </Box>
             <LineNumberTextField
               value={ocr.extractedText}

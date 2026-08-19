@@ -17,7 +17,6 @@ import {
 
 import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
-import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
@@ -924,10 +923,8 @@ export function FileManagerView() {
         sx={{
           display: 'flex',
           flexDirection: 'row',
-          flexGrow: 1,
+          flex: '1 1 auto',
           minHeight: 0,
-          maxHeight: '100vh',
-          height: '100vh',
           maxWidth: 'none!important',
           m: 0,
           p: 0,
@@ -971,16 +968,19 @@ export function FileManagerView() {
                   }}
                 >
                   <Box>
-                    <Typography variant="h4" sx={{ mb: 1 }}>
+                    <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
                       OPIC Drive
                     </Typography>
                     {renderBreadcrumbs()}
                   </Box>
 
-                  <Stack
-                    direction="row"
-                    spacing={1}
-                    sx={{ alignSelf: { xs: 'flex-end', sm: 'center' } }}
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'row',
+                      gap: 1,
+                      alignSelf: { xs: 'flex-end', sm: 'center' },
+                    }}
                   >
                     <IconButton
                       color="error"
@@ -1028,10 +1028,10 @@ export function FileManagerView() {
                     >
                       <CloudDownloadIcon />
                     </IconButton>
-                  </Stack>
+                  </Box>
                 </Box>
 
-                <Stack spacing={2.5} sx={{ p: 3 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, p: 3 }}>
                   {renderFilters()}
                   {canReset && renderResults()}
                   <FileManagerGridView
@@ -1048,7 +1048,7 @@ export function FileManagerView() {
                     onMoveItem={handleMoveItem}
                     notFound={notFound}
                   />
-                </Stack>
+                </Box>
               </>
             ) : viewMode === 'editor' && selectedFile ? (
               <OpicEditorView
