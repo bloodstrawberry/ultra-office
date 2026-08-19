@@ -1,6 +1,6 @@
 import type { Sheet, CellMatrix } from '@fortune-sheet/core';
 
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 
 export interface FortuneCellValue {
   v?: string | number | boolean; // cell value
@@ -15,6 +15,8 @@ export interface FortuneCellValue {
   cl?: 0 | 1; // strike-through
   un?: 0 | 1; // underline
   f?: string; // formula
+  tb?: 0 | 1 | 2; // text wrap (0: overflow, 1: clip, 2: wrap text)
+  mc?: { r: number; c: number; rs?: number; cs?: number };
   [key: string]: unknown;
 }
 
@@ -38,6 +40,7 @@ export interface FortuneDataVerification {
 export interface FortuneSheetData {
   name: string;
   id?: string;
+  color?: string;
   status?: number;
   order?: number;
   row?: number;
@@ -45,6 +48,14 @@ export interface FortuneSheetData {
   data?: CellMatrix | (FortuneCellValue | string | number | boolean | null)[][];
   celldata?: FortuneCellData[];
   dataVerification?: Record<string, FortuneDataVerification>;
+  config?: {
+    merge?: Record<string, { r: number; c: number; rs: number; cs: number }>;
+    rowlen?: Record<string, number>;
+    columnlen?: Record<string, number>;
+    customHeight?: Record<string, number>;
+    customWidth?: Record<string, number>;
+    [key: string]: unknown;
+  };
   [key: string]: unknown;
 }
 
@@ -439,35 +450,297 @@ export function exportFortuneToCSV(
   return true;
 }
 
+export function normalizeColorToArgb(color: unknown): string | null {
+  if (!color || typeof color !== 'string') return null;
+  const str = color.trim();
+  if (!str || str === 'none' || str === 'transparent') return null;
+
+  // 1. Hex format
+  if (str.startsWith('#')) {
+    const hex = str.slice(1);
+    if (hex.length === 3) {
+      const r = hex[0] + hex[0];
+      const g = hex[1] + hex[1];
+      const b = hex[2] + hex[2];
+      return `FF${r}${g}${b}`.toUpperCase();
+    }
+    if (hex.length === 6) {
+      return `FF${hex}`.toUpperCase();
+    }
+    if (hex.length === 8) {
+      // #RRGGBBAA -> ARGB: AARRGGBB
+      const rr = hex.slice(0, 2);
+      const gg = hex.slice(2, 4);
+      const bb = hex.slice(4, 6);
+      const aa = hex.slice(6, 8);
+      return `${aa}${rr}${gg}${bb}`.toUpperCase();
+    }
+    return null;
+  }
+
+  // 2. RGB / RGBA format
+  const rgbMatch = str.match(
+    /^rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([\d.]+))?\s*\)$/i
+  );
+  if (rgbMatch) {
+    const r = Math.min(255, Math.max(0, parseInt(rgbMatch[1], 10)))
+      .toString(16)
+      .padStart(2, '0');
+    const g = Math.min(255, Math.max(0, parseInt(rgbMatch[2], 10)))
+      .toString(16)
+      .padStart(2, '0');
+    const b = Math.min(255, Math.max(0, parseInt(rgbMatch[3], 10)))
+      .toString(16)
+      .padStart(2, '0');
+    let a = 'ff';
+    if (rgbMatch[4] !== undefined) {
+      const alphaFloat = Math.min(1, Math.max(0, parseFloat(rgbMatch[4])));
+      a = Math.round(alphaFloat * 255)
+        .toString(16)
+        .padStart(2, '0');
+    }
+    return `${a}${r}${g}${b}`.toUpperCase();
+  }
+
+  return null;
+}
+
 /**
- * Export single sheet or multiple sheets to XLSX and trigger browser download
+ * Export single sheet or multiple sheets to XLSX with full styles & metadata using ExcelJS
  */
-export function exportFortuneToXLSX(
+export async function exportFortuneToXLSX(
   data: (FortuneSheetData | Sheet) | (FortuneSheetData | Sheet)[],
   customFileName?: string
-): boolean {
+): Promise<boolean> {
   const sheets = Array.isArray(data) ? data : [data];
   if (sheets.length === 0) return false;
 
-  const workbook = XLSX.utils.book_new();
+  const workbook = new ExcelJS.Workbook();
+  workbook.creator = 'Ultra Office';
+  workbook.created = new Date();
+
   let hasValidSheet = false;
 
-  sheets.forEach((sheet, idx) => {
+  sheets.forEach((sheet, sheetIdx) => {
     if (!sheet) return;
-    const grid = extractGridFromSheet(sheet, { useFormattedText: false });
-    const rawSheetName = sheet.name || `Sheet${idx + 1}`;
-    // Excel sheet names cannot exceed 31 characters and cannot contain certain special chars
+
+    const rawSheetName = sheet.name || `Sheet${sheetIdx + 1}`;
     const sanitizedSheetName = rawSheetName.replace(/[:\\/?*[\]]/g, '_').substring(0, 31);
 
-    if (grid.length > 0) {
-      const worksheet = XLSX.utils.aoa_to_sheet(grid);
-      XLSX.utils.book_append_sheet(workbook, worksheet, sanitizedSheetName);
-      hasValidSheet = true;
-    } else if (sheets.length === 1) {
-      // If only 1 sheet and it's empty, append empty row so file can be generated
-      const worksheet = XLSX.utils.aoa_to_sheet([['']]);
-      XLSX.utils.book_append_sheet(workbook, worksheet, sanitizedSheetName);
-      hasValidSheet = true;
+    const worksheet = workbook.addWorksheet(sanitizedSheetName);
+    hasValidSheet = true;
+
+    // 1. Tab Color
+    if (sheet.color) {
+      const tabArgb = normalizeColorToArgb(sheet.color);
+      if (tabArgb) {
+        worksheet.properties.tabColor = { argb: tabArgb };
+      }
+    }
+
+    // 2. Collect all cells (combining sheet.data 2D and sheet.celldata sparse)
+    const cellMap = new Map<string, FortuneCellValue>();
+    let maxR = -1;
+    let maxC = -1;
+
+    // Process sheet.data (2D)
+    if (Array.isArray(sheet.data) && sheet.data.length > 0) {
+      sheet.data.forEach((row, r) => {
+        if (!Array.isArray(row)) return;
+        row.forEach((cell, c) => {
+          if (cell === null || cell === undefined) return;
+          const cellObj =
+            typeof cell === 'object'
+              ? (cell as FortuneCellValue)
+              : ({ v: cell } as FortuneCellValue);
+          if (cellObj.v !== undefined && cellObj.v !== null && cellObj.v !== '') {
+            cellMap.set(`${r}_${c}`, cellObj);
+            if (r > maxR) maxR = r;
+            if (c > maxC) maxC = c;
+          } else if (cellObj.bg || cellObj.fc || cellObj.f) {
+            cellMap.set(`${r}_${c}`, cellObj);
+            if (r > maxR) maxR = r;
+            if (c > maxC) maxC = c;
+          }
+        });
+      });
+    }
+
+    // Process sheet.celldata (1D)
+    if (Array.isArray(sheet.celldata) && sheet.celldata.length > 0) {
+      sheet.celldata.forEach((cItem) => {
+        if (!cItem || cItem.r === undefined || cItem.c === undefined) return;
+        const key = `${cItem.r}_${cItem.c}`;
+        if (!cellMap.has(key)) {
+          const cellObj =
+            typeof cItem.v === 'object' && cItem.v !== null
+              ? (cItem.v as FortuneCellValue)
+              : ({ v: cItem.v ?? '' } as FortuneCellValue);
+          cellMap.set(key, cellObj);
+          if (cItem.r > maxR) maxR = cItem.r;
+          if (cItem.c > maxC) maxC = cItem.c;
+        }
+      });
+    }
+
+    // 3. Apply cells and their metadata/styles
+    cellMap.forEach((cellObj, key) => {
+      const [rStr, cStr] = key.split('_');
+      const r = Number(rStr); // 0-based
+      const c = Number(cStr); // 0-based
+      const excelCell = worksheet.getCell(r + 1, c + 1); // 1-based
+
+      // (1) Value & Formula
+      if (cellObj.f) {
+        const formulaStr = String(cellObj.f).replace(/^=/, '');
+        excelCell.value = {
+          formula: formulaStr,
+          result:
+            typeof cellObj.v === 'number' ||
+            typeof cellObj.v === 'string' ||
+            typeof cellObj.v === 'boolean'
+              ? cellObj.v
+              : undefined,
+        };
+      } else if (cellObj.v !== undefined && cellObj.v !== null) {
+        if (typeof cellObj.v === 'number') {
+          excelCell.value = cellObj.v;
+        } else if (typeof cellObj.v === 'boolean') {
+          excelCell.value = cellObj.v;
+        } else {
+          excelCell.value = String(cellObj.v);
+        }
+      }
+
+      // (2) Background color (Fill)
+      if (cellObj.bg) {
+        const bgArgb = normalizeColorToArgb(cellObj.bg);
+        if (bgArgb) {
+          excelCell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: bgArgb },
+          };
+        }
+      }
+
+      // (3) Font formatting (Color, Size, Bold, Italic, Strike, Underline)
+      const fontOpt: Partial<ExcelJS.Font> = {
+        name: 'Malgun Gothic',
+      };
+      let hasFontMod = false;
+
+      if (cellObj.fc) {
+        const fcArgb = normalizeColorToArgb(cellObj.fc);
+        if (fcArgb) {
+          fontOpt.color = { argb: fcArgb };
+          hasFontMod = true;
+        }
+      }
+
+      if (cellObj.fs !== undefined && cellObj.fs !== null) {
+        const fsNum =
+          typeof cellObj.fs === 'number' ? cellObj.fs : parseInt(String(cellObj.fs), 10);
+        if (!isNaN(fsNum) && fsNum > 0) {
+          fontOpt.size = fsNum;
+          hasFontMod = true;
+        }
+      } else {
+        fontOpt.size = 11;
+      }
+
+      if (cellObj.bl === 1 || cellObj.bl === (true as unknown)) {
+        fontOpt.bold = true;
+        hasFontMod = true;
+      }
+
+      if (cellObj.it === 1 || cellObj.it === (true as unknown)) {
+        fontOpt.italic = true;
+        hasFontMod = true;
+      }
+
+      if (cellObj.cl === 1 || cellObj.cl === (true as unknown)) {
+        fontOpt.strike = true;
+        hasFontMod = true;
+      }
+
+      if (cellObj.un === 1 || cellObj.un === (true as unknown)) {
+        fontOpt.underline = true;
+        hasFontMod = true;
+      }
+
+      if (hasFontMod) {
+        excelCell.font = fontOpt;
+      }
+
+      // (4) Alignment (Horizontal, Vertical, Wrap Text)
+      const alignOpt: Partial<ExcelJS.Alignment> = {};
+      let hasAlignMod = false;
+
+      if (cellObj.ht !== undefined && cellObj.ht !== null) {
+        if (cellObj.ht === 0 || (cellObj.ht as unknown) === '0') alignOpt.horizontal = 'center';
+        else if (cellObj.ht === 1 || (cellObj.ht as unknown) === '1') alignOpt.horizontal = 'left';
+        else if (cellObj.ht === 2 || (cellObj.ht as unknown) === '2') alignOpt.horizontal = 'right';
+        hasAlignMod = true;
+      }
+
+      if (cellObj.vt !== undefined && cellObj.vt !== null) {
+        if (cellObj.vt === 0 || (cellObj.vt as unknown) === '0') alignOpt.vertical = 'middle';
+        else if (cellObj.vt === 1 || (cellObj.vt as unknown) === '1') alignOpt.vertical = 'top';
+        else if (cellObj.vt === 2 || (cellObj.vt as unknown) === '2') alignOpt.vertical = 'bottom';
+        hasAlignMod = true;
+      }
+
+      if (cellObj.tb === 2 || (cellObj.tb as unknown) === '2') {
+        alignOpt.wrapText = true;
+        hasAlignMod = true;
+      }
+
+      if (hasAlignMod) {
+        excelCell.alignment = alignOpt;
+      }
+    });
+
+    // 4. Merged Cells (from sheet.config.merge or cell.mc)
+    const mergeConfig = (sheet as Sheet).config?.merge;
+    if (mergeConfig && typeof mergeConfig === 'object') {
+      Object.values(mergeConfig).forEach((m) => {
+        if (
+          m &&
+          m.r !== undefined &&
+          m.c !== undefined &&
+          m.rs !== undefined &&
+          m.cs !== undefined
+        ) {
+          try {
+            worksheet.mergeCells(m.r + 1, m.c + 1, m.r + m.rs, m.c + m.cs);
+          } catch {
+            // ignore overlapping merge error
+          }
+        }
+      });
+    }
+
+    // 5. Custom Row Heights
+    const rowlen = (sheet as Sheet).config?.rowlen;
+    if (rowlen && typeof rowlen === 'object') {
+      Object.entries(rowlen).forEach(([rStr, pxHeight]) => {
+        const r = Number(rStr);
+        if (!isNaN(r) && typeof pxHeight === 'number' && pxHeight > 0) {
+          worksheet.getRow(r + 1).height = pxHeight * 0.75;
+        }
+      });
+    }
+
+    // 6. Custom Column Widths
+    const columnlen = (sheet as Sheet).config?.columnlen;
+    if (columnlen && typeof columnlen === 'object') {
+      Object.entries(columnlen).forEach(([cStr, pxWidth]) => {
+        const c = Number(cStr);
+        if (!isNaN(c) && typeof pxWidth === 'number' && pxWidth > 0) {
+          worksheet.getColumn(c + 1).width = Math.max(8, pxWidth * 0.13);
+        }
+      });
     }
   });
 
@@ -475,8 +748,8 @@ export function exportFortuneToXLSX(
     return false;
   }
 
-  const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-  const blob = new Blob([excelBuffer], {
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   });
 
@@ -547,34 +820,92 @@ export function importCSVToFortune(csvText: string, sheetName = 'CSV Import'): F
 
 export async function importXLSXToFortune(file: File): Promise<FortuneSheetData> {
   const arrayBuffer = await file.arrayBuffer();
-  const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-  const sheetName = workbook.SheetNames[0] || 'Imported Sheet';
-  const worksheet = workbook.Sheets[sheetName];
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(arrayBuffer);
 
+  const worksheet = workbook.worksheets[0];
+  const sheetName = worksheet?.name || 'Imported Sheet';
   const celldata: FortuneCellData[] = [];
-  const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
 
-  for (let r = range.s.r; r <= range.e.r; r += 1) {
-    for (let c = range.s.c; c <= range.e.c; c += 1) {
-      const cellAddress = XLSX.utils.encode_cell({ r, c });
-      const cell = worksheet[cellAddress];
-      if (cell && cell.v !== undefined && cell.v !== null) {
+  let maxRow = 0;
+  let maxCol = 0;
+
+  if (worksheet) {
+    worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+      const r = rowNumber - 1; // 0-based
+      if (r > maxRow) maxRow = r;
+
+      row.eachCell({ includeEmpty: false }, (cell, colNumber) => {
+        const c = colNumber - 1; // 0-based
+        if (c > maxCol) maxCol = c;
+
+        const cellValueObj: FortuneCellValue = {};
+
+        // Extract value
+        if (cell.value !== null && cell.value !== undefined) {
+          if (typeof cell.value === 'object') {
+            if ('formula' in cell.value && cell.value.formula) {
+              cellValueObj.f = `=${cell.value.formula}`;
+              cellValueObj.v =
+                cell.value.result !== undefined
+                  ? (cell.value.result as string | number | boolean)
+                  : '';
+            } else if ('text' in cell.value && cell.value.text) {
+              cellValueObj.v = String(cell.value.text);
+            } else {
+              cellValueObj.v = String(cell.text || '');
+            }
+          } else {
+            cellValueObj.v = cell.value as string | number | boolean;
+          }
+        }
+
+        // Extract Font
+        if (cell.font) {
+          if (cell.font.bold) cellValueObj.bl = 1;
+          if (cell.font.italic) cellValueObj.it = 1;
+          if (cell.font.strike) cellValueObj.cl = 1;
+          if (cell.font.underline) cellValueObj.un = 1;
+          if (cell.font.size) cellValueObj.fs = cell.font.size;
+          if (cell.font.color && 'argb' in cell.font.color && cell.font.color.argb) {
+            const argb = String(cell.font.color.argb);
+            cellValueObj.fc = `#${argb.length === 8 ? argb.slice(2) : argb}`;
+          }
+        }
+
+        // Extract Fill (Background)
+        if (cell.fill && cell.fill.type === 'pattern' && cell.fill.fgColor) {
+          const fg = cell.fill.fgColor;
+          if ('argb' in fg && fg.argb) {
+            const argb = String(fg.argb);
+            cellValueObj.bg = `#${argb.length === 8 ? argb.slice(2) : argb}`;
+          }
+        }
+
+        // Extract Alignment
+        if (cell.alignment) {
+          if (cell.alignment.horizontal === 'center') cellValueObj.ht = 0;
+          else if (cell.alignment.horizontal === 'left') cellValueObj.ht = 1;
+          else if (cell.alignment.horizontal === 'right') cellValueObj.ht = 2;
+
+          if (cell.alignment.vertical === 'middle') cellValueObj.vt = 0;
+          else if (cell.alignment.vertical === 'top') cellValueObj.vt = 1;
+          else if (cell.alignment.vertical === 'bottom') cellValueObj.vt = 2;
+        }
+
         celldata.push({
           r,
           c,
-          v:
-            r === 0
-              ? { v: cell.v as string | number, bl: 1, bg: '#e0f2fe', ht: 0 }
-              : { v: cell.v as string | number },
+          v: cellValueObj,
         });
-      }
-    }
+      });
+    });
   }
 
   return {
     name: sheetName,
-    row: Math.max(60, range.e.r + 15),
-    column: Math.max(26, range.e.c + 10),
+    row: Math.max(60, maxRow + 15),
+    column: Math.max(26, maxCol + 10),
     status: 1,
     celldata,
   };

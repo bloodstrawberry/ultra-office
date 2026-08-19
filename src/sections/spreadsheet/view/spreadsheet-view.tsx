@@ -106,7 +106,7 @@ export function SpreadsheetView() {
     toast.info('새 빈 스프레드시트가 생성되었습니다.');
   };
 
-  const handleExportXlsx = () => {
+  const handleExportXlsx = async () => {
     const liveSheets = workbookRef.current?.getAllSheets?.();
     const sheetsToExport =
       liveSheets && liveSheets.length > 0
@@ -119,11 +119,15 @@ export function SpreadsheetView() {
     }
 
     const currentSheetName = sheetsToExport[0]?.name || 'spreadsheet';
-    const success = exportFortuneToXLSX(sheetsToExport, currentSheetName);
-    if (success) {
-      toast.success('Excel (.xlsx) 파일이 다운로드되었습니다.');
-    } else {
-      toast.warning('시트에 작성된 내용이 없습니다.');
+    try {
+      const success = await exportFortuneToXLSX(sheetsToExport, currentSheetName);
+      if (success) {
+        toast.success('Excel (.xlsx) 파일이 메타데이터(서식/색상)와 함께 다운로드되었습니다.');
+      } else {
+        toast.warning('시트에 작성된 내용이 없습니다.');
+      }
+    } catch {
+      toast.error('Excel 파일 생성 중 오류가 발생했습니다.');
     }
   };
 

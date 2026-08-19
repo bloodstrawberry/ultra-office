@@ -2,25 +2,27 @@ import type { NavMainProps } from './main/nav/types';
 import type { NavSectionProps } from 'src/components/nav-section';
 
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
+import CasinoRoundedIcon from '@mui/icons-material/CasinoRounded';
 import FolderRoundedIcon from '@mui/icons-material/FolderRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
-import CasinoRoundedIcon from '@mui/icons-material/CasinoRounded';
+import TerminalRoundedIcon from '@mui/icons-material/TerminalRounded';
 import TableViewRoundedIcon from '@mui/icons-material/TableViewRounded';
 import TextFieldsRoundedIcon from '@mui/icons-material/TextFieldsRounded';
-import PhotoFilterRoundedIcon from '@mui/icons-material/PhotoFilterRounded';
+import AccountTreeRoundedIcon from '@mui/icons-material/AccountTreeRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
+import PhotoFilterRoundedIcon from '@mui/icons-material/PhotoFilterRounded';
 import PhotoLibraryRoundedIcon from '@mui/icons-material/PhotoLibraryRounded';
+import PictureAsPdfRoundedIcon from '@mui/icons-material/PictureAsPdfRounded';
+import InvertColorsRoundedIcon from '@mui/icons-material/InvertColorsRounded';
+import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
 import CompareArrowsRoundedIcon from '@mui/icons-material/CompareArrowsRounded';
+import QrCodeScannerRoundedIcon from '@mui/icons-material/QrCodeScannerRounded';
+import DocumentScannerRoundedIcon from '@mui/icons-material/DocumentScannerRounded';
 import SwapHorizontalCircleRoundedIcon from '@mui/icons-material/SwapHorizontalCircleRounded';
 
-import PictureAsPdfRoundedIcon from '@mui/icons-material/PictureAsPdfRounded';
-import DocumentScannerRoundedIcon from '@mui/icons-material/DocumentScannerRounded';
-import AccountTreeRoundedIcon from '@mui/icons-material/AccountTreeRounded';
-import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
-import TerminalRoundedIcon from '@mui/icons-material/TerminalRounded';
-import QrCodeScannerRoundedIcon from '@mui/icons-material/QrCodeScannerRounded';
-
 import { paths } from 'src/routes/paths';
+
+// ----------------------------------------------------------------------
 
 const ICONS = {
   folder: <FolderRoundedIcon fontSize="small" />,
@@ -36,6 +38,7 @@ const ICONS = {
   fileConvert: <SwapHorizontalCircleRoundedIcon fontSize="small" />,
   pdfMaster: <PictureAsPdfRoundedIcon fontSize="small" />,
   ocr: <DocumentScannerRoundedIcon fontSize="small" />,
+  bgRemove: <InvertColorsRoundedIcon fontSize="small" />,
   diagram: <AccountTreeRoundedIcon fontSize="small" />,
   schedule: <CalendarMonthRoundedIcon fontSize="small" />,
   devTools: <TerminalRoundedIcon fontSize="small" />,
@@ -47,84 +50,41 @@ const ICONS = {
 /**
  * Input nav data is an array of navigation section items used to define the structure and content of a navigation bar.
  * Each section contains a subheader and an array of items, which can include nested children items.
- *
- * Each item can have the following properties:
- * - `title`: The title of the navigation item.
- * - `path`: The URL path the item links to.
- * - `icon`: An optional icon component to display alongside the title.
- * - `info`: Optional additional information to display, such as a label.
- * - `allowedRoles`: An optional array of roles that are allowed to see the item.
- * - `caption`: An optional caption to display below the title.
- * - `children`: An optional array of nested navigation items.
- * - `disabled`: An optional boolean to disable the item.
- * - `deepMatch`: An optional boolean to indicate if the item should match subpaths.
  */
 export const navData: NavSectionProps['data'] = [
   /**
-   * Overview
+   * 1. Overview & Workspace
    */
   {
-    subheader: 'Overview',
+    subheader: 'Workspace',
     items: [
       { title: 'Home', path: paths.home, icon: ICONS.home },
       { title: 'Drive', path: paths.fileManager, icon: ICONS.folder },
+    ],
+  },
+
+  /**
+   * 2. AI & 스마트 인텔리전스
+   */
+  {
+    subheader: 'AI & Smart',
+    items: [
+      { title: 'AI Agent', path: paths.agent, icon: ICONS.agent },
+      { title: 'AI 배경 제거', path: paths.photo.bgRemove, icon: ICONS.bgRemove },
+      { title: '스마트 OCR', path: paths.ocr, icon: ICONS.ocr },
+    ],
+  },
+
+  /**
+   * 3. 문서 & 데이터 분석
+   */
+  {
+    subheader: 'Document & Data',
+    items: [
+      { title: '스프레드시트', path: paths.spreadsheet, icon: ICONS.spreadsheet },
+      { title: '데이터 & 코드 비교', path: paths.compare, icon: ICONS.compare },
       {
-        title: 'AI Agent',
-        path: paths.agent,
-        icon: ICONS.agent,
-      },
-      {
-        title: '스프레드시트',
-        path: paths.spreadsheet,
-        icon: ICONS.spreadsheet,
-      },
-      {
-        title: '데이터 비교',
-        path: paths.compare,
-        icon: ICONS.compare,
-      },
-      {
-        title: '이미지 도구',
-        path: paths.imageTool,
-        icon: ICONS.imageTool,
-      },
-      {
-        title: 'PDF 마스터',
-        path: paths.pdfMaster,
-        icon: ICONS.pdfMaster,
-      },
-      {
-        title: '스마트 OCR',
-        path: paths.ocr,
-        icon: ICONS.ocr,
-      },
-      {
-        title: '조직도 & 마인드맵',
-        path: paths.diagram,
-        icon: ICONS.diagram,
-      },
-      {
-        title: '일정 & 간트차트',
-        path: paths.schedule,
-        icon: ICONS.schedule,
-      },
-      {
-        title: '개발자 툴킷',
-        path: paths.devTools,
-        icon: ICONS.devTools,
-      },
-      {
-        title: 'QR & 바코드',
-        path: paths.barcode,
-        icon: ICONS.barcode,
-      },
-      {
-        title: '파일 변환',
-        path: paths.fileConvert,
-        icon: ICONS.fileConvert,
-      },
-      {
-        title: '텍스트',
+        title: '텍스트 도구',
         path: paths.text.root,
         icon: ICONS.text,
         children: [
@@ -133,12 +93,35 @@ export const navData: NavSectionProps['data'] = [
           { title: '텍스트 변환', path: paths.text.transform },
         ],
       },
+    ],
+  },
+
+  /**
+   * 4. PDF & 파일 변환
+   */
+  {
+    subheader: 'PDF & File',
+    items: [
+      { title: 'PDF 마스터', path: paths.pdfMaster, icon: ICONS.pdfMaster },
+      { title: '파일 변환기', path: paths.fileConvert, icon: ICONS.fileConvert },
+    ],
+  },
+
+  /**
+   * 5. 그래픽 & 미디어 디자인
+   */
+  {
+    subheader: 'Graphic & Media',
+    items: [
+      { title: '다이어그램 & 문서', path: paths.diagram, icon: ICONS.diagram },
+      { title: '이미지 툴킷', path: paths.imageTool, icon: ICONS.imageTool },
       {
-        title: '이미지 편집',
+        title: '사진 편집 스튜디오',
         path: paths.photo.root,
         icon: ICONS.photo,
         children: [
           { title: '전체 도구 허브', path: paths.photo.root },
+          { title: 'AI 배경 제거', path: paths.photo.bgRemove },
           { title: '화풍 변환', path: paths.photo.artStyle },
           { title: '아스키 아트', path: paths.photo.ascii },
           { title: '픽셀 아트', path: paths.photo.pixel },
@@ -158,22 +141,34 @@ export const navData: NavSectionProps['data'] = [
           { title: '가로 썸네일', path: paths.photo.garo },
         ],
       },
+    ],
+  },
+
+  /**
+   * 6. 비즈니스 & 개발자 생산성
+   */
+  {
+    subheader: 'Productivity & Utilities',
+    items: [
+      { title: '일정 & 간트차트', path: paths.schedule, icon: ICONS.schedule },
+      { title: '개발자 툴킷', path: paths.devTools, icon: ICONS.devTools },
+      { title: 'QR & 바코드', path: paths.barcode, icon: ICONS.barcode },
       {
-        title: 'Public',
+        title: '공공데이터 & SQL',
         path: paths.public.root,
         icon: ICONS.search,
         children: [
           { title: '주소 검색', path: paths.public.postcode },
-          { title: 'SQL 연습', path: paths.public.sql },
+          { title: 'SQL 연습실', path: paths.public.sql },
         ],
       },
       {
-        title: 'Drawing',
+        title: '추첨 & 게임',
         path: paths.drawing.root,
         icon: ICONS.drawing,
         children: [
-          { title: '사다리', path: paths.drawing.ladder },
-          { title: '룰렛', path: paths.drawing.roulette },
+          { title: '사다리타기', path: paths.drawing.ladder },
+          { title: '룰렛 게임', path: paths.drawing.roulette },
         ],
       },
     ],
@@ -184,6 +179,26 @@ export const navData: NavSectionProps['data'] = [
 
 export const mainNavData: NavMainProps['data'] = [
   { title: 'Home', path: '/', icon: <HomeRoundedIcon sx={{ width: 22, height: 22 }} /> },
+  {
+    title: 'AI Agent',
+    path: paths.agent,
+    icon: <AutoAwesomeRoundedIcon sx={{ width: 22, height: 22 }} />,
+  },
+  {
+    title: '스프레드시트',
+    path: paths.spreadsheet,
+    icon: <TableViewRoundedIcon sx={{ width: 22, height: 22 }} />,
+  },
+  {
+    title: 'PDF 마스터',
+    path: paths.pdfMaster,
+    icon: <PictureAsPdfRoundedIcon sx={{ width: 22, height: 22 }} />,
+  },
+  {
+    title: '데이터 비교',
+    path: paths.compare,
+    icon: <CompareArrowsRoundedIcon sx={{ width: 22, height: 22 }} />,
+  },
   {
     title: 'Drive',
     path: paths.fileManager,

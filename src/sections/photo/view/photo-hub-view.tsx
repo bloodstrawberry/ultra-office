@@ -19,6 +19,7 @@ import ViewModuleRoundedIcon from '@mui/icons-material/ViewModuleRounded';
 import CropRotateRoundedIcon from '@mui/icons-material/CropRotateRounded';
 import CropSquareRoundedIcon from '@mui/icons-material/CropSquareRounded';
 import AutoFixHighRoundedIcon from '@mui/icons-material/AutoFixHighRounded';
+import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import PhotoFilterRoundedIcon from '@mui/icons-material/PhotoFilterRounded';
 import InvertColorsRoundedIcon from '@mui/icons-material/InvertColorsRounded';
 import PictureAsPdfRoundedIcon from '@mui/icons-material/PictureAsPdfRounded';
@@ -91,6 +92,15 @@ const TOOL_SECTIONS: { category: string; desc: string; tools: PhotoToolItem[] }[
     category: '컬러 & 배경 & 보정',
     desc: '배경 투명화, 스포이드 컬러 추출, 모자이크 등 정밀 편집 도구입니다.',
     tools: [
+      {
+        id: 'bg-remove',
+        title: 'AI 배경 제거 (누끼 따기)',
+        desc: 'WebGPU 기반 1초 만에 인물, 헤어라인, 제품 배경 100% 로컬 분리',
+        href: paths.photo.bgRemove,
+        icon: <AutoAwesomeRoundedIcon sx={{ fontSize: 28, color: '#6366f1' }} />,
+        tag: 'AI 추천',
+        badgeColor: 'primary',
+      },
       {
         id: 'color',
         title: '투명화 / 배경 지우개',

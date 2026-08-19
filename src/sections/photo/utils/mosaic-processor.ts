@@ -415,12 +415,31 @@ export async function runOcrOnImage(
 }
 
 /**
- * Face detection algorithm in canvas (native FaceDetector or skin-tone cluster fallback)
+ * Face detection algorithm in canvas (MediaPipe BlazeFace AI with fallback)
  */
 export async function detectFacesInCanvas(canvas: HTMLCanvasElement): Promise<DetectedFaceBox[]> {
   const faces: DetectedFaceBox[] = [];
 
-  // 1. Check Native Chromium FaceDetector API
+  // 1. MediaPipe BlazeFace AI Detection (Fast & Precise)
+  try {
+    const { detectFacesWithMediaPipe } = await import('./mediapipe-face');
+    const mpFaces = await detectFacesWithMediaPipe(canvas);
+    if (mpFaces && mpFaces.length > 0) {
+      return mpFaces.map((f, idx) => ({
+        id: `mp-face-${idx}-${Date.now()}`,
+        x: f.box.x,
+        y: f.box.y,
+        width: f.box.width,
+        height: f.box.height,
+        eyeY: f.leftEye ? f.leftEye.y : f.box.y + f.box.height * 0.35,
+        isMosaiced: true,
+      }));
+    }
+  } catch (err) {
+    console.warn('MediaPipe detection failed, attempting native browser detector...', err);
+  }
+
+  // 2. Native Chromium FaceDetector API Fallback
   if (typeof window !== 'undefined' && 'FaceDetector' in window) {
     try {
       const FaceDetectorClass = (window as any).FaceDetector;
@@ -443,127 +462,24 @@ export async function detectFacesInCanvas(canvas: HTMLCanvasElement): Promise<De
       });
       if (faces.length > 0) return faces;
     } catch (e) {
-      console.log('Native FaceDetector fallback to skin tone', e);
+      console.log('Native FaceDetector fallback', e);
     }
   }
 
-  // 2. Skin tone cluster analysis fallback
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return faces;
-
+  // 3. Fallback central region if nothing detected
   const w = canvas.width;
   const h = canvas.height;
-  const imgData = ctx.getImageData(0, 0, w, h);
-  const data = imgData.data;
-
-  const step = 8;
-  const skinMap: boolean[][] = Array.from({ length: Math.ceil(h / step) }, () =>
-    new Array(Math.ceil(w / step)).fill(false)
-  );
-
-  for (let y = 0; y < h; y += step) {
-    for (let x = 0; x < w; x += step) {
-      const idx = (y * w + x) * 4;
-      const r = data[idx];
-      const g = data[idx + 1];
-      const b = data[idx + 2];
-
-      const isSkin =
-        r > 60 &&
-        g > 40 &&
-        b > 20 &&
-        r > g &&
-        r > b &&
-        Math.abs(r - g) > 15 &&
-        r - Math.min(g, b) > 15;
-
-      if (isSkin) {
-        skinMap[Math.floor(y / step)][Math.floor(x / step)] = true;
-      }
-    }
-  }
-
-  const mapH = skinMap.length;
-  const mapW = skinMap[0]?.length || 0;
-  const visited: boolean[][] = Array.from({ length: mapH }, () => new Array(mapW).fill(false));
-
-  let faceCount = 0;
-  for (let my = 0; my < mapH; my += 1) {
-    for (let mx = 0; mx < mapW; mx += 1) {
-      if (skinMap[my][mx] && !visited[my][mx]) {
-        let minX = mx;
-        let maxX = mx;
-        let minY = my;
-        let maxY = my;
-        let count = 0;
-
-        const queue: Array<[number, number]> = [[mx, my]];
-        visited[my][mx] = true;
-
-        while (queue.length > 0) {
-          const [cx, cy] = queue.pop()!;
-          count += 1;
-          if (cx < minX) minX = cx;
-          if (cx > maxX) maxX = cx;
-          if (cy < minY) minY = cy;
-          if (cy > maxY) maxY = cy;
-
-          const neighbors = [
-            [cx + 1, cy],
-            [cx - 1, cy],
-            [cx, cy + 1],
-            [cx, cy - 1],
-          ];
-          for (let ni = 0; ni < neighbors.length; ni += 1) {
-            const [nx, ny] = neighbors[ni];
-            if (
-              nx >= 0 &&
-              nx < mapW &&
-              ny >= 0 &&
-              ny < mapH &&
-              skinMap[ny][nx] &&
-              !visited[ny][nx]
-            ) {
-              visited[ny][nx] = true;
-              queue.push([nx, ny]);
-            }
-          }
-        }
-
-        const pixelWidth = (maxX - minX + 1) * step;
-        const pixelHeight = (maxY - minY + 1) * step;
-        const areaRatio = (pixelWidth * pixelHeight) / (w * h);
-
-        if (count >= 15 && areaRatio > 0.008 && areaRatio < 0.6) {
-          faces.push({
-            id: `face-${faceCount}-${Date.now()}`,
-            x: minX * step,
-            y: minY * step,
-            width: pixelWidth,
-            height: pixelHeight,
-            eyeY: minY * step + pixelHeight * 0.35,
-            isMosaiced: true,
-          });
-          faceCount += 1;
-        }
-      }
-    }
-  }
-
-  // If no face found, provide a central default region
-  if (faces.length === 0) {
-    const defaultW = Math.round(w * 0.35);
-    const defaultH = Math.round(h * 0.35);
-    faces.push({
-      id: `face-default-${Date.now()}`,
-      x: Math.round((w - defaultW) / 2),
-      y: Math.round((h - defaultH) / 3),
-      width: defaultW,
-      height: defaultH,
-      eyeY: Math.round((h - defaultH) / 3) + defaultH * 0.35,
-      isMosaiced: true,
-    });
-  }
+  const defaultW = Math.round(w * 0.35);
+  const defaultH = Math.round(h * 0.35);
+  faces.push({
+    id: `face-default-${Date.now()}`,
+    x: Math.round((w - defaultW) / 2),
+    y: Math.round((h - defaultH) / 3),
+    width: defaultW,
+    height: defaultH,
+    eyeY: Math.round((h - defaultH) / 3) + defaultH * 0.35,
+    isMosaiced: true,
+  });
 
   return faces;
 }

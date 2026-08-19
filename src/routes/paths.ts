@@ -42,6 +42,7 @@ export const paths = {
     pixel: `/photo/pixel`,
     glitch: `/photo/glitch`,
     fourCut: `/photo/four-cut`,
+    bgRemove: `/photo/bg-remove`,
     color: `/photo/color`,
     colorPicker: `/photo/color-picker`,
     compress: `/photo/compress`,

@@ -62,3 +62,16 @@ declare module 'crypto-js' {
 
   export default CryptoJS;
 }
+
+declare module '@huggingface/transformers' {
+  export const env: any;
+  export const pipeline: any;
+  export const AutoModel: any;
+  export const AutoProcessor: any;
+  export const RawImage: any;
+}
+
+declare module '@mediapipe/tasks-vision' {
+  export const FilesetResolver: any;
+  export const FaceDetector: any;
+}

@@ -93,10 +93,10 @@ export function ImageToolView() {
     if (e.target) e.target.value = '';
   };
 
-  const renderAnonCanvas = (src: string, intensity: number, mode: 'pixelate' | 'blur') => {
+  const renderAnonCanvas = async (src: string, intensity: number, mode: 'pixelate' | 'blur') => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
-    img.onload = () => {
+    img.onload = async () => {
       const canvas = anonCanvasRef.current;
       if (!canvas) return;
       canvas.width = img.width;
@@ -107,40 +107,41 @@ export function ImageToolView() {
       // Draw original
       ctx.drawImage(img, 0, 0);
 
-      // Simulate AI Auto Masking / Mosaic on center 35%
-      const faceW = img.width * 0.35;
-      const faceH = img.height * 0.35;
-      const faceX = (img.width - faceW) / 2;
-      const faceY = (img.height - faceH) / 2.5;
-
-      if (mode === 'pixelate') {
-        const pSize = Math.max(4, Math.round(intensity / 2));
-        const imgData = ctx.getImageData(faceX, faceY, faceW, faceH);
-        const { data } = imgData;
-
-        for (let y = 0; y < faceH; y += pSize) {
-          for (let x = 0; x < faceW; x += pSize) {
-            const redIndex = (y * faceW + x) * 4;
-            const r = data[redIndex];
-            const g = data[redIndex + 1];
-            const b = data[redIndex + 2];
-
-            for (let n = 0; n < pSize && y + n < faceH; n += 1) {
-              for (let m = 0; m < pSize && x + m < faceW; m += 1) {
-                const targetIdx = ((y + n) * faceW + (x + m)) * 4;
-                data[targetIdx] = r;
-                data[targetIdx + 1] = g;
-                data[targetIdx + 2] = b;
-              }
-            }
+      try {
+        const { detectFacesInCanvas, applyPixelateRegion, applyBlurRegion } = await import(
+          'src/sections/photo/utils/mosaic-processor'
+        );
+        const faces = await detectFacesInCanvas(canvas);
+        faces.forEach((f) => {
+          if (mode === 'pixelate') {
+            applyPixelateRegion(ctx, f.x, f.y, f.width, f.height, Math.max(4, intensity));
+          } else {
+            applyBlurRegion(ctx, f.x, f.y, f.width, f.height, intensity);
           }
+        });
+      } catch {
+        // Fallback center region
+        const faceW = img.width * 0.35;
+        const faceH = img.height * 0.35;
+        const faceX = (img.width - faceW) / 2;
+        const faceY = (img.height - faceH) / 2.5;
+        if (mode === 'pixelate') {
+          const off = document.createElement('canvas');
+          const pSize = Math.max(4, Math.round(intensity / 2));
+          off.width = Math.max(1, Math.round(faceW / pSize));
+          off.height = Math.max(1, Math.round(faceH / pSize));
+          const offCtx = off.getContext('2d');
+          if (offCtx) {
+            offCtx.drawImage(canvas, faceX, faceY, faceW, faceH, 0, 0, off.width, off.height);
+            ctx.imageSmoothingEnabled = false;
+            ctx.drawImage(off, 0, 0, off.width, off.height, faceX, faceY, faceW, faceH);
+          }
+        } else {
+          ctx.save();
+          ctx.filter = `blur(${intensity}px)`;
+          ctx.drawImage(img, faceX, faceY, faceW, faceH, faceX, faceY, faceW, faceH);
+          ctx.restore();
         }
-        ctx.putImageData(imgData, faceX, faceY);
-      } else {
-        ctx.save();
-        ctx.filter = `blur(${intensity}px)`;
-        ctx.drawImage(img, faceX, faceY, faceW, faceH, faceX, faceY, faceW, faceH);
-        ctx.restore();
       }
     };
     img.src = src;
