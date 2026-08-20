@@ -6,7 +6,7 @@ import type { DetectedPrivacyItem, ExifReport, PrivacyItemType } from '../types'
  * Mask RRN (주민등록번호)
  */
 export function maskRrn(text: string): string {
-  return text.replace(/\b(\d{6})[- ]?([1-8]\d{6})\b/g, '$1-$2******');
+  return text.replace(/\b(\d{6})[- ]?([1-8])\d{6}\b/g, '$1-$2******');
 }
 
 /**

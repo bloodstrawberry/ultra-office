@@ -4,10 +4,10 @@ import type { CalendarTask } from '../utils/ics-utils';
 
 import dayjs from 'dayjs';
 import { toast } from 'sonner';
-import React, { useState } from 'react';
 import listPlugin from '@fullcalendar/list';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
+import React, { useState, useEffect } from 'react';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 
@@ -24,9 +24,11 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import LinearProgress from '@mui/material/LinearProgress';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import CircularProgress from '@mui/material/CircularProgress';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
+import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
@@ -67,6 +69,12 @@ export function ScheduleView() {
   const [color, setColor] = useState('#1976d2');
   const [progress, setProgress] = useState(0);
   const [description, setDescription] = useState('');
+
+  const [hasLoaded, setHasLoaded] = useState(false);
+
+  useEffect(() => {
+    setHasLoaded(true);
+  }, []);
 
   // Shift Generator Modal
   const [openShiftModal, setOpenShiftModal] = useState(false);
@@ -146,6 +154,18 @@ export function ScheduleView() {
     toast.success('구글/아웃룩 캘린더용 .ics 파일이 다운로드되었습니다.');
   };
 
+  if (!hasLoaded) {
+    return (
+      <DashboardContent>
+        <Box
+          sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}
+        >
+          <CircularProgress size={36} />
+        </Box>
+      </DashboardContent>
+    );
+  }
+
   return (
     <DashboardContent>
       <Box
@@ -158,7 +178,11 @@ export function ScheduleView() {
         }}
       >
         <Box>
-          <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
+          <Typography
+            variant="h4"
+            sx={{ fontWeight: 800, mb: 0.5, display: 'flex', alignItems: 'center', gap: 1 }}
+          >
+            <CalendarMonthRoundedIcon sx={{ fontSize: 32, color: 'primary.main' }} />
             일정 & 간트차트 스튜디오 (Schedule & Gantt)
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>

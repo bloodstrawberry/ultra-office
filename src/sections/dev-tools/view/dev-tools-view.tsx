@@ -3,7 +3,7 @@
 import type { JwtDecoded } from '../utils/crypto-dev-utils';
 
 import { toast } from 'sonner';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
@@ -14,10 +14,12 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
+import CircularProgress from '@mui/material/CircularProgress';
 import LockRoundedIcon from '@mui/icons-material/LockRounded';
 import CodeRoundedIcon from '@mui/icons-material/CodeRounded';
 import VpnKeyRoundedIcon from '@mui/icons-material/VpnKeyRounded';
 import CasinoRoundedIcon from '@mui/icons-material/CasinoRounded';
+import HandymanRoundedIcon from '@mui/icons-material/HandymanRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import FindReplaceRoundedIcon from '@mui/icons-material/FindReplaceRounded';
 
@@ -37,6 +39,12 @@ import {
 
 export function DevToolsView() {
   const [currentTab, setCurrentTab] = useState<'jwt' | 'crypto' | 'schema' | 'regex'>('jwt');
+
+  const [hasLoaded, setHasLoaded] = useState(false);
+
+  useEffect(() => {
+    setHasLoaded(true);
+  }, []);
 
   // Copy helper
   const copyToClipboard = (text: string, label: string = '복사되었습니다.') => {
@@ -98,10 +106,26 @@ export function DevToolsView() {
   const [generatedPassword, setGeneratedPassword] = useState<string>('');
   const [generatedUuid, setGeneratedUuid] = useState<string>('');
 
+  if (!hasLoaded) {
+    return (
+      <DashboardContent>
+        <Box
+          sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}
+        >
+          <CircularProgress size={36} />
+        </Box>
+      </DashboardContent>
+    );
+  }
+
   return (
     <DashboardContent>
       <Box sx={{ mb: 2, flexShrink: 0 }}>
-        <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
+        <Typography
+          variant="h4"
+          sx={{ fontWeight: 800, mb: 0.5, display: 'flex', alignItems: 'center', gap: 1 }}
+        >
+          <HandymanRoundedIcon sx={{ fontSize: 32, color: 'warning.main' }} />
           개발자 & 보안 툴킷 (Developer & Security Suite)
         </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
@@ -110,12 +134,8 @@ export function DevToolsView() {
       </Box>
 
       {/* Tabs */}
-      <Box sx={{ flexShrink: 0, mb: 2 }}>
-        <Tabs
-          value={currentTab}
-          onChange={(_, val) => setCurrentTab(val)}
-          sx={{ borderBottom: 1, borderColor: 'divider' }}
-        >
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+        <Tabs value={currentTab} onChange={(_, val) => setCurrentTab(val)}>
           <Tab
             label="1. JWT 토큰 분석기"
             value="jwt"
@@ -144,7 +164,7 @@ export function DevToolsView() {
       </Box>
 
       {/* Tab Contents */}
-      <Box sx={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', pb: 3 }}>
+      <Box sx={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', pb: 4 }}>
         {/* TAB 1: JWT Analyzer */}
         {currentTab === 'jwt' && (
           <Box

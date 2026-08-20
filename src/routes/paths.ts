@@ -38,6 +38,7 @@ export const paths = {
   hwpMaster: '/hwp-master',
   stampStudio: '/stamp-studio',
   screenRecorder: '/screen-recorder',
+  videoMaster: '/video-master',
   gigaViewer: '/giga-viewer',
   privacySanitizer: '/privacy-sanitizer',
   spreadsheet: '/spreadsheet',

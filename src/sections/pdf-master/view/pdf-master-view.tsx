@@ -45,6 +45,12 @@ export function PdfMasterView() {
   const [pages, setPages] = useState<PdfPageInfo[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
+  const [hasLoaded, setHasLoaded] = useState(false);
+
+  useEffect(() => {
+    setHasLoaded(true);
+  }, []);
+
   // Tab 1: Page Editor State
   const handlePdfUpload = async (file: File) => {
     setIsLoading(true);
@@ -257,10 +263,26 @@ export function PdfMasterView() {
     }
   };
 
+  if (!hasLoaded) {
+    return (
+      <DashboardContent>
+        <Box
+          sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}
+        >
+          <CircularProgress size={36} />
+        </Box>
+      </DashboardContent>
+    );
+  }
+
   return (
     <DashboardContent>
       <Box sx={{ mb: 2, flexShrink: 0 }}>
-        <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
+        <Typography
+          variant="h4"
+          sx={{ fontWeight: 800, mb: 0.5, display: 'flex', alignItems: 'center', gap: 1 }}
+        >
+          <PictureAsPdfRoundedIcon sx={{ fontSize: 32, color: 'error.main' }} />
           PDF 마스터 스튜디오 (PDF Master)
         </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
@@ -382,7 +404,7 @@ export function PdfMasterView() {
           </Box>
 
           {/* Tab Contents */}
-          <Box sx={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', pb: 3 }}>
+          <Box sx={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', pb: 4 }}>
             {/* TAB 1: Page Editor */}
             {currentTab === 'editor' && (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>

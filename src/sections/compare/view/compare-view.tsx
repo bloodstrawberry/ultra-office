@@ -671,6 +671,7 @@ export function CompareView() {
                     <Box
                       key={idx}
                       sx={{
+                        flexShrink: 0,
                         p: 0.8,
                         borderRadius: 1,
                         bgcolor: 'background.paper',
@@ -727,6 +728,7 @@ export function CompareView() {
                     <Box
                       key={idx}
                       sx={{
+                        flexShrink: 0,
                         p: 0.8,
                         borderRadius: 1,
                         bgcolor: 'background.paper',
@@ -783,6 +785,7 @@ export function CompareView() {
                     <Box
                       key={idx}
                       sx={{
+                        flexShrink: 0,
                         p: 0.8,
                         borderRadius: 1,
                         bgcolor: 'background.paper',

@@ -32,6 +32,7 @@ import SchemaRoundedIcon from '@mui/icons-material/SchemaRounded';
 import DataArrayRoundedIcon from '@mui/icons-material/DataArrayRounded';
 import Grid4x4RoundedIcon from '@mui/icons-material/Grid4x4Rounded';
 import ScienceRoundedIcon from '@mui/icons-material/ScienceRounded';
+import MovieCreationRoundedIcon from '@mui/icons-material/MovieCreationRounded';
 
 import { paths } from 'src/routes/paths';
 
@@ -61,6 +62,7 @@ const ICONS = {
   hwpMaster: <ArticleRoundedIcon fontSize="small" />,
   stampStudio: <ApprovalRoundedIcon fontSize="small" />,
   screenRecorder: <VideocamRoundedIcon fontSize="small" />,
+  videoMaster: <MovieCreationRoundedIcon fontSize="small" />,
   gigaViewer: <StorageRoundedIcon fontSize="small" />,
   privacySanitizer: <SecurityRoundedIcon fontSize="small" />,
   logicLab: <MemoryRoundedIcon fontSize="small" />,
@@ -159,6 +161,11 @@ export const navData: NavSectionProps['data'] = [
   {
     subheader: 'Graphic & Media',
     items: [
+      {
+        title: '동영상 편집 스튜디오',
+        path: paths.videoMaster,
+        icon: ICONS.videoMaster,
+      },
       {
         title: '화면 & 웹캠 녹화 스튜디오',
         path: paths.screenRecorder,

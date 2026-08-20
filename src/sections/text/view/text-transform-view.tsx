@@ -18,6 +18,9 @@ import Typography from '@mui/material/Typography';
 import InputLabel from '@mui/material/InputLabel';
 import IconButton from '@mui/material/IconButton';
 import FormControl from '@mui/material/FormControl';
+import InputAdornment from '@mui/material/InputAdornment';
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import ClearRoundedIcon from '@mui/icons-material/ClearRounded';
 import CodeRoundedIcon from '@mui/icons-material/CodeRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import MenuBookRoundedIcon from '@mui/icons-material/MenuBookRounded';
@@ -32,7 +35,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import { REGEX_PRESETS } from '../../util/utils/regex-library-utils';
 import { LineNumberTextField } from '../../util/components/line-number-text-field';
-import { ResizeHandle, TextAreaPanel } from '../../util/components/shared-text-area';
+import { TextAreaPanel } from '../../util/components/shared-text-area';
 import {
   sortLines,
   trimLines,
@@ -74,7 +77,6 @@ export function TextTransformView() {
   const [convertedText, setConvertedText] = useState<string>('');
   const [indentSize, setIndentSize] = useState<number>(2);
   const [csvDelimiter, setCsvDelimiter] = useState<',' | '\t' | ';' | '|'>(',');
-  const [formatInputHeight, setFormatInputHeight] = useState<number>(360);
 
   useEffect(() => {
     const result = convertDataFormat(formatSourceText, sourceFormat, targetFormat, {
@@ -92,7 +94,6 @@ export function TextTransformView() {
     'Hello World! Welcome to Ultra Office 2026.'
   );
   const [processedText, setProcessedText] = useState<string>('');
-  const [contentInputHeight, setContentInputHeight] = useState<number>(360);
 
   // --------------------------------------------------------------------
   // Tab 3: Regex Studio State
@@ -109,6 +110,7 @@ export function TextTransformView() {
   const [currentCompiledRegex, setCurrentCompiledRegex] = useState<RegExp | null>(null);
   const [showLibraryDrawer, setShowLibraryDrawer] = useState<boolean>(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('전체');
+  const [regexSearchQuery, setRegexSearchQuery] = useState<string>('');
 
   // Compute live regex results
   useEffect(() => {
@@ -176,29 +178,47 @@ export function TextTransformView() {
   const categories = [
     '전체',
     '연락처/개인정보',
-    '웹/네트워크',
     '숫자/금융',
+    '웹/네트워크',
     '텍스트/코드',
     '검증/보안',
+    '문법/기초',
   ];
-  const filteredPresets =
-    selectedCategory === '전체'
-      ? REGEX_PRESETS
-      : REGEX_PRESETS.filter((p) => p.category === selectedCategory);
+  const filteredPresets = REGEX_PRESETS.filter((p) => {
+    const matchesCategory = selectedCategory === '전체' || p.category === selectedCategory;
+    const query = regexSearchQuery.trim().toLowerCase();
+    const matchesSearch =
+      !query ||
+      p.name.toLowerCase().includes(query) ||
+      p.description.toLowerCase().includes(query) ||
+      p.pattern.toLowerCase().includes(query) ||
+      p.category.toLowerCase().includes(query);
+    return matchesCategory && matchesSearch;
+  });
 
   return (
-    <DashboardContent>
-      <Box sx={{ mb: 2, flexShrink: 0 }}>
+    <DashboardContent
+      maxWidth={false}
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        flex: '1 1 auto',
+        minHeight: 0,
+        height: '100%',
+        pb: 2,
+      }}
+    >
+      <Box sx={{ mb: 1.5, flexShrink: 0 }}>
         <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
           텍스트 변환 & 정규식 스튜디오 (Text Transform)
         </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          JSON·CSV·XML·YAML 구조 데이터 상호 변환, 텍스트 가공·인코딩, 16+종 정규식 라이브러리
+          JSON·CSV·XML·YAML 구조 데이터 상호 변환, 텍스트 가공·인코딩, 120+종 실무 정규식 라이브러리
           테스터를 제공합니다.
         </Typography>
       </Box>
 
-      <Box sx={{ flexShrink: 0, mb: 2 }}>
+      <Box sx={{ flexShrink: 0, mb: 1.5 }}>
         <Tabs
           value={currentTab}
           onChange={(_, v) => setCurrentTab(v)}
@@ -225,12 +245,38 @@ export function TextTransformView() {
         </Tabs>
       </Box>
 
-      <Box sx={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', pb: 2 }}>
+      <Box
+        sx={{
+          flex: '1 1 auto',
+          minHeight: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          overflow: 'hidden',
+        }}
+      >
         {/* TAB 1: FORMAT EXT CONVERTER */}
         {currentTab === 'format' && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 1.5,
+              flex: '1 1 auto',
+              minHeight: 0,
+              height: '100%',
+            }}
+          >
             {/* Preset Buttons */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                flexWrap: 'wrap',
+                flexShrink: 0,
+              }}
+            >
               <Typography
                 variant="caption"
                 sx={{ fontWeight: 700, color: 'text.secondary', mr: 0.5 }}
@@ -297,7 +343,9 @@ export function TextTransformView() {
                 display: 'grid',
                 gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
                 gap: 2,
-                height: formatInputHeight,
+                flex: '1 1 auto',
+                minHeight: 0,
+                height: '100%',
               }}
             >
               <TextAreaPanel
@@ -439,20 +487,32 @@ export function TextTransformView() {
                 />
               </TextAreaPanel>
             </Box>
-
-            <ResizeHandle
-              onDrag={(delta) =>
-                setFormatInputHeight((h) => Math.max(200, Math.min(700, h + delta)))
-              }
-            />
           </Box>
         )}
 
         {/* TAB 2: CONTENT & ENCODING */}
         {currentTab === 'content' && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 1.5,
+              flex: '1 1 auto',
+              minHeight: 0,
+              height: '100%',
+            }}
+          >
             {/* Action Toolbar Cards */}
-            <Card sx={{ p: 2, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Card
+              sx={{
+                p: 1.5,
+                borderRadius: 2,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1,
+                flexShrink: 0,
+              }}
+            >
               <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
                 ⚡ 변환 기능 원클릭 실행
               </Typography>
@@ -619,7 +679,9 @@ export function TextTransformView() {
                 display: 'grid',
                 gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
                 gap: 2,
-                height: contentInputHeight,
+                flex: '1 1 auto',
+                minHeight: 0,
+                height: '100%',
               }}
             >
               <TextAreaPanel
@@ -657,12 +719,6 @@ export function TextTransformView() {
                 />
               </TextAreaPanel>
             </Box>
-
-            <ResizeHandle
-              onDrag={(delta) =>
-                setContentInputHeight((h) => Math.max(200, Math.min(700, h + delta)))
-              }
-            />
           </Box>
         )}
 
@@ -672,14 +728,32 @@ export function TextTransformView() {
             sx={{
               display: 'grid',
               gridTemplateColumns: showLibraryDrawer ? { xs: '1fr', md: '1fr 340px' } : '1fr',
-              gap: 2.5,
+              gap: 2,
+              flex: '1 1 auto',
+              minHeight: 0,
+              height: '100%',
             }}
           >
             {/* Main Regex Editor Panel */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1.5,
+                height: '100%',
+                minHeight: 0,
+              }}
+            >
               {/* Pattern & Flags Toolbar */}
               <Card
-                sx={{ p: 2, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}
+                sx={{
+                  p: 1.5,
+                  borderRadius: 2,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 1.5,
+                  flexShrink: 0,
+                }}
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                   <TextField
@@ -755,7 +829,9 @@ export function TextTransformView() {
                   display: 'grid',
                   gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
                   gap: 2,
-                  height: 380,
+                  flex: '1 1 auto',
+                  minHeight: 0,
+                  height: '100%',
                 }}
               >
                 <TextAreaPanel
@@ -804,16 +880,59 @@ export function TextTransformView() {
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 1.5,
-                  maxHeight: 520,
-                  overflowY: 'auto',
+                  height: '100%',
+                  minHeight: 0,
+                  overflow: 'hidden',
                 }}
               >
-                <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
-                  📚 16+종 실무 정규식 라이브러리
-                </Typography>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexShrink: 0,
+                  }}
+                >
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+                    📚 실무 정규식 라이브러리 ({filteredPresets.length}개)
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                    총 {REGEX_PRESETS.length}종
+                  </Typography>
+                </Box>
+
+                {/* Search Bar */}
+                <Box sx={{ flexShrink: 0 }}>
+                  <TextField
+                    size="small"
+                    fullWidth
+                    placeholder="정규식 이름, 설명, 패턴 검색..."
+                    value={regexSearchQuery}
+                    onChange={(e) => setRegexSearchQuery(e.target.value)}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchRoundedIcon fontSize="small" sx={{ color: 'text.disabled' }} />
+                        </InputAdornment>
+                      ),
+                      endAdornment: regexSearchQuery && (
+                        <InputAdornment position="end">
+                          <IconButton
+                            size="small"
+                            edge="end"
+                            onClick={() => setRegexSearchQuery('')}
+                          >
+                            <ClearRoundedIcon fontSize="small" />
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '0.8125rem' } }}
+                  />
+                </Box>
 
                 {/* Category Filter */}
-                <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', flexShrink: 0 }}>
                   {categories.map((cat) => (
                     <Chip
                       key={cat}
@@ -828,15 +947,26 @@ export function TextTransformView() {
                   ))}
                 </Box>
 
-                <Divider sx={{ my: 0.5 }} />
+                <Divider sx={{ my: 0.5, flexShrink: 0 }} />
 
                 {/* Presets List */}
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1,
+                    flex: '1 1 auto',
+                    minHeight: 0,
+                    overflowY: 'auto',
+                    pr: 0.5,
+                  }}
+                >
                   {filteredPresets.map((preset) => (
                     <Card
                       key={preset.id}
                       variant="outlined"
                       sx={{
+                        flexShrink: 0,
                         p: 1.2,
                         borderRadius: 1.5,
                         cursor: 'pointer',
@@ -846,8 +976,15 @@ export function TextTransformView() {
                       onClick={() => {
                         setRegexPattern(preset.pattern);
                         setRegexTargetText(preset.sampleInput);
-                        if (preset.sampleReplacement)
+                        if (preset.flags) {
+                          setActiveFlags(preset.flags.split(''));
+                        }
+                        if (preset.sampleReplacement !== undefined) {
                           setReplacementPattern(preset.sampleReplacement);
+                          setRegexMode('replace');
+                        } else {
+                          setRegexMode('extract');
+                        }
                         toast.info(`${preset.name} 프리셋이 적용되었습니다.`);
                       }}
                     >
@@ -877,6 +1014,19 @@ export function TextTransformView() {
                       >
                         {preset.description}
                       </Typography>
+                      {preset.sampleReplacement && (
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: 'secondary.main',
+                            fontWeight: 600,
+                            display: 'block',
+                            mb: 0.5,
+                          }}
+                        >
+                          치환: {preset.replaceDescription || preset.sampleReplacement}
+                        </Typography>
+                      )}
                       <Typography
                         variant="caption"
                         sx={{
@@ -885,12 +1035,25 @@ export function TextTransformView() {
                           p: 0.4,
                           borderRadius: 0.5,
                           display: 'block',
+                          wordBreak: 'break-all',
                         }}
                       >
                         /{preset.pattern}/{preset.flags}
                       </Typography>
                     </Card>
                   ))}
+
+                  {filteredPresets.length === 0 && (
+                    <Box
+                      sx={{
+                        py: 4,
+                        textAlign: 'center',
+                        color: 'text.disabled',
+                      }}
+                    >
+                      <Typography variant="body2">일치하는 정규식 프리셋이 없습니다.</Typography>
+                    </Box>
+                  )}
                 </Box>
               </Card>
             )}

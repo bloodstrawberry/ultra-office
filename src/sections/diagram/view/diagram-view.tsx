@@ -16,11 +16,17 @@ import AccountTreeRoundedIcon from '@mui/icons-material/AccountTreeRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
+import dynamic from 'next/dynamic';
+
 import { ErdStudio } from '../components/erd-studio';
 import { MathStudio } from '../components/math-studio';
 import { ChartStudio } from '../components/chart-studio';
 import { MarkdownStudio } from '../components/markdown-studio';
-import { OrgChartStudio } from '../components/org-chart-studio';
+
+const OrgChartStudio = dynamic(
+  () => import('../components/org-chart-studio').then((mod) => mod.OrgChartStudio),
+  { ssr: false }
+);
 
 // ----------------------------------------------------------------------
 

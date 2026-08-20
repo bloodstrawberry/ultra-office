@@ -662,6 +662,7 @@ export function AiAgentView() {
                     setCurrentMode(sess.mode);
                   }}
                   sx={{
+                    flexShrink: 0,
                     p: 1.2,
                     borderRadius: 1.5,
                     cursor: 'pointer',

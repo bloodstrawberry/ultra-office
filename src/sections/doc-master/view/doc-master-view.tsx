@@ -6,6 +6,10 @@ import React, { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+import CircularProgress from '@mui/material/CircularProgress';
+import DescriptionRoundedIcon from '@mui/icons-material/DescriptionRounded';
+
+import { DashboardContent } from 'src/layouts/dashboard';
 
 import { MarkdownStudio } from '../components/markdown-studio';
 import { BatchGenerator } from '../components/batch-generator';
@@ -27,40 +31,40 @@ export function DocMasterView() {
 
   if (!hasLoaded) {
     return (
-      <Box
-        sx={{
-          p: 3,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '60vh',
-        }}
-      >
-        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          오피스 문서 자동화 시스템을 로드하는 중...
-        </Typography>
-      </Box>
+      <DashboardContent>
+        <Box
+          sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}
+        >
+          <CircularProgress size={36} />
+        </Box>
+      </DashboardContent>
     );
   }
 
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 2,
-        height: { xs: 'auto', md: 'calc(100vh - 120px)' },
-        maxHeight: { xs: 'none', md: 'calc(100vh - 120px)' },
-        overflowY: 'auto',
-        p: { xs: 1.5, md: 2.5 },
-        pb: 4,
-      }}
-    >
-      {/* 1. Office Suite Tab Switcher */}
+    <DashboardContent>
+      {/* 1. Header */}
+      <Box sx={{ mb: 2, flexShrink: 0 }}>
+        <Typography
+          variant="h4"
+          sx={{ fontWeight: 800, mb: 0.5, display: 'flex', alignItems: 'center', gap: 1 }}
+        >
+          <DescriptionRoundedIcon sx={{ fontSize: 32, color: 'primary.main' }} />
+          오피스 문서 자동화 스튜디오 (Doc Master)
+        </Typography>
+        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          Word(Docx) 작성·템플릿 치환, PowerPoint 슬라이드, 마크다운 노트, 대량 일괄 생성까지
+          브라우저 내에서 완결하는 오피스 문서 도구 모음입니다.
+        </Typography>
+      </Box>
+
+      {/* 2. Office Suite Tab Switcher */}
       <DocSwitcherHeader currentTab={currentTab} onChangeTab={setCurrentTab} />
 
-      {/* 2. Active Office Suite Module */}
-      <Box sx={{ flexGrow: 1, minHeight: 520, display: 'flex', flexDirection: 'column' }}>
+      {/* 3. Active Office Suite Module */}
+      <Box
+        sx={{ flexGrow: 1, minHeight: 0, display: 'flex', flexDirection: 'column', mt: 2, pb: 4 }}
+      >
         {currentTab === 'word-scratch' && <WordScratchEditor />}
         {currentTab === 'word-template' && <WordTemplateEditor />}
         {currentTab === 'word-viewer' && <WordDocumentViewer />}
@@ -68,6 +72,6 @@ export function DocMasterView() {
         {currentTab === 'markdown-studio' && <MarkdownStudio />}
         {currentTab === 'batch-hub' && <BatchGenerator />}
       </Box>
-    </Box>
+    </DashboardContent>
   );
 }

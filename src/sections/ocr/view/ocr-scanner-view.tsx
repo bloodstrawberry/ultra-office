@@ -4,7 +4,7 @@ import type { ReceiptInfo, BusinessCardInfo } from '../utils/ocr-parser-utils';
 
 import { toast } from 'sonner';
 import { utils, write } from 'xlsx';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
@@ -14,12 +14,14 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import LinearProgress from '@mui/material/LinearProgress';
+import CircularProgress from '@mui/material/CircularProgress';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import TableViewRoundedIcon from '@mui/icons-material/TableViewRounded';
 import ReceiptLongRoundedIcon from '@mui/icons-material/ReceiptLongRounded';
 import ContactPageRoundedIcon from '@mui/icons-material/ContactPageRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
+import DocumentScannerRoundedIcon from '@mui/icons-material/DocumentScannerRounded';
 
 import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
 
@@ -48,6 +50,12 @@ export function OcrScannerView() {
 
   // Tab 3: Table Text Data
   const [rawOcrText, setRawOcrText] = useState<string>('');
+
+  const [hasLoaded, setHasLoaded] = useState(false);
+
+  useEffect(() => {
+    setHasLoaded(true);
+  }, []);
 
   const handleProcessImage = async (file: File) => {
     setImagePreview(URL.createObjectURL(file));
@@ -143,10 +151,26 @@ export function OcrScannerView() {
     toast.success('표 엑셀 파일이 다운로드되었습니다.');
   };
 
+  if (!hasLoaded) {
+    return (
+      <DashboardContent>
+        <Box
+          sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}
+        >
+          <CircularProgress size={36} />
+        </Box>
+      </DashboardContent>
+    );
+  }
+
   return (
     <DashboardContent>
       <Box sx={{ mb: 2, flexShrink: 0 }}>
-        <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
+        <Typography
+          variant="h4"
+          sx={{ fontWeight: 800, mb: 0.5, display: 'flex', alignItems: 'center', gap: 1 }}
+        >
+          <DocumentScannerRoundedIcon sx={{ fontSize: 32, color: 'info.main' }} />
           스마트 OCR 스캐너 (Smart OCR Studio)
         </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
@@ -156,7 +180,7 @@ export function OcrScannerView() {
       </Box>
 
       {/* Tabs */}
-      <Box sx={{ flexShrink: 0, mb: 2 }}>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
         <Tabs
           value={currentTab}
           onChange={(_, val) => {
@@ -166,7 +190,6 @@ export function OcrScannerView() {
             setCardData(null);
             setRawOcrText('');
           }}
-          sx={{ borderBottom: 1, borderColor: 'divider' }}
         >
           <Tab
             label="1. 영수증 · 지출결의서 스캔"
@@ -190,7 +213,7 @@ export function OcrScannerView() {
       </Box>
 
       {/* Main Content Area */}
-      <Box sx={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', pb: 3 }}>
+      <Box sx={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', pb: 4 }}>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1.2fr' }, gap: 3 }}>
           {/* Left: Upload and Preview */}
           <Card
