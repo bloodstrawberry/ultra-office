@@ -1,36 +1,36 @@
 'use client';
 
-import { toast } from 'sonner';
+import type { CalendarTask} from '../utils/ics-utils';
+
 import dayjs from 'dayjs';
+import { toast } from 'sonner';
 import React, { useState } from 'react';
-import FullCalendar from '@fullcalendar/react';
 import listPlugin from '@fullcalendar/list';
+import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
-import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import Slider from '@mui/material/Slider';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
-import LinearProgress from '@mui/material/LinearProgress';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
+import LinearProgress from '@mui/material/LinearProgress';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
-import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
-import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
+import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import { exportToIcs, CalendarTask, generateShiftSchedule } from '../utils/ics-utils';
+import { exportToIcs, generateShiftSchedule } from '../utils/ics-utils';
 
 const INITIAL_TASKS: CalendarTask[] = [
   {

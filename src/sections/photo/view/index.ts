@@ -14,6 +14,6 @@ export * from './compress-view';
 export * from './photo-hub-view';
 export * from './art-style-view';
 export * from './watermark-view';
+export * from './bg-remove-view';
 export * from './shape-crop-view';
 export * from './color-picker-view';
-export * from './bg-remove-view';

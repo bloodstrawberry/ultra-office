@@ -1,5 +1,9 @@
 'use client';
 
+import type {
+  ReceiptInfo,
+  BusinessCardInfo} from '../utils/ocr-parser-utils';
+
 import { toast } from 'sonner';
 import { utils, write } from 'xlsx';
 import React, { useState } from 'react';
@@ -12,11 +16,10 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import LinearProgress from '@mui/material/LinearProgress';
-import CircularProgress from '@mui/material/CircularProgress';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
+import TableViewRoundedIcon from '@mui/icons-material/TableViewRounded';
 import ReceiptLongRoundedIcon from '@mui/icons-material/ReceiptLongRounded';
 import ContactPageRoundedIcon from '@mui/icons-material/ContactPageRounded';
-import TableViewRoundedIcon from '@mui/icons-material/TableViewRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 
@@ -26,8 +29,6 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import {
   performOcr,
-  ReceiptInfo,
-  BusinessCardInfo,
   parseReceiptText,
   parseBusinessCard,
   generateVCardString,

@@ -1,5 +1,6 @@
 import type { SvgIconProps } from '@mui/material/SvgIcon';
 
+import CodeRoundedIcon from '@mui/icons-material/CodeRounded';
 import BrushRoundedIcon from '@mui/icons-material/BrushRounded';
 import FolderRoundedIcon from '@mui/icons-material/FolderRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
@@ -25,7 +26,6 @@ import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
 import QrCodeScannerRoundedIcon from '@mui/icons-material/QrCodeScannerRounded';
 import DocumentScannerRoundedIcon from '@mui/icons-material/DocumentScannerRounded';
 import SwapHorizontalCircleRoundedIcon from '@mui/icons-material/SwapHorizontalCircleRounded';
-import CodeRoundedIcon from '@mui/icons-material/CodeRounded';
 
 // ----------------------------------------------------------------------
 

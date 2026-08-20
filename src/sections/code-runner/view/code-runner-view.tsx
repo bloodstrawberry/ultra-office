@@ -1,33 +1,34 @@
 'use client';
 
+import type {
+  PlotOutput,
+  RunnerState,
+  CodeTemplate,
+  SupportedLanguage,
+  SystemDiagnosticInfo,
+} from '../types';
+
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
-import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
-import VerticalSplitRoundedIcon from '@mui/icons-material/VerticalSplitRounded';
+import IconButton from '@mui/material/IconButton';
 import FullscreenRoundedIcon from '@mui/icons-material/FullscreenRounded';
+import VerticalSplitRoundedIcon from '@mui/icons-material/VerticalSplitRounded';
 import InsertDriveFileRoundedIcon from '@mui/icons-material/InsertDriveFileRounded';
 
-import { useWebContainer } from '../core/use-webcontainer';
-import { usePyodide } from '../core/use-pyodide';
-import { useWasmRunner } from '../core/use-wasm-runner';
-import { usePolyglotRunner } from '../core/use-polyglot-runner';
 import { TEMPLATES } from '../core/templates';
+import { usePyodide } from '../core/use-pyodide';
+import { getThemeById } from '../core/editor-themes';
 import { CodeEditor } from '../components/code-editor';
-import { TerminalView, type TerminalRef } from '../components/terminal-view';
+import { useWasmRunner } from '../core/use-wasm-runner';
+import { useWebContainer } from '../core/use-webcontainer';
 import { PreviewPanel } from '../components/preview-panel';
 import { RunnerToolbar } from '../components/runner-toolbar';
-import type {
-  CodeTemplate,
-  PlotOutput,
-  RunnerState,
-  SupportedLanguage,
-  SystemDiagnosticInfo,
-} from '../types';
+import { usePolyglotRunner } from '../core/use-polyglot-runner';
+import { TerminalView, type TerminalRef } from '../components/terminal-view';
 
 // ----------------------------------------------------------------------
 
@@ -38,10 +39,10 @@ export function CodeRunnerView() {
   const [files, setFiles] = useState<Record<string, string>>(TEMPLATES[0].files);
   const [hasLoaded, setHasLoaded] = useState(false);
 
-  // Editor Settings
+  // Editor & IDE Settings
   const [fontSize, setFontSize] = useState(14);
   const [minimap, setMinimap] = useState(true);
-  const [editorTheme, setEditorTheme] = useState<'vs-dark' | 'light'>('vs-dark');
+  const [currentThemeId, setCurrentThemeId] = useState<string>('vs-dark');
   const [layoutMode, setLayoutMode] = useState<'split' | 'editor-only' | 'terminal-only'>('split');
 
   // Runner state
@@ -66,6 +67,8 @@ export function CodeRunnerView() {
   const pyodide = usePyodide();
   const wasmRunner = useWasmRunner();
   const polyglotRunner = usePolyglotRunner();
+
+  const activeTheme = getThemeById(currentThemeId);
 
   // Load initial template
   useEffect(() => {
@@ -464,8 +467,8 @@ export function CodeRunnerView() {
         flexDirection: 'column',
         height: '100%',
         width: '100%',
-        bgcolor: '#090d16',
-        color: '#f8fafc',
+        bgcolor: activeTheme.uiColors.bg,
+        color: activeTheme.uiColors.text,
         overflow: 'hidden',
       }}
     >
@@ -473,12 +476,13 @@ export function CodeRunnerView() {
       <RunnerToolbar
         currentLanguage={currentLanguage}
         currentTemplateId={selectedTemplate.id}
+        currentThemeId={currentThemeId}
         runnerState={runnerState}
         fontSize={fontSize}
         minimap={minimap}
-        theme={editorTheme}
         onLanguageChange={handleLanguageChange}
         onTemplateChange={handleTemplateChange}
+        onThemeChange={setCurrentThemeId}
         onRun={handleRun}
         onStop={handleStop}
         onReset={handleReset}
@@ -486,7 +490,6 @@ export function CodeRunnerView() {
         onCopyCode={handleCopyCode}
         onFontSizeChange={setFontSize}
         onMinimapToggle={() => setMinimap((p) => !p)}
-        onThemeToggle={() => setEditorTheme((p) => (p === 'vs-dark' ? 'light' : 'vs-dark'))}
       />
 
       {/* Main Workspace (Editor + Preview & Terminal Split) */}
@@ -507,8 +510,8 @@ export function CodeRunnerView() {
               flexDirection: 'column',
               flex: layoutMode === 'editor-only' ? 1 : 1.1,
               height: '100%',
-              bgcolor: '#1e1e1e',
-              borderRight: '1px solid #1e293b',
+              bgcolor: activeTheme.previewBg,
+              borderRight: `1px solid ${activeTheme.uiColors.border}`,
               overflow: 'hidden',
             }}
           >
@@ -518,8 +521,8 @@ export function CodeRunnerView() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                bgcolor: '#181818',
-                borderBottom: '1px solid #2d2d2d',
+                bgcolor: activeTheme.uiColors.surface,
+                borderBottom: `1px solid ${activeTheme.uiColors.border}`,
                 px: 1,
                 minHeight: 36,
               }}
@@ -534,14 +537,14 @@ export function CodeRunnerView() {
                     py: 0.5,
                     px: 1.5,
                     fontSize: '12px',
-                    color: '#94a3b8',
+                    color: activeTheme.uiColors.textMuted,
                     fontFamily: 'monospace',
                     textTransform: 'none',
                     '&.Mui-selected': {
-                      bgcolor: '#1e1e1e',
-                      color: '#38bdf8',
+                      bgcolor: activeTheme.previewBg,
+                      color: activeTheme.previewAccent,
                       fontWeight: 600,
-                      borderTop: '2px solid #38bdf8',
+                      borderTop: `2px solid ${activeTheme.previewAccent}`,
                     },
                   },
                   '& .MuiTabs-indicator': {
@@ -566,7 +569,7 @@ export function CodeRunnerView() {
                   <IconButton
                     size="small"
                     onClick={() => setLayoutMode((p) => (p === 'split' ? 'editor-only' : 'split'))}
-                    sx={{ color: '#94a3b8' }}
+                    sx={{ color: activeTheme.uiColors.textMuted }}
                   >
                     {layoutMode === 'split' ? (
                       <FullscreenRoundedIcon sx={{ fontSize: 17 }} />
@@ -585,7 +588,7 @@ export function CodeRunnerView() {
                 value={files[activeFileName] || ''}
                 onChange={handleCodeChange}
                 onRun={handleRun}
-                theme={editorTheme}
+                themeId={currentThemeId}
                 fontSize={fontSize}
                 minimap={minimap}
               />
@@ -601,13 +604,14 @@ export function CodeRunnerView() {
               flexDirection: 'column',
               flex: layoutMode === 'terminal-only' ? 1 : 0.9,
               height: '100%',
-              bgcolor: '#0d1117',
+              bgcolor: activeTheme.terminalTheme.background || '#0d1117',
               overflow: 'hidden',
             }}
           >
             {/* Top: Preview Panel (Live Server / Matplotlib Plots / System Info) */}
             <Box sx={{ flex: 1, height: '50%', overflow: 'hidden' }}>
               <PreviewPanel
+                themeId={currentThemeId}
                 previewUrl={runnerState.previewUrl}
                 htmlContent={
                   selectedTemplate.engine === 'html-sandbox' ||
@@ -630,6 +634,7 @@ export function CodeRunnerView() {
             <Box sx={{ flex: 1, height: '50%', overflow: 'hidden' }}>
               <TerminalView
                 ref={terminalRef}
+                themeId={currentThemeId}
                 title="콘솔 출력 & 터미널"
                 statusLabel={runnerState.statusMessage}
                 statusColor={

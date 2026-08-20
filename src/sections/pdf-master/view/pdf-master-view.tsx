@@ -1,5 +1,8 @@
 'use client';
 
+import type {
+  PdfPageInfo} from '../utils/pdf-advanced-utils';
+
 import { toast } from 'sonner';
 import React, { useRef, useState, useEffect } from 'react';
 
@@ -15,22 +18,21 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import CircularProgress from '@mui/material/CircularProgress';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
-import RotateRightRoundedIcon from '@mui/icons-material/RotateRightRounded';
-import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
-import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
-import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
-import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
-import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
-import PictureAsPdfRoundedIcon from '@mui/icons-material/PictureAsPdfRounded';
-import BrandingWatermarkRoundedIcon from '@mui/icons-material/BrandingWatermarkRounded';
 import GestureRoundedIcon from '@mui/icons-material/GestureRounded';
+import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
+import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
+import RotateRightRoundedIcon from '@mui/icons-material/RotateRightRounded';
+import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 import LayersClearRoundedIcon from '@mui/icons-material/LayersClearRounded';
+import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
+import PictureAsPdfRoundedIcon from '@mui/icons-material/PictureAsPdfRounded';
+import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
+import BrandingWatermarkRoundedIcon from '@mui/icons-material/BrandingWatermarkRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import {
   stampPdf,
-  PdfPageInfo,
   getPdfPagesInfo,
   exportModifiedPdf,
   addWatermarkToPdf,

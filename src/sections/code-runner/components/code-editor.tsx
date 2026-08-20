@@ -4,8 +4,10 @@ import dynamic from 'next/dynamic';
 import React, { useCallback } from 'react';
 
 import Box from '@mui/material/Box';
-import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
+import CircularProgress from '@mui/material/CircularProgress';
+
+import { IDE_THEMES, getThemeById } from '../core/editor-themes';
 
 // ----------------------------------------------------------------------
 
@@ -35,7 +37,7 @@ export interface CodeEditorProps {
   value: string;
   onChange: (value: string) => void;
   onRun?: () => void;
-  theme?: 'vs-dark' | 'light';
+  themeId?: string;
   fontSize?: number;
   minimap?: boolean;
   readOnly?: boolean;
@@ -82,13 +84,30 @@ export function CodeEditor({
   value,
   onChange,
   onRun,
-  theme = 'vs-dark',
+  themeId = 'vs-dark',
   fontSize = 14,
   minimap = true,
   readOnly = false,
 }: CodeEditorProps) {
+  const currentTheme = getThemeById(themeId);
+
+  const handleBeforeMount = useCallback((monaco: any) => {
+    IDE_THEMES.forEach((theme) => {
+      if (theme.monacoDefinition) {
+        monaco.editor.defineTheme(theme.monacoThemeId, theme.monacoDefinition);
+      }
+    });
+  }, []);
+
   const handleEditorMount = useCallback(
     (editor: any, monaco: any) => {
+      // 테마 재등록 (보장)
+      IDE_THEMES.forEach((theme) => {
+        if (theme.monacoDefinition) {
+          monaco.editor.defineTheme(theme.monacoThemeId, theme.monacoDefinition);
+        }
+      });
+
       if (onRun) {
         editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
           onRun();
@@ -106,7 +125,7 @@ export function CodeEditor({
         width: '100%',
         height: '100%',
         position: 'relative',
-        bgcolor: theme === 'vs-dark' ? '#1e1e1e' : '#fffffe',
+        bgcolor: currentTheme.previewBg,
         overflow: 'hidden',
       }}
     >
@@ -114,9 +133,10 @@ export function CodeEditor({
         height="100%"
         language={monacoLanguage}
         value={value}
-        theme={theme}
-        onChange={(val) => onChange(val || '')}
+        theme={currentTheme.monacoThemeId}
+        beforeMount={handleBeforeMount}
         onMount={handleEditorMount}
+        onChange={(val) => onChange(val || '')}
         options={{
           fontSize,
           minimap: { enabled: minimap },

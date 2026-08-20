@@ -1,5 +1,8 @@
 'use client';
 
+import type {
+  JwtDecoded} from '../utils/crypto-dev-utils';
+
 import { toast } from 'sonner';
 import React, { useState } from 'react';
 
@@ -12,24 +15,23 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
-import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
-import VpnKeyRoundedIcon from '@mui/icons-material/VpnKeyRounded';
 import LockRoundedIcon from '@mui/icons-material/LockRounded';
 import CodeRoundedIcon from '@mui/icons-material/CodeRounded';
-import FindReplaceRoundedIcon from '@mui/icons-material/FindReplaceRounded';
+import VpnKeyRoundedIcon from '@mui/icons-material/VpnKeyRounded';
 import CasinoRoundedIcon from '@mui/icons-material/CasinoRounded';
+import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
+import FindReplaceRoundedIcon from '@mui/icons-material/FindReplaceRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import {
   decodeJwt,
   jsonToSql,
-  JwtDecoded,
   decryptAes,
   encryptAes,
   calculateHash,
-  generateUuidV4,
   REGEX_PRESETS,
+  generateUuidV4,
   jsonToTypeScript,
   generateRandomPassword,
 } from '../utils/crypto-dev-utils';

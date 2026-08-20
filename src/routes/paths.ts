@@ -29,6 +29,7 @@ export const paths = {
   codeRunner: '/code-runner',
   barcode: '/barcode',
   agent: '/agent',
+  mathGraph: '/math-graph',
   spreadsheet: '/spreadsheet',
   text: {
     root: `/text`,

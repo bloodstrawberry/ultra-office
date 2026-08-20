@@ -2,14 +2,14 @@ import type { Metadata } from 'next';
 
 import { CONFIG } from 'src/global-config';
 
-import { CodeRunnerView } from 'src/sections/code-runner/view/code-runner-view';
+import { MathGraphView } from 'src/sections/math-graph';
 
 // ----------------------------------------------------------------------
 
 export const metadata: Metadata = {
-  title: `다국어 코드 실행기 (OmniRunner) | Dashboard - ${CONFIG.appName}`,
+  title: `수식 그래프 시각화 (Math Graph Lab) | Dashboard - ${CONFIG.appName}`,
 };
 
 export default function Page() {
-  return <CodeRunnerView />;
+  return <MathGraphView />;
 }

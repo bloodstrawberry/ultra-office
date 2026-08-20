@@ -2,11 +2,13 @@ import type { NavMainProps } from './main/nav/types';
 import type { NavSectionProps } from 'src/components/nav-section';
 
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
+import CodeRoundedIcon from '@mui/icons-material/CodeRounded';
 import CasinoRoundedIcon from '@mui/icons-material/CasinoRounded';
 import FolderRoundedIcon from '@mui/icons-material/FolderRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import TerminalRoundedIcon from '@mui/icons-material/TerminalRounded';
 import TableViewRoundedIcon from '@mui/icons-material/TableViewRounded';
+import FunctionsRoundedIcon from '@mui/icons-material/FunctionsRounded';
 import TextFieldsRoundedIcon from '@mui/icons-material/TextFieldsRounded';
 import AccountTreeRoundedIcon from '@mui/icons-material/AccountTreeRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
@@ -19,7 +21,6 @@ import CompareArrowsRoundedIcon from '@mui/icons-material/CompareArrowsRounded';
 import QrCodeScannerRoundedIcon from '@mui/icons-material/QrCodeScannerRounded';
 import DocumentScannerRoundedIcon from '@mui/icons-material/DocumentScannerRounded';
 import SwapHorizontalCircleRoundedIcon from '@mui/icons-material/SwapHorizontalCircleRounded';
-import CodeRoundedIcon from '@mui/icons-material/CodeRounded';
 
 import { paths } from 'src/routes/paths';
 
@@ -45,6 +46,7 @@ const ICONS = {
   devTools: <TerminalRoundedIcon fontSize="small" />,
   codeRunner: <CodeRoundedIcon fontSize="small" />,
   barcode: <QrCodeScannerRoundedIcon fontSize="small" />,
+  mathGraph: <FunctionsRoundedIcon fontSize="small" />,
 };
 
 // ----------------------------------------------------------------------
@@ -83,6 +85,7 @@ export const navData: NavSectionProps['data'] = [
   {
     subheader: 'Document & Data',
     items: [
+      { title: '수식 그래프 시각화', path: paths.mathGraph, icon: ICONS.mathGraph },
       { title: '스프레드시트', path: paths.spreadsheet, icon: ICONS.spreadsheet },
       { title: '데이터 & 코드 비교', path: paths.compare, icon: ICONS.compare },
       {

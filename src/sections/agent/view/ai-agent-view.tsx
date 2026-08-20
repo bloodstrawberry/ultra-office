@@ -1,7 +1,7 @@
 'use client';
 
 import { toast } from 'sonner';
-import React, { useRef, useState, useEffect, useTransition } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
@@ -10,32 +10,31 @@ import Tabs from '@mui/material/Tabs';
 import Chip from '@mui/material/Chip';
 import Select from '@mui/material/Select';
 import Button from '@mui/material/Button';
-import MenuItem from '@mui/material/MenuItem';
 import Divider from '@mui/material/Divider';
+import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
-import InputLabel from '@mui/material/InputLabel';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import FormControl from '@mui/material/FormControl';
 import LinearProgress from '@mui/material/LinearProgress';
 import CircularProgress from '@mui/material/CircularProgress';
 import SendRoundedIcon from '@mui/icons-material/SendRounded';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import SpeedRoundedIcon from '@mui/icons-material/SpeedRounded';
 import MemoryRoundedIcon from '@mui/icons-material/MemoryRounded';
-import StopCircleRoundedIcon from '@mui/icons-material/StopCircleRounded';
 import MenuBookRoundedIcon from '@mui/icons-material/MenuBookRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import PeopleAltRoundedIcon from '@mui/icons-material/PeopleAltRounded';
+import StopCircleRoundedIcon from '@mui/icons-material/StopCircleRounded';
 import AssessmentRoundedIcon from '@mui/icons-material/AssessmentRounded';
 import AddCommentRoundedIcon from '@mui/icons-material/AddCommentRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import DeleteSweepRoundedIcon from '@mui/icons-material/DeleteSweepRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import PersonSearchRoundedIcon from '@mui/icons-material/PersonSearchRounded';
 import BookmarkBorderRoundedIcon from '@mui/icons-material/BookmarkBorderRounded';
 import PlayCircleFilledWhiteRoundedIcon from '@mui/icons-material/PlayCircleFilledWhiteRounded';
-import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
-import SpeedRoundedIcon from '@mui/icons-material/SpeedRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
@@ -44,18 +43,18 @@ import {
   type AgentSession,
   type AgentQueryMode,
   generateAgentResponse,
-  buildAgentSystemPrompt,
   type AgentChatMessage,
+  buildAgentSystemPrompt,
 } from '../../util/utils/ai-agent-data';
 import {
+  isLLMReady,
+  initializeLLM,
   AVAILABLE_MODELS,
   type ModelOption,
-  type LoadingProgress,
-  checkWebGPUSupport,
-  initializeLLM,
-  streamChatResponse,
-  isLLMReady,
   getActiveModelId,
+  checkWebGPUSupport,
+  streamChatResponse,
+  type LoadingProgress,
 } from '../utils/llm-engine';
 
 // ----------------------------------------------------------------------

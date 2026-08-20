@@ -1,6 +1,7 @@
 'use client';
 
-import type { ITheme } from 'xterm';
+
+import 'xterm/css/xterm.css';
 
 import React, { useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 
@@ -8,12 +9,12 @@ import Box from '@mui/material/Box';
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
-import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
-import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import TerminalRoundedIcon from '@mui/icons-material/TerminalRounded';
+import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
+import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 
-import 'xterm/css/xterm.css';
+import { getThemeById } from '../core/editor-themes';
 
 // ----------------------------------------------------------------------
 
@@ -27,6 +28,7 @@ export interface TerminalRef {
 
 export interface TerminalViewProps {
   title?: string;
+  themeId?: string;
   statusLabel?: string;
   statusColor?: 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
   onClear?: () => void;
@@ -34,39 +36,32 @@ export interface TerminalViewProps {
   onData?: (data: string) => void;
 }
 
-const TERMINAL_THEME: ITheme = {
-  background: '#0d1117',
-  foreground: '#c9d1d9',
-  cursor: '#58a6ff',
-  cursorAccent: '#0d1117',
-  selectionBackground: '#264f78',
-  black: '#484f58',
-  red: '#ff7b72',
-  green: '#3fb950',
-  yellow: '#d29922',
-  blue: '#58a6ff',
-  magenta: '#bc8cff',
-  cyan: '#39c5cf',
-  white: '#b1bac4',
-  brightBlack: '#6e7681',
-  brightRed: '#ffa198',
-  brightGreen: '#56d364',
-  brightYellow: '#e3b341',
-  brightBlue: '#79c0ff',
-  brightMagenta: '#d2a8ff',
-  brightCyan: '#56d4dd',
-  brightWhite: '#f0f6fc',
-};
-
 export const TerminalView = forwardRef<TerminalRef, TerminalViewProps>(
   (
-    { title = 'Terminal & Output', statusLabel, statusColor = 'info', onClear, onRestart, onData },
+    {
+      title = 'Terminal & Output',
+      themeId = 'vs-dark',
+      statusLabel,
+      statusColor = 'info',
+      onClear,
+      onRestart,
+      onData,
+    },
     ref
   ) => {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const terminalInstanceRef = useRef<any>(null);
     const fitAddonRef = useRef<any>(null);
     const bufferTextRef = useRef<string[]>([]);
+
+    const activeTheme = getThemeById(themeId);
+
+    // 테마 동적 업데이트
+    useEffect(() => {
+      if (terminalInstanceRef.current) {
+        terminalInstanceRef.current.options.theme = activeTheme.terminalTheme;
+      }
+    }, [activeTheme]);
 
     useEffect(() => {
       let isMounted = true;
@@ -80,7 +75,7 @@ export const TerminalView = forwardRef<TerminalRef, TerminalViewProps>(
         if (!isMounted) return;
 
         const term = new Terminal({
-          theme: TERMINAL_THEME,
+          theme: activeTheme.terminalTheme,
           fontFamily: "'Fira Code', 'Cascadia Code', 'JetBrains Mono', Consolas, monospace",
           fontSize: 13,
           lineHeight: 1.35,
@@ -113,7 +108,7 @@ export const TerminalView = forwardRef<TerminalRef, TerminalViewProps>(
           '\x1b[36m│\x1b[0m  \x1b[1;32m⚡ OmniRunner Terminal\x1b[0m - Multi-Runtime Console       \x1b[36m│\x1b[0m'
         );
         term.writeln(
-          '\x1b[36m│\x1b[0m  Node.js • Python (Pyodide) • Wasm • Live Web Server     \x1b[36m│\x1b[0m'
+          '\x1b[36m│\x1b[0m  Node.js • Python (Pyodide) • Wasm • SQL • 15+ Languages \x1b[36m│\x1b[0m'
         );
         term.writeln(
           '\x1b[36m└──────────────────────────────────────────────────────────┘\x1b[0m\r\n'
@@ -129,7 +124,6 @@ export const TerminalView = forwardRef<TerminalRef, TerminalViewProps>(
 
         window.addEventListener('resize', handleResize);
 
-        // ResizeObserver로 컨테이너 크기 변화 감지
         const observer = new ResizeObserver(() => {
           handleResize();
         });
@@ -153,7 +147,7 @@ export const TerminalView = forwardRef<TerminalRef, TerminalViewProps>(
           terminalInstanceRef.current = null;
         }
       };
-    }, [onData]);
+    }, [onData, activeTheme]);
 
     useImperativeHandle(
       ref,
@@ -206,8 +200,8 @@ export const TerminalView = forwardRef<TerminalRef, TerminalViewProps>(
           flexDirection: 'column',
           height: '100%',
           width: '100%',
-          bgcolor: '#0d1117',
-          borderTop: '1px solid #21262d',
+          bgcolor: activeTheme.terminalTheme.background || '#0d1117',
+          borderTop: `1px solid ${activeTheme.uiColors.border}`,
           overflow: 'hidden',
         }}
       >
@@ -219,14 +213,17 @@ export const TerminalView = forwardRef<TerminalRef, TerminalViewProps>(
             justifyContent: 'space-between',
             px: 1.5,
             py: 0.75,
-            bgcolor: '#161b22',
-            borderBottom: '1px solid #21262d',
+            bgcolor: activeTheme.uiColors.surface,
+            borderBottom: `1px solid ${activeTheme.uiColors.border}`,
             minHeight: 36,
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <TerminalRoundedIcon sx={{ fontSize: 16, color: '#58a6ff' }} />
-            <Typography variant="caption" sx={{ fontWeight: 600, color: '#c9d1d9' }}>
+            <TerminalRoundedIcon sx={{ fontSize: 16, color: activeTheme.previewAccent }} />
+            <Typography
+              variant="caption"
+              sx={{ fontWeight: 600, color: activeTheme.uiColors.text }}
+            >
               {title}
             </Typography>
             {statusLabel && (
@@ -265,7 +262,10 @@ export const TerminalView = forwardRef<TerminalRef, TerminalViewProps>(
               <IconButton
                 size="small"
                 onClick={handleCopy}
-                sx={{ color: '#8b949e', '&:hover': { color: '#c9d1d9' } }}
+                sx={{
+                  color: activeTheme.uiColors.textMuted,
+                  '&:hover': { color: activeTheme.uiColors.text },
+                }}
               >
                 <ContentCopyRoundedIcon sx={{ fontSize: 15 }} />
               </IconButton>
@@ -275,7 +275,10 @@ export const TerminalView = forwardRef<TerminalRef, TerminalViewProps>(
                 <IconButton
                   size="small"
                   onClick={onRestart}
-                  sx={{ color: '#8b949e', '&:hover': { color: '#c9d1d9' } }}
+                  sx={{
+                    color: activeTheme.uiColors.textMuted,
+                    '&:hover': { color: activeTheme.uiColors.text },
+                  }}
                 >
                   <RefreshRoundedIcon sx={{ fontSize: 16 }} />
                 </IconButton>
@@ -285,7 +288,10 @@ export const TerminalView = forwardRef<TerminalRef, TerminalViewProps>(
               <IconButton
                 size="small"
                 onClick={handleClear}
-                sx={{ color: '#8b949e', '&:hover': { color: '#c9d1d9' } }}
+                sx={{
+                  color: activeTheme.uiColors.textMuted,
+                  '&:hover': { color: activeTheme.uiColors.text },
+                }}
               >
                 <DeleteOutlineRoundedIcon sx={{ fontSize: 16 }} />
               </IconButton>
@@ -311,7 +317,7 @@ export const TerminalView = forwardRef<TerminalRef, TerminalViewProps>(
                 width: 8,
               },
               '&::-webkit-scrollbar-thumb': {
-                bgcolor: '#30363d',
+                bgcolor: activeTheme.isDark ? '#30363d' : '#d0d7de',
                 borderRadius: 4,
               },
             },

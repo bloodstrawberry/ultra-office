@@ -1,5 +1,7 @@
 'use client';
 
+import type { RunnerState, CodeTemplate, SupportedLanguage } from '../types';
+
 import React from 'react';
 
 import Box from '@mui/material/Box';
@@ -7,34 +9,34 @@ import Chip from '@mui/material/Chip';
 import Menu from '@mui/material/Menu';
 import Select from '@mui/material/Select';
 import Button from '@mui/material/Button';
-import MenuItem from '@mui/material/MenuItem';
 import Tooltip from '@mui/material/Tooltip';
+import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import FormControl from '@mui/material/FormControl';
-import ListSubheader from '@mui/material/ListSubheader';
-import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import StopRoundedIcon from '@mui/icons-material/StopRounded';
-import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
-import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
-import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
-import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
+import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
+import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
+import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
+import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
+import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 
 import { TEMPLATES } from '../core/templates';
-import type { CodeTemplate, RunnerState, SupportedLanguage } from '../types';
+import { IDE_THEMES, getThemeById } from '../core/editor-themes';
 
 // ----------------------------------------------------------------------
 
 export interface RunnerToolbarProps {
   currentLanguage: SupportedLanguage;
   currentTemplateId: string;
+  currentThemeId: string;
   runnerState: RunnerState;
   fontSize: number;
   minimap: boolean;
-  theme: 'vs-dark' | 'light';
   onLanguageChange: (lang: SupportedLanguage) => void;
   onTemplateChange: (template: CodeTemplate) => void;
+  onThemeChange: (themeId: string) => void;
   onRun: () => void;
   onStop: () => void;
   onReset: () => void;
@@ -42,7 +44,6 @@ export interface RunnerToolbarProps {
   onCopyCode: () => void;
   onFontSizeChange: (size: number) => void;
   onMinimapToggle: () => void;
-  onThemeToggle: () => void;
 }
 
 interface LanguageOption {
@@ -141,12 +142,13 @@ const LANGUAGE_OPTIONS: LanguageOption[] = [
 export function RunnerToolbar({
   currentLanguage,
   currentTemplateId,
+  currentThemeId,
   runnerState,
   fontSize,
   minimap,
-  theme,
   onLanguageChange,
   onTemplateChange,
+  onThemeChange,
   onRun,
   onStop,
   onReset,
@@ -154,11 +156,11 @@ export function RunnerToolbar({
   onCopyCode,
   onFontSizeChange,
   onMinimapToggle,
-  onThemeToggle,
 }: RunnerToolbarProps) {
   const [settingsAnchor, setSettingsAnchor] = React.useState<null | HTMLElement>(null);
 
   const isRunning = runnerState.status === 'running' || runnerState.status === 'booting';
+  const activeTheme = getThemeById(currentThemeId);
 
   const engineChipColor =
     runnerState.currentEngine === 'webcontainer'
@@ -180,16 +182,16 @@ export function RunnerToolbar({
         justifyContent: 'space-between',
         px: 2,
         py: 1,
-        bgcolor: '#0f172a',
-        borderBottom: '1px solid #1e293b',
+        bgcolor: activeTheme.uiColors.surface,
+        borderBottom: `1px solid ${activeTheme.uiColors.border}`,
         gap: 1.5,
         flexWrap: 'wrap',
       }}
     >
-      {/* Left Area: Language & Template Selectors */}
+      {/* Left Area: Language & Template & Theme Selectors */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
         {/* Language Selector */}
-        <FormControl size="small" sx={{ minWidth: 200 }}>
+        <FormControl size="small" sx={{ minWidth: 190 }}>
           <Select
             value={currentLanguage}
             onChange={(e) => onLanguageChange(e.target.value as SupportedLanguage)}
@@ -198,9 +200,9 @@ export function RunnerToolbar({
               height: 36,
               fontSize: '13px',
               fontWeight: 600,
-              bgcolor: '#1e293b',
-              color: '#f8fafc',
-              border: '1px solid #334155',
+              bgcolor: activeTheme.uiColors.card,
+              color: activeTheme.uiColors.text,
+              border: `1px solid ${activeTheme.uiColors.border}`,
               borderRadius: '8px',
               '& .MuiSelect-select': {
                 py: 0.5,
@@ -209,7 +211,7 @@ export function RunnerToolbar({
                 gap: 1,
               },
               '& .MuiSvgIcon-root': {
-                color: '#94a3b8',
+                color: activeTheme.uiColors.textMuted,
               },
             }}
           >
@@ -227,7 +229,7 @@ export function RunnerToolbar({
         </FormControl>
 
         {/* Template Selector */}
-        <FormControl size="small" sx={{ minWidth: 220 }}>
+        <FormControl size="small" sx={{ minWidth: 210 }}>
           <Select
             value={currentTemplateId}
             onChange={(e) => {
@@ -238,9 +240,9 @@ export function RunnerToolbar({
             sx={{
               height: 36,
               fontSize: '13px',
-              bgcolor: '#1e293b',
-              color: '#cbd5e1',
-              border: '1px solid #334155',
+              bgcolor: activeTheme.uiColors.card,
+              color: activeTheme.uiColors.text,
+              border: `1px solid ${activeTheme.uiColors.border}`,
               borderRadius: '8px',
               '& .MuiSelect-select': {
                 py: 0.5,
@@ -249,18 +251,70 @@ export function RunnerToolbar({
                 gap: 1,
               },
               '& .MuiSvgIcon-root': {
-                color: '#94a3b8',
+                color: activeTheme.uiColors.textMuted,
               },
             }}
           >
             {TEMPLATES.map((tmpl) => (
               <MenuItem key={tmpl.id} value={tmpl.id} sx={{ fontSize: '13px', py: 0.8 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                  <Typography variant="caption" sx={{ fontWeight: 600, color: '#f8fafc' }}>
+                  <Typography
+                    variant="caption"
+                    sx={{ fontWeight: 600, color: activeTheme.uiColors.text }}
+                  >
                     {tmpl.title}
                   </Typography>
-                  <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '11px' }}>
+                  <Typography
+                    variant="caption"
+                    sx={{ color: activeTheme.uiColors.textMuted, fontSize: '11px' }}
+                  >
                     {tmpl.category} • {tmpl.engine}
+                  </Typography>
+                </Box>
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        {/* Theme Selector */}
+        <FormControl size="small" sx={{ minWidth: 175 }}>
+          <Select
+            value={currentThemeId}
+            onChange={(e) => onThemeChange(e.target.value as string)}
+            displayEmpty
+            sx={{
+              height: 36,
+              fontSize: '13px',
+              bgcolor: activeTheme.uiColors.card,
+              color: activeTheme.uiColors.text,
+              border: `1px solid ${activeTheme.uiColors.border}`,
+              borderRadius: '8px',
+              '& .MuiSelect-select': {
+                py: 0.5,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+              },
+              '& .MuiSvgIcon-root': {
+                color: activeTheme.uiColors.textMuted,
+              },
+            }}
+          >
+            {IDE_THEMES.map((th) => (
+              <MenuItem key={th.id} value={th.id} sx={{ fontSize: '13px', py: 0.8 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box
+                    sx={{
+                      width: 14,
+                      height: 14,
+                      borderRadius: '50%',
+                      bgcolor: th.previewBg,
+                      border: `2px solid ${th.previewAccent}`,
+                      flexShrink: 0,
+                    }}
+                  />
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    {th.name}
                   </Typography>
                 </Box>
               </MenuItem>
@@ -334,7 +388,10 @@ export function RunnerToolbar({
           <IconButton
             size="small"
             onClick={onReset}
-            sx={{ color: '#94a3b8', '&:hover': { color: '#f8fafc' } }}
+            sx={{
+              color: activeTheme.uiColors.textMuted,
+              '&:hover': { color: activeTheme.uiColors.text },
+            }}
           >
             <RestartAltRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
@@ -345,7 +402,10 @@ export function RunnerToolbar({
           <IconButton
             size="small"
             onClick={onCopyCode}
-            sx={{ color: '#94a3b8', '&:hover': { color: '#f8fafc' } }}
+            sx={{
+              color: activeTheme.uiColors.textMuted,
+              '&:hover': { color: activeTheme.uiColors.text },
+            }}
           >
             <ContentCopyRoundedIcon sx={{ fontSize: 17 }} />
           </IconButton>
@@ -356,7 +416,10 @@ export function RunnerToolbar({
           <IconButton
             size="small"
             onClick={onDownload}
-            sx={{ color: '#94a3b8', '&:hover': { color: '#f8fafc' } }}
+            sx={{
+              color: activeTheme.uiColors.textMuted,
+              '&:hover': { color: activeTheme.uiColors.text },
+            }}
           >
             <DownloadRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
@@ -367,7 +430,10 @@ export function RunnerToolbar({
           <IconButton
             size="small"
             onClick={(e) => setSettingsAnchor(e.currentTarget)}
-            sx={{ color: '#94a3b8', '&:hover': { color: '#f8fafc' } }}
+            sx={{
+              color: activeTheme.uiColors.textMuted,
+              '&:hover': { color: activeTheme.uiColors.text },
+            }}
           >
             <SettingsRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
@@ -379,11 +445,11 @@ export function RunnerToolbar({
           onClose={() => setSettingsAnchor(null)}
           sx={{
             '& .MuiPaper-root': {
-              bgcolor: '#1e293b',
-              color: '#f8fafc',
-              border: '1px solid #334155',
+              bgcolor: activeTheme.uiColors.card,
+              color: activeTheme.uiColors.text,
+              border: `1px solid ${activeTheme.uiColors.border}`,
               borderRadius: '8px',
-              minWidth: 180,
+              minWidth: 200,
             },
           }}
         >
@@ -394,14 +460,9 @@ export function RunnerToolbar({
             <span>미니맵 표시</span>
             {minimap && <CheckRoundedIcon sx={{ fontSize: 16, color: '#38bdf8' }} />}
           </MenuItem>
-          <MenuItem
-            onClick={onThemeToggle}
-            sx={{ fontSize: '13px', display: 'flex', justifyContent: 'space-between' }}
-          >
-            <span>{theme === 'vs-dark' ? '라이트 테마로 전환' : '다크 테마로 전환'}</span>
-          </MenuItem>
-          <Box sx={{ px: 2, py: 1, borderTop: '1px solid #334155' }}>
-            <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+
+          <Box sx={{ px: 2, py: 1, borderTop: `1px solid ${activeTheme.uiColors.border}` }}>
+            <Typography variant="caption" sx={{ color: activeTheme.uiColors.textMuted }}>
               폰트 크기: {fontSize}px
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>

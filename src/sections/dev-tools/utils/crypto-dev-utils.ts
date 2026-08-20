@@ -118,7 +118,7 @@ export function jsonToTypeScript(jsonStr: string, rootName: string = 'RootObject
 
     const generateInterface = (obj: Record<string, unknown>, name: string): string => {
       const fields = Object.entries(obj).map(([key, val]) => {
-        let fieldType = getType(val);
+        const fieldType = getType(val);
         if (typeof val === 'object' && val !== null && !Array.isArray(val)) {
           const nestedName = `${key.charAt(0).toUpperCase() + key.slice(1)}Type`;
           return `  ${key}: ${nestedName};`;

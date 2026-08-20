@@ -1,5 +1,7 @@
 'use client';
 
+import type { PlotOutput, SystemDiagnosticInfo } from '../types';
+
 import React, { useState } from 'react';
 
 import Box from '@mui/material/Box';
@@ -10,21 +12,21 @@ import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
-import CircularProgress from '@mui/material/CircularProgress';
-import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import DevicesRoundedIcon from '@mui/icons-material/DevicesRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
-import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import LanguageRoundedIcon from '@mui/icons-material/LanguageRounded';
+import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded';
+import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import InsertChartOutlinedRoundedIcon from '@mui/icons-material/InsertChartOutlinedRounded';
 
-import type { PlotOutput, SystemDiagnosticInfo } from '../types';
+import { getThemeById } from '../core/editor-themes';
 
 // ----------------------------------------------------------------------
 
 export interface PreviewPanelProps {
+  themeId?: string;
   previewUrl: string | null;
   htmlContent?: string;
   isServerRunning: boolean;
@@ -35,6 +37,7 @@ export interface PreviewPanelProps {
 }
 
 export function PreviewPanel({
+  themeId = 'vs-dark',
   previewUrl,
   htmlContent,
   isServerRunning,
@@ -46,6 +49,8 @@ export function PreviewPanel({
   const [activeTab, setActiveTab] = useState<'preview' | 'plots' | 'info'>('preview');
   const [iframeKey, setIframeKey] = useState(0);
   const [viewMode, setViewMode] = useState<'responsive' | 'mobile' | 'tablet'>('responsive');
+
+  const activeTheme = getThemeById(themeId);
 
   const handleRefresh = () => {
     setIframeKey((prev) => prev + 1);
@@ -73,8 +78,8 @@ export function PreviewPanel({
         flexDirection: 'column',
         height: '100%',
         width: '100%',
-        bgcolor: '#090d16',
-        borderLeft: '1px solid #1e293b',
+        bgcolor: activeTheme.uiColors.bg,
+        borderLeft: `1px solid ${activeTheme.uiColors.border}`,
         overflow: 'hidden',
       }}
     >
@@ -86,8 +91,8 @@ export function PreviewPanel({
           justifyContent: 'space-between',
           px: 1.5,
           py: 0.5,
-          bgcolor: '#0f172a',
-          borderBottom: '1px solid #1e293b',
+          bgcolor: activeTheme.uiColors.surface,
+          borderBottom: `1px solid ${activeTheme.uiColors.border}`,
           minHeight: 40,
         }}
       >
@@ -102,13 +107,13 @@ export function PreviewPanel({
               px: 1.2,
               fontSize: '12px',
               fontWeight: 600,
-              color: '#94a3b8',
+              color: activeTheme.uiColors.textMuted,
               '&.Mui-selected': {
-                color: '#38bdf8',
+                color: activeTheme.previewAccent,
               },
             },
             '& .MuiTabs-indicator': {
-              backgroundColor: '#38bdf8',
+              backgroundColor: activeTheme.previewAccent,
             },
           }}
         >
@@ -142,19 +147,36 @@ export function PreviewPanel({
                     prev === 'responsive' ? 'tablet' : prev === 'tablet' ? 'mobile' : 'responsive'
                   )
                 }
-                sx={{ color: '#94a3b8' }}
+                sx={{
+                  color: activeTheme.uiColors.textMuted,
+                  '&:hover': { color: activeTheme.uiColors.text },
+                }}
               >
                 <DevicesRoundedIcon sx={{ fontSize: 16 }} />
               </IconButton>
             </Tooltip>
             <Tooltip title="미리보기 새로고침">
-              <IconButton size="small" onClick={handleRefresh} sx={{ color: '#94a3b8' }}>
+              <IconButton
+                size="small"
+                onClick={handleRefresh}
+                sx={{
+                  color: activeTheme.uiColors.textMuted,
+                  '&:hover': { color: activeTheme.uiColors.text },
+                }}
+              >
                 <RefreshRoundedIcon sx={{ fontSize: 16 }} />
               </IconButton>
             </Tooltip>
             {previewUrl && (
               <Tooltip title="새 탭에서 열기">
-                <IconButton size="small" onClick={handleOpenNewTab} sx={{ color: '#94a3b8' }}>
+                <IconButton
+                  size="small"
+                  onClick={handleOpenNewTab}
+                  sx={{
+                    color: activeTheme.uiColors.textMuted,
+                    '&:hover': { color: activeTheme.uiColors.text },
+                  }}
+                >
                   <OpenInNewRoundedIcon sx={{ fontSize: 16 }} />
                 </IconButton>
               </Tooltip>
@@ -181,8 +203,8 @@ export function PreviewPanel({
               alignItems: 'center',
               px: 1.5,
               py: 0.6,
-              bgcolor: '#131d31',
-              borderBottom: '1px solid #1e293b',
+              bgcolor: activeTheme.uiColors.surface,
+              borderBottom: `1px solid ${activeTheme.uiColors.border}`,
               gap: 1,
             }}
           >
@@ -191,35 +213,38 @@ export function PreviewPanel({
                 width: 8,
                 height: 8,
                 borderRadius: '50%',
-                bgcolor: isServerRunning || htmlContent ? '#10b981' : '#64748b',
+                bgcolor: isServerRunning || htmlContent ? '#10b981' : '#94a3b8',
                 boxShadow: isServerRunning || htmlContent ? '0 0 8px #10b981' : 'none',
               }}
             />
             <Box
               sx={{
                 flex: 1,
-                bgcolor: '#090d16',
+                bgcolor: activeTheme.uiColors.card,
                 borderRadius: '6px',
                 px: 1.5,
                 py: 0.4,
-                border: '1px solid #1e293b',
+                border: `1px solid ${activeTheme.uiColors.border}`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
               }}
             >
-              <Typography variant="caption" sx={{ color: '#94a3b8', fontFamily: 'monospace' }}>
+              <Typography
+                variant="caption"
+                sx={{ color: activeTheme.uiColors.textMuted, fontFamily: 'monospace' }}
+              >
                 {previewUrl ||
                   (htmlContent
-                    ? 'sandbox://local-html-preview'
+                    ? 'sandbox://local-live-preview'
                     : 'http://localhost:3000 (대기 중)')}
               </Typography>
               {activePort && (
                 <Typography
                   variant="caption"
                   sx={{
-                    bgcolor: 'rgba(56, 189, 248, 0.15)',
-                    color: '#38bdf8',
+                    bgcolor: `${activeTheme.previewAccent}25`,
+                    color: activeTheme.previewAccent,
                     px: 0.8,
                     py: 0.1,
                     borderRadius: '4px',
@@ -240,7 +265,7 @@ export function PreviewPanel({
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
-              bgcolor: '#090d16',
+              bgcolor: activeTheme.uiColors.bg,
               p: viewMode !== 'responsive' ? 1.5 : 0,
               overflow: 'hidden',
             }}
@@ -252,7 +277,12 @@ export function PreviewPanel({
                 bgcolor: '#ffffff',
                 borderRadius: viewMode !== 'responsive' ? '8px' : 0,
                 overflow: 'hidden',
-                boxShadow: viewMode !== 'responsive' ? '0 10px 30px rgba(0,0,0,0.6)' : 'none',
+                boxShadow:
+                  viewMode !== 'responsive'
+                    ? activeTheme.isDark
+                      ? '0 10px 30px rgba(0,0,0,0.6)'
+                      : '0 10px 30px rgba(0,0,0,0.15)'
+                    : 'none',
                 position: 'relative',
                 transition: 'width 0.25s ease',
               }}
@@ -288,20 +318,26 @@ export function PreviewPanel({
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    bgcolor: '#0f172a',
-                    color: '#94a3b8',
+                    bgcolor: activeTheme.uiColors.card,
+                    color: activeTheme.uiColors.textMuted,
                     p: 3,
                     textAlign: 'center',
                     gap: 1.5,
                   }}
                 >
-                  <LanguageRoundedIcon sx={{ fontSize: 44, color: '#334155' }} />
-                  <Typography variant="subtitle2" sx={{ color: '#f8fafc', fontWeight: 600 }}>
-                    실시간 웹 서버 대기 중
+                  <LanguageRoundedIcon sx={{ fontSize: 44, color: activeTheme.uiColors.border }} />
+                  <Typography
+                    variant="subtitle2"
+                    sx={{ color: activeTheme.uiColors.text, fontWeight: 600 }}
+                  >
+                    실시간 웹 미리보기 대기 중
                   </Typography>
-                  <Typography variant="caption" sx={{ maxWidth: 320 }}>
-                    Node.js Express 서버 또는 HTML 템플릿을 선택하고 <b>[▶ 실행]</b> 버튼을 누르면
-                    이곳에 실시간 웹 페이지가 렌더링됩니다.
+                  <Typography
+                    variant="caption"
+                    sx={{ maxWidth: 320, color: activeTheme.uiColors.textMuted }}
+                  >
+                    Node.js Express 서버, React 컴포넌트, 또는 HTML 템플릿을 선택하고{' '}
+                    <b>[▶ 실행]</b> 버튼을 누르면 이곳에 실시간 웹 페이지가 렌더링됩니다.
                   </Typography>
                 </Box>
               )}
@@ -320,10 +356,14 @@ export function PreviewPanel({
             display: 'flex',
             flexDirection: 'column',
             gap: 2,
+            bgcolor: activeTheme.uiColors.bg,
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 600 }}>
+            <Typography
+              variant="caption"
+              sx={{ color: activeTheme.uiColors.textMuted, fontWeight: 600 }}
+            >
               생성된 차트 ({plots.length}개)
             </Typography>
             {plots.length > 0 && (
@@ -333,7 +373,13 @@ export function PreviewPanel({
                 color="inherit"
                 startIcon={<DeleteOutlineRoundedIcon sx={{ fontSize: 14 }} />}
                 onClick={onClearPlots}
-                sx={{ fontSize: '11px', py: 0.2, px: 1, borderColor: '#334155', color: '#94a3b8' }}
+                sx={{
+                  fontSize: '11px',
+                  py: 0.2,
+                  px: 1,
+                  borderColor: activeTheme.uiColors.border,
+                  color: activeTheme.uiColors.textMuted,
+                }}
               >
                 모두 지우기
               </Button>
@@ -349,15 +395,18 @@ export function PreviewPanel({
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                border: '1px dashed #1e293b',
+                border: `1px dashed ${activeTheme.uiColors.border}`,
                 borderRadius: '12px',
                 p: 3,
                 textAlign: 'center',
                 gap: 1,
+                bgcolor: activeTheme.uiColors.card,
               }}
             >
-              <InsertChartOutlinedRoundedIcon sx={{ fontSize: 36, color: '#334155' }} />
-              <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+              <InsertChartOutlinedRoundedIcon
+                sx={{ fontSize: 36, color: activeTheme.uiColors.textMuted }}
+              />
+              <Typography variant="caption" sx={{ color: activeTheme.uiColors.textMuted }}>
                 아직 생성된 차트가 없습니다.
                 <br />
                 Python Matplotlib 템플릿을 실행하면 차트가 자동으로 추출됩니다.
@@ -368,8 +417,8 @@ export function PreviewPanel({
               <Box
                 key={plot.id}
                 sx={{
-                  bgcolor: '#0f172a',
-                  border: '1px solid #1e293b',
+                  bgcolor: activeTheme.uiColors.card,
+                  border: `1px solid ${activeTheme.uiColors.border}`,
                   borderRadius: '10px',
                   p: 1.5,
                   display: 'flex',
@@ -380,14 +429,17 @@ export function PreviewPanel({
                 <Box
                   sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                 >
-                  <Typography variant="caption" sx={{ fontWeight: 600, color: '#f8fafc' }}>
+                  <Typography
+                    variant="caption"
+                    sx={{ fontWeight: 600, color: activeTheme.uiColors.text }}
+                  >
                     {plot.title || 'Matplotlib Figure'}
                   </Typography>
                   <Tooltip title="PNG 다운로드">
                     <IconButton
                       size="small"
                       onClick={() => handleDownloadPlot(plot)}
-                      sx={{ color: '#38bdf8' }}
+                      sx={{ color: activeTheme.previewAccent }}
                     >
                       <DownloadRoundedIcon sx={{ fontSize: 16 }} />
                     </IconButton>
@@ -402,7 +454,7 @@ export function PreviewPanel({
                     height: 'auto',
                     borderRadius: '6px',
                     bgcolor: '#ffffff',
-                    border: '1px solid #1e293b',
+                    border: `1px solid ${activeTheme.uiColors.border}`,
                   }}
                 />
               </Box>
@@ -421,9 +473,13 @@ export function PreviewPanel({
             display: 'flex',
             flexDirection: 'column',
             gap: 2,
+            bgcolor: activeTheme.uiColors.bg,
           }}
         >
-          <Typography variant="subtitle2" sx={{ color: '#f8fafc', fontWeight: 600 }}>
+          <Typography
+            variant="subtitle2"
+            sx={{ color: activeTheme.uiColors.text, fontWeight: 600 }}
+          >
             브라우저 런타임 진단
           </Typography>
 
@@ -431,22 +487,22 @@ export function PreviewPanel({
             severity={systemInfo.isCrossOriginIsolated ? 'success' : 'warning'}
             sx={{
               bgcolor: systemInfo.isCrossOriginIsolated
-                ? 'rgba(16, 185, 129, 0.1)'
-                : 'rgba(245, 158, 11, 0.1)',
-              color: systemInfo.isCrossOriginIsolated ? '#34d399' : '#fbbf24',
+                ? 'rgba(16, 185, 129, 0.12)'
+                : 'rgba(245, 158, 11, 0.12)',
+              color: systemInfo.isCrossOriginIsolated ? '#10b981' : '#f59e0b',
               border: `1px solid ${systemInfo.isCrossOriginIsolated ? '#059669' : '#d97706'}`,
               fontSize: '12px',
             }}
           >
             {systemInfo.isCrossOriginIsolated
               ? 'Cross-Origin Isolation 활성화: WebContainer 및 고속 SharedArrayBuffer 사용 가능'
-              : 'Cross-Origin Isolation 비활성화: Pyodide 및 HTML Sandbox 실행 가능, WebContainer는 헤더 설정 필요'}
+              : 'Cross-Origin Isolation 비활성화: Pyodide, SQL 및 HTML Sandbox 실행 가능, WebContainer는 헤더 설정 필요'}
           </Alert>
 
           <Box
             sx={{
-              bgcolor: '#0f172a',
-              border: '1px solid #1e293b',
+              bgcolor: activeTheme.uiColors.card,
+              border: `1px solid ${activeTheme.uiColors.border}`,
               borderRadius: '10px',
               p: 2,
               display: 'flex',
@@ -458,21 +514,25 @@ export function PreviewPanel({
               label="WebContainer (StackBlitz Node)"
               status={systemInfo.webContainerReady ? 'Ready' : 'Standby / Isolated Only'}
               success={systemInfo.webContainerReady}
+              activeTheme={activeTheme}
             />
             <DiagnosticRow
               label="Pyodide (WebAssembly Python 3.12)"
               status={systemInfo.pyodideReady ? 'Ready' : 'Loaded on Demand'}
               success={systemInfo.pyodideReady}
+              activeTheme={activeTheme}
             />
             <DiagnosticRow
               label="SharedArrayBuffer 지원"
               status={systemInfo.hasSharedArrayBuffer ? 'Available' : 'Unavailable'}
               success={systemInfo.hasSharedArrayBuffer}
+              activeTheme={activeTheme}
             />
             <DiagnosticRow
               label="Cross-Origin Isolated"
               status={systemInfo.isCrossOriginIsolated ? 'True' : 'False'}
               success={systemInfo.isCrossOriginIsolated}
+              activeTheme={activeTheme}
             />
           </Box>
         </Box>
@@ -485,14 +545,16 @@ function DiagnosticRow({
   label,
   status,
   success,
+  activeTheme,
 }: {
   label: string;
   status: string;
   success: boolean;
+  activeTheme: any;
 }) {
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-      <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+      <Typography variant="caption" sx={{ color: activeTheme.uiColors.textMuted }}>
         {label}
       </Typography>
       <Box
@@ -502,8 +564,8 @@ function DiagnosticRow({
           borderRadius: '6px',
           fontSize: '11px',
           fontWeight: 600,
-          bgcolor: success ? 'rgba(16, 185, 129, 0.15)' : 'rgba(148, 163, 184, 0.15)',
-          color: success ? '#34d399' : '#94a3b8',
+          bgcolor: success ? 'rgba(16, 185, 129, 0.15)' : `${activeTheme.uiColors.textMuted}20`,
+          color: success ? '#10b981' : activeTheme.uiColors.textMuted,
         }}
       >
         {status}

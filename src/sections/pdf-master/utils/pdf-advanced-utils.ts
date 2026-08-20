@@ -1,4 +1,4 @@
-import { degrees, PDFDocument, rgb } from 'pdf-lib';
+import { rgb, degrees, PDFDocument } from 'pdf-lib';
 
 export interface PdfPageInfo {
   pageIndex: number;

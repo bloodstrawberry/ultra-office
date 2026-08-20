@@ -10,17 +10,17 @@ import Tabs from '@mui/material/Tabs';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import QrCode2RoundedIcon from '@mui/icons-material/QrCode2Rounded';
-import ViewWeekRoundedIcon from '@mui/icons-material/ViewWeekRounded';
-import PrintRoundedIcon from '@mui/icons-material/PrintRounded';
-import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import WifiRoundedIcon from '@mui/icons-material/WifiRounded';
 import LinkRoundedIcon from '@mui/icons-material/LinkRounded';
+import PrintRoundedIcon from '@mui/icons-material/PrintRounded';
+import QrCode2RoundedIcon from '@mui/icons-material/QrCode2Rounded';
+import ViewWeekRoundedIcon from '@mui/icons-material/ViewWeekRounded';
+import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import { renderCode128ToCanvas, renderQrCodeToCanvas } from '../utils/barcode-renderer';
+import { renderQrCodeToCanvas, renderCode128ToCanvas } from '../utils/barcode-renderer';
 
 export function BarcodeStudioView() {
   const [currentTab, setCurrentTab] = useState<'qr' | 'barcode' | 'label'>('qr');
