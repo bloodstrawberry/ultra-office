@@ -323,6 +323,27 @@ export const TOOLS_DATA: ToolItem[] = [
     ],
   },
   {
+    id: 'code-runner',
+    title: '코드 실행기 (OmniRunner)',
+    subtitle: '브라우저 내 다국어 컴파일 & 웹 서버 실행',
+    description:
+      '서버 없이 브라우저 내에서 Node.js, Python (NumPy/Pandas/Matplotlib), C/C++, Rust, HTML/Express 웹 서버를 즉시 실행하고 실시간 미리보기를 제공합니다.',
+    category: 'dev',
+    path: paths.codeRunner,
+    tag: '신규 기능',
+    tagColor: 'success',
+    isFeatured: true,
+    featuredRank: 6,
+    accentColor: '#38BDF8', // Sky
+    iconKey: 'codeRunner',
+    features: [
+      'WebContainer (Node/Express) 엔진',
+      'Pyodide Python 3.12 & Wasm 데이터 분석',
+      'Matplotlib 실시간 차트 렌더링',
+      'Monaco Editor & Xterm.js 통합 콘솔',
+    ],
+  },
+  {
     id: 'barcode',
     title: 'QR & 바코드 생성기',
     subtitle: '비즈니스 커스텀 QR & 바코드 생성/스캔',

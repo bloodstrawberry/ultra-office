@@ -25,6 +25,7 @@ import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
 import QrCodeScannerRoundedIcon from '@mui/icons-material/QrCodeScannerRounded';
 import DocumentScannerRoundedIcon from '@mui/icons-material/DocumentScannerRounded';
 import SwapHorizontalCircleRoundedIcon from '@mui/icons-material/SwapHorizontalCircleRounded';
+import CodeRoundedIcon from '@mui/icons-material/CodeRounded';
 
 // ----------------------------------------------------------------------
 
@@ -56,6 +57,8 @@ export function renderHomeIcon(iconKey: string, props?: SvgIconProps) {
       return <CalendarMonthRoundedIcon {...props} />;
     case 'devTools':
       return <TerminalRoundedIcon {...props} />;
+    case 'codeRunner':
+      return <CodeRoundedIcon {...props} />;
     case 'barcode':
       return <QrCodeScannerRoundedIcon {...props} />;
     case 'search':

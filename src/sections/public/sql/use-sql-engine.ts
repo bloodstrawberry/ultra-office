@@ -34,10 +34,10 @@ export function useSqlEngine() {
   useEffect(() => {
     let isMounted = true;
     if (typeof window !== 'undefined') {
-      import('alasql')
+      import('alasql/dist/alasql.min.js' as any)
         .then((mod) => {
           if (isMounted) {
-            alasqlRef.current = (mod.default || mod) as AlasqlFn;
+            alasqlRef.current = ((window as any).alasql || mod.default || mod) as AlasqlFn;
             setIsDbReady(true);
           }
         })

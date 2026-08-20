@@ -8,6 +8,17 @@ const nextConfig: any = {
   output: isStaticExport ? 'export' : undefined,
   basePath: process.env.NEXT_PUBLIC_BASE_PATH || '',
   assetPrefix: process.env.NEXT_PUBLIC_BASE_PATH || '',
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          { key: 'Cross-Origin-Embedder-Policy', value: 'require-corp' },
+          { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
+        ],
+      },
+    ];
+  },
   images: {
     unoptimized: true,
   },
@@ -25,6 +36,13 @@ const nextConfig: any = {
     optimizePackageImports: ['@mui/material', '@mui/icons-material', 'minimal-shared'],
   },
   webpack(config: any, { isServer }: { isServer: boolean }) {
+    config.resolve = config.resolve || {};
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      alasql: 'alasql/dist/alasql.min.js',
+      'react-native-fs': false,
+    };
+
     // SVG 처리
     config.module.rules.push({
       test: /\.svg$/,
@@ -48,7 +66,7 @@ const nextConfig: any = {
           },
         },
       };
-      
+
       // 메모리 최적화: 빌드 시 메모리 사용량 감소를 위해 source-map 비활성화 및 최적화
       config.devtool = false;
     }
@@ -56,6 +74,10 @@ const nextConfig: any = {
     return config;
   },
   turbopack: {
+    resolveAlias: {
+      alasql: 'alasql/dist/alasql.min.js',
+      'react-native-fs': './src/utils/empty-module.js',
+    },
     rules: {
       '*.svg': {
         loaders: ['@svgr/webpack'],

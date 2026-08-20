@@ -26,6 +26,7 @@ export const paths = {
   diagram: '/diagram',
   schedule: '/schedule',
   devTools: '/dev-tools',
+  codeRunner: '/code-runner',
   barcode: '/barcode',
   agent: '/agent',
   spreadsheet: '/spreadsheet',

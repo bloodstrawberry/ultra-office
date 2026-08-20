@@ -19,6 +19,7 @@ import CompareArrowsRoundedIcon from '@mui/icons-material/CompareArrowsRounded';
 import QrCodeScannerRoundedIcon from '@mui/icons-material/QrCodeScannerRounded';
 import DocumentScannerRoundedIcon from '@mui/icons-material/DocumentScannerRounded';
 import SwapHorizontalCircleRoundedIcon from '@mui/icons-material/SwapHorizontalCircleRounded';
+import CodeRoundedIcon from '@mui/icons-material/CodeRounded';
 
 import { paths } from 'src/routes/paths';
 
@@ -42,6 +43,7 @@ const ICONS = {
   diagram: <AccountTreeRoundedIcon fontSize="small" />,
   schedule: <CalendarMonthRoundedIcon fontSize="small" />,
   devTools: <TerminalRoundedIcon fontSize="small" />,
+  codeRunner: <CodeRoundedIcon fontSize="small" />,
   barcode: <QrCodeScannerRoundedIcon fontSize="small" />,
 };
 
@@ -150,6 +152,7 @@ export const navData: NavSectionProps['data'] = [
   {
     subheader: 'Productivity & Utilities',
     items: [
+      { title: '코드 실행기 (OmniRunner)', path: paths.codeRunner, icon: ICONS.codeRunner },
       { title: '일정 & 간트차트', path: paths.schedule, icon: ICONS.schedule },
       { title: '개발자 툴킷', path: paths.devTools, icon: ICONS.devTools },
       { title: 'QR & 바코드', path: paths.barcode, icon: ICONS.barcode },
