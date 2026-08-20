@@ -11,6 +11,11 @@ import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 import { useTheme } from '@mui/material/styles';
 
+import { useState, useEffect } from 'react';
+import Button from '@mui/material/Button';
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+
+import { CommandPalette } from 'src/components/command-palette';
 import { NavMobile } from './nav-mobile';
 import { NavVertical } from './nav-vertical';
 import { MenuButton } from '../components/menu-button';
@@ -45,6 +50,18 @@ export function DashboardLayout({
   const navVars = dashboardNavColorVars(theme, 'integrate', 'vertical');
 
   const { value: open, onFalse: onClose, onTrue: onOpen } = useBoolean();
+  const [commandOpen, setCommandOpen] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+        e.preventDefault();
+        setCommandOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const navData = slotProps?.nav?.data ?? dashboardNavData;
 
@@ -89,7 +106,39 @@ export function DashboardLayout({
       ),
       rightArea: (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0, sm: 0.75 } }}>
-          {/** @slot Settings button */}
+          <Button
+            size="small"
+            variant="outlined"
+            color="inherit"
+            onClick={() => setCommandOpen(true)}
+            startIcon={<SearchRoundedIcon />}
+            sx={{
+              display: { xs: 'none', sm: 'inline-flex' },
+              color: 'text.secondary',
+              borderColor: 'divider',
+              borderRadius: 2,
+              px: 1.5,
+              py: 0.5,
+              fontSize: '0.8rem',
+            }}
+          >
+            도구 빠른 검색...
+            <Box
+              component="span"
+              sx={{
+                ml: 1,
+                fontSize: '0.7rem',
+                bgcolor: 'background.neutral',
+                px: 0.6,
+                py: 0.2,
+                borderRadius: 0.5,
+                border: '1px solid',
+                borderColor: 'divider',
+              }}
+            >
+              Ctrl K
+            </Box>
+          </Button>
         </Box>
       ),
     };
@@ -158,6 +207,7 @@ export function DashboardLayout({
       ]}
     >
       {renderMain()}
+      <CommandPalette open={commandOpen} onClose={() => setCommandOpen(false)} />
     </LayoutSection>
   );
 }

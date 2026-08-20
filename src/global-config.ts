@@ -1,5 +1,3 @@
-import { paths } from 'src/routes/paths';
-
 import packageJson from '../package.json';
 
 // ----------------------------------------------------------------------
@@ -32,6 +30,6 @@ export const CONFIG: ConfigValue = {
   auth: {
     method: 'jwt',
     skip: true,
-    redirectPath: paths.home,
+    redirectPath: '/',
   },
 };

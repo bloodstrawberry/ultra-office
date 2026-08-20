@@ -225,9 +225,9 @@ export function generateVCardString(card: BusinessCardInfo): string {
  * 인식된 텍스트 표 데이터를 Excel Blob으로 변환
  */
 export function exportTableToExcelBlob(lines: string[]): Blob {
-  const data = lines.map((line) => 
+  const data = lines.map((line) =>
     // 탭 또는 2개 이상의 공백으로 분리
-     line.split(/\t|\s{2,}/).map((col) => col.trim())
+    line.split(/\t|\s{2,}/).map((col) => col.trim())
   );
 
   const ws = utils.aoa_to_sheet(data);

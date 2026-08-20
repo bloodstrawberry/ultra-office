@@ -68,7 +68,7 @@ export async function getMediaPipeFaceDetector(): Promise<any> {
   initPromise = (async () => {
     try {
       // Dynamic import to prevent SSR loading issues
-       
+
       const vision = (await import('@mediapipe/tasks-vision')) as any;
       const { FilesetResolver, FaceDetector } = vision;
 
@@ -93,7 +93,6 @@ export async function getMediaPipeFaceDetector(): Promise<any> {
       isInitializing = false;
       console.warn('MediaPipe GPU FaceDetector initialization failed, retrying with CPU...', err);
       try {
-         
         const vision = (await import('@mediapipe/tasks-vision')) as any;
         const { FilesetResolver, FaceDetector } = vision;
         const wasmFileset = await FilesetResolver.forVisionTasks(

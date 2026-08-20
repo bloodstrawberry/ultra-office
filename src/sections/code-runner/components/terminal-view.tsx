@@ -1,6 +1,5 @@
 'use client';
 
-
 import 'xterm/css/xterm.css';
 
 import React, { useRef, useEffect, forwardRef, useImperativeHandle } from 'react';

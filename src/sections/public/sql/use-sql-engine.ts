@@ -34,7 +34,7 @@ export function useSqlEngine() {
   useEffect(() => {
     let isMounted = true;
     if (typeof window !== 'undefined') {
-      import('alasql/dist/alasql.min.js' as any)
+      import('alasql' as any)
         .then((mod) => {
           if (isMounted) {
             alasqlRef.current = ((window as any).alasql || mod.default || mod) as AlasqlFn;

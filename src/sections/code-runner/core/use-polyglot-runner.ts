@@ -107,7 +107,7 @@ export function usePolyglotRunner(): PolyglotRunnerHookReturn {
         if (typeof window !== 'undefined' && (window as any).alasql) {
           alasql = (window as any).alasql;
         } else {
-          const mod = (await import('alasql/dist/alasql.min.js' as any)) as any;
+          const mod = (await import('alasql' as any)) as any;
           alasql =
             mod.default || mod || (typeof window !== 'undefined' ? (window as any).alasql : null);
         }

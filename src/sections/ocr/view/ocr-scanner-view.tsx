@@ -1,8 +1,6 @@
 'use client';
 
-import type {
-  ReceiptInfo,
-  BusinessCardInfo} from '../utils/ocr-parser-utils';
+import type { ReceiptInfo, BusinessCardInfo } from '../utils/ocr-parser-utils';
 
 import { toast } from 'sonner';
 import { utils, write } from 'xlsx';

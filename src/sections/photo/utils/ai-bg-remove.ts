@@ -110,7 +110,7 @@ export async function removeBackground(
     notify('init', 'AI 모델 엔진 초기화 중...', 0.05);
 
     // Dynamic import to prevent SSR bundling issues
-     
+
     const { pipeline, env } = (await import('@huggingface/transformers')) as any;
 
     // Configure env to download from HuggingFace Hub CDN

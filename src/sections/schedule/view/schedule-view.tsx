@@ -1,6 +1,6 @@
 'use client';
 
-import type { CalendarTask} from '../utils/ics-utils';
+import type { CalendarTask } from '../utils/ics-utils';
 
 import dayjs from 'dayjs';
 import { toast } from 'sonner';

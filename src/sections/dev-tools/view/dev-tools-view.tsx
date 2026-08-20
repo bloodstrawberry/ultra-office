@@ -1,7 +1,6 @@
 'use client';
 
-import type {
-  JwtDecoded} from '../utils/crypto-dev-utils';
+import type { JwtDecoded } from '../utils/crypto-dev-utils';
 
 import { toast } from 'sonner';
 import React, { useState } from 'react';

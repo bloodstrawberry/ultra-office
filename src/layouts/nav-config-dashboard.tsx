@@ -21,6 +21,17 @@ import CompareArrowsRoundedIcon from '@mui/icons-material/CompareArrowsRounded';
 import QrCodeScannerRoundedIcon from '@mui/icons-material/QrCodeScannerRounded';
 import DocumentScannerRoundedIcon from '@mui/icons-material/DocumentScannerRounded';
 import SwapHorizontalCircleRoundedIcon from '@mui/icons-material/SwapHorizontalCircleRounded';
+import DescriptionRoundedIcon from '@mui/icons-material/DescriptionRounded';
+import ArticleRoundedIcon from '@mui/icons-material/ArticleRounded';
+import ApprovalRoundedIcon from '@mui/icons-material/ApprovalRounded';
+import VideocamRoundedIcon from '@mui/icons-material/VideocamRounded';
+import StorageRoundedIcon from '@mui/icons-material/StorageRounded';
+import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded';
+import MemoryRoundedIcon from '@mui/icons-material/MemoryRounded';
+import SchemaRoundedIcon from '@mui/icons-material/SchemaRounded';
+import DataArrayRoundedIcon from '@mui/icons-material/DataArrayRounded';
+import Grid4x4RoundedIcon from '@mui/icons-material/Grid4x4Rounded';
+import ScienceRoundedIcon from '@mui/icons-material/ScienceRounded';
 
 import { paths } from 'src/routes/paths';
 
@@ -28,7 +39,6 @@ import { paths } from 'src/routes/paths';
 
 const ICONS = {
   folder: <FolderRoundedIcon fontSize="small" />,
-  home: <HomeRoundedIcon fontSize="small" />,
   search: <SearchRoundedIcon fontSize="small" />,
   text: <TextFieldsRoundedIcon fontSize="small" />,
   photo: <PhotoLibraryRoundedIcon fontSize="small" />,
@@ -47,6 +57,17 @@ const ICONS = {
   codeRunner: <CodeRoundedIcon fontSize="small" />,
   barcode: <QrCodeScannerRoundedIcon fontSize="small" />,
   mathGraph: <FunctionsRoundedIcon fontSize="small" />,
+  docMaster: <DescriptionRoundedIcon fontSize="small" />,
+  hwpMaster: <ArticleRoundedIcon fontSize="small" />,
+  stampStudio: <ApprovalRoundedIcon fontSize="small" />,
+  screenRecorder: <VideocamRoundedIcon fontSize="small" />,
+  gigaViewer: <StorageRoundedIcon fontSize="small" />,
+  privacySanitizer: <SecurityRoundedIcon fontSize="small" />,
+  logicLab: <MemoryRoundedIcon fontSize="small" />,
+  algoVisualizer: <SchemaRoundedIcon fontSize="small" />,
+  bitLab: <DataArrayRoundedIcon fontSize="small" />,
+  linearAlgebra: <Grid4x4RoundedIcon fontSize="small" />,
+  physicsSandbox: <ScienceRoundedIcon fontSize="small" />,
 };
 
 // ----------------------------------------------------------------------
@@ -61,10 +82,7 @@ export const navData: NavSectionProps['data'] = [
    */
   {
     subheader: 'Workspace',
-    items: [
-      { title: 'Home', path: paths.home, icon: ICONS.home },
-      { title: 'Drive', path: paths.fileManager, icon: ICONS.folder },
-    ],
+    items: [{ title: 'Drive', path: paths.fileManager, icon: ICONS.folder }],
   },
 
   /**
@@ -76,6 +94,11 @@ export const navData: NavSectionProps['data'] = [
       { title: 'AI Agent', path: paths.agent, icon: ICONS.agent },
       { title: 'AI 배경 제거', path: paths.photo.bgRemove, icon: ICONS.bgRemove },
       { title: '스마트 OCR', path: paths.ocr, icon: ICONS.ocr },
+      {
+        title: '개인정보 마스킹 · EXIF 파기',
+        path: paths.privacySanitizer,
+        icon: ICONS.privacySanitizer,
+      },
     ],
   },
 
@@ -85,6 +108,9 @@ export const navData: NavSectionProps['data'] = [
   {
     subheader: 'Document & Data',
     items: [
+      { title: '한글 문서 마스터 (HWP · HWPX)', path: paths.hwpMaster, icon: ICONS.hwpMaster },
+      { title: '문서 마스터 (Word · PPT)', path: paths.docMaster, icon: ICONS.docMaster },
+      { title: '대용량 로그 & CSV 뷰어', path: paths.gigaViewer, icon: ICONS.gigaViewer },
       { title: '수식 그래프 시각화', path: paths.mathGraph, icon: ICONS.mathGraph },
       { title: '스프레드시트', path: paths.spreadsheet, icon: ICONS.spreadsheet },
       { title: '데이터 & 코드 비교', path: paths.compare, icon: ICONS.compare },
@@ -102,11 +128,26 @@ export const navData: NavSectionProps['data'] = [
   },
 
   /**
-   * 4. PDF & 파일 변환
+   * 4. 수학 · 과학 & 컴퓨터 사이언스
+   */
+  {
+    subheader: 'Sci-Math & CS',
+    items: [
+      { title: '디지털 논리회로 랩', path: paths.logicLab, icon: ICONS.logicLab },
+      { title: '알고리즘 & 자료구조 랩', path: paths.algoVisualizer, icon: ICONS.algoVisualizer },
+      { title: '비트 & IEEE-754 랩', path: paths.bitLab, icon: ICONS.bitLab },
+      { title: '선형대수 & 공간 변환', path: paths.linearAlgebra, icon: ICONS.linearAlgebra },
+      { title: '2D 물리 & 과학 샌드박스', path: paths.physicsSandbox, icon: ICONS.physicsSandbox },
+    ],
+  },
+
+  /**
+   * 5. PDF & 파일 변환
    */
   {
     subheader: 'PDF & File',
     items: [
+      { title: '전자 도장 · 직인 스튜디오', path: paths.stampStudio, icon: ICONS.stampStudio },
       { title: 'PDF 마스터', path: paths.pdfMaster, icon: ICONS.pdfMaster },
       { title: '파일 변환기', path: paths.fileConvert, icon: ICONS.fileConvert },
     ],
@@ -118,6 +159,11 @@ export const navData: NavSectionProps['data'] = [
   {
     subheader: 'Graphic & Media',
     items: [
+      {
+        title: '화면 & 웹캠 녹화 스튜디오',
+        path: paths.screenRecorder,
+        icon: ICONS.screenRecorder,
+      },
       { title: '다이어그램 & 문서', path: paths.diagram, icon: ICONS.diagram },
       { title: '이미지 툴킷', path: paths.imageTool, icon: ICONS.imageTool },
       {

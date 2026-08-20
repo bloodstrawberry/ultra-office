@@ -1,7 +1,6 @@
 'use client';
 
-import type {
-  PdfPageInfo} from '../utils/pdf-advanced-utils';
+import type { PdfPageInfo } from '../utils/pdf-advanced-utils';
 
 import { toast } from 'sonner';
 import React, { useRef, useState, useEffect } from 'react';
