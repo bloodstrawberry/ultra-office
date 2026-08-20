@@ -66,7 +66,7 @@ export const AVAILABLE_MODELS: ModelOption[] = [
     size: '105 MB',
     vram: 'CPU RAM ~200 MB',
     description: '저사양 PC CPU에서도 매우 가볍게 동작하는 모델',
-    url: 'https://huggingface.co/HuggingFaceTB/SmolLM2-135M-Instruct-GGUF/resolve/main/smollm2-135m-instruct-q4_k_m.gguf',
+    url: 'https://huggingface.co/bartowski/SmolLM2-135M-Instruct-GGUF/resolve/main/SmolLM2-135M-Instruct-Q4_K_M.gguf',
   },
 ];
 
@@ -209,13 +209,9 @@ export async function initializeLLM(
         phase: 'downloading',
       });
 
-      // Initialize Wllama with CDN WASM paths
+      // Initialize Wllama with valid CDN WASM paths
       const CONFIG_PATHS = {
-        default: 'https://cdn.jsdelivr.net/npm/@wllama/wllama@3.5.1/esm/single-thread/wllama.wasm',
-        'single-thread/wllama.wasm':
-          'https://cdn.jsdelivr.net/npm/@wllama/wllama@3.5.1/esm/single-thread/wllama.wasm',
-        'multi-thread/wllama.wasm':
-          'https://cdn.jsdelivr.net/npm/@wllama/wllama@3.5.1/esm/multi-thread/wllama.wasm',
+        default: 'https://cdn.jsdelivr.net/npm/@wllama/wllama@3.5.1/esm/wasm/wllama.wasm',
       };
 
       const wllama = new Wllama(CONFIG_PATHS);
@@ -232,12 +228,20 @@ export async function initializeLLM(
 
       await wllama.loadModelFromUrl(model.url, {
         progressCallback: ({ loaded, total }: { loaded: number; total: number }) => {
-          const progress = total > 0 ? loaded / total : 0.5;
-          onProgress({
-            text: `모델 다운로드 중 (${Math.round((loaded / (1024 * 1024)) * 10) / 10}MB / ${Math.round((total / (1024 * 1024)) * 10) / 10}MB)...`,
-            progress: Math.min(progress * 0.9 + 0.1, 0.95),
-            phase: 'downloading',
-          });
+          const ratio = total > 0 ? loaded / total : 0.5;
+          if (ratio >= 0.999) {
+            onProgress({
+              text: '가중치 다운로드 완료! WebAssembly 엔진 초기화 중...',
+              progress: 0.96,
+              phase: 'compiling',
+            });
+          } else {
+            onProgress({
+              text: `모델 다운로드 중 (${Math.round((loaded / (1024 * 1024)) * 10) / 10}MB / ${Math.round((total / (1024 * 1024)) * 10) / 10}MB)...`,
+              progress: Math.min(ratio * 0.85 + 0.1, 0.95),
+              phase: 'downloading',
+            });
+          }
         },
       });
 
@@ -286,32 +290,23 @@ export async function streamChatResponse(
 
   if (activeEngineType === 'cpu' && wllamaInstance) {
     let fullText = '';
+    const completion = (await wllamaInstance.createChatCompletion({
+      messages: messages.map((m) => ({
+        role: m.role,
+        content: m.content,
+      })),
+      max_tokens: 1500,
+      temperature: 0.7,
+      stream: true,
+    })) as AsyncIterable<{ choices: Array<{ delta: { content?: string } }> }>;
 
-    // Convert messages to ChatML format prompt for GGUF models
-    let prompt = '';
-    for (const msg of messages) {
-      prompt += `<|im_start|>${msg.role}\n${msg.content}<|im_end|>\n`;
+    for await (const chunk of completion) {
+      const delta = chunk.choices[0]?.delta?.content || '';
+      if (delta) {
+        fullText += delta;
+        onChunk(delta, fullText);
+      }
     }
-    prompt += `<|im_start|>assistant\n`;
-
-    await wllamaInstance.createCompletion(prompt, {
-      nPredict: 1500,
-      sampling: {
-        temp: 0.7,
-        top_p: 0.9,
-      },
-      onNewToken: (_token: number, _piece: Uint8Array, currentPiece: string) => {
-        if (currentPiece) {
-          // Filter out stop tokens if returned as text
-          const cleaned = currentPiece.replace('<|im_end|>', '').replace('<|endoftext|>', '');
-          if (cleaned) {
-            fullText += cleaned;
-            onChunk(cleaned, fullText);
-          }
-        }
-      },
-    });
-
     return fullText;
   }
 
