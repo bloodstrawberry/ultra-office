@@ -68,5 +68,7 @@ export const paths = {
     logo: `/photo/logo`,
     sero: `/photo/sero`,
     garo: `/photo/garo`,
+    weathering: `/photo/weathering`,
+    memeLab: `/photo/meme-lab`,
   },
 };

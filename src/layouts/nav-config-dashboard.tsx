@@ -6,33 +6,33 @@ import CodeRoundedIcon from '@mui/icons-material/CodeRounded';
 import CasinoRoundedIcon from '@mui/icons-material/CasinoRounded';
 import FolderRoundedIcon from '@mui/icons-material/FolderRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import MemoryRoundedIcon from '@mui/icons-material/MemoryRounded';
+import SchemaRoundedIcon from '@mui/icons-material/SchemaRounded';
+import ArticleRoundedIcon from '@mui/icons-material/ArticleRounded';
+import StorageRoundedIcon from '@mui/icons-material/StorageRounded';
+import Grid4x4RoundedIcon from '@mui/icons-material/Grid4x4Rounded';
+import ScienceRoundedIcon from '@mui/icons-material/ScienceRounded';
 import TerminalRoundedIcon from '@mui/icons-material/TerminalRounded';
+import ApprovalRoundedIcon from '@mui/icons-material/ApprovalRounded';
+import VideocamRoundedIcon from '@mui/icons-material/VideocamRounded';
+import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded';
 import TableViewRoundedIcon from '@mui/icons-material/TableViewRounded';
 import FunctionsRoundedIcon from '@mui/icons-material/FunctionsRounded';
+import DataArrayRoundedIcon from '@mui/icons-material/DataArrayRounded';
 import TextFieldsRoundedIcon from '@mui/icons-material/TextFieldsRounded';
 import AccountTreeRoundedIcon from '@mui/icons-material/AccountTreeRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import PhotoFilterRoundedIcon from '@mui/icons-material/PhotoFilterRounded';
+import DescriptionRoundedIcon from '@mui/icons-material/DescriptionRounded';
 import PhotoLibraryRoundedIcon from '@mui/icons-material/PhotoLibraryRounded';
 import PictureAsPdfRoundedIcon from '@mui/icons-material/PictureAsPdfRounded';
 import InvertColorsRoundedIcon from '@mui/icons-material/InvertColorsRounded';
 import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
 import CompareArrowsRoundedIcon from '@mui/icons-material/CompareArrowsRounded';
 import QrCodeScannerRoundedIcon from '@mui/icons-material/QrCodeScannerRounded';
+import MovieCreationRoundedIcon from '@mui/icons-material/MovieCreationRounded';
 import DocumentScannerRoundedIcon from '@mui/icons-material/DocumentScannerRounded';
 import SwapHorizontalCircleRoundedIcon from '@mui/icons-material/SwapHorizontalCircleRounded';
-import DescriptionRoundedIcon from '@mui/icons-material/DescriptionRounded';
-import ArticleRoundedIcon from '@mui/icons-material/ArticleRounded';
-import ApprovalRoundedIcon from '@mui/icons-material/ApprovalRounded';
-import VideocamRoundedIcon from '@mui/icons-material/VideocamRounded';
-import StorageRoundedIcon from '@mui/icons-material/StorageRounded';
-import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded';
-import MemoryRoundedIcon from '@mui/icons-material/MemoryRounded';
-import SchemaRoundedIcon from '@mui/icons-material/SchemaRounded';
-import DataArrayRoundedIcon from '@mui/icons-material/DataArrayRounded';
-import Grid4x4RoundedIcon from '@mui/icons-material/Grid4x4Rounded';
-import ScienceRoundedIcon from '@mui/icons-material/ScienceRounded';
-import MovieCreationRoundedIcon from '@mui/icons-material/MovieCreationRounded';
 
 import { paths } from 'src/routes/paths';
 
@@ -184,6 +184,8 @@ export const navData: NavSectionProps['data'] = [
           { title: '아스키 아트', path: paths.photo.ascii },
           { title: '픽셀 아트', path: paths.photo.pixel },
           { title: '글리치 효과', path: paths.photo.glitch },
+          { title: '디지털 풍화 효과', path: paths.photo.weathering },
+          { title: '종합 밈 연구소', path: paths.photo.memeLab },
           { title: '인생네컷', path: paths.photo.fourCut },
           { title: '배경색 변경', path: paths.photo.color },
           { title: '스포이드 색상 추출', path: paths.photo.colorPicker },

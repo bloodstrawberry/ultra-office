@@ -11,6 +11,7 @@ import GifRoundedIcon from '@mui/icons-material/GifRounded';
 import BlurOnRoundedIcon from '@mui/icons-material/BlurOnRounded';
 import FlashOnRoundedIcon from '@mui/icons-material/FlashOnRounded';
 import CompressRoundedIcon from '@mui/icons-material/CompressRounded';
+import WhatshotRoundedIcon from '@mui/icons-material/WhatshotRounded';
 import ColorLensRoundedIcon from '@mui/icons-material/ColorLensRounded';
 import TransformRoundedIcon from '@mui/icons-material/TransformRounded';
 import LaptopMacRoundedIcon from '@mui/icons-material/LaptopMacRounded';
@@ -24,6 +25,7 @@ import PhotoFilterRoundedIcon from '@mui/icons-material/PhotoFilterRounded';
 import InvertColorsRoundedIcon from '@mui/icons-material/InvertColorsRounded';
 import PictureAsPdfRoundedIcon from '@mui/icons-material/PictureAsPdfRounded';
 import PhoneAndroidRoundedIcon from '@mui/icons-material/PhoneAndroidRounded';
+import HourglassBottomRoundedIcon from '@mui/icons-material/HourglassBottomRounded';
 import BrandingWatermarkRoundedIcon from '@mui/icons-material/BrandingWatermarkRounded';
 
 import { paths } from 'src/routes/paths';
@@ -85,6 +87,24 @@ const TOOL_SECTIONS: { category: string; desc: string; tools: PhotoToolItem[] }[
         icon: <PhotoFilterRoundedIcon sx={{ fontSize: 28, color: '#3b82f6' }} />,
         tag: '추천',
         badgeColor: 'primary',
+      },
+      {
+        id: 'weathering',
+        title: '디지털 풍화 시뮬레이터',
+        desc: '세대 손실(Generation Loss), 썩은 짤방, 카톡 무한 압축, 배터리 3% UI',
+        href: paths.photo.weathering,
+        icon: <HourglassBottomRoundedIcon sx={{ fontSize: 28, color: '#16a34a' }} />,
+        tag: 'NEW',
+        badgeColor: 'success',
+      },
+      {
+        id: 'meme-lab',
+        title: '종합 밈 연구소 (Meme Lab)',
+        desc: '와이드 푸틴, 레이저 눈, 코봉이 왜곡, 흑화 10단계, 3D 스피닝 짤방',
+        href: paths.photo.memeLab,
+        icon: <WhatshotRoundedIcon sx={{ fontSize: 28, color: '#f43f5e' }} />,
+        tag: 'HOT',
+        badgeColor: 'error',
       },
     ],
   },
