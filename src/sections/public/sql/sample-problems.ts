@@ -1,6 +1,6 @@
 import type { SqlProblem } from './types';
 
-export const SAMPLE_PROBLEMS: SqlProblem[] = [
+export const PRACTICE_PROBLEMS: SqlProblem[] = [
   // -------------------------------------------------------------------------
   // Level 1: 기초 (SELECT, WHERE, ORDER BY, LIMIT)
   // -------------------------------------------------------------------------
@@ -317,3 +317,6 @@ export const SAMPLE_PROBLEMS: SqlProblem[] = [
     explanation: '동일 테이블 내의 계층 관계를 비교 분석하는 셀프 조인의 대표적인 심화 패턴입니다.',
   },
 ];
+
+// 이전 코드와의 호환성을 위한 별칭 export
+export const SAMPLE_PROBLEMS = PRACTICE_PROBLEMS;

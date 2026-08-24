@@ -6,11 +6,9 @@ import { toast } from 'sonner';
 import React, { useState, useCallback } from 'react';
 import { Group, Panel, Separator } from 'react-resizable-panels';
 
-import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
-import Tabs from '@mui/material/Tabs';
 import Button from '@mui/material/Button';
 import Select from '@mui/material/Select';
 import Tooltip from '@mui/material/Tooltip';
@@ -23,20 +21,58 @@ import SchoolRoundedIcon from '@mui/icons-material/SchoolRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded';
 import StorageRoundedIcon from '@mui/icons-material/StorageRounded';
+import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
+import WorkspacePremiumRoundedIcon from '@mui/icons-material/WorkspacePremiumRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
+import { SQLD_PROBLEMS } from './sqld-problems';
+import { SQLP_PROBLEMS } from './sqlp-problems';
 import { useSqlEngine } from './use-sql-engine';
 import { SchemaBrowser } from './schema-browser';
 import { SqlEditorPanel } from './sql-editor-panel';
 import { SqlResultTable } from './sql-result-table';
-import { SAMPLE_PROBLEMS } from './sample-problems';
+import { PRACTICE_PROBLEMS } from './sample-problems';
 import { SqlProblemPanel } from './sql-problem-panel';
 import { QueryHistoryDialog } from './query-history-dialog';
 
 // ----------------------------------------------------------------------
 
-type ModeTab = 'challenges' | 'playground';
+type ModeTab = 'sqld' | 'sqlp' | 'practice' | 'playground';
+
+interface ModeConfig {
+  id: ModeTab;
+  label: string;
+  icon: React.ReactElement;
+  panelTitle: string;
+}
+
+const MODES: ModeConfig[] = [
+  {
+    id: 'sqld',
+    label: 'SQLD 예시',
+    icon: <AssignmentRoundedIcon sx={{ fontSize: 17 }} />,
+    panelTitle: 'SQLD 자격증 예시 문제',
+  },
+  {
+    id: 'sqlp',
+    label: 'SQLP 예시',
+    icon: <WorkspacePremiumRoundedIcon sx={{ fontSize: 17 }} />,
+    panelTitle: 'SQLP 자격증 예시 문제',
+  },
+  {
+    id: 'practice',
+    label: '연습문제 풀이',
+    icon: <SchoolRoundedIcon sx={{ fontSize: 17 }} />,
+    panelTitle: '단계별 연습 문제',
+  },
+  {
+    id: 'playground',
+    label: '자유 쿼리 샌드박스',
+    icon: <CodeRoundedIcon sx={{ fontSize: 17 }} />,
+    panelTitle: '데이터베이스 스키마',
+  },
+];
 
 export function SqlPracticeView() {
   const {
@@ -52,20 +88,45 @@ export function SqlPracticeView() {
     setQueryHistory,
   } = useSqlEngine();
 
-  const [mode, setMode] = useState<ModeTab>('challenges');
-  const [selectedProblem, setSelectedProblem] = useState<SqlProblem>(SAMPLE_PROBLEMS[0]);
-  const [editorSql, setEditorSql] = useState<string>(SAMPLE_PROBLEMS[0].initialQuery || '');
+  const [mode, setMode] = useState<ModeTab>('practice');
+  const [selectedProblem, setSelectedProblem] = useState<SqlProblem | null>(
+    PRACTICE_PROBLEMS[0] || null
+  );
+  const [editorSql, setEditorSql] = useState<string>(PRACTICE_PROBLEMS[0]?.initialQuery || '');
   const [queryResult, setQueryResult] = useState<QueryResult | null>(null);
   const [verificationResult, setVerificationResult] = useState<VerificationResult | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
 
-  // When problem is changed in challenge mode
+  // Helper to get problems by mode
+  const getProblemsForMode = useCallback((targetMode: ModeTab): SqlProblem[] => {
+    switch (targetMode) {
+      case 'sqld':
+        return SQLD_PROBLEMS;
+      case 'sqlp':
+        return SQLP_PROBLEMS;
+      case 'practice':
+        return PRACTICE_PROBLEMS;
+      case 'playground':
+      default:
+        return [];
+    }
+  }, []);
+
+  // When problem is changed
   const handleSelectProblem = useCallback(
     (prob: SqlProblem) => {
       setSelectedProblem(prob);
       setEditorSql(
         prob.initialQuery ||
-          `SELECT *\nFROM ${prob.datasetId === 'ecommerce' ? 'customers' : prob.datasetId === 'hr' ? 'employees' : 'students'};\n`
+          `SELECT *\nFROM ${
+            prob.datasetId === 'ecommerce'
+              ? 'customers'
+              : prob.datasetId === 'hr'
+                ? 'employees'
+                : prob.datasetId === 'sqld_sqlp'
+                  ? 'emp'
+                  : 'students'
+          };\n`
       );
       setQueryResult(null);
       setVerificationResult(null);
@@ -76,15 +137,28 @@ export function SqlPracticeView() {
     [currentDatasetId, setCurrentDatasetId]
   );
 
-  // Switch mode tab
-  const handleModeChange = (_: React.SyntheticEvent, newMode: ModeTab) => {
+  // Switch mode tab (SQLD 예시 | SQLP 예시 | 연습문제 풀이 | 자유 쿼리 샌드박스)
+  const handleModeChange = (newMode: ModeTab) => {
     setMode(newMode);
     setQueryResult(null);
     setVerificationResult(null);
-    if (newMode === 'challenges') {
-      handleSelectProblem(selectedProblem);
-    } else {
+
+    if (newMode === 'playground') {
+      setSelectedProblem(null);
       setEditorSql('SELECT *\nFROM customers\nLIMIT 10;\n');
+      return;
+    }
+
+    const modeProblems = getProblemsForMode(newMode);
+    if (modeProblems.length > 0) {
+      const firstProb = modeProblems[0];
+      handleSelectProblem(firstProb);
+    } else {
+      setSelectedProblem(null);
+      const modeLabel = MODES.find((m) => m.id === newMode)?.label || '예시';
+      setEditorSql(
+        `-- [${modeLabel}] 등록된 예시 문제가 준비 중입니다.\n-- 자유롭게 쿼리를 작성하고 실행해 보세요.\nSELECT *\nFROM customers\nLIMIT 10;\n`
+      );
     }
   };
 
@@ -96,6 +170,10 @@ export function SqlPracticeView() {
 
   // Submit and verify solution in challenge mode
   const handleSubmitChallenge = () => {
+    if (!selectedProblem) {
+      toast.error('채점할 문제가 선택되지 않았습니다.');
+      return;
+    }
     const verification = verifySolution(editorSql, selectedProblem);
     setVerificationResult(verification);
     if (verification.userResult) {
@@ -115,6 +193,10 @@ export function SqlPracticeView() {
     setVerificationResult(null);
     toast.success(`[${currentDataset.name}] 데이터베이스가 초기 샘플 데이터로 복원되었습니다.`);
   };
+
+  const isChallengeMode = mode !== 'playground' && Boolean(selectedProblem);
+  const currentModeConfig = MODES.find((m) => m.id === mode) || MODES[2];
+  const activeProblems = getProblemsForMode(mode);
 
   return (
     <DashboardContent
@@ -154,13 +236,13 @@ export function SqlPracticeView() {
             />
           </Box>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            브라우저 로컬 엔진 기반 실시간 쿼리 실행 • SQLD/SQLP 대비 단계별 연습문제 풀이 및
-            인터랙티브 샌드박스
+            브라우저 로컬 엔진 기반 실시간 쿼리 실행 • SQLD/SQLP 자격증 예시 및 단계별 연습문제
+            풀이, 인터랙티브 샌드박스
           </Typography>
         </Box>
       </Box>
 
-      {/* 2. Controls Toolbar Bar (연습문제 풀이, 자유 쿼리 샌드박스, DB 선택, DB 초기화, 실행기록) */}
+      {/* 2. Controls Toolbar Bar (SQLD 예시, SQLP 예시, 연습문제 풀이, 자유 쿼리 샌드박스, DB 선택, DB 초기화, 실행기록) */}
       <Card
         sx={{
           px: 2,
@@ -189,54 +271,39 @@ export function SqlPracticeView() {
             gap: '4px',
             height: 38,
             boxSizing: 'border-box',
+            flexWrap: 'nowrap',
+            overflowX: 'auto',
           }}
         >
-          <Button
-            size="small"
-            onClick={() => handleModeChange(null as any, 'challenges')}
-            startIcon={<SchoolRoundedIcon sx={{ fontSize: 17 }} />}
-            sx={{
-              height: 30,
-              px: 1.5,
-              fontSize: '0.8125rem',
-              fontWeight: 700,
-              borderRadius: 1,
-              bgcolor: mode === 'challenges' ? 'background.paper' : 'transparent',
-              color: mode === 'challenges' ? 'primary.main' : 'text.secondary',
-              boxShadow:
-                mode === 'challenges'
-                  ? (theme) => theme.customShadows?.z1 || '0 1px 3px rgba(0,0,0,0.1)'
-                  : 'none',
-              '&:hover': {
-                bgcolor: mode === 'challenges' ? 'background.paper' : 'action.hover',
-              },
-            }}
-          >
-            연습문제 풀이
-          </Button>
-          <Button
-            size="small"
-            onClick={() => handleModeChange(null as any, 'playground')}
-            startIcon={<CodeRoundedIcon sx={{ fontSize: 17 }} />}
-            sx={{
-              height: 30,
-              px: 1.5,
-              fontSize: '0.8125rem',
-              fontWeight: 700,
-              borderRadius: 1,
-              bgcolor: mode === 'playground' ? 'background.paper' : 'transparent',
-              color: mode === 'playground' ? 'primary.main' : 'text.secondary',
-              boxShadow:
-                mode === 'playground'
-                  ? (theme) => theme.customShadows?.z1 || '0 1px 3px rgba(0,0,0,0.1)'
-                  : 'none',
-              '&:hover': {
-                bgcolor: mode === 'playground' ? 'background.paper' : 'action.hover',
-              },
-            }}
-          >
-            자유 쿼리 샌드박스
-          </Button>
+          {MODES.map((tab) => {
+            const isActive = mode === tab.id;
+            return (
+              <Button
+                key={tab.id}
+                size="small"
+                onClick={() => handleModeChange(tab.id)}
+                startIcon={tab.icon}
+                sx={{
+                  height: 30,
+                  px: 1.5,
+                  fontSize: '0.8125rem',
+                  fontWeight: 700,
+                  borderRadius: 1,
+                  whiteSpace: 'nowrap',
+                  bgcolor: isActive ? 'background.paper' : 'transparent',
+                  color: isActive ? 'primary.main' : 'text.secondary',
+                  boxShadow: isActive
+                    ? (theme) => theme.customShadows?.z1 || '0 1px 3px rgba(0,0,0,0.1)'
+                    : 'none',
+                  '&:hover': {
+                    bgcolor: isActive ? 'background.paper' : 'action.hover',
+                  },
+                }}
+              >
+                {tab.label}
+              </Button>
+            );
+          })}
         </Box>
 
         {/* Right: DB Selector, Reset DB, Query History */}
@@ -354,8 +421,8 @@ export function SqlPracticeView() {
                     value={editorSql}
                     onChange={setEditorSql}
                     onRun={handleRunQuery}
-                    onSubmit={mode === 'challenges' ? handleSubmitChallenge : undefined}
-                    isChallengeMode={mode === 'challenges'}
+                    onSubmit={isChallengeMode ? handleSubmitChallenge : undefined}
+                    isChallengeMode={isChallengeMode}
                     datasetName={currentDataset.name}
                   />
                 </Box>
@@ -446,7 +513,7 @@ export function SqlPracticeView() {
                 >
                   <SqlResultTable
                     result={queryResult}
-                    title={mode === 'challenges' ? '내 쿼리 실행 결과' : '실행 결과'}
+                    title={isChallengeMode ? '내 쿼리 실행 결과' : '실행 결과'}
                   />
                 </Box>
               </Panel>
@@ -536,17 +603,18 @@ export function SqlPracticeView() {
                 flex: 1,
               }}
             >
-              {mode === 'challenges' ? (
+              {mode === 'playground' ? (
+                <SchemaBrowser dataset={currentDataset} onInsertQuery={handleInsertQuery} />
+              ) : (
                 <SqlProblemPanel
-                  problems={SAMPLE_PROBLEMS}
+                  title={currentModeConfig.panelTitle}
+                  problems={activeProblems}
                   selectedProblem={selectedProblem}
                   onSelectProblem={handleSelectProblem}
                   solvedProblemIds={solvedProblemIds}
                   verificationResult={verificationResult}
                   onInsertSolution={handleInsertQuery}
                 />
-              ) : (
-                <SchemaBrowser dataset={currentDataset} onInsertQuery={handleInsertQuery} />
               )}
             </Box>
           </Panel>

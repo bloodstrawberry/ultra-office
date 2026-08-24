@@ -2,23 +2,17 @@
 
 import type { SqlProblem, ProblemLevel, VerificationResult } from './types';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
-import Tabs from '@mui/material/Tabs';
 import Chip from '@mui/material/Chip';
 import Card from '@mui/material/Card';
-import List from '@mui/material/List';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
-import ListItem from '@mui/material/ListItem';
 import Collapse from '@mui/material/Collapse';
 import Typography from '@mui/material/Typography';
 import AlertTitle from '@mui/material/AlertTitle';
-import ListItemText from '@mui/material/ListItemText';
-import ListItemButton from '@mui/material/ListItemButton';
 import LinearProgress from '@mui/material/LinearProgress';
 import LightbulbRoundedIcon from '@mui/icons-material/LightbulbRounded';
 import ExpandLessRoundedIcon from '@mui/icons-material/ExpandLessRounded';
@@ -26,6 +20,7 @@ import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import HelpOutlineRoundedIcon from '@mui/icons-material/HelpOutlineRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import ContentPasteRoundedIcon from '@mui/icons-material/ContentPasteRounded';
+import AssignmentLateRoundedIcon from '@mui/icons-material/AssignmentLateRounded';
 import RadioButtonUncheckedRoundedIcon from '@mui/icons-material/RadioButtonUncheckedRounded';
 
 import { Scrollbar } from 'src/components/scrollbar';
@@ -33,8 +28,9 @@ import { Scrollbar } from 'src/components/scrollbar';
 // ----------------------------------------------------------------------
 
 interface SqlProblemPanelProps {
+  title?: string;
   problems: SqlProblem[];
-  selectedProblem: SqlProblem;
+  selectedProblem: SqlProblem | null;
   onSelectProblem: (prob: SqlProblem) => void;
   solvedProblemIds: string[];
   verificationResult: VerificationResult | null;
@@ -52,6 +48,7 @@ const LEVEL_CONFIG: Record<
 };
 
 export function SqlProblemPanel({
+  title = '연습 문제',
   problems,
   selectedProblem,
   onSelectProblem,
@@ -59,13 +56,21 @@ export function SqlProblemPanel({
   verificationResult,
   onInsertSolution,
 }: SqlProblemPanelProps) {
-  const [levelTab, setLevelTab] = useState<ProblemLevel>(selectedProblem.level);
+  const [levelTab, setLevelTab] = useState<ProblemLevel>(selectedProblem?.level ?? 1);
   const [showHint, setShowHint] = useState(false);
   const [showSolution, setShowSolution] = useState(false);
 
+  // Sync level tab when selectedProblem changes
+  useEffect(() => {
+    if (selectedProblem?.level) {
+      setLevelTab(selectedProblem.level);
+    }
+  }, [selectedProblem?.id, selectedProblem?.level]);
+
   const filteredProblems = problems.filter((p) => p.level === levelTab);
   const solvedCount = problems.filter((p) => solvedProblemIds.includes(p.id)).length;
-  const progressPercent = Math.round((solvedCount / problems.length) * 100);
+  const progressPercent =
+    problems.length > 0 ? Math.round((solvedCount / problems.length) * 100) : 0;
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: ProblemLevel) => {
     setLevelTab(newValue);
@@ -82,6 +87,86 @@ export function SqlProblemPanel({
     setShowHint(false);
     setShowSolution(false);
   };
+
+  // Empty state when no problems are available
+  if (problems.length === 0 || !selectedProblem) {
+    return (
+      <Card
+        sx={{
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          minHeight: 0,
+          overflow: 'hidden',
+          border: (theme) => `1px solid ${theme.vars.palette.divider}`,
+        }}
+      >
+        {/* Header */}
+        <Box
+          sx={{
+            p: 2,
+            pb: 1.5,
+            borderBottom: (theme) => `1px solid ${theme.vars.palette.divider}`,
+            bgcolor: 'background.neutral',
+            flexShrink: 0,
+          }}
+        >
+          <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+            {title} (0제)
+          </Typography>
+        </Box>
+
+        {/* Empty State Content */}
+        <Box
+          sx={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            p: 4,
+            textAlign: 'center',
+          }}
+        >
+          <Box
+            sx={{
+              width: 64,
+              height: 64,
+              borderRadius: '50%',
+              bgcolor: 'action.hover',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              mb: 2,
+            }}
+          >
+            <AssignmentLateRoundedIcon sx={{ fontSize: 32, color: 'text.secondary' }} />
+          </Box>
+          <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
+            등록된 예시 문제가 없습니다
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary', maxWidth: 360, mb: 2 }}>
+            해당 카테고리의 예시 문제가 준비 중입니다. 추후 새로운 예시 문제가 추가될 예정입니다.
+          </Typography>
+          <Typography
+            variant="caption"
+            sx={{
+              color: 'text.disabled',
+              bgcolor: 'background.neutral',
+              px: 2,
+              py: 1,
+              borderRadius: 1,
+              border: (theme) => `1px solid ${theme.vars.palette.divider}`,
+            }}
+          >
+            💡 상단의 <strong>연습문제 풀이</strong> 또는 <strong>자유 쿼리 샌드박스</strong>를
+            이용해 보세요.
+          </Typography>
+        </Box>
+      </Card>
+    );
+  }
 
   return (
     <Card
@@ -107,7 +192,7 @@ export function SqlProblemPanel({
       >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
-            연습 문제 ({problems.length}제)
+            {title} ({problems.length}제)
           </Typography>
           <Typography variant="caption" sx={{ fontWeight: 700, color: 'primary.main' }}>
             해결: {solvedCount} / {problems.length} ({progressPercent}%)
@@ -171,45 +256,51 @@ export function SqlProblemPanel({
             '&::-webkit-scrollbar-thumb': { bgcolor: 'divider', borderRadius: 2 },
           }}
         >
-          {filteredProblems.map((prob, idx) => {
-            const isSelected = prob.id === selectedProblem.id;
-            const isSolved = solvedProblemIds.includes(prob.id);
+          {filteredProblems.length === 0 ? (
+            <Typography variant="caption" sx={{ color: 'text.disabled', py: 0.5, px: 1 }}>
+              이 레벨에 등록된 문제가 없습니다.
+            </Typography>
+          ) : (
+            filteredProblems.map((prob, idx) => {
+              const isSelected = prob.id === selectedProblem.id;
+              const isSolved = solvedProblemIds.includes(prob.id);
 
-            return (
-              <Button
-                key={prob.id}
-                size="small"
-                variant={isSelected ? 'contained' : 'outlined'}
-                color={isSelected ? 'primary' : 'inherit'}
-                onClick={() => handleProblemClick(prob)}
-                startIcon={
-                  isSolved ? (
-                    <CheckCircleRoundedIcon
-                      sx={{ fontSize: 16, color: isSelected ? '#ffffff' : 'success.main' }}
-                    />
-                  ) : (
-                    <RadioButtonUncheckedRoundedIcon
-                      sx={{
-                        fontSize: 16,
-                        color: isSelected ? 'rgba(255,255,255,0.7)' : 'text.disabled',
-                      }}
-                    />
-                  )
-                }
-                sx={{
-                  flexShrink: 0,
-                  fontSize: 12,
-                  py: 0.5,
-                  px: 1.25,
-                  borderRadius: 1.5,
-                  fontWeight: isSelected ? 700 : 500,
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                Q{idx + 1}. {prob.title.length > 14 ? prob.title.slice(0, 14) + '…' : prob.title}
-              </Button>
-            );
-          })}
+              return (
+                <Button
+                  key={prob.id}
+                  size="small"
+                  variant={isSelected ? 'contained' : 'outlined'}
+                  color={isSelected ? 'primary' : 'inherit'}
+                  onClick={() => handleProblemClick(prob)}
+                  startIcon={
+                    isSolved ? (
+                      <CheckCircleRoundedIcon
+                        sx={{ fontSize: 16, color: isSelected ? '#ffffff' : 'success.main' }}
+                      />
+                    ) : (
+                      <RadioButtonUncheckedRoundedIcon
+                        sx={{
+                          fontSize: 16,
+                          color: isSelected ? 'rgba(255,255,255,0.7)' : 'text.disabled',
+                        }}
+                      />
+                    )
+                  }
+                  sx={{
+                    flexShrink: 0,
+                    fontSize: 12,
+                    py: 0.5,
+                    px: 1.25,
+                    borderRadius: 1.5,
+                    fontWeight: isSelected ? 700 : 500,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  Q{idx + 1}. {prob.title.length > 14 ? prob.title.slice(0, 14) + '…' : prob.title}
+                </Button>
+              );
+            })
+          )}
         </Box>
       </Box>
 
