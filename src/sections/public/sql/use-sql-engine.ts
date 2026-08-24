@@ -10,6 +10,8 @@ import type {
 
 import { useRef, useState, useEffect, useCallback } from 'react';
 
+import { loadAlaSql } from 'src/utils/alasql-loader';
+
 import { SAMPLE_DATASETS } from './sample-datasets';
 
 const STORAGE_KEY_SOLVED = 'ultra_sql_solved_problems';
@@ -33,18 +35,16 @@ export function useSqlEngine() {
   // Dynamically load alasql in browser client to prevent SSR/Turbopack node resolution issues
   useEffect(() => {
     let isMounted = true;
-    if (typeof window !== 'undefined') {
-      import('alasql' as any)
-        .then((mod) => {
-          if (isMounted) {
-            alasqlRef.current = ((window as any).alasql || mod.default || mod) as AlasqlFn;
-            setIsDbReady(true);
-          }
-        })
-        .catch((err) => {
-          console.error('Failed to load SQL engine', err);
-        });
-    }
+    loadAlaSql()
+      .then((instance) => {
+        if (isMounted && instance) {
+          alasqlRef.current = instance as AlasqlFn;
+          setIsDbReady(true);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load SQL engine', err);
+      });
     return () => {
       isMounted = false;
     };

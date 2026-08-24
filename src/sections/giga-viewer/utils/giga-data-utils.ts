@@ -1,3 +1,5 @@
+import { loadAlaSql } from 'src/utils/alasql-loader';
+
 import type { LogEntry, LogLevel, GigaFileSummary, GigaFilterOptions } from '../types';
 
 // ----------------------------------------------------------------------
@@ -132,12 +134,7 @@ export function filterLogEntries(entries: LogEntry[], filters: GigaFilterOptions
  */
 export async function executeLogSql(entries: LogEntry[], sqlQuery: string): Promise<LogEntry[]> {
   try {
-    let alasqlInstance: any = typeof window !== 'undefined' ? (window as any).alasql : null;
-    if (!alasqlInstance) {
-      const mod = (await import('alasql' as any)) as any;
-      alasqlInstance =
-        (typeof window !== 'undefined' && (window as any).alasql) || mod.default || mod;
-    }
+    const alasqlInstance = await loadAlaSql();
     if (!alasqlInstance) {
       throw new Error('AlaSQL 엔진을 로드할 수 없습니다.');
     }

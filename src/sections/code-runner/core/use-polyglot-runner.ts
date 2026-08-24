@@ -2,6 +2,8 @@
 
 import { useState, useCallback } from 'react';
 
+import { loadAlaSql } from 'src/utils/alasql-loader';
+
 // ----------------------------------------------------------------------
 
 export interface PolyglotRunnerHookReturn {
@@ -103,14 +105,7 @@ export function usePolyglotRunner(): PolyglotRunnerHookReturn {
       const startTime = performance.now();
 
       try {
-        let alasql: any;
-        if (typeof window !== 'undefined' && (window as any).alasql) {
-          alasql = (window as any).alasql;
-        } else {
-          const mod = (await import('alasql' as any)) as any;
-          alasql =
-            mod.default || mod || (typeof window !== 'undefined' ? (window as any).alasql : null);
-        }
+        const alasql = await loadAlaSql();
 
         if (!alasql) {
           throw new Error('SQL 엔진(AlaSQL)을 초기화할 수 없습니다.');
