@@ -860,13 +860,13 @@ export function BgRemoveView() {
               </Box>
 
               <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, textAlign: 'center' }}>
-                배경을 제거할 사진을 드래그하거나 클릭하여 업로드
+                이미지 업로드
               </Typography>
               <Typography
                 variant="body2"
                 sx={{ color: 'text.secondary', mb: 2.5, textAlign: 'center' }}
               >
-                클립보드 붙여넣기(Ctrl+V) 지원 • 인물, 증명사진, 상품, 반려동물 모두 지원
+                이미지를 드래그하거나 클립보드(Ctrl+V)에서 붙여넣으세요.
               </Typography>
 
               <Button
@@ -966,13 +966,13 @@ export function BgRemoveView() {
                             value="horizontal"
                             sx={{ px: 1.2, py: 0.5, fontSize: '0.75rem', fontWeight: 700 }}
                           >
-                            <SwapHorizRoundedIcon sx={{ fontSize: 16, mr: 0.5 }} />↔ 좌우
+                            <SwapHorizRoundedIcon sx={{ fontSize: 16, mr: 0.5 }} />좌우
                           </ToggleButton>
                           <ToggleButton
                             value="vertical"
                             sx={{ px: 1.2, py: 0.5, fontSize: '0.75rem', fontWeight: 700 }}
                           >
-                            <SwapVertRoundedIcon sx={{ fontSize: 16, mr: 0.5 }} />↕ 상하
+                            <SwapVertRoundedIcon sx={{ fontSize: 16, mr: 0.5 }} />상하
                           </ToggleButton>
                         </ToggleButtonGroup>
 
@@ -1017,7 +1017,7 @@ export function BgRemoveView() {
                       disabled={!result || isLoading}
                       startIcon={<EditRoundedIcon />}
                     >
-                      {isTouchupMode ? '터치업 종료' : '✏️ 수동 터치업'}
+                      {isTouchupMode ? '터치업 종료' : '수동 터치업'}
                     </Button>
 
                     <Button
@@ -1376,35 +1376,35 @@ export function BgRemoveView() {
                           sx={
                             splitOrientation === 'horizontal'
                               ? {
-                                  position: 'absolute',
-                                  top: 0,
-                                  bottom: 0,
-                                  left: `${splitStart}%`,
-                                  width: 3,
-                                  bgcolor: '#3b82f6',
-                                  boxShadow: '0 0 8px rgba(59,130,246,0.6)',
-                                  cursor: 'ew-resize',
-                                  zIndex: 10,
-                                  transform: 'translateX(-50%)',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                }
+                                position: 'absolute',
+                                top: 0,
+                                bottom: 0,
+                                left: `${splitStart}%`,
+                                width: 3,
+                                bgcolor: '#3b82f6',
+                                boxShadow: '0 0 8px rgba(59,130,246,0.6)',
+                                cursor: 'ew-resize',
+                                zIndex: 10,
+                                transform: 'translateX(-50%)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }
                               : {
-                                  position: 'absolute',
-                                  left: 0,
-                                  right: 0,
-                                  top: `${splitStart}%`,
-                                  height: 3,
-                                  bgcolor: '#3b82f6',
-                                  boxShadow: '0 0 8px rgba(59,130,246,0.6)',
-                                  cursor: 'ns-resize',
-                                  zIndex: 10,
-                                  transform: 'translateY(-50%)',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                }
+                                position: 'absolute',
+                                left: 0,
+                                right: 0,
+                                top: `${splitStart}%`,
+                                height: 3,
+                                bgcolor: '#3b82f6',
+                                boxShadow: '0 0 8px rgba(59,130,246,0.6)',
+                                cursor: 'ns-resize',
+                                zIndex: 10,
+                                transform: 'translateY(-50%)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }
                           }
                         >
                           <Box
@@ -1463,35 +1463,35 @@ export function BgRemoveView() {
                           sx={
                             splitOrientation === 'horizontal'
                               ? {
-                                  position: 'absolute',
-                                  top: 0,
-                                  bottom: 0,
-                                  left: `${splitEnd}%`,
-                                  width: 3,
-                                  bgcolor: '#ffffff',
-                                  boxShadow: '0 0 8px rgba(0,0,0,0.5)',
-                                  cursor: 'ew-resize',
-                                  zIndex: 10,
-                                  transform: 'translateX(-50%)',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                }
+                                position: 'absolute',
+                                top: 0,
+                                bottom: 0,
+                                left: `${splitEnd}%`,
+                                width: 3,
+                                bgcolor: '#ffffff',
+                                boxShadow: '0 0 8px rgba(0,0,0,0.5)',
+                                cursor: 'ew-resize',
+                                zIndex: 10,
+                                transform: 'translateX(-50%)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }
                               : {
-                                  position: 'absolute',
-                                  left: 0,
-                                  right: 0,
-                                  top: `${splitEnd}%`,
-                                  height: 3,
-                                  bgcolor: '#ffffff',
-                                  boxShadow: '0 0 8px rgba(0,0,0,0.5)',
-                                  cursor: 'ns-resize',
-                                  zIndex: 10,
-                                  transform: 'translateY(-50%)',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                }
+                                position: 'absolute',
+                                left: 0,
+                                right: 0,
+                                top: `${splitEnd}%`,
+                                height: 3,
+                                bgcolor: '#ffffff',
+                                boxShadow: '0 0 8px rgba(0,0,0,0.5)',
+                                cursor: 'ns-resize',
+                                zIndex: 10,
+                                transform: 'translateY(-50%)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }
                           }
                         >
                           <Box

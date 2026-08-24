@@ -130,6 +130,16 @@ export const navData: NavSectionProps['data'] = [
           { title: 'PDF 스튜디오', path: paths.photo.pdf },
         ],
       },
+      {
+        title: '개발자 도구',
+        path: paths.devTools,
+        icon: ICONS.devTools,
+        children: [
+          { title: '코드 실행기', path: paths.codeRunner },
+          { title: 'SQL 연습실', path: paths.public.sql },
+          { title: '개발자 툴킷', path: paths.devTools },
+        ],
+      },
       { title: 'Drive', path: paths.fileManager, icon: ICONS.folder },
     ],
   },
@@ -222,24 +232,14 @@ export const navData: NavSectionProps['data'] = [
   },
 
   /**
-   * 6. 비즈니스 & 개발자 생산성
+   * 6. 비즈니스 & 생산성
    */
   {
     subheader: 'Productivity & Utilities',
     items: [
-      { title: '코드 실행기 (OmniRunner)', path: paths.codeRunner, icon: ICONS.codeRunner },
       { title: '일정 & 간트차트', path: paths.schedule, icon: ICONS.schedule },
-      { title: '개발자 툴킷', path: paths.devTools, icon: ICONS.devTools },
       { title: 'QR & 바코드', path: paths.barcode, icon: ICONS.barcode },
-      {
-        title: '공공데이터 & SQL',
-        path: paths.public.root,
-        icon: ICONS.search,
-        children: [
-          { title: '주소 검색', path: paths.public.postcode },
-          { title: 'SQL 연습실', path: paths.public.sql },
-        ],
-      },
+      { title: '주소 검색', path: paths.public.postcode, icon: ICONS.search },
       {
         title: '추첨 & 게임',
         path: paths.drawing.root,

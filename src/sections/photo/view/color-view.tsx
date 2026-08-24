@@ -8,15 +8,26 @@ import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
 import Slider from '@mui/material/Slider';
+import Tooltip from '@mui/material/Tooltip';
+import TextField from '@mui/material/TextField';
+import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import ToggleButton from '@mui/material/ToggleButton';
+import InputAdornment from '@mui/material/InputAdornment';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import CircularProgress from '@mui/material/CircularProgress';
+import LinkRoundedIcon from '@mui/icons-material/LinkRounded';
 import UndoRoundedIcon from '@mui/icons-material/UndoRounded';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
+import BlurOnRoundedIcon from '@mui/icons-material/BlurOnRounded';
+import LinkOffRoundedIcon from '@mui/icons-material/LinkOffRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
+import ColorizeRoundedIcon from '@mui/icons-material/ColorizeRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
+import AspectRatioRoundedIcon from '@mui/icons-material/AspectRatioRounded';
+import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import InvertColorsRoundedIcon from '@mui/icons-material/InvertColorsRounded';
 import FormatColorFillRoundedIcon from '@mui/icons-material/FormatColorFillRounded';
 
@@ -28,10 +39,24 @@ import {
   downloadDataUrl,
   floodFillCanvas,
   shareToKakaoTalk,
+  type PaddingBgType,
+  applyPaddingToCanvas,
+  calculateAspectPadding,
+  PADDING_GRADIENT_PRESETS,
   toggleBackgroundWhiteTransparent,
 } from '../utils/image-processor';
 
-type ToolMode = 'fill' | 'erase';
+type ToolMode = 'fill' | 'erase' | 'spoid';
+
+const ASPECT_PRESETS = [
+  { label: '9:16 스토리/숏폼', w: 9, h: 16 },
+  { label: '1:1 정사각형', w: 1, h: 1 },
+  { label: '4:5 인스타 피드', w: 4, h: 5 },
+  { label: '3:4 세로 표준', w: 3, h: 4 },
+  { label: '16:9 가로 썸네일', w: 16, h: 9 },
+  { label: '토스 세로 (636×1048)', w: 636, h: 1048 },
+  { label: '토스 가로 (1504×741)', w: 1504, h: 741 },
+];
 
 export function ColorView() {
   const [imageSrc, setImageSrc] = useState<string>('');
@@ -43,6 +68,18 @@ export function ColorView() {
   const [fillColorHex, setFillColorHex] = useState<string>('#FFFFFF');
   const [tolerance, setTolerance] = useState<number>(25);
   const [zoomLevel, setZoomLevel] = useState<number>(1);
+
+  // Padding State
+  const [paddingLinked, setPaddingLinked] = useState<boolean>(true);
+  const [paddingAll, setPaddingAll] = useState<number>(40);
+  const [paddingTop, setPaddingTop] = useState<number>(40);
+  const [paddingBottom, setPaddingBottom] = useState<number>(40);
+  const [paddingLeft, setPaddingLeft] = useState<number>(40);
+  const [paddingRight, setPaddingRight] = useState<number>(40);
+  const [paddingBgType, setPaddingBgType] = useState<PaddingBgType>('edge-gradient');
+  const [paddingSolidColor, setPaddingSolidColor] = useState<string>('#FFFFFF');
+  const [paddingGradientPreset, setPaddingGradientPreset] = useState<string>('sunset');
+  const [paddingBlurAmount, setPaddingBlurAmount] = useState<number>(25);
   const [history, setHistory] = useState<ImageData[]>([]);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [rightPanelWidth, setRightPanelWidth] = useState<number>(380);
@@ -136,6 +173,49 @@ export function ColorView() {
     toast.success('흰색 ↔ 투명 전환이 완료되었습니다.');
   };
 
+  const handleApplyPadding = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const top = paddingLinked ? paddingAll : paddingTop;
+    const bottom = paddingLinked ? paddingAll : paddingBottom;
+    const left = paddingLinked ? paddingAll : paddingLeft;
+    const right = paddingLinked ? paddingAll : paddingRight;
+
+    if (top <= 0 && bottom <= 0 && left <= 0 && right <= 0) {
+      toast.info('추가할 여백 크기(px)를 1 이상으로 설정해 주세요.');
+      return;
+    }
+
+    const { newWidth, newHeight } = applyPaddingToCanvas(canvas, {
+      top,
+      bottom,
+      left,
+      right,
+      bgType: paddingBgType,
+      solidColor: paddingSolidColor,
+      gradientPreset: paddingGradientPreset,
+      blurAmount: paddingBlurAmount,
+    });
+
+    setImageDimensions({ width: newWidth, height: newHeight });
+    pushHistory();
+    toast.success(`여백이 추가되었습니다! (${newWidth} × ${newHeight} px)`);
+  };
+
+  const handleApplyRatioPreset = (w: number, h: number) => {
+    if (imageDimensions.width <= 0 || imageDimensions.height <= 0) return;
+    const padding = calculateAspectPadding(imageDimensions.width, imageDimensions.height, w, h);
+    setPaddingLinked(false);
+    setPaddingTop(padding.top);
+    setPaddingBottom(padding.bottom);
+    setPaddingLeft(padding.left);
+    setPaddingRight(padding.right);
+    toast.info(
+      `비율 맞춤 계산 완료: 상/하 +${padding.top + padding.bottom}px, 좌/우 +${padding.left + padding.right}px`
+    );
+  };
+
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -146,6 +226,20 @@ export function ColorView() {
 
     const clickX = Math.floor((e.clientX - rect.left) * scaleX);
     const clickY = Math.floor((e.clientY - rect.top) * scaleY);
+
+    if (mode === 'spoid') {
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      if (ctx) {
+        const p = ctx.getImageData(clickX, clickY, 1, 1).data;
+        const toHex = (n: number) => n.toString(16).padStart(2, '0');
+        const hex = `#${toHex(p[0])}${toHex(p[1])}${toHex(p[2])}`;
+        setPaddingSolidColor(hex);
+        setPaddingBgType('color');
+        setFillColorHex(hex);
+        toast.success(`스포이드 색상 추출: ${hex} (여백 색상으로 설정됨)`);
+      }
+      return;
+    }
 
     let fillRGBA: { r: number; g: number; b: number; a: number } | null = null;
     if (mode === 'fill') {
@@ -400,7 +494,8 @@ export function ColorView() {
                   style={{
                     transform: `scale(${zoomLevel})`,
                     transformOrigin: 'center center',
-                    cursor: mode === 'erase' ? 'crosshair' : 'pointer',
+                    cursor:
+                      mode === 'erase' ? 'crosshair' : mode === 'spoid' ? 'crosshair' : 'pointer',
                     maxWidth: '100%',
                     maxHeight: '100%',
                     objectFit: 'contain',
@@ -532,7 +627,7 @@ export function ColorView() {
 
               {/* Tool Mode */}
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
-                2. 페인트 통 도구 모드
+                2. 페인트 통 & 스포이드 도구 모드
               </Typography>
               <ToggleButtonGroup
                 value={mode}
@@ -547,6 +642,9 @@ export function ColorView() {
                 </ToggleButton>
                 <ToggleButton value="fill">
                   <FormatColorFillRoundedIcon sx={{ mr: 0.5, fontSize: 18 }} /> 색상 채우기
+                </ToggleButton>
+                <ToggleButton value="spoid">
+                  <ColorizeRoundedIcon sx={{ mr: 0.5, fontSize: 18 }} /> 스포이드
                 </ToggleButton>
               </ToggleButtonGroup>
 
@@ -573,8 +671,28 @@ export function ColorView() {
                 </Box>
               )}
 
+              {mode === 'spoid' && (
+                <Box
+                  sx={{
+                    p: 1.5,
+                    mb: 2,
+                    borderRadius: 2,
+                    bgcolor: 'primary.lighter',
+                    color: 'primary.darker',
+                  }}
+                >
+                  <Typography variant="caption" sx={{ fontWeight: 700, display: 'block' }}>
+                    🎯 스포이드 모드 활성화됨
+                  </Typography>
+                  <Typography variant="caption" sx={{ display: 'block', mt: 0.25 }}>
+                    사진 속 원하는 배경 지점을 클릭하면 해당 색상이 추출되어 여백 및 페인트통
+                    색상으로 지정됩니다.
+                  </Typography>
+                </Box>
+              )}
+
               {/* Tolerance Slider */}
-              <Box sx={{ mb: 2 }}>
+              <Box sx={{ mb: 1 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                   <Typography variant="caption" sx={{ fontWeight: 600 }}>
                     색상 허용 오차 (Tolerance)
@@ -591,7 +709,460 @@ export function ColorView() {
                   onChange={(_, v) => setTolerance(v as number)}
                 />
               </Box>
+            </Card>
 
+            {/* 3. Padding & Background Extension Card */}
+            <Card sx={{ p: 2.5, borderRadius: 3 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  mb: 1.5,
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <AspectRatioRoundedIcon color="primary" fontSize="small" />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                    3. 여백(Padding) & 어울리는 배경
+                  </Typography>
+                </Box>
+
+                <Tooltip
+                  title={paddingLinked ? '상하좌우 개별 조절로 전환' : '상하좌우 동일 크기로 연결'}
+                >
+                  <IconButton
+                    size="small"
+                    color={paddingLinked ? 'primary' : 'default'}
+                    onClick={() => setPaddingLinked((prev) => !prev)}
+                    sx={{
+                      bgcolor: paddingLinked ? 'primary.lighter' : 'action.hover',
+                    }}
+                  >
+                    {paddingLinked ? (
+                      <LinkRoundedIcon fontSize="small" />
+                    ) : (
+                      <LinkOffRoundedIcon fontSize="small" />
+                    )}
+                  </IconButton>
+                </Tooltip>
+              </Box>
+
+              {/* Aspect Ratio Presets */}
+              <Typography
+                variant="caption"
+                sx={{ color: 'text.secondary', fontWeight: 600, mb: 0.75, display: 'block' }}
+              >
+                규격/종횡비 맞춤 여백 자동 계산
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mb: 2 }}>
+                {ASPECT_PRESETS.map((preset) => (
+                  <Chip
+                    key={preset.label}
+                    label={preset.label}
+                    size="small"
+                    clickable
+                    variant="outlined"
+                    onClick={() => handleApplyRatioPreset(preset.w, preset.h)}
+                    sx={{ fontWeight: 600 }}
+                  />
+                ))}
+              </Box>
+
+              {/* Padding Inputs */}
+              {paddingLinked ? (
+                <Box sx={{ mb: 2 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                    <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                      상하좌우 전체 여백
+                    </Typography>
+                    <Typography variant="caption" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                      +{paddingAll}px
+                    </Typography>
+                  </Box>
+                  <Slider
+                    size="small"
+                    min={0}
+                    max={400}
+                    step={2}
+                    value={paddingAll}
+                    onChange={(_, v) => {
+                      const val = v as number;
+                      setPaddingAll(val);
+                      setPaddingTop(val);
+                      setPaddingBottom(val);
+                      setPaddingLeft(val);
+                      setPaddingRight(val);
+                    }}
+                  />
+                </Box>
+              ) : (
+                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, mb: 2 }}>
+                  <TextField
+                    size="small"
+                    label="위 (Top)"
+                    type="number"
+                    value={paddingTop}
+                    onChange={(e) => setPaddingTop(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                    slotProps={{
+                      input: {
+                        endAdornment: <InputAdornment position="end">px</InputAdornment>,
+                      },
+                    }}
+                  />
+                  <TextField
+                    size="small"
+                    label="아래 (Bottom)"
+                    type="number"
+                    value={paddingBottom}
+                    onChange={(e) =>
+                      setPaddingBottom(Math.max(0, parseInt(e.target.value, 10) || 0))
+                    }
+                    slotProps={{
+                      input: {
+                        endAdornment: <InputAdornment position="end">px</InputAdornment>,
+                      },
+                    }}
+                  />
+                  <TextField
+                    size="small"
+                    label="왼쪽 (Left)"
+                    type="number"
+                    value={paddingLeft}
+                    onChange={(e) => setPaddingLeft(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                    slotProps={{
+                      input: {
+                        endAdornment: <InputAdornment position="end">px</InputAdornment>,
+                      },
+                    }}
+                  />
+                  <TextField
+                    size="small"
+                    label="오른쪽 (Right)"
+                    type="number"
+                    value={paddingRight}
+                    onChange={(e) =>
+                      setPaddingRight(Math.max(0, parseInt(e.target.value, 10) || 0))
+                    }
+                    slotProps={{
+                      input: {
+                        endAdornment: <InputAdornment position="end">px</InputAdornment>,
+                      },
+                    }}
+                  />
+                </Box>
+              )}
+
+              {/* Quick Presets */}
+              <Typography
+                variant="caption"
+                sx={{ color: 'text.secondary', fontWeight: 600, mb: 0.75, display: 'block' }}
+              >
+                빠른 여백 크기 프리셋
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mb: 2 }}>
+                {[10, 20, 40, 80, 150].map((px) => (
+                  <Chip
+                    key={px}
+                    label={`+${px}px`}
+                    size="small"
+                    clickable
+                    color={paddingLinked && paddingAll === px ? 'primary' : 'default'}
+                    variant={paddingLinked && paddingAll === px ? 'filled' : 'outlined'}
+                    onClick={() => {
+                      setPaddingLinked(true);
+                      setPaddingAll(px);
+                      setPaddingTop(px);
+                      setPaddingBottom(px);
+                      setPaddingLeft(px);
+                      setPaddingRight(px);
+                    }}
+                    sx={{ fontWeight: paddingLinked && paddingAll === px ? 700 : 500 }}
+                  />
+                ))}
+              </Box>
+
+              {/* Background Style for Padding */}
+              <Typography
+                variant="caption"
+                sx={{ color: 'text.secondary', fontWeight: 600, mb: 0.75, display: 'block' }}
+              >
+                추가된 배경 채우기 옵션
+              </Typography>
+              <ToggleButtonGroup
+                value={paddingBgType}
+                exclusive
+                onChange={(_, v) => v && setPaddingBgType(v)}
+                fullWidth
+                size="small"
+                sx={{
+                  mb: 2,
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: 0.5,
+                }}
+              >
+                <ToggleButton
+                  value="edge-gradient"
+                  sx={{
+                    border: '1px solid !important',
+                    borderRadius: '8px !important',
+                    px: 0.5,
+                    py: 0.75,
+                    fontSize: '0.72rem',
+                    gridColumn: 'span 2',
+                  }}
+                >
+                  <AutoAwesomeRoundedIcon sx={{ mr: 0.5, fontSize: 16, color: 'primary.main' }} />
+                  스마트 그라데이션 (추천)
+                </ToggleButton>
+                <ToggleButton
+                  value="edge"
+                  sx={{
+                    border: '1px solid !important',
+                    borderRadius: '8px !important',
+                    px: 0.5,
+                    py: 0.75,
+                    fontSize: '0.72rem',
+                  }}
+                >
+                  <AutoAwesomeRoundedIcon sx={{ mr: 0.5, fontSize: 16 }} /> 테두리 평균
+                </ToggleButton>
+                <ToggleButton
+                  value="color"
+                  sx={{
+                    border: '1px solid !important',
+                    borderRadius: '8px !important',
+                    px: 0.5,
+                    py: 0.75,
+                    fontSize: '0.72rem',
+                  }}
+                >
+                  <FormatColorFillRoundedIcon sx={{ mr: 0.5, fontSize: 16 }} /> 단색
+                </ToggleButton>
+                <ToggleButton
+                  value="transparent"
+                  sx={{
+                    border: '1px solid !important',
+                    borderRadius: '8px !important',
+                    px: 0.5,
+                    py: 0.75,
+                    fontSize: '0.72rem',
+                  }}
+                >
+                  <InvertColorsRoundedIcon sx={{ mr: 0.5, fontSize: 16 }} /> 투명
+                </ToggleButton>
+                <ToggleButton
+                  value="blur"
+                  sx={{
+                    border: '1px solid !important',
+                    borderRadius: '8px !important',
+                    px: 0.5,
+                    py: 0.75,
+                    fontSize: '0.72rem',
+                  }}
+                >
+                  <BlurOnRoundedIcon sx={{ mr: 0.5, fontSize: 16 }} /> 블러
+                </ToggleButton>
+              </ToggleButtonGroup>
+
+              {/* Sub-options based on paddingBgType */}
+              {paddingBgType === 'edge-gradient' && (
+                <Box sx={{ mb: 2, p: 1.5, bgcolor: 'action.hover', borderRadius: 2 }}>
+                  <Typography
+                    variant="caption"
+                    sx={{ color: 'primary.main', fontWeight: 700, display: 'block', mb: 0.5 }}
+                  >
+                    ✨ 완벽한 스튜디오 배경 확장
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                    사진 상단과 하단의 스튜디오 조명 배경색을 감지하여 원본 사진과 경계선 없이 100%
+                    매끄럽게 이어집니다.
+                  </Typography>
+                </Box>
+              )}
+
+              {paddingBgType === 'color' && (
+                <Box sx={{ mb: 2, p: 1.5, bgcolor: 'action.hover', borderRadius: 2 }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      mb: 1.5,
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                        배경 색상:
+                      </Typography>
+                      <input
+                        type="color"
+                        value={paddingSolidColor}
+                        onChange={(e) => setPaddingSolidColor(e.target.value)}
+                        style={{
+                          width: 36,
+                          height: 30,
+                          borderRadius: 6,
+                          border: 'none',
+                          cursor: 'pointer',
+                        }}
+                      />
+                      <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                        {paddingSolidColor}
+                      </Typography>
+                    </Box>
+
+                    <Button
+                      size="small"
+                      variant={mode === 'spoid' ? 'contained' : 'outlined'}
+                      color="primary"
+                      onClick={() => {
+                        setMode('spoid');
+                        // toast.info('사진에서 배경색 부분을 클릭하세요.');
+                      }}
+                      startIcon={<ColorizeRoundedIcon />}
+                      sx={{ fontSize: '0.75rem', py: 0.5 }}
+                    >
+                      스포이드
+                    </Button>
+                  </Box>
+
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
+                    {[
+                      '#FFFFFF',
+                      '#F1F5F9',
+                      '#111827',
+                      '#3B82F6',
+                      '#06B6D4',
+                      '#FCE7F3',
+                      '#E0F2FE',
+                      '#D1FAE5',
+                      '#FEF3C7',
+                    ].map((hex) => (
+                      <Box
+                        key={hex}
+                        onClick={() => setPaddingSolidColor(hex)}
+                        sx={{
+                          width: 24,
+                          height: 24,
+                          borderRadius: '50%',
+                          bgcolor: hex,
+                          border: '2px solid',
+                          borderColor: paddingSolidColor === hex ? 'primary.main' : 'divider',
+                          cursor: 'pointer',
+                          transition: 'transform 0.15s ease',
+                          '&:hover': { transform: 'scale(1.15)' },
+                        }}
+                      />
+                    ))}
+                  </Box>
+                </Box>
+              )}
+
+              {paddingBgType === 'edge' && (
+                <Box sx={{ mb: 2, p: 1.5, bgcolor: 'action.hover', borderRadius: 2 }}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                    💡 사진 가장자리 외곽 픽셀 평균 색상을 자동 추출하여 여백을 단색으로 채웁니다.
+                  </Typography>
+                </Box>
+              )}
+
+              {paddingBgType === 'blur' && (
+                <Box sx={{ mb: 2, p: 1.5, bgcolor: 'action.hover', borderRadius: 2 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                    <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                      블러 강도
+                    </Typography>
+                    <Typography variant="caption" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                      {paddingBlurAmount}px
+                    </Typography>
+                  </Box>
+                  <Slider
+                    size="small"
+                    min={10}
+                    max={60}
+                    value={paddingBlurAmount}
+                    onChange={(_, v) => setPaddingBlurAmount(v as number)}
+                  />
+                  <Typography
+                    variant="caption"
+                    sx={{ color: 'text.secondary', display: 'block', mt: 0.5 }}
+                  >
+                    원본 사진을 부드럽게 블러 확대하여 감성적인 배경 효과를 줍니다.
+                  </Typography>
+                </Box>
+              )}
+
+              {paddingBgType === 'gradient' && (
+                <Box sx={{ mb: 2, p: 1.5, bgcolor: 'action.hover', borderRadius: 2 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 600, mb: 1, display: 'block' }}>
+                    그라데이션 테마 선택
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
+                    {PADDING_GRADIENT_PRESETS.map((p) => {
+                      const isSelected = paddingGradientPreset === p.id;
+                      return (
+                        <Chip
+                          key={p.id}
+                          label={p.label}
+                          size="small"
+                          clickable
+                          color={isSelected ? 'primary' : 'default'}
+                          variant={isSelected ? 'filled' : 'outlined'}
+                          onClick={() => setPaddingGradientPreset(p.id)}
+                          sx={{ fontWeight: isSelected ? 700 : 500 }}
+                        />
+                      );
+                    })}
+                  </Box>
+                </Box>
+              )}
+
+              {/* Output Info & Apply Button */}
+              {imageDimensions.width > 0 && (
+                <Box
+                  sx={{
+                    mb: 1.5,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                    적용 후 예상 해상도:
+                  </Typography>
+                  <Chip
+                    size="small"
+                    color="primary"
+                    variant="outlined"
+                    label={`${
+                      imageDimensions.width +
+                      (paddingLinked ? paddingAll * 2 : paddingLeft + paddingRight)
+                    } × ${
+                      imageDimensions.height +
+                      (paddingLinked ? paddingAll * 2 : paddingTop + paddingBottom)
+                    } px`}
+                    sx={{ fontWeight: 700 }}
+                  />
+                </Box>
+              )}
+
+              {/* Apply Padding Button */}
+              <Button
+                variant="contained"
+                color="secondary"
+                fullWidth
+                onClick={handleApplyPadding}
+                startIcon={<AddRoundedIcon />}
+                sx={{ py: 1.3, borderRadius: 2, fontWeight: 700, fontSize: '0.95rem' }}
+              >
+                여백 적용하기
+              </Button>
+            </Card>
+
+            {/* 4. Zoom & Undo Card */}
+            <Card sx={{ p: 2.5, borderRadius: 3 }}>
               {/* Zoom Slider */}
               <Box sx={{ mb: 2 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
