@@ -94,8 +94,8 @@ export const navData: NavSectionProps['data'] = [
         children: [
           { title: '로고 만들기', path: paths.photo.logo },
           { title: '배경색 변경', path: paths.photo.color },
-          { title: '세로 썸네일', path: paths.photo.sero },
-          { title: '가로 썸네일', path: paths.photo.garo },
+          { title: '세로 스크린샷', path: paths.photo.sero },
+          { title: '가로 스크린샷', path: paths.photo.garo },
         ],
       },
       { title: 'Drive', path: paths.fileManager, icon: ICONS.folder },

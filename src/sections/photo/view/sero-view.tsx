@@ -112,7 +112,7 @@ export function SeroView() {
       );
       setFiles(updatedFiles);
     } catch {
-      toast.error('세로 썸네일 일괄 변환 중 오류가 발생했습니다.');
+      toast.error('세로 스크린샷 일괄 변환 중 오류가 발생했습니다.');
     } finally {
       setIsProcessing(false);
     }
@@ -201,7 +201,7 @@ export function SeroView() {
         data: f.resultUrl!,
       }));
 
-      await downloadZipFile(`sero_thumbnails_${Date.now()}.zip`, entries);
+      await downloadZipFile(`sero_screenshots_${Date.now()}.zip`, entries);
       toast.success(`${readyItems.length}장 일괄 ZIP 다운로드 완료!`);
     } catch {
       toast.error('ZIP 다운로드 중 오류 발생');
@@ -213,7 +213,7 @@ export function SeroView() {
   const handleShare = async (file: UploadedFile) => {
     if (!file.resultUrl) return;
     try {
-      const res = await shareToKakaoTalk(file.resultUrl, '세로 썸네일', `sero_${file.name}.png`);
+      const res = await shareToKakaoTalk(file.resultUrl, '세로 스크린샷', `sero_${file.name}.png`);
       toast.success(res.message);
     } catch {
       toast.error('공유 중 오류가 발생했습니다.');
@@ -233,10 +233,10 @@ export function SeroView() {
     >
       <Box sx={{ mb: { xs: 1.5, sm: 2 }, flexShrink: 0 }}>
         <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
-          세로형 썸네일 일괄 생성기
+          세로형 스크린샷 일괄 생성기
         </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          스마트폰/숏폼/스토리 규격 세로 썸네일을 여러 장의 사진에서 동일한 영역으로 고속 일괄
+          스마트폰/숏폼/스토리 규격 세로 스크린샷을 여러 장의 사진에서 동일한 영역으로 고속 일괄
           생성합니다.
         </Typography>
       </Box>
@@ -289,13 +289,13 @@ export function SeroView() {
             <PhoneAndroidRoundedIcon sx={{ fontSize: { xs: 36, sm: 44 } }} />
           </Box>
           <Typography variant="h6" sx={{ fontWeight: 700, mb: 1, textAlign: 'center' }}>
-            세로 썸네일로 변환할 사진들 업로드
+            이미지 업로드
           </Typography>
           <Typography
             variant="body2"
             sx={{ color: 'text.secondary', mb: 3, textAlign: 'center', maxWidth: 480 }}
           >
-            다중 선택(드래그 앤 드롭 또는 복사 붙여넣기)으로 여러 장을 한 번에 올릴 수 있습니다.
+            다중 선택으로 여러 장을 한 번에 올릴 수 있습니다.
           </Typography>
           <Button
             variant="contained"
