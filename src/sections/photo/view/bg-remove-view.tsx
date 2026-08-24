@@ -716,8 +716,7 @@ export function BgRemoveView() {
             />
           </Box>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            서버 전송 없이 브라우저 WebGPU 가속으로 인물, 헤어라인, 복잡한 사물 배경을 단 1초 만에
-            정밀 분리합니다.
+            서버 전송 없이 브라우저 WebGPU 가속으로 인물, 헤어라인, 복잡한 사물 배경을 정밀 분리합니다.
           </Typography>
         </Box>
 
