@@ -85,9 +85,7 @@ export const navData: NavSectionProps['data'] = [
    * 0. Hub / Overview
    */
   {
-    items: [
-      { title: '전체 도구 허브', path: paths.photo.root, icon: ICONS.photo },
-    ],
+    items: [{ title: '전체 도구 허브', path: paths.photo.root, icon: ICONS.photo }],
   },
 
   /**
