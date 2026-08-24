@@ -1,7 +1,7 @@
 'use client';
 
 import { toast } from 'sonner';
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -85,9 +85,9 @@ export function ColorView() {
     setHistory((prev) => [...prev.slice(-10), currentData]);
   }, []);
 
-  const handleUndo = () => {
+  const handleUndo = useCallback(() => {
     const canvas = canvasRef.current;
-    if (!canvas || history.length === 0) return;
+    if (!canvas || history.length <= 1) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -100,9 +100,31 @@ export function ColorView() {
       canvas.height = prevState.height;
       ctx.putImageData(prevState, 0, 0);
       setHistory(newHistory);
-      toast.info('되돌리기가 적용되었습니다.');
+      toast.info('실행 취소가 적용되었습니다.');
     }
-  };
+  }, [history]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+        e.preventDefault();
+        handleUndo();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleUndo]);
 
   const handleToggleBackground = () => {
     if (!canvasRef.current) return;
@@ -569,7 +591,7 @@ export function ColorView() {
                 startIcon={<UndoRoundedIcon />}
                 sx={{ borderRadius: 2 }}
               >
-                실행 취소 (Undo)
+                실행 취소 (Ctrl + Z)
               </Button>
             </Card>
 

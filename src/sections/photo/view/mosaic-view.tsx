@@ -1,7 +1,7 @@
 'use client';
 
 import { toast } from 'sonner';
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -172,7 +172,7 @@ export function MosaicView() {
     if (e.target) e.target.value = '';
   };
 
-  const handleUndo = () => {
+  const handleUndo = useCallback(() => {
     if (historyIndex <= 0) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -188,9 +188,9 @@ export function MosaicView() {
       setHistoryIndex(targetIndex);
       toast.info('실행 취소');
     }
-  };
+  }, [historyIndex, history]);
 
-  const handleRedo = () => {
+  const handleRedo = useCallback(() => {
     if (historyIndex >= history.length - 1) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -206,7 +206,36 @@ export function MosaicView() {
       setHistoryIndex(targetIndex);
       toast.info('다시 실행');
     }
-  };
+  }, [historyIndex, history]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          handleRedo();
+        } else {
+          handleUndo();
+        }
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
+        e.preventDefault();
+        handleRedo();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleUndo, handleRedo]);
 
   const applyEffectToRect = (x: number, y: number, w: number, h: number) => {
     const canvas = canvasRef.current;
@@ -658,14 +687,14 @@ export function MosaicView() {
                   </Typography>
 
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <Tooltip title="실행 취소 (Undo)">
+                    <Tooltip title="실행 취소 (Ctrl + Z)">
                       <span>
                         <IconButton size="small" onClick={handleUndo} disabled={historyIndex <= 0}>
                           <UndoRoundedIcon fontSize="small" />
                         </IconButton>
                       </span>
                     </Tooltip>
-                    <Tooltip title="다시 실행 (Redo)">
+                    <Tooltip title="다시 실행 (Ctrl + Y)">
                       <span>
                         <IconButton
                           size="small"
