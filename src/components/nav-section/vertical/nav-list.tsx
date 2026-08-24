@@ -1,4 +1,4 @@
-import type { NavListProps, NavSubListProps } from '../types';
+import type { NavItemDataProps, NavListProps, NavSubListProps } from '../types';
 
 import { useBoolean } from 'minimal-shared/hooks';
 import { useRef, useEffect, useCallback } from 'react';
@@ -12,6 +12,19 @@ import { NavUl, NavLi, NavCollapse } from '../components';
 
 // ----------------------------------------------------------------------
 
+function isChildActive(items: NavItemDataProps[] | undefined, pathname: string): boolean {
+  if (!items || items.length === 0) return false;
+  return items.some((item) => {
+    if (isActiveLink(pathname, item.path, item.deepMatch ?? false)) {
+      return true;
+    }
+    if (item.children) {
+      return isChildActive(item.children, pathname);
+    }
+    return false;
+  });
+}
+
 export function NavList({
   data,
   depth,
@@ -23,16 +36,20 @@ export function NavList({
   const pathname = usePathname();
   const navItemRef = useRef<HTMLButtonElement>(null);
 
-  const isActive = isActiveLink(pathname, data.path, data.deepMatch ?? !!data.children);
+  const hasActiveChild = data.children ? isChildActive(data.children, pathname) : false;
+  const isSelfActive = isActiveLink(pathname, data.path, data.deepMatch ?? false);
+  const isActive = hasActiveChild || isSelfActive;
 
-  const { value: open, onFalse: onClose, onToggle } = useBoolean(isActive);
+  const { value: open, onTrue: onOpen, onFalse: onClose, onToggle } = useBoolean(isActive);
 
   useEffect(() => {
-    if (!isActive) {
+    if (isActive) {
+      onOpen();
+    } else {
       onClose();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
+  }, [pathname, isActive]);
 
   const handleToggleMenu = useCallback(() => {
     if (data.children) {

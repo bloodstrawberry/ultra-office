@@ -33,6 +33,7 @@ import QrCodeScannerRoundedIcon from '@mui/icons-material/QrCodeScannerRounded';
 import MovieCreationRoundedIcon from '@mui/icons-material/MovieCreationRounded';
 import DocumentScannerRoundedIcon from '@mui/icons-material/DocumentScannerRounded';
 import SwapHorizontalCircleRoundedIcon from '@mui/icons-material/SwapHorizontalCircleRounded';
+import AppsRoundedIcon from '@mui/icons-material/AppsRounded';
 
 import { paths } from 'src/routes/paths';
 
@@ -70,6 +71,7 @@ const ICONS = {
   bitLab: <DataArrayRoundedIcon fontSize="small" />,
   linearAlgebra: <Grid4x4RoundedIcon fontSize="small" />,
   physicsSandbox: <ScienceRoundedIcon fontSize="small" />,
+  appsInToss: <AppsRoundedIcon fontSize="small" />,
 };
 
 // ----------------------------------------------------------------------
@@ -84,7 +86,20 @@ export const navData: NavSectionProps['data'] = [
    */
   {
     subheader: 'Workspace',
-    items: [{ title: 'Drive', path: paths.fileManager, icon: ICONS.folder }],
+    items: [
+      {
+        title: '앱인토스',
+        path: paths.photo.logo,
+        icon: ICONS.appsInToss,
+        children: [
+          { title: '로고 만들기', path: paths.photo.logo },
+          { title: '배경색 변경', path: paths.photo.color },
+          { title: '세로 썸네일', path: paths.photo.sero },
+          { title: '가로 썸네일', path: paths.photo.garo },
+        ],
+      },
+      { title: 'Drive', path: paths.fileManager, icon: ICONS.folder },
+    ],
   },
 
   /**
@@ -187,7 +202,6 @@ export const navData: NavSectionProps['data'] = [
           { title: '디지털 풍화 효과', path: paths.photo.weathering },
           { title: '종합 밈 연구소', path: paths.photo.memeLab },
           { title: '인생네컷', path: paths.photo.fourCut },
-          { title: '배경색 변경', path: paths.photo.color },
           { title: '스포이드 색상 추출', path: paths.photo.colorPicker },
           { title: '사진 용량 압축', path: paths.photo.compress },
           { title: '확장자 변환', path: paths.photo.convert },
@@ -197,9 +211,6 @@ export const navData: NavSectionProps['data'] = [
           { title: '스캔 효과 · 문서 스캐너', path: paths.photo.scan },
           { title: 'GIF 스튜디오', path: paths.photo.gif },
           { title: 'PDF 스튜디오', path: paths.photo.pdf },
-          { title: '로고 만들기', path: paths.photo.logo },
-          { title: '세로 썸네일', path: paths.photo.sero },
-          { title: '가로 썸네일', path: paths.photo.garo },
         ],
       },
     ],

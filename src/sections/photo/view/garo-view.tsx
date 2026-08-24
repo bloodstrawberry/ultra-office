@@ -189,8 +189,17 @@ export function GaroView() {
   };
 
   return (
-    <DashboardContent>
-      <Box sx={{ mb: 3 }}>
+    <DashboardContent
+      sx={{
+        flex: '1 1 auto',
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: 0,
+        height: '100%',
+        pb: { xs: 2, sm: 3 },
+      }}
+    >
+      <Box sx={{ mb: { xs: 1.5, sm: 2 }, flexShrink: 0 }}>
         <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
           가로형 썸네일 일괄 생성기 (Horizontal 1504×741)
         </Typography>
@@ -215,7 +224,10 @@ export function GaroView() {
             onClick: () => fileInputRef.current?.click(),
           })}
           sx={{
-            p: 6,
+            p: 4,
+            flex: '1 1 auto',
+            minHeight: 0,
+            width: '100%',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -225,38 +237,54 @@ export function GaroView() {
             borderColor: isDragActive ? 'primary.main' : 'divider',
             bgcolor: isDragActive ? 'action.hover' : 'transparent',
             borderRadius: 3,
-            minHeight: 320,
             transition: (theme) => theme.transitions.create(['border-color', 'background-color']),
             '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
           }}
         >
           <Box
             sx={{
-              width: 64,
-              height: 64,
+              width: { xs: 64, sm: 80 },
+              height: { xs: 64, sm: 80 },
               borderRadius: '50%',
               bgcolor: 'primary.lighter',
               color: 'primary.main',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              mb: 2,
+              mb: 2.5,
             }}
           >
-            <LaptopMacRoundedIcon sx={{ fontSize: 32 }} />
+            <LaptopMacRoundedIcon sx={{ fontSize: { xs: 36, sm: 44 } }} />
           </Box>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, mb: 1, textAlign: 'center' }}>
             가로 썸네일로 변환할 사진들 업로드
           </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-            다중 선택으로 여러 장을 한 번에 올릴 수 있습니다
+          <Typography
+            variant="body2"
+            sx={{ color: 'text.secondary', mb: 3, textAlign: 'center', maxWidth: 480 }}
+          >
+            다중 선택(드래그 앤 드롭 또는 복사 붙여넣기)으로 여러 장을 한 번에 올릴 수 있습니다.
           </Typography>
-          <Button variant="contained" color="primary" startIcon={<CloudUploadRoundedIcon />}>
+          <Button
+            variant="contained"
+            color="primary"
+            size="large"
+            startIcon={<CloudUploadRoundedIcon />}
+          >
             사진 선택하기
           </Button>
         </Card>
       ) : (
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '5fr 7fr' }, gap: 3 }}>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: '5fr 7fr' },
+            gap: 3,
+            flex: '1 1 auto',
+            minHeight: 0,
+            overflow: 'auto',
+          }}
+        >
           {/* Left: Options & Sliders */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
             <Card sx={{ p: 2.5, borderRadius: 3 }}>

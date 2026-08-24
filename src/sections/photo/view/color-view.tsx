@@ -178,8 +178,17 @@ export function ColorView() {
   };
 
   return (
-    <DashboardContent>
-      <Box sx={{ mb: 3 }}>
+    <DashboardContent
+      sx={{
+        flex: '1 1 auto',
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: 0,
+        height: '100%',
+        pb: { xs: 2, sm: 3 },
+      }}
+    >
+      <Box sx={{ mb: { xs: 1.5, sm: 2 }, flexShrink: 0 }}>
         <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
           투명화 / 배경 지우개 (Background Eraser)
         </Typography>
@@ -202,7 +211,10 @@ export function ColorView() {
             onClick: () => fileInputRef.current?.click(),
           })}
           sx={{
-            p: 6,
+            p: 4,
+            flex: '1 1 auto',
+            minHeight: 0,
+            width: '100%',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -212,38 +224,55 @@ export function ColorView() {
             borderColor: isDragActive ? 'primary.main' : 'divider',
             bgcolor: isDragActive ? 'action.hover' : 'transparent',
             borderRadius: 3,
-            minHeight: 320,
             transition: (theme) => theme.transitions.create(['border-color', 'background-color']),
             '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
           }}
         >
           <Box
             sx={{
-              width: 64,
-              height: 64,
+              width: { xs: 64, sm: 80 },
+              height: { xs: 64, sm: 80 },
               borderRadius: '50%',
               bgcolor: 'primary.lighter',
               color: 'primary.main',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              mb: 2,
+              mb: 2.5,
             }}
           >
-            <InvertColorsRoundedIcon sx={{ fontSize: 32 }} />
+            <InvertColorsRoundedIcon sx={{ fontSize: { xs: 36, sm: 44 } }} />
           </Box>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, mb: 1, textAlign: 'center' }}>
             배경을 지우거나 색을 채울 사진 업로드
           </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-            단색 배경 로고, 아이콘, 누끼 작업에 최적화되어 있습니다
+          <Typography
+            variant="body2"
+            sx={{ color: 'text.secondary', mb: 3, textAlign: 'center', maxWidth: 480 }}
+          >
+            단색 배경 로고, 아이콘, 누끼 작업에 최적화되어 있습니다. 이미지를 드래그하거나
+            클립보드로 붙여넣으세요.
           </Typography>
-          <Button variant="contained" color="primary" startIcon={<CloudUploadRoundedIcon />}>
+          <Button
+            variant="contained"
+            color="primary"
+            size="large"
+            startIcon={<CloudUploadRoundedIcon />}
+          >
             사진 선택하기
           </Button>
         </Card>
       ) : (
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '7fr 5fr' }, gap: 3 }}>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: '7fr 5fr' },
+            gap: 3,
+            flex: '1 1 auto',
+            minHeight: 0,
+            overflow: 'auto',
+          }}
+        >
           {/* Left: Canvas Area */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Card sx={{ p: 2, borderRadius: 3 }}>
