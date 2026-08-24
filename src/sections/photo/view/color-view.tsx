@@ -40,9 +40,41 @@ export function ColorView() {
   const [zoomLevel, setZoomLevel] = useState<number>(1);
   const [history, setHistory] = useState<ImageData[]>([]);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [rightPanelWidth, setRightPanelWidth] = useState<number>(380);
+
+  const isResizingRef = useRef<boolean>(false);
+  const resizeStartXRef = useRef<number>(0);
+  const resizeStartWidthRef = useRef<number>(380);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDividerPointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    isResizingRef.current = true;
+    resizeStartXRef.current = e.clientX;
+    resizeStartWidthRef.current = rightPanelWidth;
+  };
+
+  const handleDividerPointerMove = (e: React.PointerEvent) => {
+    if (!isResizingRef.current) return;
+    const deltaX = resizeStartXRef.current - e.clientX;
+    const newWidth = Math.max(280, Math.min(650, resizeStartWidthRef.current + deltaX));
+    setRightPanelWidth(newWidth);
+  };
+
+  const handleDividerPointerUp = (e: React.PointerEvent) => {
+    if (isResizingRef.current) {
+      isResizingRef.current = false;
+      try {
+        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+      } catch {
+        // ignore
+      }
+    }
+  };
 
   const pushHistory = useCallback(() => {
     const canvas = canvasRef.current;
@@ -244,14 +276,15 @@ export function ColorView() {
             <InvertColorsRoundedIcon sx={{ fontSize: { xs: 36, sm: 44 } }} />
           </Box>
           <Typography variant="h6" sx={{ fontWeight: 700, mb: 1, textAlign: 'center' }}>
-            배경을 지우거나 색을 채울 사진 업로드
+            이미지 업로드
           </Typography>
           <Typography
             variant="body2"
             sx={{ color: 'text.secondary', mb: 3, textAlign: 'center', maxWidth: 480 }}
           >
-            단색 배경 로고, 아이콘, 누끼 작업에 최적화되어 있습니다. 이미지를 드래그하거나
-            클립보드로 붙여넣으세요.
+            단색 배경 로고, 아이콘, 누끼 작업에 최적화되어 있습니다.
+            <br />
+            이미지를 드래그하거나 클립보드(Ctrl+V)에서 붙여넣으세요.
           </Typography>
           <Button
             variant="contained"
@@ -265,22 +298,45 @@ export function ColorView() {
       ) : (
         <Box
           sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', md: '7fr 5fr' },
-            gap: 3,
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            gap: { xs: 2, md: 0 },
             flex: '1 1 auto',
             minHeight: 0,
-            overflow: 'auto',
+            height: '100%',
+            position: 'relative',
           }}
         >
-          {/* Left: Canvas Area */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Card sx={{ p: 2, borderRadius: 3 }}>
+          {/* Left: Canvas Area (Fills remaining width and height) */}
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              flex: '1 1 0px',
+              minWidth: 0,
+              minHeight: 0,
+              height: '100%',
+              pr: { md: 1 },
+            }}
+          >
+            <Card
+              sx={{
+                p: 2,
+                borderRadius: 3,
+                display: 'flex',
+                flexDirection: 'column',
+                flex: '1 1 auto',
+                minHeight: 0,
+                height: '100%',
+              }}
+            >
               <Box
                 sx={{
                   position: 'relative',
                   width: '100%',
-                  height: { xs: 340, sm: 500 },
+                  flex: '1 1 auto',
+                  minHeight: 0,
+                  height: '100%',
                   borderRadius: 2,
                   overflow: 'auto',
                   display: 'flex',
@@ -307,8 +363,104 @@ export function ColorView() {
             </Card>
           </Box>
 
+          {/* Draggable Divider (Desktop) */}
+          <Box
+            onPointerDown={handleDividerPointerDown}
+            onPointerMove={handleDividerPointerMove}
+            onPointerUp={handleDividerPointerUp}
+            sx={{
+              display: { xs: 'none', md: 'flex' },
+              width: 16,
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'col-resize',
+              userSelect: 'none',
+              touchAction: 'none',
+              zIndex: 10,
+              flexShrink: 0,
+              position: 'relative',
+              '&:hover .divider-bar, &:active .divider-bar': {
+                bgcolor: 'primary.main',
+                width: '3px',
+              },
+              '&:hover .divider-handle, &:active .divider-handle': {
+                bgcolor: 'primary.main',
+                borderColor: 'primary.main',
+                '& > div > div': {
+                  bgcolor: '#ffffff',
+                },
+              },
+            }}
+          >
+            {/* Divider Line */}
+            <Box
+              className="divider-bar"
+              sx={{
+                width: '2px',
+                height: '100%',
+                bgcolor: 'divider',
+                borderRadius: '1px',
+                transition: 'all 0.15s ease',
+              }}
+            />
+            {/* Grab Handle */}
+            <Box
+              className="divider-handle"
+              sx={{
+                position: 'absolute',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                width: 14,
+                height: 36,
+                borderRadius: 1,
+                bgcolor: 'background.paper',
+                border: '1px solid',
+                borderColor: 'divider',
+                boxShadow: 2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.15s ease',
+                pointerEvents: 'none',
+              }}
+            >
+              <Box
+                sx={{
+                  width: 4,
+                  height: 14,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  '& > div': {
+                    width: 1.5,
+                    height: '100%',
+                    bgcolor: 'text.disabled',
+                    borderRadius: 1,
+                    transition: 'all 0.15s ease',
+                  },
+                }}
+              >
+                <div />
+                <div />
+              </Box>
+            </Box>
+          </Box>
+
           {/* Right: Tools & Actions */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              width: { xs: '100%', md: `${rightPanelWidth}px` },
+              minWidth: { md: `${rightPanelWidth}px` },
+              maxWidth: { md: `${rightPanelWidth}px` },
+              flexShrink: 0,
+              gap: 2,
+              minHeight: 0,
+              overflow: 'auto',
+              pl: { md: 1 },
+              pr: 0.5,
+            }}
+          >
             <Card sx={{ p: 2.5, borderRadius: 3 }}>
               {/* Quick Actions */}
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
@@ -421,8 +573,10 @@ export function ColorView() {
               </Button>
             </Card>
 
-            <Box sx={{ display: 'flex', gap: 1.5 }}>
+            {/* Action Buttons */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25, mt: 'auto', pt: 0.5 }}>
               <Button
+                fullWidth
                 variant="outlined"
                 color="inherit"
                 onClick={() => {
@@ -430,11 +584,12 @@ export function ColorView() {
                   setHistory([]);
                 }}
                 startIcon={<RefreshRoundedIcon />}
-                sx={{ flex: 1, py: 1.2, borderRadius: 2 }}
+                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
               >
                 다른 사진
               </Button>
               <Button
+                fullWidth
                 variant="contained"
                 color="primary"
                 onClick={handleSave}
@@ -446,17 +601,18 @@ export function ColorView() {
                     <DownloadRoundedIcon />
                   )
                 }
-                sx={{ flex: 1.5, py: 1.2, borderRadius: 2 }}
+                sx={{ py: 1.4, borderRadius: 2, fontWeight: 700, fontSize: '0.95rem' }}
               >
                 PNG 저장
               </Button>
               <Button
+                fullWidth
                 variant="contained"
                 color="secondary"
                 onClick={handleShare}
                 disabled={isProcessing}
                 startIcon={<ShareRoundedIcon />}
-                sx={{ flex: 1, py: 1.2, borderRadius: 2 }}
+                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
               >
                 공유
               </Button>

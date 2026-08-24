@@ -47,8 +47,40 @@ export function SeroView() {
   const [cropSettings, setCropSettings] = useState<CropSettings>(DEFAULT_VERTICAL_SETTINGS);
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [leftPanelWidth, setLeftPanelWidth] = useState<number>(380);
+
+  const isResizingRef = useRef<boolean>(false);
+  const resizeStartXRef = useRef<number>(0);
+  const resizeStartWidthRef = useRef<number>(380);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDividerPointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    isResizingRef.current = true;
+    resizeStartXRef.current = e.clientX;
+    resizeStartWidthRef.current = leftPanelWidth;
+  };
+
+  const handleDividerPointerMove = (e: React.PointerEvent) => {
+    if (!isResizingRef.current) return;
+    const deltaX = e.clientX - resizeStartXRef.current;
+    const newWidth = Math.max(280, Math.min(650, resizeStartWidthRef.current + deltaX));
+    setLeftPanelWidth(newWidth);
+  };
+
+  const handleDividerPointerUp = (e: React.PointerEvent) => {
+    if (isResizingRef.current) {
+      isResizingRef.current = false;
+      try {
+        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+      } catch {
+        // ignore
+      }
+    }
+  };
 
   useEffect(() => {
     getVerticalCropSettings().then((saved) => {
@@ -201,7 +233,7 @@ export function SeroView() {
     >
       <Box sx={{ mb: { xs: 1.5, sm: 2 }, flexShrink: 0 }}>
         <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
-          세로형 썸네일 일괄 생성기 (Vertical 636×1048)
+          세로형 썸네일 일괄 생성기
         </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
           스마트폰/숏폼/스토리 규격 세로 썸네일을 여러 장의 사진에서 동일한 영역으로 고속 일괄
@@ -277,16 +309,30 @@ export function SeroView() {
       ) : (
         <Box
           sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', md: '5fr 7fr' },
-            gap: 3,
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            gap: { xs: 2, md: 0 },
             flex: '1 1 auto',
             minHeight: 0,
-            overflow: 'auto',
+            height: '100%',
+            position: 'relative',
           }}
         >
           {/* Left: Options & Sliders */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              width: { xs: '100%', md: `${leftPanelWidth}px` },
+              minWidth: { md: `${leftPanelWidth}px` },
+              maxWidth: { md: `${leftPanelWidth}px` },
+              flexShrink: 0,
+              gap: 2,
+              minHeight: 0,
+              overflow: 'auto',
+              pr: { md: 1 },
+            }}
+          >
             <Card sx={{ p: 2.5, borderRadius: 3 }}>
               <Box
                 sx={{
@@ -381,38 +427,144 @@ export function SeroView() {
               </Box>
             </Card>
 
-            <Box sx={{ display: 'flex', gap: 1.5 }}>
+            {/* Action Buttons */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25, mt: 'auto', pt: 0.5 }}>
               <Button
+                fullWidth
                 variant="outlined"
                 color="inherit"
                 onClick={() => fileInputRef.current?.click()}
                 startIcon={<CloudUploadRoundedIcon />}
-                sx={{ flex: 1, py: 1.2, borderRadius: 2 }}
+                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
               >
                 + 사진 추가
               </Button>
               <Button
+                fullWidth
                 variant="contained"
-                color="success"
+                color="primary"
                 onClick={handleBatchDownload}
                 disabled={isProcessing || files.length === 0}
                 startIcon={<ArchiveRoundedIcon />}
-                sx={{ flex: 1.5, py: 1.2, borderRadius: 2, fontWeight: 800 }}
+                sx={{ py: 1.4, borderRadius: 2, fontWeight: 700, fontSize: '0.95rem' }}
               >
                 전체 ZIP 다운로드
               </Button>
             </Box>
           </Box>
 
+          {/* Draggable Divider (Desktop) */}
+          <Box
+            onPointerDown={handleDividerPointerDown}
+            onPointerMove={handleDividerPointerMove}
+            onPointerUp={handleDividerPointerUp}
+            sx={{
+              display: { xs: 'none', md: 'flex' },
+              width: 16,
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'col-resize',
+              userSelect: 'none',
+              touchAction: 'none',
+              zIndex: 10,
+              flexShrink: 0,
+              position: 'relative',
+              '&:hover .divider-bar, &:active .divider-bar': {
+                bgcolor: 'primary.main',
+                width: '3px',
+              },
+              '&:hover .divider-handle, &:active .divider-handle': {
+                bgcolor: 'primary.main',
+                borderColor: 'primary.main',
+                '& > div > div': {
+                  bgcolor: '#ffffff',
+                },
+              },
+            }}
+          >
+            {/* Divider Line */}
+            <Box
+              className="divider-bar"
+              sx={{
+                width: '2px',
+                height: '100%',
+                bgcolor: 'divider',
+                borderRadius: '1px',
+                transition: 'all 0.15s ease',
+              }}
+            />
+            {/* Grab Handle */}
+            <Box
+              className="divider-handle"
+              sx={{
+                position: 'absolute',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                width: 14,
+                height: 36,
+                borderRadius: 1,
+                bgcolor: 'background.paper',
+                border: '1px solid',
+                borderColor: 'divider',
+                boxShadow: 2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.15s ease',
+                pointerEvents: 'none',
+              }}
+            >
+              <Box
+                sx={{
+                  width: 4,
+                  height: 14,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  '& > div': {
+                    width: 1.5,
+                    height: '100%',
+                    bgcolor: 'text.disabled',
+                    borderRadius: 1,
+                    transition: 'all 0.15s ease',
+                  },
+                }}
+              >
+                <div />
+                <div />
+              </Box>
+            </Box>
+          </Box>
+
           {/* Right: Results Grid */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Card sx={{ p: 2.5, borderRadius: 3 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              flex: '1 1 0px',
+              minWidth: 0,
+              minHeight: 0,
+              height: '100%',
+              pl: { md: 1 },
+            }}
+          >
+            <Card
+              sx={{
+                p: 2.5,
+                borderRadius: 3,
+                flex: '1 1 auto',
+                minHeight: 0,
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
               <Box
                 sx={{
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   mb: 2,
+                  flexShrink: 0,
                 }}
               >
                 <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
@@ -428,8 +580,10 @@ export function SeroView() {
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 2,
-                  maxHeight: 480,
+                  flex: '1 1 auto',
+                  minHeight: 0,
                   overflowY: 'auto',
+                  pr: 0.5,
                 }}
               >
                 {files.map((file, idx) => (

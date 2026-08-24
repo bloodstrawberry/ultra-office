@@ -423,14 +423,15 @@ export function LogoView() {
             <CropSquareRoundedIcon sx={{ fontSize: { xs: 36, sm: 44 } }} />
           </Box>
           <Typography variant="h6" sx={{ fontWeight: 700, mb: 1, textAlign: 'center' }}>
-            자르고 크기를 조절할 사진 업로드
+            이미지 업로드
           </Typography>
           <Typography
             variant="body2"
             sx={{ color: 'text.secondary', mb: 3, textAlign: 'center', maxWidth: 480 }}
           >
-            프로필 사진, 앱 아이콘, 썸네일에 최적화되어 있습니다. 이미지를 드래그하거나
-            클립보드(Ctrl+V)로 붙여넣으세요.
+            프로필 사진, 앱 아이콘, 썸네일에 최적화되어 있습니다.
+            <br />
+            이미지를 드래그하거나 클립보드(Ctrl+V)에서 붙여넣으세요.
           </Typography>
           <Button
             variant="contained"
