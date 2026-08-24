@@ -891,7 +891,7 @@ export function renderPS1DemakeEffect(
     // Dithering pattern
     const px = (i / 4) % downW;
     const py = Math.floor(i / 4 / downW);
-    const dither = (px % 2) !== (py % 2) ? -6 : 6;
+    const dither = px % 2 !== py % 2 ? -6 : 6;
 
     let r = Math.min(255, Math.max(0, data[i] + dither));
     let g = Math.min(255, Math.max(0, data[i + 1] + dither));
@@ -1092,12 +1092,7 @@ export async function createMemeAnimatedGif(
         interval: 0.08,
         numWorkers: 2,
       },
-      (obj: {
-        error: boolean;
-        errorCode?: string;
-        errorMsg?: string;
-        image: string;
-      }) => {
+      (obj: { error: boolean; errorCode?: string; errorMsg?: string; image: string }) => {
         if (!obj.error) {
           resolve(obj.image);
         } else {

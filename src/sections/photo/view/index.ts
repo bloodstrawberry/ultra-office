@@ -15,6 +15,7 @@ export * from './meme-lab-view';
 export * from './photo-hub-view';
 export * from './art-style-view';
 export * from './watermark-view';
+export * from './scan-view';
 export * from './bg-remove-view';
 export * from './shape-crop-view';
 export * from './weathering-view';

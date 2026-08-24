@@ -63,6 +63,7 @@ export const paths = {
     shapeCrop: `/photo/shape-crop`,
     mosaic: `/photo/mosaic`,
     watermark: `/photo/watermark`,
+    scan: `/photo/scan`,
     gif: `/photo/gif`,
     pdf: `/photo/pdf`,
     logo: `/photo/logo`,

@@ -27,6 +27,7 @@ import PictureAsPdfRoundedIcon from '@mui/icons-material/PictureAsPdfRounded';
 import PhoneAndroidRoundedIcon from '@mui/icons-material/PhoneAndroidRounded';
 import HourglassBottomRoundedIcon from '@mui/icons-material/HourglassBottomRounded';
 import BrandingWatermarkRoundedIcon from '@mui/icons-material/BrandingWatermarkRounded';
+import DocumentScannerRoundedIcon from '@mui/icons-material/DocumentScannerRounded';
 
 import { paths } from 'src/routes/paths';
 
@@ -154,9 +155,20 @@ const TOOL_SECTIONS: { category: string; desc: string; tools: PhotoToolItem[] }[
       {
         id: 'watermark',
         title: '워터마크 각인기',
-        desc: '텍스트 & AI 로고(ChatGPT, Gemini, DeepSeek 등) 일괄 워터마크',
+        desc: '텍스트, 사용자 지정 로고/도장, AI 아이콘 대각선 반복 타일 일괄 각인',
         href: paths.photo.watermark,
         icon: <BrandingWatermarkRoundedIcon sx={{ fontSize: 28, color: '#6366f1' }} />,
+        tag: '추천',
+        badgeColor: 'primary',
+      },
+      {
+        id: 'scan',
+        title: '스캔 효과 & 문서 스캐너',
+        desc: '일반 스마트폰 촬영 문서를 선명한 평판 스캐너/복사기 룩으로 변환 & PDF 생성',
+        href: paths.photo.scan,
+        icon: <DocumentScannerRoundedIcon sx={{ fontSize: 28, color: '#0ea5e9' }} />,
+        tag: 'NEW',
+        badgeColor: 'success',
       },
     ],
   },

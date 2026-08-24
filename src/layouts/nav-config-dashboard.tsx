@@ -194,6 +194,7 @@ export const navData: NavSectionProps['data'] = [
           { title: '도형 자르기', path: paths.photo.shapeCrop },
           { title: '모자이크 & 블러', path: paths.photo.mosaic },
           { title: '워터마크 각인', path: paths.photo.watermark },
+          { title: '스캔 효과 · 문서 스캐너', path: paths.photo.scan },
           { title: 'GIF 스튜디오', path: paths.photo.gif },
           { title: 'PDF 스튜디오', path: paths.photo.pdf },
           { title: '로고 만들기', path: paths.photo.logo },
