@@ -77,9 +77,9 @@ export function GigaViewerView() {
     reader.readAsText(file);
   };
 
-  const handleExecuteSql = (sql: string) => {
+  const handleExecuteSql = async (sql: string) => {
     try {
-      const results = executeLogSql(allEntries, sql);
+      const results = await executeLogSql(allEntries, sql);
       setSqlResultEntries(results);
       toast.success(`SQL 쿼리 결과: ${results.length.toLocaleString()}건`);
     } catch (err: unknown) {

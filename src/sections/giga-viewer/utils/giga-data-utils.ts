@@ -1,4 +1,3 @@
-import alasql from 'alasql';
 import type { LogEntry, LogLevel, GigaFileSummary, GigaFilterOptions } from '../types';
 
 // ----------------------------------------------------------------------
@@ -131,9 +130,18 @@ export function filterLogEntries(entries: LogEntry[], filters: GigaFilterOptions
 /**
  * Execute AlaSQL query on log entries
  */
-export function executeLogSql(entries: LogEntry[], sqlQuery: string): LogEntry[] {
+export async function executeLogSql(entries: LogEntry[], sqlQuery: string): Promise<LogEntry[]> {
   try {
-    const res = alasql(sqlQuery, [entries]);
+    let alasqlInstance: any = typeof window !== 'undefined' ? (window as any).alasql : null;
+    if (!alasqlInstance) {
+      const mod = (await import('alasql' as any)) as any;
+      alasqlInstance =
+        (typeof window !== 'undefined' && (window as any).alasql) || mod.default || mod;
+    }
+    if (!alasqlInstance) {
+      throw new Error('AlaSQL 엔진을 로드할 수 없습니다.');
+    }
+    const res = alasqlInstance(sqlQuery, [entries]);
     if (Array.isArray(res)) return res as LogEntry[];
     return [];
   } catch (err) {

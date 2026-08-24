@@ -39,6 +39,7 @@ const nextConfig: any = {
     config.resolve = config.resolve || {};
     config.resolve.alias = {
       ...config.resolve.alias,
+      alasql: 'alasql/dist/alasql.min.js',
       'react-native-fs': false,
       'react-native-fetch-blob': false,
       cpexcel: false,
@@ -76,6 +77,7 @@ const nextConfig: any = {
   },
   turbopack: {
     resolveAlias: {
+      alasql: 'alasql/dist/alasql.min.js',
       'react-native-fs': './src/utils/empty-module.js',
       'react-native-fetch-blob': './src/utils/empty-module.js',
       cpexcel: './src/utils/empty-module.js',
