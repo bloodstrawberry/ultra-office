@@ -5,6 +5,7 @@ import React, { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
+import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
 import Slider from '@mui/material/Slider';
 import Typography from '@mui/material/Typography';
@@ -34,6 +35,10 @@ type ToolMode = 'fill' | 'erase';
 
 export function ColorView() {
   const [imageSrc, setImageSrc] = useState<string>('');
+  const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number }>({
+    width: 0,
+    height: 0,
+  });
   const [mode, setMode] = useState<ToolMode>('erase');
   const [fillColorHex, setFillColorHex] = useState<string>('#FFFFFF');
   const [tolerance, setTolerance] = useState<number>(25);
@@ -164,6 +169,7 @@ export function ColorView() {
       const img = new Image();
       img.crossOrigin = 'anonymous';
       img.onload = () => {
+        setImageDimensions({ width: img.width, height: img.height });
         const canvas = canvasRef.current;
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
@@ -352,6 +358,28 @@ export function ColorView() {
             >
               <Box
                 sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  mb: 1.5,
+                  flexShrink: 0,
+                }}
+              >
+                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                  편집 캔버스 ({mode === 'erase' ? '투명화 지우개' : '색상 채우기'})
+                </Typography>
+                {imageDimensions.width > 0 && (
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    label={`사진 크기: ${imageDimensions.width} × ${imageDimensions.height} px`}
+                    sx={{ fontWeight: 600 }}
+                  />
+                )}
+              </Box>
+
+              <Box
+                sx={{
                   position: 'relative',
                   width: '100%',
                   flex: '1 1 auto',
@@ -362,8 +390,8 @@ export function ColorView() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  background:
-                    'repeating-conic-gradient(#cbd5e1 0% 25%, #f1f5f9 0% 50%) 50% / 20px 20px',
+                  bgcolor: '#0f172a',
+                  p: { xs: 1, sm: 2 },
                 }}
               >
                 <canvas
@@ -377,6 +405,11 @@ export function ColorView() {
                     maxHeight: '100%',
                     objectFit: 'contain',
                     transition: 'transform 0.1s ease',
+                    background:
+                      'repeating-conic-gradient(#cbd5e1 0% 25%, #f1f5f9 0% 50%) 50% / 16px 16px',
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+                    borderRadius: 4,
+                    display: 'block',
                   }}
                 />
               </Box>
@@ -602,6 +635,7 @@ export function ColorView() {
                 onClick={() => {
                   setImageSrc('');
                   setHistory([]);
+                  setImageDimensions({ width: 0, height: 0 });
                 }}
                 startIcon={<RefreshRoundedIcon />}
                 sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
