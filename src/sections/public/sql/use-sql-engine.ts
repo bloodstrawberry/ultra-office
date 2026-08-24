@@ -17,7 +17,10 @@ import { SAMPLE_DATASETS } from './sample-datasets';
 const STORAGE_KEY_SOLVED = 'ultra_sql_solved_problems';
 const STORAGE_KEY_HISTORY = 'ultra_sql_query_history';
 
-type AlasqlFn = (sql: string, params?: unknown[]) => any;
+type AlasqlFn = {
+  (sql: string, params?: unknown[]): any;
+  databases?: Record<string, any>;
+};
 
 // ----------------------------------------------------------------------
 
@@ -102,9 +105,17 @@ export function useSqlEngine() {
       return;
     }
 
+    const dbName = `db_${datasetId}`;
+
     try {
-      alasql(`CREATE DATABASE IF NOT EXISTS db_${datasetId}`);
-      alasql(`USE db_${datasetId}`);
+      if (!alasql.databases || !alasql.databases[dbName]) {
+        try {
+          alasql(`CREATE DATABASE ${dbName}`);
+        } catch {
+          // ignore if already exists
+        }
+      }
+      alasql(`USE ${dbName}`);
 
       dataset.tables.forEach((table) => {
         try {
@@ -112,7 +123,11 @@ export function useSqlEngine() {
         } catch {
           // ignore drop errors
         }
-        alasql(table.ddl);
+        try {
+          alasql(table.ddl);
+        } catch (ddlErr) {
+          console.warn(`DDL execution warning on table ${table.name}`, ddlErr);
+        }
         if (table.initialData.length > 0) {
           const columns = Object.keys(table.initialData[0]).join(', ');
           table.initialData.forEach((row) => {
@@ -123,7 +138,11 @@ export function useSqlEngine() {
                 return val;
               })
               .join(', ');
-            alasql(`INSERT INTO ${table.name} (${columns}) VALUES (${values})`);
+            try {
+              alasql(`INSERT INTO ${table.name} (${columns}) VALUES (${values})`);
+            } catch (insertErr) {
+              console.warn(`Insert error on table ${table.name}`, insertErr);
+            }
           });
         }
       });
@@ -186,7 +205,15 @@ export function useSqlEngine() {
 
       try {
         initDatasetDb(targetDatasetId);
-        alasql(`USE db_${targetDatasetId}`);
+        const dbName = `db_${targetDatasetId}`;
+        if (!alasql.databases || !alasql.databases[dbName]) {
+          try {
+            alasql(`CREATE DATABASE ${dbName}`);
+          } catch {
+            // ignore if already created
+          }
+        }
+        alasql(`USE ${dbName}`);
 
         const rawResult: unknown = alasql(trimmedQuery);
         const endTime = performance.now();

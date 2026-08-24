@@ -120,38 +120,44 @@ export function SqlProblemPanel({
           color="primary"
         />
 
-        {/* Level Tabs */}
-        <Tabs
-          value={levelTab}
-          onChange={handleTabChange}
-          variant="fullWidth"
+        {/* Level Selector Tabs */}
+        <Box
           sx={{
-            minHeight: 34,
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
             bgcolor: 'background.paper',
             borderRadius: 1.5,
-            p: 0.3,
+            p: '3px',
             border: (theme) => `1px solid ${theme.vars.palette.divider}`,
-            '& .MuiTab-root': {
-              minHeight: 28,
-              fontSize: 12,
-              py: 0.4,
-              fontWeight: 700,
-              borderRadius: 1,
-              '&.Mui-selected': {
-                bgcolor: 'primary.main',
-                color: '#ffffff !important',
-              },
-            },
-            '& .MuiTabs-indicator': {
-              display: 'none',
-            },
+            gap: '4px',
           }}
         >
-          <Tab value={1} label="Lv 1 기초" />
-          <Tab value={2} label="Lv 2 중급" />
-          <Tab value={3} label="Lv 3 고급" />
-          <Tab value={4} label="Lv 4 심화" />
-        </Tabs>
+          {[
+            { val: 1 as ProblemLevel, label: 'Lv 1 기초' },
+            { val: 2 as ProblemLevel, label: 'Lv 2 중급' },
+            { val: 3 as ProblemLevel, label: 'Lv 3 고급' },
+            { val: 4 as ProblemLevel, label: 'Lv 4 심화' },
+          ].map((item) => (
+            <Button
+              key={item.val}
+              size="small"
+              onClick={() => handleTabChange(null as any, item.val)}
+              sx={{
+                height: 28,
+                fontSize: 12,
+                fontWeight: 700,
+                borderRadius: 1,
+                bgcolor: levelTab === item.val ? 'primary.main' : 'transparent',
+                color: levelTab === item.val ? '#ffffff' : 'text.secondary',
+                '&:hover': {
+                  bgcolor: levelTab === item.val ? 'primary.dark' : 'action.hover',
+                },
+              }}
+            >
+              {item.label}
+            </Button>
+          ))}
+        </Box>
 
         {/* Horizontal Problem Selector for Current Level */}
         <Box
@@ -317,7 +323,14 @@ export function SqlProblemPanel({
               startIcon={<LightbulbRoundedIcon />}
               endIcon={showHint ? <ExpandLessRoundedIcon /> : <ExpandMoreRoundedIcon />}
               onClick={() => setShowHint((prev) => !prev)}
-              sx={{ justifyContent: 'space-between', textTransform: 'none' }}
+              sx={{
+                height: 36,
+                justifyContent: 'space-between',
+                textTransform: 'none',
+                borderRadius: 1.5,
+                fontWeight: 700,
+                fontSize: '0.8125rem',
+              }}
             >
               힌트 보기 (Hint)
             </Button>
@@ -326,7 +339,7 @@ export function SqlProblemPanel({
                 sx={{
                   mt: 1,
                   p: 1.5,
-                  borderRadius: 1,
+                  borderRadius: 1.5,
                   bgcolor: 'info.lighter',
                   color: 'info.darker',
                   fontSize: 13,
@@ -349,7 +362,14 @@ export function SqlProblemPanel({
               startIcon={<HelpOutlineRoundedIcon />}
               endIcon={showSolution ? <ExpandLessRoundedIcon /> : <ExpandMoreRoundedIcon />}
               onClick={() => setShowSolution((prev) => !prev)}
-              sx={{ justifyContent: 'space-between', textTransform: 'none' }}
+              sx={{
+                height: 36,
+                justifyContent: 'space-between',
+                textTransform: 'none',
+                borderRadius: 1.5,
+                fontWeight: 700,
+                fontSize: '0.8125rem',
+              }}
             >
               정답 쿼리 보기 (Solution)
             </Button>
@@ -358,7 +378,7 @@ export function SqlProblemPanel({
                 sx={{
                   mt: 1,
                   p: 1.5,
-                  borderRadius: 1,
+                  borderRadius: 1.5,
                   bgcolor: 'background.paper',
                   border: (theme) => `1px solid ${theme.vars.palette.divider}`,
                 }}

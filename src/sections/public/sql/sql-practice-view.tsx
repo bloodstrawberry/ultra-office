@@ -163,7 +163,8 @@ export function SqlPracticeView() {
       {/* 2. Controls Toolbar Bar (연습문제 풀이, 자유 쿼리 샌드박스, DB 선택, DB 초기화, 실행기록) */}
       <Card
         sx={{
-          p: 1.25,
+          px: 2,
+          py: 1.25,
           mb: 2,
           flexShrink: 0,
           borderRadius: 2,
@@ -176,46 +177,67 @@ export function SqlPracticeView() {
           border: (theme) => `1px solid ${theme.vars.palette.divider}`,
         }}
       >
-        {/* Left: Mode Switcher Tabs */}
-        <Tabs
-          value={mode}
-          onChange={handleModeChange}
+        {/* Left: Mode Switcher Segmented Control */}
+        <Box
           sx={{
-            minHeight: 38,
-            bgcolor: 'background.neutral',
+            display: 'inline-flex',
+            alignItems: 'center',
+            p: '3px',
             borderRadius: 1.5,
-            p: 0.5,
-            '& .MuiTab-root': {
-              minHeight: 30,
-              borderRadius: 1,
-              py: 0.5,
-              px: 2,
-              fontWeight: 700,
-              fontSize: '0.875rem',
-              '&.Mui-selected': {
-                bgcolor: 'background.paper',
-                color: 'primary.main',
-                boxShadow: (theme) => theme.customShadows?.z1 || '0 1px 3px rgba(0,0,0,0.1)',
-              },
-            },
-            '& .MuiTabs-indicator': {
-              display: 'none',
-            },
+            bgcolor: 'background.neutral',
+            border: (theme) => `1px solid ${theme.vars.palette.divider}`,
+            gap: '4px',
+            height: 38,
+            boxSizing: 'border-box',
           }}
         >
-          <Tab
-            value="challenges"
-            icon={<SchoolRoundedIcon sx={{ fontSize: 18 }} />}
-            iconPosition="start"
-            label="연습문제 풀이"
-          />
-          <Tab
-            value="playground"
-            icon={<CodeRoundedIcon sx={{ fontSize: 18 }} />}
-            iconPosition="start"
-            label="자유 쿼리 샌드박스"
-          />
-        </Tabs>
+          <Button
+            size="small"
+            onClick={() => handleModeChange(null as any, 'challenges')}
+            startIcon={<SchoolRoundedIcon sx={{ fontSize: 17 }} />}
+            sx={{
+              height: 30,
+              px: 1.5,
+              fontSize: '0.8125rem',
+              fontWeight: 700,
+              borderRadius: 1,
+              bgcolor: mode === 'challenges' ? 'background.paper' : 'transparent',
+              color: mode === 'challenges' ? 'primary.main' : 'text.secondary',
+              boxShadow:
+                mode === 'challenges'
+                  ? (theme) => theme.customShadows?.z1 || '0 1px 3px rgba(0,0,0,0.1)'
+                  : 'none',
+              '&:hover': {
+                bgcolor: mode === 'challenges' ? 'background.paper' : 'action.hover',
+              },
+            }}
+          >
+            연습문제 풀이
+          </Button>
+          <Button
+            size="small"
+            onClick={() => handleModeChange(null as any, 'playground')}
+            startIcon={<CodeRoundedIcon sx={{ fontSize: 17 }} />}
+            sx={{
+              height: 30,
+              px: 1.5,
+              fontSize: '0.8125rem',
+              fontWeight: 700,
+              borderRadius: 1,
+              bgcolor: mode === 'playground' ? 'background.paper' : 'transparent',
+              color: mode === 'playground' ? 'primary.main' : 'text.secondary',
+              boxShadow:
+                mode === 'playground'
+                  ? (theme) => theme.customShadows?.z1 || '0 1px 3px rgba(0,0,0,0.1)'
+                  : 'none',
+              '&:hover': {
+                bgcolor: mode === 'playground' ? 'background.paper' : 'action.hover',
+              },
+            }}
+          >
+            자유 쿼리 샌드박스
+          </Button>
+        </Box>
 
         {/* Right: DB Selector, Reset DB, Query History */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, flexWrap: 'wrap' }}>
@@ -228,7 +250,7 @@ export function SqlPracticeView() {
               value={currentDatasetId}
               label="데이터베이스 선택"
               onChange={(e) => setCurrentDatasetId(e.target.value)}
-              sx={{ fontSize: '0.875rem', height: 36, fontWeight: 600 }}
+              sx={{ fontSize: '0.875rem', height: 38, fontWeight: 600 }}
             >
               {datasets.map((ds) => (
                 <MenuItem key={ds.id} value={ds.id} sx={{ fontSize: '0.875rem' }}>
@@ -253,7 +275,7 @@ export function SqlPracticeView() {
               color="inherit"
               startIcon={<RefreshRoundedIcon />}
               onClick={handleResetDb}
-              sx={{ height: 36, px: 1.75, fontWeight: 600, borderRadius: 1.5 }}
+              sx={{ height: 38, px: 1.75, fontWeight: 600, borderRadius: 1.5 }}
             >
               DB 초기화
             </Button>
@@ -266,7 +288,7 @@ export function SqlPracticeView() {
               color="inherit"
               startIcon={<HistoryRoundedIcon />}
               onClick={() => setHistoryOpen(true)}
-              sx={{ height: 36, px: 1.75, fontWeight: 600, borderRadius: 1.5 }}
+              sx={{ height: 38, px: 1.75, fontWeight: 600, borderRadius: 1.5 }}
             >
               실행기록 ({queryHistory.length})
             </Button>

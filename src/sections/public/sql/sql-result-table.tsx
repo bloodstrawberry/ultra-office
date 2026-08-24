@@ -157,7 +157,9 @@ export function SqlResultTable({
       <Box
         sx={{
           px: 2,
-          py: 1.2,
+          py: 1,
+          minHeight: 48,
+          boxSizing: 'border-box',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -167,7 +169,7 @@ export function SqlResultTable({
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
             {title}
           </Typography>
           <Chip
@@ -175,12 +177,13 @@ export function SqlResultTable({
             label={`${result.rowCount} Rows`}
             color={result.rowCount > 0 ? 'primary' : 'default'}
             variant="outlined"
+            sx={{ fontWeight: 700, fontSize: 11, height: 24 }}
           />
           <Chip
             size="small"
             label={`${result.executionTimeMs} ms`}
             variant="outlined"
-            sx={{ fontSize: 11 }}
+            sx={{ fontSize: 11, height: 24, fontWeight: 600 }}
           />
         </Box>
 

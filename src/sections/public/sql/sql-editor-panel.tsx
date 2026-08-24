@@ -284,6 +284,8 @@ export function SqlEditorPanel({
         sx={{
           px: 2,
           py: 1,
+          minHeight: 48,
+          boxSizing: 'border-box',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
