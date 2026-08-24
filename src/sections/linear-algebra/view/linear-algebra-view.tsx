@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import type { Matrix2x2 } from '../types';
+
+import React, { useMemo, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -9,7 +11,6 @@ import Grid4x4RoundedIcon from '@mui/icons-material/Grid4x4Rounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import type { Matrix2x2 } from '../types';
 import { calculateMatrixStats } from '../utils/matrix-math';
 import { TransformationCanvas } from '../components/transformation-canvas';
 import { MatrixCalculatorPanel } from '../components/matrix-calculator-panel';

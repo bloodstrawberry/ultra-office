@@ -1,5 +1,7 @@
 'use client';
 
+import type { StampType, StampFont, StampConfig } from '../types';
+
 import { toast } from 'sonner';
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 
@@ -16,11 +18,10 @@ import InputLabel from '@mui/material/InputLabel';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControl from '@mui/material/FormControl';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
-import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 
-import type { StampConfig, StampType, StampFont } from '../types';
 import { renderStampCanvas } from '../utils/stamp-renderer';
 
 // ----------------------------------------------------------------------

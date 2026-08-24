@@ -13,7 +13,6 @@ import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
-import CircularProgress from '@mui/material/CircularProgress';
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
 import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
 import PauseRoundedIcon from '@mui/icons-material/PauseRounded';

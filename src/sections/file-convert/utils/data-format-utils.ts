@@ -1,5 +1,5 @@
-import * as yaml from 'js-yaml';
 import Papa from 'papaparse';
+import * as yaml from 'js-yaml';
 import * as xmlJs from 'xml-js';
 
 // ----------------------------------------------------------------------

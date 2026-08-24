@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import { CONFIG } from 'src/global-config';
+
 import { ScanView } from 'src/sections/photo/view/scan-view';
 
 export const metadata: Metadata = {

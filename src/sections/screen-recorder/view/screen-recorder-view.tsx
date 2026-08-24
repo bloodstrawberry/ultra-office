@@ -1,19 +1,19 @@
 'use client';
 
+import type { RecordedMedia } from '../types';
+
 import React, { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
-import VideocamRoundedIcon from '@mui/icons-material/VideocamRounded';
 import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded';
+import VideocamRoundedIcon from '@mui/icons-material/VideocamRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import type { RecordedMedia } from '../types';
-import { RecordControlPanel } from '../components/record-control-panel';
 import { VideoEditorPanel } from '../components/video-editor-panel';
+import { RecordControlPanel } from '../components/record-control-panel';
 
 // ----------------------------------------------------------------------
 

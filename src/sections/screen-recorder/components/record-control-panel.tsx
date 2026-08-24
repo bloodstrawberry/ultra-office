@@ -1,5 +1,7 @@
 'use client';
 
+import type { RecordedMedia, RecordingStatus, RecordingSource } from '../types';
+
 import { toast } from 'sonner';
 import React, { useRef, useState, useEffect } from 'react';
 
@@ -8,15 +10,13 @@ import Card from '@mui/material/Card';
 import Switch from '@mui/material/Switch';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import VideocamRoundedIcon from '@mui/icons-material/VideocamRounded';
 import MicRoundedIcon from '@mui/icons-material/MicRounded';
-import StopCircleRoundedIcon from '@mui/icons-material/StopCircleRounded';
-import FiberManualRecordRoundedIcon from '@mui/icons-material/FiberManualRecordRounded';
-import PauseCircleRoundedIcon from '@mui/icons-material/PauseCircleRounded';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
+import StopCircleRoundedIcon from '@mui/icons-material/StopCircleRounded';
+import PauseCircleRoundedIcon from '@mui/icons-material/PauseCircleRounded';
+import FiberManualRecordRoundedIcon from '@mui/icons-material/FiberManualRecordRounded';
 
-import type { RecordedMedia, RecordingStatus, RecordingSource } from '../types';
 import { formatTime } from '../utils/screen-recorder-utils';
 
 // ----------------------------------------------------------------------
@@ -37,14 +37,15 @@ export function RecordControlPanel({ onRecordingComplete }: RecordControlPanelPr
   const streamRef = useRef<MediaStream | null>(null);
 
   // Clean up timer on unmount
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       if (timerRef.current) clearInterval(timerRef.current);
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((t) => t.stop());
       }
-    };
-  }, []);
+    },
+    []
+  );
 
   const startTimer = () => {
     setElapsedSeconds(0);

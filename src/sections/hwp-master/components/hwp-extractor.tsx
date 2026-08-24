@@ -1,20 +1,19 @@
 'use client';
 
+import type { HwpDocument } from '../types';
+
 import React from 'react';
-import { toast } from 'sonner';
 import Papa from 'papaparse';
+import { toast } from 'sonner';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import TableViewRoundedIcon from '@mui/icons-material/TableViewRounded';
-import TextSnippetRoundedIcon from '@mui/icons-material/TextSnippetRounded';
-
-import type { HwpDocument } from '../types';
+import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 
 // ----------------------------------------------------------------------
 

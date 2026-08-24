@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import type { LogEntry, GigaFileSummary, GigaFilterOptions } from '../types';
+
 import { toast } from 'sonner';
+import React, { useMemo, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
-import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -15,15 +16,14 @@ import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import type { LogEntry, GigaFileSummary, GigaFilterOptions } from '../types';
-import {
-  parseLogText,
-  filterLogEntries,
-  executeLogSql,
-  generateSampleLogs,
-} from '../utils/giga-data-utils';
 import { LogStreamViewer } from '../components/log-stream-viewer';
 import { GigaQueryToolbar } from '../components/giga-query-toolbar';
+import {
+  parseLogText,
+  executeLogSql,
+  filterLogEntries,
+  generateSampleLogs,
+} from '../utils/giga-data-utils';
 
 // ----------------------------------------------------------------------
 

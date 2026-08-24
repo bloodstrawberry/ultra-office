@@ -1,21 +1,22 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useRouter } from 'src/routes/hooks';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
+import List from '@mui/material/List';
+import Chip from '@mui/material/Chip';
 import Dialog from '@mui/material/Dialog';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import InputAdornment from '@mui/material/InputAdornment';
-import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
-import Chip from '@mui/material/Chip';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import KeyboardCommandKeyRoundedIcon from '@mui/icons-material/KeyboardCommandKeyRounded';
 
-import { TOOLS_DATA, CATEGORIES, type ToolItem } from 'src/sections/home/home-tools-data';
+import { useRouter } from 'src/routes/hooks';
+
+import { TOOLS_DATA } from 'src/sections/home/home-tools-data';
 
 // ----------------------------------------------------------------------
 

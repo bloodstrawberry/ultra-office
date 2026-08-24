@@ -20,18 +20,19 @@ import ToggleButton from '@mui/material/ToggleButton';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import CircularProgress from '@mui/material/CircularProgress';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import ImageRoundedIcon from '@mui/icons-material/ImageRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
-import AddPhotoAlternateRoundedIcon from '@mui/icons-material/AddPhotoAlternateRounded';
 import ArchiveRoundedIcon from '@mui/icons-material/ArchiveRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
-import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
-import BrandingWatermarkRoundedIcon from '@mui/icons-material/BrandingWatermarkRounded';
 import TextFieldsRoundedIcon from '@mui/icons-material/TextFieldsRounded';
-import ImageRoundedIcon from '@mui/icons-material/ImageRounded';
+import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
+import BrandingWatermarkRoundedIcon from '@mui/icons-material/BrandingWatermarkRounded';
 
 import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
+
 import { DashboardContent } from 'src/layouts/dashboard';
+
 import { downloadDataUrl } from '../utils/image-processor';
 import { downloadZipFile, type ZipFileEntry } from '../utils/zip-exporter';
 

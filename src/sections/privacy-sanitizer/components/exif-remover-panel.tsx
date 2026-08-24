@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import type { ExifReport } from '../types';
+
 import { toast } from 'sonner';
+import React, { useState } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -9,12 +11,10 @@ import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
-import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
+import ShieldRoundedIcon from '@mui/icons-material/ShieldRounded';
 import UploadFileRoundedIcon from '@mui/icons-material/UploadFileRounded';
 import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded';
-import ShieldRoundedIcon from '@mui/icons-material/ShieldRounded';
 
-import type { ExifReport } from '../types';
 import { inspectExif, sanitizeImageExif } from '../utils/privacy-utils';
 
 // ----------------------------------------------------------------------

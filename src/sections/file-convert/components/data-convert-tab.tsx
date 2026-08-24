@@ -19,12 +19,12 @@ import TextFieldsRoundedIcon from '@mui/icons-material/TextFieldsRounded';
 import DataObjectRoundedIcon from '@mui/icons-material/DataObjectRounded';
 
 import {
+  type DataFormat,
   convertDataFormat,
   generateSqlFromData,
   decodeBase64ToString,
   encodeStringToBase64,
   generateTypeScriptInterface,
-  type DataFormat,
 } from '../utils/data-format-utils';
 
 // ----------------------------------------------------------------------

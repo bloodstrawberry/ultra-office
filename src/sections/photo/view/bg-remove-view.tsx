@@ -17,26 +17,23 @@ import FormControl from '@mui/material/FormControl';
 import ToggleButton from '@mui/material/ToggleButton';
 import LinearProgress from '@mui/material/LinearProgress';
 import CircularProgress from '@mui/material/CircularProgress';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import BlurOnRoundedIcon from '@mui/icons-material/BlurOnRounded';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import UndoRoundedIcon from '@mui/icons-material/UndoRounded';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
+import BlurOnRoundedIcon from '@mui/icons-material/BlurOnRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import GradientRoundedIcon from '@mui/icons-material/GradientRounded';
+import SwapVertRoundedIcon from '@mui/icons-material/SwapVertRounded';
 import ColorLensRoundedIcon from '@mui/icons-material/ColorLensRounded';
+import SwapHorizRoundedIcon from '@mui/icons-material/SwapHorizRounded';
 import ViewStreamRoundedIcon from '@mui/icons-material/ViewStreamRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
-import SwapHorizRoundedIcon from '@mui/icons-material/SwapHorizRounded';
-import SwapVertRoundedIcon from '@mui/icons-material/SwapVertRounded';
 import InvertColorsRoundedIcon from '@mui/icons-material/InvertColorsRounded';
 import CompareArrowsRoundedIcon from '@mui/icons-material/CompareArrowsRounded';
-
-import { paths } from 'src/routes/paths';
-import { RouterLink } from 'src/routes/components';
 
 import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
 
@@ -560,7 +557,7 @@ export function BgRemoveView() {
   // ---------- Display Computed Values ----------
 
   // Current display image URL based on selected bgStyle
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
   const currentRenderedUrl = React.useMemo(() => {
     if (!result) return '';
     if (bgStyle === 'transparent') {
@@ -716,7 +713,8 @@ export function BgRemoveView() {
             />
           </Box>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            서버 전송 없이 브라우저 WebGPU 가속으로 인물, 헤어라인, 복잡한 사물 배경을 정밀 분리합니다.
+            서버 전송 없이 브라우저 WebGPU 가속으로 인물, 헤어라인, 복잡한 사물 배경을 정밀
+            분리합니다.
           </Typography>
         </Box>
 
@@ -901,12 +899,13 @@ export function BgRemoveView() {
                 minWidth: 0,
                 minHeight: 0,
                 height: '100%',
-                pr: { lg: 1 },
+                pr: { lg: 1.5 },
               }}
             >
               <Card
                 sx={{
-                  p: 2,
+                  px: { xs: 2, md: 4 },
+                  py: 2.5,
                   borderRadius: 3,
                   display: 'flex',
                   flexDirection: 'column',
@@ -936,17 +935,26 @@ export function BgRemoveView() {
                       }}
                       size="small"
                       disabled={isTouchupMode}
+                      sx={{
+                        '& .MuiToggleButtonGroup-grouped': {
+                          px: 2,
+                          py: 0.75,
+                          fontSize: '0.8125rem',
+                          fontWeight: 700,
+                          whiteSpace: 'nowrap',
+                        },
+                      }}
                     >
                       <ToggleButton value="split">
-                        <CompareArrowsRoundedIcon sx={{ mr: 0.5, fontSize: 18 }} />
+                        <CompareArrowsRoundedIcon sx={{ fontSize: 18 }} />
                         Before/After 비교 슬라이더
                       </ToggleButton>
                       <ToggleButton value="single">
-                        <ViewStreamRoundedIcon sx={{ mr: 0.5, fontSize: 18 }} />
+                        <ViewStreamRoundedIcon sx={{ fontSize: 18 }} />
                         결과물 보기
                       </ToggleButton>
                       <ToggleButton value="mask">
-                        <BlurOnRoundedIcon sx={{ mr: 0.5, fontSize: 18 }} />
+                        <BlurOnRoundedIcon sx={{ fontSize: 18 }} />
                         알파 마스크 보기
                       </ToggleButton>
                     </ToggleButtonGroup>
@@ -960,18 +968,22 @@ export function BgRemoveView() {
                           exclusive
                           onChange={(_, v) => v && setSplitOrientation(v)}
                           size="small"
+                          sx={{
+                            '& .MuiToggleButtonGroup-grouped': {
+                              px: 1.5,
+                              py: 0.5,
+                              fontSize: '0.75rem',
+                              fontWeight: 700,
+                            },
+                          }}
                         >
-                          <ToggleButton
-                            value="horizontal"
-                            sx={{ px: 1.2, py: 0.5, fontSize: '0.75rem', fontWeight: 700 }}
-                          >
-                            <SwapHorizRoundedIcon sx={{ fontSize: 16, mr: 0.5 }} />좌우
+                          <ToggleButton value="horizontal">
+                            <SwapHorizRoundedIcon sx={{ fontSize: 16 }} />
+                            좌우
                           </ToggleButton>
-                          <ToggleButton
-                            value="vertical"
-                            sx={{ px: 1.2, py: 0.5, fontSize: '0.75rem', fontWeight: 700 }}
-                          >
-                            <SwapVertRoundedIcon sx={{ fontSize: 16, mr: 0.5 }} />상하
+                          <ToggleButton value="vertical">
+                            <SwapVertRoundedIcon sx={{ fontSize: 16 }} />
+                            상하
                           </ToggleButton>
                         </ToggleButtonGroup>
 
@@ -981,19 +993,21 @@ export function BgRemoveView() {
                           exclusive
                           onChange={(_, v) => v && setSplitMode(v)}
                           size="small"
+                          sx={{
+                            '& .MuiToggleButtonGroup-grouped': {
+                              px: 1.5,
+                              py: 0.5,
+                              fontSize: '0.75rem',
+                              fontWeight: 700,
+                            },
+                          }}
                         >
-                          <ToggleButton
-                            value="inside"
-                            sx={{ px: 1.2, py: 0.5, fontSize: '0.75rem', fontWeight: 700 }}
-                          >
+                          <ToggleButton value="inside">
                             {splitOrientation === 'horizontal'
                               ? '→ [중앙 투명] ←'
                               : '↓ [중앙 투명] ↑'}
                           </ToggleButton>
-                          <ToggleButton
-                            value="outside"
-                            sx={{ px: 1.2, py: 0.5, fontSize: '0.75rem', fontWeight: 700 }}
-                          >
+                          <ToggleButton value="outside">
                             {splitOrientation === 'horizontal'
                               ? '← [양끝 투명] →'
                               : '↑ [상하 투명] ↓'}
@@ -1375,35 +1389,35 @@ export function BgRemoveView() {
                           sx={
                             splitOrientation === 'horizontal'
                               ? {
-                                position: 'absolute',
-                                top: 0,
-                                bottom: 0,
-                                left: `${splitStart}%`,
-                                width: 3,
-                                bgcolor: '#3b82f6',
-                                boxShadow: '0 0 8px rgba(59,130,246,0.6)',
-                                cursor: 'ew-resize',
-                                zIndex: 10,
-                                transform: 'translateX(-50%)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                              }
+                                  position: 'absolute',
+                                  top: 0,
+                                  bottom: 0,
+                                  left: `${splitStart}%`,
+                                  width: 3,
+                                  bgcolor: '#3b82f6',
+                                  boxShadow: '0 0 8px rgba(59,130,246,0.6)',
+                                  cursor: 'ew-resize',
+                                  zIndex: 10,
+                                  transform: 'translateX(-50%)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                }
                               : {
-                                position: 'absolute',
-                                left: 0,
-                                right: 0,
-                                top: `${splitStart}%`,
-                                height: 3,
-                                bgcolor: '#3b82f6',
-                                boxShadow: '0 0 8px rgba(59,130,246,0.6)',
-                                cursor: 'ns-resize',
-                                zIndex: 10,
-                                transform: 'translateY(-50%)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                              }
+                                  position: 'absolute',
+                                  left: 0,
+                                  right: 0,
+                                  top: `${splitStart}%`,
+                                  height: 3,
+                                  bgcolor: '#3b82f6',
+                                  boxShadow: '0 0 8px rgba(59,130,246,0.6)',
+                                  cursor: 'ns-resize',
+                                  zIndex: 10,
+                                  transform: 'translateY(-50%)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                }
                           }
                         >
                           <Box
@@ -1462,35 +1476,35 @@ export function BgRemoveView() {
                           sx={
                             splitOrientation === 'horizontal'
                               ? {
-                                position: 'absolute',
-                                top: 0,
-                                bottom: 0,
-                                left: `${splitEnd}%`,
-                                width: 3,
-                                bgcolor: '#ffffff',
-                                boxShadow: '0 0 8px rgba(0,0,0,0.5)',
-                                cursor: 'ew-resize',
-                                zIndex: 10,
-                                transform: 'translateX(-50%)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                              }
+                                  position: 'absolute',
+                                  top: 0,
+                                  bottom: 0,
+                                  left: `${splitEnd}%`,
+                                  width: 3,
+                                  bgcolor: '#ffffff',
+                                  boxShadow: '0 0 8px rgba(0,0,0,0.5)',
+                                  cursor: 'ew-resize',
+                                  zIndex: 10,
+                                  transform: 'translateX(-50%)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                }
                               : {
-                                position: 'absolute',
-                                left: 0,
-                                right: 0,
-                                top: `${splitEnd}%`,
-                                height: 3,
-                                bgcolor: '#ffffff',
-                                boxShadow: '0 0 8px rgba(0,0,0,0.5)',
-                                cursor: 'ns-resize',
-                                zIndex: 10,
-                                transform: 'translateY(-50%)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                              }
+                                  position: 'absolute',
+                                  left: 0,
+                                  right: 0,
+                                  top: `${splitEnd}%`,
+                                  height: 3,
+                                  bgcolor: '#ffffff',
+                                  boxShadow: '0 0 8px rgba(0,0,0,0.5)',
+                                  cursor: 'ns-resize',
+                                  zIndex: 10,
+                                  transform: 'translateY(-50%)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                }
                           }
                         >
                           <Box
@@ -1668,8 +1682,7 @@ export function BgRemoveView() {
                 gap: 2,
                 minHeight: 0,
                 overflow: 'auto',
-                pl: { lg: 1 },
-                pr: 0.5,
+                pl: { lg: 1.5 },
               }}
             >
               {/* Model & AI Settings Card */}

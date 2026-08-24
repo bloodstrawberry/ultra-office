@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useRef, useState, useCallback } from 'react';
+import type { RedactBox } from '../types';
+
 import { toast } from 'sonner';
+import React, { useRef, useState } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -12,8 +14,6 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import UploadFileRoundedIcon from '@mui/icons-material/UploadFileRounded';
 import DeleteSweepRoundedIcon from '@mui/icons-material/DeleteSweepRounded';
-
-import type { RedactBox } from '../types';
 
 // ----------------------------------------------------------------------
 

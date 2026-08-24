@@ -1,5 +1,7 @@
 'use client';
 
+import type { HwpDocument, HwpViewMode, HwpDocCategory } from '../types';
+
 import { toast } from 'sonner';
 import React, { useState, useEffect, useCallback } from 'react';
 
@@ -31,7 +33,6 @@ import FormatListBulletedRoundedIcon from '@mui/icons-material/FormatListBullete
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import type { HwpDocument, HwpViewMode, HwpDocCategory } from '../types';
 import { HwpViewer } from '../components/hwp-viewer';
 import { HwpExtractor } from '../components/hwp-extractor';
 import { loadHwpDocument, SAMPLE_HWP_DOCS } from '../utils/hwpx-parser';

@@ -233,7 +233,8 @@ export function ScheduleView() {
           sx={{
             p: 2,
             borderRadius: 2,
-            height: '100%',
+            height: { xs: 'auto', lg: '100%' },
+            minHeight: { xs: 480, lg: 'auto' },
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
@@ -266,7 +267,8 @@ export function ScheduleView() {
           sx={{
             p: 2.5,
             borderRadius: 2,
-            height: '100%',
+            height: { xs: 'auto', lg: '100%' },
+            minHeight: { xs: 350, lg: 'auto' },
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',

@@ -1,5 +1,7 @@
 'use client';
 
+import type { MergeClipItem } from '../types';
+
 import { toast } from 'sonner';
 import React, { useState } from 'react';
 
@@ -12,14 +14,13 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import ListItemText from '@mui/material/ListItemText';
 import LinearProgress from '@mui/material/LinearProgress';
-import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
-import ArrowUpwardRoundedIcon from '@mui/icons-material/ArrowUpwardRounded';
-import ArrowDownwardRoundedIcon from '@mui/icons-material/ArrowDownwardRounded';
-import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
-import CallMergeRoundedIcon from '@mui/icons-material/CallMergeRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
+import CallMergeRoundedIcon from '@mui/icons-material/CallMergeRounded';
+import ArrowUpwardRoundedIcon from '@mui/icons-material/ArrowUpwardRounded';
+import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
+import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
+import ArrowDownwardRoundedIcon from '@mui/icons-material/ArrowDownwardRounded';
 
-import type { MergeClipItem } from '../types';
 import { formatTime, formatBytes } from '../utils/audio-processor';
 
 // ----------------------------------------------------------------------
@@ -150,8 +151,8 @@ export function VideoMergePanel() {
     w: number,
     h: number,
     onProgress: (sec: number) => void
-  ): Promise<void> => {
-    return new Promise((resolve) => {
+  ): Promise<void> =>
+    new Promise((resolve) => {
       const video = document.createElement('video');
       video.src = url;
       video.crossOrigin = 'anonymous';
@@ -185,7 +186,6 @@ export function VideoMergePanel() {
         requestAnimationFrame(drawLoop);
       };
     });
-  };
 
   const handleDownloadMerged = () => {
     if (!mergedBlobUrl) return;

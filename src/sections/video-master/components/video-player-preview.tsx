@@ -1,5 +1,12 @@
 'use client';
 
+import type {
+  TransformSettings,
+  WatermarkSettings,
+  TextOverlaySettings,
+  VideoFilterSettings,
+} from '../types';
+
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
@@ -10,20 +17,14 @@ import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
-import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
 import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded';
-import VolumeOffRoundedIcon from '@mui/icons-material/VolumeOffRounded';
 import Replay10RoundedIcon from '@mui/icons-material/Replay10Rounded';
+import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
+import VolumeOffRoundedIcon from '@mui/icons-material/VolumeOffRounded';
 import Forward10RoundedIcon from '@mui/icons-material/Forward10Rounded';
 import FullscreenRoundedIcon from '@mui/icons-material/FullscreenRounded';
 
-import type {
-  TransformSettings,
-  WatermarkSettings,
-  TextOverlaySettings,
-  VideoFilterSettings,
-} from '../types';
 import { formatTime } from '../utils/audio-processor';
 import { drawVideoFrameToCanvas } from '../utils/video-processor';
 

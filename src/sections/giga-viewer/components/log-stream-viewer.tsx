@@ -1,16 +1,16 @@
 'use client';
 
+import type { LogEntry } from '../types';
+
+import { toast } from 'sonner';
 import React, { useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Typography from '@mui/material/Typography';
-import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import IconButton from '@mui/material/IconButton';
-import { toast } from 'sonner';
-
-import type { LogEntry } from '../types';
+import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 
 // ----------------------------------------------------------------------
 

@@ -318,7 +318,15 @@ export function SpreadsheetView() {
       </Card>
 
       {/* Spreadsheet Canvas */}
-      <Box sx={{ flex: '1 1 auto', minHeight: 0, pb: 2, display: 'flex', flexDirection: 'column' }}>
+      <Box
+        sx={{
+          flex: '1 1 auto',
+          minHeight: { xs: 520, md: 0 },
+          pb: 2,
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
         <FortuneSpreadsheet
           ref={workbookRef}
           key={resetCounter}

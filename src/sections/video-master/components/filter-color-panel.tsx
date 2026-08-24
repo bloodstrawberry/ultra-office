@@ -1,5 +1,7 @@
 'use client';
 
+import type { VideoPresetKey, VideoFilterSettings } from '../types';
+
 import { toast } from 'sonner';
 import React, { useState } from 'react';
 
@@ -10,11 +12,10 @@ import Slider from '@mui/material/Slider';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import LinearProgress from '@mui/material/LinearProgress';
+import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import ColorLensRoundedIcon from '@mui/icons-material/ColorLensRounded';
 import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
-import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 
-import type { VideoFilterSettings, VideoPresetKey } from '../types';
 import { FILTER_PRESETS, DEFAULT_FILTERS, renderAndExportVideo } from '../utils/video-processor';
 
 // ----------------------------------------------------------------------

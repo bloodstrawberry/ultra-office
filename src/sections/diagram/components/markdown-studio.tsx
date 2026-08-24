@@ -205,7 +205,7 @@ export function MarkdownStudio() {
             display: 'flex',
             flexDirection: 'column',
             p: 2,
-            minHeight: 0,
+            minHeight: { xs: 320, md: 0 },
             overflow: 'hidden',
           }}
         >
@@ -349,7 +349,7 @@ export function MarkdownStudio() {
             display: 'flex',
             flexDirection: 'column',
             p: 2,
-            minHeight: 0,
+            minHeight: { xs: 320, md: 0 },
             overflow: 'hidden',
           }}
         >

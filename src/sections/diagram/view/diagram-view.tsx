@@ -2,6 +2,7 @@
 
 import type { StudioTab } from '../types';
 
+import dynamic from 'next/dynamic';
 import React, { useState } from 'react';
 
 import Box from '@mui/material/Box';
@@ -15,8 +16,6 @@ import DescriptionRoundedIcon from '@mui/icons-material/DescriptionRounded';
 import AccountTreeRoundedIcon from '@mui/icons-material/AccountTreeRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
-
-import dynamic from 'next/dynamic';
 
 import { ErdStudio } from '../components/erd-studio';
 import { MathStudio } from '../components/math-studio';

@@ -1,13 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
+
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
-import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 
 import { POPULAR_REACTIONS, PERIODIC_ELEMENTS } from '../utils/chemistry-utils';
 

@@ -1,19 +1,19 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import type { GridCell } from '../types';
+
 import { toast } from 'sonner';
+import React, { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
-import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import DeleteSweepRoundedIcon from '@mui/icons-material/DeleteSweepRounded';
 
-import type { GridCell } from '../types';
-import { createInitialGrid, runAStar, generateRandomMaze } from '../utils/pathfinding-algorithms';
+import { runAStar, createInitialGrid, generateRandomMaze } from '../utils/pathfinding-algorithms';
 
 // ----------------------------------------------------------------------
 

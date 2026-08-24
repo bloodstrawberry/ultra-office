@@ -37,7 +37,6 @@ export function CodeRunnerView() {
   const [currentLanguage, setCurrentLanguage] = useState<SupportedLanguage>('javascript');
   const [activeFileName, setActiveFileName] = useState<string>('index.js');
   const [files, setFiles] = useState<Record<string, string>>(TEMPLATES[0].files);
-  const [hasLoaded, setHasLoaded] = useState(false);
 
   // Editor & IDE Settings
   const [fontSize, setFontSize] = useState(14);
@@ -82,7 +81,6 @@ export function CodeRunnerView() {
       previewUrl: null,
       activePort: null,
     }));
-    setHasLoaded(true);
   }, [selectedTemplate]);
 
   // Handle template switch
@@ -465,11 +463,12 @@ export function CodeRunnerView() {
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        height: '100%',
+        height: { xs: 'auto', md: '100%' },
+        minHeight: { xs: '100dvh', md: 'auto' },
         width: '100%',
         bgcolor: activeTheme.uiColors.bg,
         color: activeTheme.uiColors.text,
-        overflow: 'hidden',
+        overflow: { xs: 'visible', md: 'hidden' },
       }}
     >
       {/* Top Toolbar */}
@@ -498,8 +497,9 @@ export function CodeRunnerView() {
           display: 'flex',
           flex: 1,
           width: '100%',
-          height: 'calc(100% - 53px)',
-          overflow: 'hidden',
+          flexDirection: { xs: 'column', md: 'row' },
+          height: { xs: 'auto', md: 'calc(100% - 53px)' },
+          overflow: { xs: 'visible', md: 'hidden' },
         }}
       >
         {/* Left Side: Code Editor with File Tabs */}
@@ -509,10 +509,12 @@ export function CodeRunnerView() {
               display: 'flex',
               flexDirection: 'column',
               flex: layoutMode === 'editor-only' ? 1 : 1.1,
-              height: '100%',
+              height: { xs: 'auto', md: '100%' },
+              minHeight: { xs: 350, md: 'auto' },
               bgcolor: activeTheme.previewBg,
-              borderRight: `1px solid ${activeTheme.uiColors.border}`,
-              overflow: 'hidden',
+              borderRight: { xs: 'none', md: `1px solid ${activeTheme.uiColors.border}` },
+              borderBottom: { xs: `1px solid ${activeTheme.uiColors.border}`, md: 'none' },
+              overflow: { xs: 'visible', md: 'hidden' },
             }}
           >
             {/* File Tabs Bar */}
@@ -582,7 +584,7 @@ export function CodeRunnerView() {
             </Box>
 
             {/* Monaco Editor Container */}
-            <Box sx={{ flex: 1, height: '100%', overflow: 'hidden' }}>
+            <Box sx={{ flex: 1, height: { xs: 350, md: '100%' }, overflow: 'hidden' }}>
               <CodeEditor
                 language={selectedTemplate.language}
                 value={files[activeFileName] || ''}
@@ -603,13 +605,20 @@ export function CodeRunnerView() {
               display: 'flex',
               flexDirection: 'column',
               flex: layoutMode === 'terminal-only' ? 1 : 0.9,
-              height: '100%',
+              height: { xs: 'auto', md: '100%' },
               bgcolor: activeTheme.terminalTheme.background || '#0d1117',
-              overflow: 'hidden',
+              overflow: { xs: 'visible', md: 'hidden' },
             }}
           >
             {/* Top: Preview Panel (Live Server / Matplotlib Plots / System Info) */}
-            <Box sx={{ flex: 1, height: '50%', overflow: 'hidden' }}>
+            <Box
+              sx={{
+                flex: 1,
+                height: { xs: 320, md: '50%' },
+                minHeight: { xs: 280, md: 'auto' },
+                overflow: 'hidden',
+              }}
+            >
               <PreviewPanel
                 themeId={currentThemeId}
                 previewUrl={runnerState.previewUrl}
@@ -631,7 +640,14 @@ export function CodeRunnerView() {
             </Box>
 
             {/* Bottom: XTerm Terminal */}
-            <Box sx={{ flex: 1, height: '50%', overflow: 'hidden' }}>
+            <Box
+              sx={{
+                flex: 1,
+                height: { xs: 280, md: '50%' },
+                minHeight: { xs: 240, md: 'auto' },
+                overflow: 'hidden',
+              }}
+            >
               <TerminalView
                 ref={terminalRef}
                 themeId={currentThemeId}

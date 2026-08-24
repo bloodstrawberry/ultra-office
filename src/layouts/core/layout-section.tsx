@@ -70,9 +70,15 @@ export function LayoutSection({
 
 const LayoutRoot = styled('div')``;
 
-const LayoutSidebarContainer = styled('div')(() => ({
+const LayoutSidebarContainer = styled('div')(({ theme }) => ({
   display: 'flex',
   flex: '1 1 auto',
   flexDirection: 'column',
-  minHeight: 0,
+  [theme.breakpoints.up('lg')]: {
+    minHeight: 0,
+  },
+  [theme.breakpoints.down('lg')]: {
+    minHeight: 'auto',
+    height: 'auto',
+  },
 }));

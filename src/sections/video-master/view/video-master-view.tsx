@@ -1,5 +1,13 @@
 'use client';
 
+import type {
+  VideoMetadata,
+  TransformSettings,
+  WatermarkSettings,
+  TextOverlaySettings,
+  VideoFilterSettings,
+} from '../types';
+
 import { toast } from 'sonner';
 import React, { useRef, useState, useCallback } from 'react';
 
@@ -10,35 +18,21 @@ import Tabs from '@mui/material/Tabs';
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
-import PlayCircleFilledWhiteRoundedIcon from '@mui/icons-material/PlayCircleFilledWhiteRounded';
-import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
-import ContentCutRoundedIcon from '@mui/icons-material/ContentCutRounded';
-import AudiotrackRoundedIcon from '@mui/icons-material/AudiotrackRounded';
 import GifRoundedIcon from '@mui/icons-material/GifRounded';
-import ColorLensRoundedIcon from '@mui/icons-material/ColorLensRounded';
 import TitleRoundedIcon from '@mui/icons-material/TitleRounded';
-import CropRotateRoundedIcon from '@mui/icons-material/CropRotateRounded';
-import CameraAltRoundedIcon from '@mui/icons-material/CameraAltRounded';
-import CallMergeRoundedIcon from '@mui/icons-material/CallMergeRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import ScienceRoundedIcon from '@mui/icons-material/ScienceRounded';
+import ColorLensRoundedIcon from '@mui/icons-material/ColorLensRounded';
+import CameraAltRoundedIcon from '@mui/icons-material/CameraAltRounded';
+import CallMergeRoundedIcon from '@mui/icons-material/CallMergeRounded';
+import ContentCutRoundedIcon from '@mui/icons-material/ContentCutRounded';
+import AudiotrackRoundedIcon from '@mui/icons-material/AudiotrackRounded';
+import CropRotateRoundedIcon from '@mui/icons-material/CropRotateRounded';
+import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
+import PlayCircleFilledWhiteRoundedIcon from '@mui/icons-material/PlayCircleFilledWhiteRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import type {
-  VideoMetadata,
-  TransformSettings,
-  WatermarkSettings,
-  TextOverlaySettings,
-  VideoFilterSettings,
-} from '../types';
-import {
-  DEFAULT_FILTERS,
-  DEFAULT_TRANSFORM,
-  DEFAULT_WATERMARK,
-  DEFAULT_TEXT_OVERLAY,
-  createSampleVideoBlob,
-} from '../utils/video-processor';
 import { GifMakerPanel } from '../components/gif-maker-panel';
 import { VideoInfoCard } from '../components/video-info-card';
 import { TrimSpeedPanel } from '../components/trim-speed-panel';
@@ -49,6 +43,13 @@ import { FrameCapturePanel } from '../components/frame-capture-panel';
 import { TransformCropPanel } from '../components/transform-crop-panel';
 import { TextWatermarkPanel } from '../components/text-watermark-panel';
 import { VideoPlayerPreview } from '../components/video-player-preview';
+import {
+  DEFAULT_FILTERS,
+  DEFAULT_TRANSFORM,
+  DEFAULT_WATERMARK,
+  DEFAULT_TEXT_OVERLAY,
+  createSampleVideoBlob,
+} from '../utils/video-processor';
 
 // ----------------------------------------------------------------------
 

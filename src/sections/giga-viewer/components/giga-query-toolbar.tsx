@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import type { LogLevel, LogEntry, GigaFileSummary, GigaFilterOptions } from '../types';
+
 import Papa from 'papaparse';
 import { toast } from 'sonner';
+import React, { useState } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -17,8 +19,6 @@ import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import TerminalRoundedIcon from '@mui/icons-material/TerminalRounded';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
-
-import type { LogLevel, GigaFileSummary, GigaFilterOptions, LogEntry } from '../types';
 
 // ----------------------------------------------------------------------
 

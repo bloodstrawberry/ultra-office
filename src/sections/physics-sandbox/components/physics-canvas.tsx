@@ -1,6 +1,9 @@
 'use client';
 
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import type { PhysicsBody, DoublePendulumState } from '../types';
+
+import React, { useRef, useState, useEffect } from 'react';
+
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Slider from '@mui/material/Slider';
@@ -10,14 +13,13 @@ import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
-import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
-import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import DeleteSweepRoundedIcon from '@mui/icons-material/DeleteSweepRounded';
 
-import type { PhysicsBody, DoublePendulumState } from '../types';
-import { updatePhysicsBodies, stepDoublePendulum } from '../utils/physics-engine';
+import { stepDoublePendulum, updatePhysicsBodies } from '../utils/physics-engine';
 
 // ----------------------------------------------------------------------
 

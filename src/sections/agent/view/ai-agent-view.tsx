@@ -17,6 +17,9 @@ import PersonSearchRoundedIcon from '@mui/icons-material/PersonSearchRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
+import { AgentChatArea } from '../components/agent-chat-area';
+import { AgentModelControl } from '../components/agent-model-control';
+import { AgentSessionSidebar } from '../components/agent-session-sidebar';
 import {
   type AgentSession,
   type AgentQueryMode,
@@ -34,9 +37,6 @@ import {
   streamChatResponse,
   type LoadingProgress,
 } from '../utils/llm-engine';
-import { AgentChatArea } from '../components/agent-chat-area';
-import { AgentModelControl } from '../components/agent-model-control';
-import { AgentSessionSidebar } from '../components/agent-session-sidebar';
 
 // ----------------------------------------------------------------------
 

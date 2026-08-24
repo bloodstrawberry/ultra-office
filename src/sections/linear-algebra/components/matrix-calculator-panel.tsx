@@ -1,16 +1,16 @@
 'use client';
 
+import type { Matrix2x2, TransformationStats } from '../types';
+
 import React from 'react';
+
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
-import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 
-import type { Matrix2x2, TransformationStats } from '../types';
-import { TRANSFORMATION_PRESETS, invertMatrix2x2 } from '../utils/matrix-math';
+import { invertMatrix2x2, TRANSFORMATION_PRESETS } from '../utils/matrix-math';
 
 // ----------------------------------------------------------------------
 

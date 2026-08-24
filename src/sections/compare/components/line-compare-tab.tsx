@@ -13,8 +13,8 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 
 import { TextAreaPanel } from '../../util/components/shared-text-area';
+import { type LinePreset, LINE_COMPARE_PRESETS } from '../data/compare-presets';
 import { LineNumberTextField } from '../../util/components/line-number-text-field';
-import { LINE_COMPARE_PRESETS, type LinePreset } from '../data/compare-presets';
 
 // ----------------------------------------------------------------------
 

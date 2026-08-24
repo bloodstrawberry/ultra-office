@@ -5,17 +5,17 @@ import type { NavItemProps, NavSectionProps } from 'src/components/nav-section';
 import type { MainSectionProps, HeaderSectionProps, LayoutSectionProps } from '../core';
 
 import { merge } from 'es-toolkit';
+import { useState, useEffect } from 'react';
 import { useBoolean } from 'minimal-shared/hooks';
 
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
-import { useTheme } from '@mui/material/styles';
-
-import { useState, useEffect } from 'react';
 import Button from '@mui/material/Button';
+import { useTheme } from '@mui/material/styles';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 
 import { CommandPalette } from 'src/components/command-palette';
+
 import { NavMobile } from './nav-mobile';
 import { NavVertical } from './nav-vertical';
 import { MenuButton } from '../components/menu-button';
@@ -190,16 +190,31 @@ export function DashboardLayout({
       cssVars={{ ...dashboardLayoutVars(theme), ...navVars.layout, ...cssVars }}
       sx={[
         {
-          height: '100dvh',
-          overflow: 'hidden',
-          [`& .${layoutClasses.sidebarContainer}`]: {
+          [theme.breakpoints.up(layoutQuery)]: {
+            height: '100dvh',
             overflow: 'hidden',
+          },
+          [theme.breakpoints.down(layoutQuery)]: {
+            minHeight: '100dvh',
+            height: 'auto',
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            WebkitOverflowScrolling: 'touch',
+          },
+          [`& .${layoutClasses.sidebarContainer}`]: {
             [theme.breakpoints.up(layoutQuery)]: {
+              overflow: 'hidden',
               pl: isNavMini ? 'var(--layout-nav-mini-width)' : 'var(--layout-nav-vertical-width)',
               transition: theme.transitions.create(['padding-left'], {
                 easing: 'var(--layout-transition-easing)',
                 duration: 'var(--layout-transition-duration)',
               }),
+            },
+            [theme.breakpoints.down(layoutQuery)]: {
+              overflowY: 'visible',
+              overflowX: 'hidden',
+              minHeight: '100dvh',
+              height: 'auto',
             },
           },
         },

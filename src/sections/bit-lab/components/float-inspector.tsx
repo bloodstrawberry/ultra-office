@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { toast } from 'sonner';
+import React, { useMemo, useState } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -11,8 +10,7 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 
-import type { Float32Decomposition } from '../types';
-import { decomposeFloat32, bitsToFloat32 } from '../utils/ieee754-utils';
+import { bitsToFloat32, decomposeFloat32 } from '../utils/ieee754-utils';
 
 // ----------------------------------------------------------------------
 
@@ -20,9 +18,7 @@ export function FloatInspector() {
   const [numInput, setNumInput] = useState<string>('0.1');
   const [activeBits, setActiveBits] = useState<string>('00111101110011001100110011001101');
 
-  const decomp = useMemo(() => {
-    return bitsToFloat32(activeBits);
-  }, [activeBits]);
+  const decomp = useMemo(() => bitsToFloat32(activeBits), [activeBits]);
 
   const handleInputChange = (val: string) => {
     setNumInput(val);

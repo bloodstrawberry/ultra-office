@@ -1,5 +1,7 @@
 'use client';
 
+import type { ModelOption } from '../utils/llm-engine';
+
 import { toast } from 'sonner';
 import React, { useRef, useEffect } from 'react';
 
@@ -12,8 +14,8 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 import SendRoundedIcon from '@mui/icons-material/SendRounded';
-import StopCircleRoundedIcon from '@mui/icons-material/StopCircleRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
+import StopCircleRoundedIcon from '@mui/icons-material/StopCircleRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import BookmarkBorderRoundedIcon from '@mui/icons-material/BookmarkBorderRounded';
@@ -23,7 +25,6 @@ import {
   type AgentSession,
   type AgentQueryMode,
 } from '../../util/utils/ai-agent-data';
-import type { ModelOption } from '../utils/llm-engine';
 
 // ----------------------------------------------------------------------
 

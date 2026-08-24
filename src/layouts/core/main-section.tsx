@@ -20,9 +20,15 @@ export function MainSection({ children, className, sx, ...other }: MainSectionPr
 
 // ----------------------------------------------------------------------
 
-const MainRoot = styled('main')({
+const MainRoot = styled('main')(({ theme }) => ({
   display: 'flex',
   flex: '1 1 auto',
   flexDirection: 'column',
-  minHeight: 0,
-});
+  [theme.breakpoints.up('lg')]: {
+    minHeight: 0,
+  },
+  [theme.breakpoints.down('lg')]: {
+    minHeight: 'auto',
+    height: 'auto',
+  },
+}));

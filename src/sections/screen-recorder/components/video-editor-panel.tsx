@@ -1,5 +1,7 @@
 'use client';
 
+import type { RecordedMedia } from '../types';
+
 import { toast } from 'sonner';
 import React, { useRef, useState, useEffect } from 'react';
 
@@ -9,12 +11,10 @@ import Slider from '@mui/material/Slider';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import LinearProgress from '@mui/material/LinearProgress';
-import CircularProgress from '@mui/material/CircularProgress';
-import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import GifRoundedIcon from '@mui/icons-material/GifRounded';
+import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import ContentCutRoundedIcon from '@mui/icons-material/ContentCutRounded';
 
-import type { RecordedMedia } from '../types';
 import { formatTime, formatBytes, convertVideoToGif } from '../utils/screen-recorder-utils';
 
 // ----------------------------------------------------------------------

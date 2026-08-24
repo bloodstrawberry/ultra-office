@@ -1,5 +1,7 @@
 'use client';
 
+import type { AgentSession, AgentQueryMode } from '../../util/utils/ai-agent-data';
+
 import React from 'react';
 
 import Box from '@mui/material/Box';
@@ -9,8 +11,6 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import AddCommentRoundedIcon from '@mui/icons-material/AddCommentRounded';
 import DeleteSweepRoundedIcon from '@mui/icons-material/DeleteSweepRounded';
-
-import type { AgentSession, AgentQueryMode } from '../../util/utils/ai-agent-data';
 
 // ----------------------------------------------------------------------
 

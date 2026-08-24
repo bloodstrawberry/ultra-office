@@ -2,9 +2,10 @@
 // Frame Extractor - Snapshots & Timeline Frame Sampling
 // ----------------------------------------------------------------------
 
+import type { ExtractedFrame } from '../types';
+
 import JSZip from 'jszip';
 
-import type { ExtractedFrame } from '../types';
 import { formatTime } from './audio-processor';
 
 /**

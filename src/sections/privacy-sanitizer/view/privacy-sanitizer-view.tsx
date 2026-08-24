@@ -7,16 +7,16 @@ import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
+import BadgeRoundedIcon from '@mui/icons-material/BadgeRounded';
 import ShieldRoundedIcon from '@mui/icons-material/ShieldRounded';
 import TextFieldsRoundedIcon from '@mui/icons-material/TextFieldsRounded';
 import LocationOffRoundedIcon from '@mui/icons-material/LocationOffRounded';
-import BadgeRoundedIcon from '@mui/icons-material/BadgeRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import { TextSanitizerPanel } from '../components/text-sanitizer-panel';
 import { ExifRemoverPanel } from '../components/exif-remover-panel';
 import { ImageRedactPanel } from '../components/image-redact-panel';
+import { TextSanitizerPanel } from '../components/text-sanitizer-panel';
 
 // ----------------------------------------------------------------------
 

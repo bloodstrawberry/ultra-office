@@ -1,15 +1,15 @@
 'use client';
 
-import React, { useRef, useState, useCallback } from 'react';
+import type { CircuitGate, CircuitWire } from '../types';
+
 import { toast } from 'sonner';
+import React, { useRef, useState } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
-
-import type { CircuitGate, CircuitWire } from '../types';
 
 // ----------------------------------------------------------------------
 

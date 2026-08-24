@@ -71,7 +71,7 @@ function adjustCropToAspect(
     maxCropW = maxCropH * safeAspect;
   }
 
-  let currentSpanW = currentCrop.width > 10 ? currentCrop.width : maxCropW * 0.8;
+  const currentSpanW = currentCrop.width > 10 ? currentCrop.width : maxCropW * 0.8;
   let newW = Math.min(maxCropW, currentSpanW);
   let newH = newW / safeAspect;
 

@@ -8,8 +8,8 @@ import Tabs from '@mui/material/Tabs';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 import ScienceRoundedIcon from '@mui/icons-material/ScienceRounded';
-import SportsBaseballRoundedIcon from '@mui/icons-material/SportsBaseballRounded';
 import BiotechRoundedIcon from '@mui/icons-material/BiotechRounded';
+import SportsBaseballRoundedIcon from '@mui/icons-material/SportsBaseballRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 

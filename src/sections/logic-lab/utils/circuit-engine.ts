@@ -1,4 +1,4 @@
-import type { CircuitGate, CircuitWire, GateType, TruthTableRow } from '../types';
+import type { GateType, CircuitGate, CircuitWire, TruthTableRow } from '../types';
 
 // ----------------------------------------------------------------------
 

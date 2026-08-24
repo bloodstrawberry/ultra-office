@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import type { PrivacyItemType } from '../types';
+
 import { toast } from 'sonner';
+import React, { useMemo, useState } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -11,12 +13,11 @@ import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import AutoFixHighRoundedIcon from '@mui/icons-material/AutoFixHighRounded';
-import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded';
 
-import type { PrivacyItemType } from '../types';
-import { scanPrivacyInText, sanitizeAllText } from '../utils/privacy-utils';
+import { sanitizeAllText, scanPrivacyInText } from '../utils/privacy-utils';
 
 // ----------------------------------------------------------------------
 

@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { toast } from 'sonner';
+import type { SortStep, SortingAlgorithm } from '../types';
+
+import React, { useRef, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -12,13 +13,12 @@ import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
-import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import SkipNextRoundedIcon from '@mui/icons-material/SkipNextRounded';
+import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 
-import type { SortingAlgorithm, SortStep } from '../types';
-import { generateRandomArray, generateSortSteps } from '../utils/sorting-algorithms';
+import { generateSortSteps, generateRandomArray } from '../utils/sorting-algorithms';
 
 // ----------------------------------------------------------------------
 

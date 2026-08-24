@@ -1,5 +1,7 @@
 'use client';
 
+import type { ExtractedFrame } from '../types';
+
 import { toast } from 'sonner';
 import React, { useState } from 'react';
 
@@ -12,12 +14,11 @@ import Typography from '@mui/material/Typography';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
 import LinearProgress from '@mui/material/LinearProgress';
-import CameraAltRoundedIcon from '@mui/icons-material/CameraAltRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
-import CollectionsRoundedIcon from '@mui/icons-material/CollectionsRounded';
+import CameraAltRoundedIcon from '@mui/icons-material/CameraAltRounded';
 import FolderZipRoundedIcon from '@mui/icons-material/FolderZipRounded';
+import CollectionsRoundedIcon from '@mui/icons-material/CollectionsRounded';
 
-import type { ExtractedFrame } from '../types';
 import { formatTime } from '../utils/audio-processor';
 import {
   createZipFromFrames,

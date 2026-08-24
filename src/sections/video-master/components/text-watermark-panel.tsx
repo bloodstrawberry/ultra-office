@@ -1,5 +1,7 @@
 'use client';
 
+import type { WatermarkSettings, TextOverlaySettings } from '../types';
+
 import { toast } from 'sonner';
 import React, { useState } from 'react';
 
@@ -21,7 +23,6 @@ import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 import BrandingWatermarkRoundedIcon from '@mui/icons-material/BrandingWatermarkRounded';
 
-import type { WatermarkSettings, TextOverlaySettings } from '../types';
 import { renderAndExportVideo } from '../utils/video-processor';
 
 // ----------------------------------------------------------------------

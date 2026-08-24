@@ -1,5 +1,7 @@
 'use client';
 
+import type { VideoMetadata } from '../types';
+
 import React from 'react';
 
 import Box from '@mui/material/Box';
@@ -7,12 +9,11 @@ import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
 import Typography from '@mui/material/Typography';
 import MovieRoundedIcon from '@mui/icons-material/MovieRounded';
-import AspectRatioRoundedIcon from '@mui/icons-material/AspectRatioRounded';
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded';
 import AudiotrackRoundedIcon from '@mui/icons-material/AudiotrackRounded';
+import AspectRatioRoundedIcon from '@mui/icons-material/AspectRatioRounded';
 
-import type { VideoMetadata } from '../types';
-import { formatBytes, formatTime } from '../utils/audio-processor';
+import { formatTime, formatBytes } from '../utils/audio-processor';
 
 // ----------------------------------------------------------------------
 

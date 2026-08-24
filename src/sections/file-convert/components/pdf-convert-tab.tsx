@@ -1,8 +1,8 @@
 'use client';
 
 import { toast } from 'sonner';
-import React, { useState } from 'react';
 import { PDFDocument } from 'pdf-lib';
+import React, { useState } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -15,9 +15,9 @@ import CircularProgress from '@mui/material/CircularProgress';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import CallSplitRoundedIcon from '@mui/icons-material/CallSplitRounded';
 import MergeTypeRoundedIcon from '@mui/icons-material/MergeTypeRounded';
+import TextFieldsRoundedIcon from '@mui/icons-material/TextFieldsRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 import PictureAsPdfRoundedIcon from '@mui/icons-material/PictureAsPdfRounded';
-import TextFieldsRoundedIcon from '@mui/icons-material/TextFieldsRounded';
 
 import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
 

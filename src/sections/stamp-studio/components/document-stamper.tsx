@@ -1,7 +1,7 @@
 'use client';
 
 import { toast } from 'sonner';
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -10,7 +10,6 @@ import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import UploadFileRoundedIcon from '@mui/icons-material/UploadFileRounded';
-import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 
 // ----------------------------------------------------------------------
 

@@ -20,9 +20,9 @@ import SwapHorizRoundedIcon from '@mui/icons-material/SwapHorizRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import DeleteSweepRoundedIcon from '@mui/icons-material/DeleteSweepRounded';
 
+import { type DiffPreset, TEXT_DIFF_PRESETS } from '../data/compare-presets';
 import { LineNumberTextField } from '../../util/components/line-number-text-field';
 import { ResizeHandle, TextAreaPanel } from '../../util/components/shared-text-area';
-import { TEXT_DIFF_PRESETS, type DiffPreset } from '../data/compare-presets';
 
 // ----------------------------------------------------------------------
 

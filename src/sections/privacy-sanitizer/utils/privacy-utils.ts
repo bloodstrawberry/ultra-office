@@ -1,4 +1,4 @@
-import type { DetectedPrivacyItem, ExifReport, PrivacyItemType } from '../types';
+import type { ExifReport, PrivacyItemType, DetectedPrivacyItem } from '../types';
 
 // ----------------------------------------------------------------------
 

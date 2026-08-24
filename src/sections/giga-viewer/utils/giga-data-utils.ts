@@ -1,6 +1,6 @@
-import { loadAlaSql } from 'src/utils/alasql-loader';
-
 import type { LogEntry, LogLevel, GigaFileSummary, GigaFilterOptions } from '../types';
+
+import { loadAlaSql } from 'src/utils/alasql-loader';
 
 // ----------------------------------------------------------------------
 

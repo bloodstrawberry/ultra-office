@@ -16,10 +16,10 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import ArchiveRoundedIcon from '@mui/icons-material/ArchiveRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
+import TextFieldsRoundedIcon from '@mui/icons-material/TextFieldsRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 import PhotoLibraryRoundedIcon from '@mui/icons-material/PhotoLibraryRounded';
-import TextFieldsRoundedIcon from '@mui/icons-material/TextFieldsRounded';
 
 import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
 

@@ -1,5 +1,6 @@
+import type { HwpTable, HwpSection, HwpDocument, HwpParagraph, HwpTableCell } from '../types';
+
 import JSZip from 'jszip';
-import type { HwpDocument, HwpSection, HwpParagraph, HwpTable, HwpTableCell } from '../types';
 
 // ----------------------------------------------------------------------
 

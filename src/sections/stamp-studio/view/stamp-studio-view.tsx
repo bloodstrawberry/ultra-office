@@ -8,8 +8,8 @@ import Tabs from '@mui/material/Tabs';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 import ApprovalRoundedIcon from '@mui/icons-material/ApprovalRounded';
-import AutoFixHighRoundedIcon from '@mui/icons-material/AutoFixHighRounded';
 import TouchAppRoundedIcon from '@mui/icons-material/TouchAppRounded';
+import AutoFixHighRoundedIcon from '@mui/icons-material/AutoFixHighRounded';
 import ReceiptLongRoundedIcon from '@mui/icons-material/ReceiptLongRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';

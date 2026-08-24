@@ -1,4 +1,4 @@
-import type { NavItemDataProps, NavListProps, NavSubListProps } from '../types';
+import type { NavListProps, NavSubListProps, NavItemDataProps } from '../types';
 
 import { useBoolean } from 'minimal-shared/hooks';
 import { useRef, useEffect, useCallback } from 'react';

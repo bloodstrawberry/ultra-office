@@ -114,12 +114,22 @@ export function MainLayout({
        *************************************** */
       cssVars={cssVars}
       sx={[
-        isHomePage && {
-          height: '100dvh',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-        },
+        isHomePage &&
+          ((theme) => ({
+            display: 'flex',
+            flexDirection: 'column',
+            [theme.breakpoints.up(layoutQuery)]: {
+              height: '100dvh',
+              overflow: 'hidden',
+            },
+            [theme.breakpoints.down(layoutQuery)]: {
+              minHeight: '100dvh',
+              height: 'auto',
+              overflowY: 'auto',
+              overflowX: 'hidden',
+              WebkitOverflowScrolling: 'touch',
+            },
+          })),
         ...(Array.isArray(sx) ? sx : [sx]),
       ]}
     >

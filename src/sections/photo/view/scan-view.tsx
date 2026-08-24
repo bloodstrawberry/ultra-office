@@ -7,34 +7,33 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Button from '@mui/material/Button';
 import Slider from '@mui/material/Slider';
-import Switch from '@mui/material/Switch';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import ToggleButton from '@mui/material/ToggleButton';
-import FormControlLabel from '@mui/material/FormControlLabel';
 import CircularProgress from '@mui/material/CircularProgress';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import ArchiveRoundedIcon from '@mui/icons-material/ArchiveRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
+import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 import PictureAsPdfRoundedIcon from '@mui/icons-material/PictureAsPdfRounded';
 import DocumentScannerRoundedIcon from '@mui/icons-material/DocumentScannerRounded';
-import CompareArrowsRoundedIcon from '@mui/icons-material/CompareArrowsRounded';
-import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
 
 import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
+
 import { DashboardContent } from 'src/layouts/dashboard';
+
 import { downloadDataUrl } from '../utils/image-processor';
 import { downloadZipFile, type ZipFileEntry } from '../utils/zip-exporter';
 import {
   SCAN_PRESETS,
-  DEFAULT_SCAN_CONFIG,
-  renderScanEffect,
-  exportScannedImagesToPdf,
-  downloadPdfBytes,
   type ScanConfig,
+  renderScanEffect,
+  downloadPdfBytes,
+  DEFAULT_SCAN_CONFIG,
   type ScanPresetType,
+  exportScannedImagesToPdf,
 } from '../utils/scanner-processor';
 
 interface ScannedImageItem {

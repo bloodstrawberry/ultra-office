@@ -1,11 +1,12 @@
 'use client';
 
+import type { Vector2D, Matrix2x2 } from '../types';
+
 import React, { useRef, useEffect } from 'react';
-import Box from '@mui/material/Box';
+
 import Card from '@mui/material/Card';
 import Typography from '@mui/material/Typography';
 
-import type { Matrix2x2, Vector2D } from '../types';
 import { transformVector } from '../utils/matrix-math';
 
 // ----------------------------------------------------------------------

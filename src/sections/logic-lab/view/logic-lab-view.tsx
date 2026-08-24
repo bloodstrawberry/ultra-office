@@ -1,30 +1,30 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import type { GateType, CircuitGate, CircuitWire } from '../types';
+
 import { toast } from 'sonner';
+import React, { useMemo, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import CircularProgress from '@mui/material/CircularProgress';
 import MemoryRoundedIcon from '@mui/icons-material/MemoryRounded';
-import AddRoundedIcon from '@mui/icons-material/AddRounded';
-import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import DeleteSweepRoundedIcon from '@mui/icons-material/DeleteSweepRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import type { CircuitGate, CircuitWire, GateType } from '../types';
+import { CircuitCanvas } from '../components/circuit-canvas';
+import { TruthTableView } from '../components/truth-table-view';
 import {
   createGate,
   simulateCircuit,
-  generateTruthTable,
   getPresetCircuits,
+  generateTruthTable,
 } from '../utils/circuit-engine';
-import { CircuitCanvas } from '../components/circuit-canvas';
-import { TruthTableView } from '../components/truth-table-view';
 
 // ----------------------------------------------------------------------
 
@@ -42,14 +42,10 @@ export function LogicLabView() {
   }, []);
 
   // Continuous real-time simulation
-  const simulatedGates = useMemo(() => {
-    return simulateCircuit(gates, wires);
-  }, [gates, wires]);
+  const simulatedGates = useMemo(() => simulateCircuit(gates, wires), [gates, wires]);
 
   // Compute truth table
-  const truthTableRows = useMemo(() => {
-    return generateTruthTable(gates, wires);
-  }, [gates, wires]);
+  const truthTableRows = useMemo(() => generateTruthTable(gates, wires), [gates, wires]);
 
   const handleToggleSwitch = (gateId: string) => {
     setGates((prev) => prev.map((g) => (g.id === gateId ? { ...g, state: !g.state } : g)));

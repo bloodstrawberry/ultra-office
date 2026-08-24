@@ -345,7 +345,7 @@ export async function renderAndExportVideo(
       }
 
       const canvasStream = canvas.captureStream(30);
-      let combinedStream = canvasStream;
+      const combinedStream = canvasStream;
 
       // Audio track setup
       const AudioContextClass =

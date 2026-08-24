@@ -1,4 +1,4 @@
-import type { GridCell, PathfindingAlgorithm } from '../types';
+import type { GridCell } from '../types';
 
 // ----------------------------------------------------------------------
 

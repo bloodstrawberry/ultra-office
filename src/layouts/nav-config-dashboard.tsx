@@ -3,6 +3,7 @@ import type { NavSectionProps } from 'src/components/nav-section';
 
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
 import CodeRoundedIcon from '@mui/icons-material/CodeRounded';
+import AppsRoundedIcon from '@mui/icons-material/AppsRounded';
 import CasinoRoundedIcon from '@mui/icons-material/CasinoRounded';
 import FolderRoundedIcon from '@mui/icons-material/FolderRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
@@ -33,7 +34,6 @@ import QrCodeScannerRoundedIcon from '@mui/icons-material/QrCodeScannerRounded';
 import MovieCreationRoundedIcon from '@mui/icons-material/MovieCreationRounded';
 import DocumentScannerRoundedIcon from '@mui/icons-material/DocumentScannerRounded';
 import SwapHorizontalCircleRoundedIcon from '@mui/icons-material/SwapHorizontalCircleRounded';
-import AppsRoundedIcon from '@mui/icons-material/AppsRounded';
 
 import { paths } from 'src/routes/paths';
 

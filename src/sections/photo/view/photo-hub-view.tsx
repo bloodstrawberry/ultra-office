@@ -26,8 +26,8 @@ import InvertColorsRoundedIcon from '@mui/icons-material/InvertColorsRounded';
 import PictureAsPdfRoundedIcon from '@mui/icons-material/PictureAsPdfRounded';
 import PhoneAndroidRoundedIcon from '@mui/icons-material/PhoneAndroidRounded';
 import HourglassBottomRoundedIcon from '@mui/icons-material/HourglassBottomRounded';
-import BrandingWatermarkRoundedIcon from '@mui/icons-material/BrandingWatermarkRounded';
 import DocumentScannerRoundedIcon from '@mui/icons-material/DocumentScannerRounded';
+import BrandingWatermarkRoundedIcon from '@mui/icons-material/BrandingWatermarkRounded';
 
 import { paths } from 'src/routes/paths';
 

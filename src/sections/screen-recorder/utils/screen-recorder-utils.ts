@@ -1,5 +1,6 @@
+import type { GifConvertOptions } from '../types';
+
 import gifshot from 'gifshot';
-import type { RecordedMedia, GifConvertOptions } from '../types';
 
 // ----------------------------------------------------------------------
 
@@ -64,7 +65,7 @@ export async function convertVideoToGif(
               images,
               gifWidth: options.width,
               gifHeight: options.height,
-              interval: interval,
+              interval,
               numFrames: images.length,
             },
             (obj: { error: boolean; image: string }) => {

@@ -1,4 +1,4 @@
-import type { Matrix2x2, Vector2D, TransformationStats } from '../types';
+import type { Vector2D, Matrix2x2, TransformationStats } from '../types';
 
 // ----------------------------------------------------------------------
 
