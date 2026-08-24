@@ -31,14 +31,13 @@ import SwapHorizRoundedIcon from '@mui/icons-material/SwapHorizRounded';
 import ViewStreamRoundedIcon from '@mui/icons-material/ViewStreamRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
-import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
+import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
 import InvertColorsRoundedIcon from '@mui/icons-material/InvertColorsRounded';
 import CompareArrowsRoundedIcon from '@mui/icons-material/CompareArrowsRounded';
-
-import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
-
 import { DashboardContent } from 'src/layouts/dashboard';
 
+import { shareToKakaoTalk } from '../utils/image-processor';
+import { PhotoUploadWorkspace } from '../components';
 import {
   BG_REMOVE_MODELS,
   applyBrushStroke,
@@ -135,7 +134,6 @@ export function BgRemoveView() {
 
   const draggingSplitRef = useRef<'start' | 'end' | null>(null);
   const splitContainerRef = useRef<HTMLDivElement | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Manual Touch-up State
   const [isTouchupMode, setIsTouchupMode] = useState<boolean>(false);
@@ -223,32 +221,17 @@ export function BgRemoveView() {
     [selectedModel]
   );
 
-  // Drop & Paste Hook
-  const { isDragActive, getRootProps } = useImageDropPaste({
-    onFiles: (files) => {
-      if (files[0]) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const src = e.target?.result as string;
-          handleProcessImage(src);
-        };
-        reader.readAsDataURL(files[0]);
-      }
+  const processFile = useCallback(
+    (file: File) => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const src = ev.target?.result as string;
+        handleProcessImage(src);
+      };
+      reader.readAsDataURL(file);
     },
-    multiple: false,
-  });
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const src = ev.target?.result as string;
-      handleProcessImage(src);
-    };
-    reader.readAsDataURL(file);
-    if (e.target) e.target.value = '';
-  };
+    [handleProcessImage]
+  );
 
   // Split Slider Mouse/Touch Handlers (Dual: Start & End, Horizontal & Vertical)
   const handleSplitMove = useCallback(
@@ -630,8 +613,17 @@ export function BgRemoveView() {
     );
   };
 
-  // Copy PNG to Clipboard
-  const handleCopyClipboard = async () => {
+  const handleReset = useCallback(() => {
+    setImageSrc('');
+    setResult(null);
+    setIsTouchupMode(false);
+    undoStackRef.current = [];
+    setUndoCount(0);
+    lastPointRef.current = null;
+  }, []);
+
+  // Share Image
+  const handleShare = async () => {
     if (!result) return;
     try {
       let exportUrl = '';
@@ -668,20 +660,14 @@ export function BgRemoveView() {
         );
       }
 
-      const response = await fetch(exportUrl);
-      const blob = await response.blob();
-      await navigator.clipboard.write([
-        new ClipboardItem({
-          'image/png': blob,
-        }),
-      ]);
-      toast.success(
-        previewMode === 'split'
-          ? '슬라이더 비교 상태의 PNG 이미지가 클립보드에 복사되었습니다!'
-          : '클립보드에 PNG 이미지가 복사되었습니다!'
+      const res = await shareToKakaoTalk(
+        exportUrl,
+        'AI 배경 제거 이미지',
+        `ai_bg_${Date.now()}.png`
       );
+      toast.success(res.message);
     } catch {
-      toast.error('클립보드 복사에 실패했습니다.');
+      toast.error('공유 중 오류가 발생했습니다.');
     }
   };
 
@@ -730,14 +716,6 @@ export function BgRemoveView() {
         </Tooltip>
       </Box>
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleFileChange}
-        style={{ display: 'none' }}
-      />
-
       <Box
         sx={{
           flex: '1 1 auto',
@@ -748,135 +726,19 @@ export function BgRemoveView() {
         }}
       >
         {!imageSrc ? (
-          /* Empty / Upload State */
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 3,
-              flex: '1 1 auto',
-              minHeight: 0,
-            }}
-          >
-            {/* 1-Click Instant Sample Test — pinned to top */}
-            <Card sx={{ p: 2.5, borderRadius: 3, flexShrink: 0 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 0.5 }}>
-                ⚡ 즉석 테스트 샘플 이미지
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{ color: 'text.secondary', mb: 2, display: 'block' }}
-              >
-                클릭 한 번으로 AI 누끼 성능을 즉시 테스트해 보세요.
-              </Typography>
-
-              <Box
-                sx={{
-                  display: 'grid',
-                  gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
-                  gap: 2,
-                }}
-              >
-                {SAMPLE_IMAGES.map((sample) => (
-                  <Card
-                    key={sample.id}
-                    onClick={() => handleProcessImage(sample.url)}
-                    sx={{
-                      p: 1.5,
-                      borderRadius: 2,
-                      cursor: 'pointer',
-                      border: '1px solid',
-                      borderColor: 'divider',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1.5,
-                      transition: 'all 0.2s',
-                      '&:hover': {
-                        borderColor: 'primary.main',
-                        bgcolor: 'action.hover',
-                        transform: 'translateY(-2px)',
-                      },
-                    }}
-                  >
-                    <Box
-                      component="img"
-                      src={sample.url}
-                      alt={sample.label}
-                      sx={{ width: 56, height: 56, borderRadius: 1.5, objectFit: 'cover' }}
-                    />
-                    <Box>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                        {sample.label}
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 600 }}>
-                        누끼 실행 ➜
-                      </Typography>
-                    </Box>
-                  </Card>
-                ))}
-              </Box>
-            </Card>
-
-            {/* Upload Area — fills remaining height */}
-            <Card
-              {...getRootProps({
-                onClick: () => fileInputRef.current?.click(),
-              })}
-              sx={{
-                p: { xs: 4, md: 6 },
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                border: '2px dashed',
-                borderColor: isDragActive ? 'primary.main' : 'divider',
-                bgcolor: isDragActive ? 'action.hover' : 'background.paper',
-                borderRadius: 3,
-                flex: '1 1 auto',
-                minHeight: 200,
-                transition: (theme) =>
-                  theme.transitions.create(['border-color', 'background-color']),
-                '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
-              }}
-            >
-              <Box
-                sx={{
-                  width: 72,
-                  height: 72,
-                  borderRadius: '50%',
-                  bgcolor: 'primary.lighter',
-                  color: 'primary.main',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  mb: 2,
-                }}
-              >
-                <InvertColorsRoundedIcon sx={{ fontSize: 36 }} />
-              </Box>
-
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, textAlign: 'center' }}>
-                이미지 업로드
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{ color: 'text.secondary', mb: 2.5, textAlign: 'center' }}
-              >
-                이미지를 드래그하거나 클립보드(Ctrl+V)에서 붙여넣으세요.
-              </Typography>
-
-              <Button
-                variant="contained"
-                color="primary"
-                size="large"
-                startIcon={<CloudUploadRoundedIcon />}
-                sx={{ px: 3, py: 1.2, fontWeight: 700, borderRadius: 2 }}
-              >
-                사진 선택하기
-              </Button>
-            </Card>
-          </Box>
+          <PhotoUploadWorkspace
+            sampleImages={SAMPLE_IMAGES.map((s) => ({
+              id: s.id,
+              label: s.label,
+              url: s.url,
+              subLabel: '누끼 실행 ➜',
+            }))}
+            onSelectSample={handleProcessImage}
+            onFileSelect={processFile}
+            title="배경을 제거할 사진을 업로드하세요"
+            subtitle="드래그 & 드롭 및 클립보드 붙여넣기(Ctrl+V) 지원 • 고해상도 인물, 상품, 동물, 로고"
+            icon={<InvertColorsRoundedIcon sx={{ fontSize: 36 }} />}
+          />
         ) : (
           /* Active Processing / Result Workspace */
           <Box
@@ -947,15 +809,15 @@ export function BgRemoveView() {
                     >
                       <ToggleButton value="split">
                         <CompareArrowsRoundedIcon sx={{ fontSize: 18 }} />
-                        Before/After 비교 슬라이더
+                        비교 슬라이더
                       </ToggleButton>
                       <ToggleButton value="single">
                         <ViewStreamRoundedIcon sx={{ fontSize: 18 }} />
-                        결과물 보기
+                        결과물
                       </ToggleButton>
                       <ToggleButton value="mask">
                         <BlurOnRoundedIcon sx={{ fontSize: 18 }} />
-                        알파 마스크 보기
+                        알파 마스크
                       </ToggleButton>
                     </ToggleButtonGroup>
 
@@ -1004,13 +866,13 @@ export function BgRemoveView() {
                         >
                           <ToggleButton value="inside">
                             {splitOrientation === 'horizontal'
-                              ? '→ [중앙 투명] ←'
-                              : '↓ [중앙 투명] ↑'}
+                              ? '→ [중앙 적용] ←'
+                              : '↓ [중앙 적용] ↑'}
                           </ToggleButton>
                           <ToggleButton value="outside">
                             {splitOrientation === 'horizontal'
-                              ? '← [양끝 투명] →'
-                              : '↑ [상하 투명] ↓'}
+                              ? '← [양끝 적용] →'
+                              : '↑ [상하 적용] ↓'}
                           </ToggleButton>
                         </ToggleButtonGroup>
                       </>
@@ -1037,14 +899,7 @@ export function BgRemoveView() {
                       variant="outlined"
                       size="small"
                       color="inherit"
-                      onClick={() => {
-                        setImageSrc('');
-                        setResult(null);
-                        setIsTouchupMode(false);
-                        undoStackRef.current = [];
-                        setUndoCount(0);
-                        lastPointRef.current = null;
-                      }}
+                      onClick={handleReset}
                       startIcon={<RefreshRoundedIcon />}
                     >
                       다른 사진
@@ -1995,39 +1850,38 @@ export function BgRemoveView() {
               >
                 <Button
                   fullWidth
+                  variant="outlined"
+                  color="inherit"
+                  onClick={handleReset}
+                  disabled={isLoading}
+                  startIcon={<RefreshRoundedIcon />}
+                  sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+                >
+                  다른 사진
+                </Button>
+
+                <Button
+                  fullWidth
                   variant="contained"
                   color="primary"
-                  size="large"
                   onClick={() => handleDownload('png')}
                   disabled={!result || isLoading}
                   startIcon={<DownloadRoundedIcon />}
-                  sx={{ py: 1.4, fontWeight: 700, borderRadius: 2, fontSize: '0.95rem' }}
+                  sx={{ py: 1.4, borderRadius: 2, fontWeight: 700, fontSize: '0.95rem' }}
                 >
-                  고화질 PNG 다운로드
+                  저장
                 </Button>
 
                 <Button
                   fullWidth
-                  variant="outlined"
-                  color="inherit"
-                  onClick={handleCopyClipboard}
+                  variant="contained"
+                  color="secondary"
+                  onClick={handleShare}
                   disabled={!result || isLoading}
-                  startIcon={<ContentCopyRoundedIcon />}
+                  startIcon={<ShareRoundedIcon />}
                   sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
                 >
-                  클립보드 복사
-                </Button>
-
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  color="inherit"
-                  onClick={() => handleDownload('jpeg')}
-                  disabled={!result || isLoading}
-                  startIcon={<DownloadRoundedIcon />}
-                  sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
-                >
-                  JPG 저장
+                  공유
                 </Button>
               </Box>
             </Box>

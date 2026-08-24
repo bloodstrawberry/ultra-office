@@ -13,7 +13,7 @@ import TerminalRoundedIcon from '@mui/icons-material/TerminalRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 
-import { getThemeById } from '../core/editor-themes';
+import { getThemeById, DEFAULT_THEME_ID } from '../core/editor-themes';
 
 // ----------------------------------------------------------------------
 
@@ -39,7 +39,7 @@ export const TerminalView = forwardRef<TerminalRef, TerminalViewProps>(
   (
     {
       title = 'Terminal & Output',
-      themeId = 'vs-dark',
+      themeId = DEFAULT_THEME_ID,
       statusLabel,
       statusColor = 'info',
       onClear,
@@ -64,6 +64,7 @@ export const TerminalView = forwardRef<TerminalRef, TerminalViewProps>(
 
     useEffect(() => {
       let isMounted = true;
+      let cleanupListeners: (() => void) | null = null;
 
       const initXterm = async () => {
         if (!containerRef.current) return;
@@ -130,7 +131,7 @@ export const TerminalView = forwardRef<TerminalRef, TerminalViewProps>(
           observer.observe(containerRef.current);
         }
 
-        return () => {
+        cleanupListeners = () => {
           window.removeEventListener('resize', handleResize);
           observer.disconnect();
           term.dispose();
@@ -141,6 +142,7 @@ export const TerminalView = forwardRef<TerminalRef, TerminalViewProps>(
 
       return () => {
         isMounted = false;
+        cleanupListeners?.();
         if (terminalInstanceRef.current) {
           terminalInstanceRef.current.dispose();
           terminalInstanceRef.current = null;

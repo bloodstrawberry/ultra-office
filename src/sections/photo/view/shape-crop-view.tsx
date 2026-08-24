@@ -11,19 +11,40 @@ import Switch from '@mui/material/Switch';
 import Typography from '@mui/material/Typography';
 import ToggleButton from '@mui/material/ToggleButton';
 import FormControlLabel from '@mui/material/FormControlLabel';
-import CircularProgress from '@mui/material/CircularProgress';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import CircularProgress from '@mui/material/CircularProgress';
 import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import CropRotateRoundedIcon from '@mui/icons-material/CropRotateRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 
+import { DashboardContent } from 'src/layouts/dashboard';
 import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
 
-import { DashboardContent } from 'src/layouts/dashboard';
-
 import { downloadDataUrl, shareToKakaoTalk } from '../utils/image-processor';
+import { PhotoUploadWorkspace, PhotoCompareViewport, type SampleImageItem } from '../components';
+
+const SHAPE_CROP_SAMPLE_IMAGES: SampleImageItem[] = [
+  {
+    id: 'sample-portrait',
+    label: '원형 프로필 아바타',
+    url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80',
+    subLabel: '인물 & 프로필',
+  },
+  {
+    id: 'sample-heart',
+    label: '하트 & 기념일 사진',
+    url: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=800&auto=format&fit=crop&q=80',
+    subLabel: '커플 & 럽스타그램',
+  },
+  {
+    id: 'sample-pet',
+    label: '반려동물 (말풍선/별 모양)',
+    url: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800&auto=format&fit=crop&q=80',
+    subLabel: '고양이 & 반려동물',
+  },
+];
 
 type ShapeType = 'circle' | 'heart' | 'star' | 'triangle' | 'hexagon' | 'flower' | 'bubble';
 
@@ -62,7 +83,6 @@ export function ShapeCropView() {
   const resizeStartWidthRef = useRef<number>(360);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDividerPointerDown = (e: React.PointerEvent) => {
     e.preventDefault();
@@ -95,23 +115,10 @@ export function ShapeCropView() {
     const reader = new FileReader();
     reader.onload = (event) => {
       setImageSrc(event.target?.result as string);
+      setResultDataUrl('');
     };
     reader.readAsDataURL(file);
   }, []);
-
-  const { isDragActive, getRootProps } = useImageDropPaste({
-    onFiles: (files) => {
-      if (files[0]) processFile(files[0]);
-    },
-    multiple: false,
-  });
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    processFile(file);
-    if (e.target) e.target.value = '';
-  };
 
   const drawShapePath = (
     ctx: CanvasRenderingContext2D,
@@ -350,64 +357,20 @@ export function ShapeCropView() {
         </Typography>
       </Box>
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleFileUpload}
-        style={{ display: 'none' }}
-      />
-
       <canvas ref={canvasRef} style={{ display: 'none' }} />
 
       {!imageSrc ? (
-        <Card
-          {...getRootProps({
-            onClick: () => fileInputRef.current?.click(),
-          })}
-          sx={{
-            p: 6,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            border: '2px dashed',
-            borderColor: isDragActive ? 'primary.main' : 'divider',
-            bgcolor: isDragActive ? 'action.hover' : 'transparent',
-            borderRadius: 3,
-            flex: '1 1 auto',
-            minHeight: 0,
-            height: '100%',
-            transition: (theme) => theme.transitions.create(['border-color', 'background-color']),
-            '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
+        <PhotoUploadWorkspace
+          sampleImages={SHAPE_CROP_SAMPLE_IMAGES}
+          onSelectSample={(url) => {
+            setImageSrc(url);
+            setResultDataUrl('');
           }}
-        >
-          <Box
-            sx={{
-              width: 64,
-              height: 64,
-              borderRadius: '50%',
-              bgcolor: 'primary.lighter',
-              color: 'primary.main',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              mb: 2,
-            }}
-          >
-            <CropRotateRoundedIcon sx={{ fontSize: 32 }} />
-          </Box>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
-            도형 모양으로 자를 사진 업로드
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-            프로필 사진, 스티커, 디자인 오브젝트 제작에 활용하세요
-          </Typography>
-          <Button variant="contained" color="primary" startIcon={<CloudUploadRoundedIcon />}>
-            사진 선택하기
-          </Button>
-        </Card>
+          onFileSelect={processFile}
+          title="도형 모양으로 자를 사진 업로드"
+          subtitle="프로필 사진, 스티커, 디자인 오브젝트 제작에 활용하세요."
+          icon={<CropRotateRoundedIcon sx={{ fontSize: 36 }} />}
+        />
       ) : (
         <Box
           sx={{
@@ -432,49 +395,26 @@ export function ShapeCropView() {
               pr: { md: 1 },
             }}
           >
-            <Card
-              sx={{
-                p: 2,
-                borderRadius: 3,
-                display: 'flex',
-                flexDirection: 'column',
-                flex: '1 1 auto',
-                minHeight: 0,
-                height: '100%',
-              }}
-            >
-              <Box
-                sx={{
-                  position: 'relative',
-                  width: '100%',
-                  flex: '1 1 auto',
-                  minHeight: 0,
-                  height: '100%',
-                  borderRadius: 2,
-                  overflow: 'hidden',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  p: 1,
-                  background:
-                    'repeating-conic-gradient(#cbd5e1 0% 25%, #f1f5f9 0% 50%) 50% / 20px 20px',
-                }}
-              >
-                {resultDataUrl ? (
-                  <img
-                    src={resultDataUrl}
-                    alt="Shape Crop Result"
-                    style={{
-                      maxWidth: '100%',
-                      maxHeight: '100%',
-                      objectFit: 'contain',
-                    }}
-                  />
-                ) : (
-                  <CircularProgress />
-                )}
-              </Box>
-            </Card>
+            <PhotoCompareViewport
+              originalSrc={imageSrc}
+              resultSrc={resultDataUrl}
+              isLoading={isProcessing}
+              bgStyle="transparent"
+              extraTopActions={
+                <Button
+                  variant="outlined"
+                  size="small"
+                  color="inherit"
+                  onClick={() => {
+                    setImageSrc('');
+                    setResultDataUrl('');
+                  }}
+                  startIcon={<RefreshRoundedIcon />}
+                >
+                  다른 사진
+                </Button>
+              }
+            />
           </Box>
 
           {/* Draggable Divider (Desktop) */}
@@ -748,7 +688,7 @@ export function ShapeCropView() {
                 }
                 sx={{ py: 1.4, borderRadius: 2, fontWeight: 700, fontSize: '0.95rem' }}
               >
-                PNG 저장
+                저장
               </Button>
               <Button
                 fullWidth

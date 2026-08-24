@@ -117,8 +117,6 @@ export function usePolyglotRunner(): PolyglotRunnerHookReturn {
           .map((s) => s.trim())
           .filter((s) => s.length > 0 && !s.startsWith('--'));
 
-        let lastResult: any = null;
-
         for (let i = 0; i < statements.length; i += 1) {
           const stmt = statements[i];
           const isSelect = /^\s*SELECT/i.test(stmt);
@@ -127,7 +125,6 @@ export function usePolyglotRunner(): PolyglotRunnerHookReturn {
           const res = alasql(stmt);
 
           if (isSelect || isShow || (Array.isArray(res) && res.length > 0)) {
-            lastResult = res;
             onStdout(`\r\n\x1b[33mmysql> ${stmt};\x1b[0m\r\n`);
             onStdout(formatTableOutput(res));
           } else {

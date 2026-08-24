@@ -23,13 +23,10 @@ import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
-import CompareArrowsRoundedIcon from '@mui/icons-material/CompareArrowsRounded';
-
-import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
-
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { downloadDataUrl, shareToKakaoTalk } from '../utils/image-processor';
+import { PhotoUploadWorkspace, PhotoCompareViewport } from '../components';
 import {
   WEATHERING_PRESETS,
   WEATHERING_SAMPLES,
@@ -52,10 +49,6 @@ export function WeatheringView() {
   const [screenshotUiLevel, setScreenshotUiLevel] = useState<number>(2);
   const [watermarkCount, setWatermarkCount] = useState<number>(2);
   const [noiseIntensity, setNoiseIntensity] = useState<number>(30);
-  // Compare slider
-  const [comparePos, setComparePos] = useState<number>(50);
-  const [isDraggingCompare, setIsDraggingCompare] = useState<boolean>(false);
-
   const [resultDataUrl, setResultDataUrl] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [rightPanelWidth, setRightPanelWidth] = useState<number>(380);
@@ -63,9 +56,6 @@ export function WeatheringView() {
   const isResizingRef = useRef<boolean>(false);
   const resizeStartXRef = useRef<number>(0);
   const resizeStartWidthRef = useRef<number>(380);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const compareContainerRef = useRef<HTMLDivElement | null>(null);
 
   const handleDividerPointerDown = (e: React.PointerEvent) => {
     e.preventDefault();
@@ -98,23 +88,10 @@ export function WeatheringView() {
     const reader = new FileReader();
     reader.onload = (event) => {
       setImageSrc(event.target?.result as string);
+      setResultDataUrl('');
     };
     reader.readAsDataURL(file);
   }, []);
-
-  const { isDragActive, getRootProps } = useImageDropPaste({
-    onFiles: (files) => {
-      if (files[0]) processFile(files[0]);
-    },
-    multiple: false,
-  });
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    processFile(file);
-    if (e.target) e.target.value = '';
-  };
 
   // Preset Selection
   const applyPreset = (presetId: string) => {
@@ -192,24 +169,6 @@ export function WeatheringView() {
     };
   }, [imageSrc, renderWeathering]);
 
-  // Handle Dragging Compare Slider
-  const handleCompareMove = useCallback((clientX: number) => {
-    if (!compareContainerRef.current) return;
-    const rect = compareContainerRef.current.getBoundingClientRect();
-    const x = Math.max(0, Math.min(clientX - rect.left, rect.width));
-    setComparePos(Math.round((x / rect.width) * 100));
-  }, []);
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (e.touches[0]) handleCompareMove(e.touches[0].clientX);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (isDraggingCompare) {
-      handleCompareMove(e.clientX);
-    }
-  };
-
   // Download
   const handleDownload = async () => {
     if (!resultDataUrl) return;
@@ -278,132 +237,17 @@ export function WeatheringView() {
       </Box>
 
       {!imageSrc ? (
-        /* Upload Box & Samples */
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 3,
-            flex: '1 1 auto',
-            minHeight: 0,
-            overflowY: 'auto',
+        <PhotoUploadWorkspace
+          sampleImages={WEATHERING_SAMPLES}
+          onSelectSample={(url) => {
+            setImageSrc(url);
+            setResultDataUrl('');
           }}
-        >
-          <Card
-            {...getRootProps()}
-            onClick={() => fileInputRef.current?.click()}
-            sx={{
-              p: 6,
-              textAlign: 'center',
-              cursor: 'pointer',
-              border: '2px dashed',
-              borderColor: isDragActive ? 'primary.main' : 'divider',
-              bgcolor: isDragActive ? 'action.hover' : 'background.paper',
-              borderRadius: 3,
-              flex: '1 1 auto',
-              minHeight: 0,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.2s',
-              '&:hover': {
-                borderColor: 'primary.main',
-                bgcolor: 'action.hover',
-              },
-            }}
-          >
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleFileUpload}
-              style={{ display: 'none' }}
-            />
-            <Box
-              sx={{
-                width: 72,
-                height: 72,
-                borderRadius: 3,
-                bgcolor: 'success.lighter',
-                color: 'success.dark',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mx: 'auto',
-                mb: 2,
-                fontSize: '2rem',
-              }}
-            >
-              🍵
-            </Box>
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
-              풍화시킬 사진을 업로드하세요
-            </Typography>
-            <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-              클릭하거나 사진을 이곳으로 드래그 앤 드롭 (PNG, JPG, WEBP)
-            </Typography>
-            <Button
-              variant="contained"
-              color="success"
-              startIcon={<CloudUploadRoundedIcon />}
-              sx={{ borderRadius: 2 }}
-            >
-              사진 파일 선택
-            </Button>
-          </Card>
-
-          {/* Sample Memes */}
-          <Card sx={{ p: 2.5, borderRadius: 3 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
-              ⚡ 샘플 짤방으로 즉시 체험하기
-            </Typography>
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: { xs: 'repeat(3, 1fr)' },
-                gap: 1.5,
-              }}
-            >
-              {WEATHERING_SAMPLES.map((sample) => (
-                <Box
-                  key={sample.id}
-                  onClick={() => setImageSrc(sample.url)}
-                  sx={{
-                    p: 1,
-                    borderRadius: 2,
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    cursor: 'pointer',
-                    textAlign: 'center',
-                    transition: 'all 0.2s',
-                    '&:hover': {
-                      borderColor: 'success.main',
-                      bgcolor: 'action.hover',
-                      transform: 'translateY(-2px)',
-                    },
-                  }}
-                >
-                  <Box
-                    component="img"
-                    src={sample.url}
-                    alt={sample.label}
-                    sx={{
-                      width: '100%',
-                      height: 80,
-                      objectFit: 'cover',
-                      borderRadius: 1.5,
-                      mb: 0.5,
-                    }}
-                  />
-                  <Typography variant="caption" sx={{ fontWeight: 600, display: 'block' }}>
-                    {sample.label}
-                  </Typography>
-                </Box>
-              ))}
-            </Box>
-          </Card>
-        </Box>
+          onFileSelect={processFile}
+          title="풍화시킬 사진을 업로드하세요"
+          subtitle="클릭하거나 사진을 이곳으로 드래그 앤 드롭 (PNG, JPG, WEBP)"
+          icon={<Typography sx={{ fontSize: 36 }}>🍵</Typography>}
+        />
       ) : (
         <Box
           sx={{
@@ -428,161 +272,27 @@ export function WeatheringView() {
               pr: { lg: 1 },
             }}
           >
-            {/* Compare Container */}
-            <Card
-              ref={compareContainerRef}
-              onMouseDown={() => setIsDraggingCompare(true)}
-              onMouseUp={() => setIsDraggingCompare(false)}
-              onMouseLeave={() => setIsDraggingCompare(false)}
-              onMouseMove={handleMouseMove}
-              onTouchMove={handleTouchMove}
-              sx={{
-                position: 'relative',
-                width: '100%',
-                flex: '1 1 auto',
-                minHeight: 0,
-                height: '100%',
-                bgcolor: '#0a0a0a',
-                borderRadius: 3,
-                overflow: 'hidden',
-                userSelect: 'none',
-                cursor: 'ew-resize',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: (theme) => theme.customShadows?.z16 || theme.shadows[16],
-              }}
-            >
-              {/* 1. After (Weathered Image) - Base Layer */}
-              {resultDataUrl && (
-                <Box
-                  component="img"
-                  src={resultDataUrl}
-                  alt="Weathered Result"
-                  sx={{
-                    position: 'absolute',
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'contain',
-                    pointerEvents: 'none',
+            <PhotoCompareViewport
+              originalSrc={imageSrc}
+              resultSrc={resultDataUrl}
+              isLoading={isProcessing}
+              loadingProgress={{ progress: 0, text: '디지털 풍화 연산 중...' }}
+              bgStyle="neutral"
+              extraTopActions={
+                <Button
+                  variant="outlined"
+                  size="small"
+                  color="inherit"
+                  onClick={() => {
+                    setImageSrc('');
+                    setResultDataUrl('');
                   }}
-                />
-              )}
-
-              {/* 2. Before (Original Image) - Clipped Top Layer */}
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: '100%',
-                  overflow: 'hidden',
-                  clipPath: `polygon(0 0, ${comparePos}% 0, ${comparePos}% 100%, 0 100%)`,
-                  pointerEvents: 'none',
-                }}
-              >
-                <Box
-                  component="img"
-                  src={imageSrc}
-                  alt="Original Source"
-                  sx={{
-                    position: 'absolute',
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'contain',
-                  }}
-                />
-              </Box>
-
-              {/* Badges */}
-              <Chip
-                label="원본 (Before)"
-                size="small"
-                sx={{
-                  position: 'absolute',
-                  top: 14,
-                  left: 14,
-                  bgcolor: 'rgba(0,0,0,0.65)',
-                  color: '#fff',
-                  fontWeight: 700,
-                  backdropFilter: 'blur(4px)',
-                  pointerEvents: 'none',
-                }}
-              />
-              <Chip
-                label="풍화 완료 (After)"
-                size="small"
-                color="success"
-                sx={{
-                  position: 'absolute',
-                  top: 14,
-                  right: 14,
-                  fontWeight: 800,
-                  boxShadow: 2,
-                  pointerEvents: 'none',
-                }}
-              />
-
-              {/* Divider Line & Handle */}
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: 0,
-                  bottom: 0,
-                  left: `${comparePos}%`,
-                  width: '2px',
-                  bgcolor: '#ffffff',
-                  boxShadow: '0 0 10px rgba(0,0,0,0.8)',
-                  transform: 'translateX(-50%)',
-                  pointerEvents: 'none',
-                }}
-              >
-                {/* Center Drag Handle */}
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    width: 36,
-                    height: 36,
-                    borderRadius: '50%',
-                    bgcolor: '#ffffff',
-                    color: '#111827',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
-                  }}
+                  startIcon={<RefreshRoundedIcon />}
                 >
-                  <CompareArrowsRoundedIcon sx={{ fontSize: 20 }} />
-                </Box>
-              </Box>
-
-              {/* Processing Overlay */}
-              {isProcessing && (
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    inset: 0,
-                    bgcolor: 'rgba(0,0,0,0.6)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 20,
-                    gap: 1.5,
-                    color: 'white',
-                  }}
-                >
-                  <CircularProgress color="success" size={42} />
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                    디지털 풍화 연산 중...
-                  </Typography>
-                </Box>
-              )}
-            </Card>
+                  다른 사진
+                </Button>
+              }
+            />
           </Box>
 
           {/* Draggable Divider (Desktop) */}
@@ -952,43 +662,33 @@ export function WeatheringView() {
             >
               <Button
                 fullWidth
-                variant="contained"
-                color="success"
-                startIcon={<DownloadRoundedIcon />}
-                onClick={handleDownload}
-                sx={{ py: 1.4, fontWeight: 700, borderRadius: 2, fontSize: '0.95rem' }}
-              >
-                풍화 짤방 다운로드
-              </Button>
-              <Button
-                fullWidth
-                variant="outlined"
-                color="inherit"
-                startIcon={<ContentCopyRoundedIcon />}
-                onClick={handleCopyClipboard}
-                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
-              >
-                복사
-              </Button>
-              <Button
-                fullWidth
-                variant="contained"
-                color="warning"
-                startIcon={<ShareRoundedIcon />}
-                onClick={handleShare}
-                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
-              >
-                카카오톡 공유
-              </Button>
-              <Button
-                fullWidth
                 variant="outlined"
                 color="inherit"
                 startIcon={<RefreshRoundedIcon />}
                 onClick={() => setImageSrc('')}
                 sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
               >
-                새 사진 업로드
+                다른 사진
+              </Button>
+              <Button
+                fullWidth
+                variant="contained"
+                color="primary"
+                startIcon={<DownloadRoundedIcon />}
+                onClick={handleDownload}
+                sx={{ py: 1.4, fontWeight: 700, borderRadius: 2, fontSize: '0.95rem' }}
+              >
+                저장
+              </Button>
+              <Button
+                fullWidth
+                variant="contained"
+                color="secondary"
+                startIcon={<ShareRoundedIcon />}
+                onClick={handleShare}
+                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+              >
+                공유
               </Button>
             </Box>
           </Box>

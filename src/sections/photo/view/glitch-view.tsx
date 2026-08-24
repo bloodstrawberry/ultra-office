@@ -16,13 +16,32 @@ import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import ShuffleRoundedIcon from '@mui/icons-material/ShuffleRounded';
 import FlashOnRoundedIcon from '@mui/icons-material/FlashOnRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
-import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
-
-import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { downloadDataUrl, shareToKakaoTalk } from '../utils/image-processor';
+import { PhotoUploadWorkspace, PhotoCompareViewport, type SampleImageItem } from '../components';
+
+const GLITCH_SAMPLE_IMAGES: SampleImageItem[] = [
+  {
+    id: 'sample-portrait',
+    label: '사이버 네온 인물 (RGB 쉬프트)',
+    url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80',
+    subLabel: '인물 & 프로필',
+  },
+  {
+    id: 'sample-city',
+    label: '네온 시티 야경 (슬라이스 & 노이즈)',
+    url: 'https://images.unsplash.com/photo-1514565131-fce0801e5785?w=800&auto=format&fit=crop&q=80',
+    subLabel: '도심 야경',
+  },
+  {
+    id: 'sample-statue',
+    label: '조각상 (베이퍼웨이브/글리치)',
+    url: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=800&auto=format&fit=crop&q=80',
+    subLabel: '아트 & 오브제',
+  },
+];
 
 export function GlitchView() {
   const [imageSrc, setImageSrc] = useState<string>('');
@@ -41,7 +60,6 @@ export function GlitchView() {
   const resizeStartWidthRef = useRef<number>(360);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDividerPointerDown = (e: React.PointerEvent) => {
     e.preventDefault();
@@ -74,23 +92,10 @@ export function GlitchView() {
     const reader = new FileReader();
     reader.onload = (event) => {
       setImageSrc(event.target?.result as string);
+      setResultDataUrl('');
     };
     reader.readAsDataURL(file);
   }, []);
-
-  const { isDragActive, getRootProps } = useImageDropPaste({
-    onFiles: (files) => {
-      if (files[0]) processFile(files[0]);
-    },
-    multiple: false,
-  });
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    processFile(file);
-    if (e.target) e.target.value = '';
-  };
 
   const renderGlitch = useCallback(async () => {
     if (!imageSrc) {
@@ -274,64 +279,20 @@ export function GlitchView() {
         </Typography>
       </Box>
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleFileUpload}
-        style={{ display: 'none' }}
-      />
-
       <canvas ref={canvasRef} style={{ display: 'none' }} />
 
       {!imageSrc ? (
-        <Card
-          {...getRootProps({
-            onClick: () => fileInputRef.current?.click(),
-          })}
-          sx={{
-            p: 6,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            border: '2px dashed',
-            borderColor: isDragActive ? 'primary.main' : 'divider',
-            bgcolor: isDragActive ? 'action.hover' : 'transparent',
-            borderRadius: 3,
-            flex: '1 1 auto',
-            minHeight: 0,
-            height: '100%',
-            transition: (theme) => theme.transitions.create(['border-color', 'background-color']),
-            '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
+        <PhotoUploadWorkspace
+          sampleImages={GLITCH_SAMPLE_IMAGES}
+          onSelectSample={(url) => {
+            setImageSrc(url);
+            setResultDataUrl('');
           }}
-        >
-          <Box
-            sx={{
-              width: 64,
-              height: 64,
-              borderRadius: '50%',
-              bgcolor: 'primary.lighter',
-              color: 'primary.main',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              mb: 2,
-            }}
-          >
-            <FlashOnRoundedIcon sx={{ fontSize: 32 }} />
-          </Box>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
-            글리치 효과를 적용할 사진 업로드
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-            인물, 앨범 커버, 사이버펑크 스타일에 최적화되어 있습니다
-          </Typography>
-          <Button variant="contained" color="primary" startIcon={<CloudUploadRoundedIcon />}>
-            사진 선택하기
-          </Button>
-        </Card>
+          onFileSelect={processFile}
+          title="글리치 효과를 적용할 사진 업로드"
+          subtitle="인물, 앨범 커버, 사이버펑크 스타일에 최적화되어 있습니다."
+          icon={<FlashOnRoundedIcon sx={{ fontSize: 36 }} />}
+        />
       ) : (
         <Box
           sx={{
@@ -356,48 +317,26 @@ export function GlitchView() {
               pr: { md: 1 },
             }}
           >
-            <Card
-              sx={{
-                p: 2.5,
-                borderRadius: 3,
-                display: 'flex',
-                flexDirection: 'column',
-                flex: '1 1 auto',
-                minHeight: 0,
-                height: '100%',
-              }}
-            >
-              <Box
-                sx={{
-                  position: 'relative',
-                  width: '100%',
-                  flex: '1 1 auto',
-                  minHeight: 0,
-                  height: '100%',
-                  bgcolor: '#050515',
-                  borderRadius: 2,
-                  overflow: 'hidden',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  p: 1,
-                }}
-              >
-                {resultDataUrl ? (
-                  <img
-                    src={resultDataUrl}
-                    alt="Glitch Output"
-                    style={{
-                      maxWidth: '100%',
-                      maxHeight: '100%',
-                      objectFit: 'contain',
-                    }}
-                  />
-                ) : (
-                  <CircularProgress color="inherit" />
-                )}
-              </Box>
-            </Card>
+            <PhotoCompareViewport
+              originalSrc={imageSrc}
+              resultSrc={resultDataUrl}
+              isLoading={isProcessing}
+              bgStyle="neutral"
+              extraTopActions={
+                <Button
+                  variant="outlined"
+                  size="small"
+                  color="inherit"
+                  onClick={() => {
+                    setImageSrc('');
+                    setResultDataUrl('');
+                  }}
+                  startIcon={<RefreshRoundedIcon />}
+                >
+                  다른 사진
+                </Button>
+              }
+            />
           </Box>
 
           {/* Draggable Divider (Desktop) */}
@@ -626,7 +565,7 @@ export function GlitchView() {
                 }
                 sx={{ py: 1.4, borderRadius: 2, fontWeight: 700, fontSize: '0.95rem' }}
               >
-                글리치 저장
+                저장
               </Button>
               <Button
                 fullWidth

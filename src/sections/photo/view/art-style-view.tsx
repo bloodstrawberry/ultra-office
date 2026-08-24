@@ -14,16 +14,36 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
-import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 import AutoFixHighRoundedIcon from '@mui/icons-material/AutoFixHighRounded';
 
+import { DashboardContent } from 'src/layouts/dashboard';
 import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
 
-import { DashboardContent } from 'src/layouts/dashboard';
-
 import { downloadDataUrl, shareToKakaoTalk } from '../utils/image-processor';
+import { PhotoUploadWorkspace, PhotoCompareViewport, type SampleImageItem } from '../components';
 
 type FilterType = 'pencil' | 'kuwahara' | 'comic' | 'watercolor' | 'cyberpunk';
+
+const ART_SAMPLE_IMAGES: SampleImageItem[] = [
+  {
+    id: 'sample-scenery',
+    label: '도시 풍경 (사이버펑크/유화)',
+    url: 'https://images.unsplash.com/photo-1514565131-fce0801e5785?w=800&auto=format&fit=crop&q=80',
+    subLabel: '풍경 & 건축물',
+  },
+  {
+    id: 'sample-portrait',
+    label: '인물 초상 (스케치/팝아트)',
+    url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80',
+    subLabel: '인물 & 헤어',
+  },
+  {
+    id: 'sample-nature',
+    label: '자연 & 꽃 (수채화)',
+    url: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=800&auto=format&fit=crop&q=80',
+    subLabel: '정물 & 자연',
+  },
+];
 
 interface FilterOption {
   id: FilterType;
@@ -50,7 +70,6 @@ export function ArtStyleView() {
   const [activeFilter, setActiveFilter] = useState<FilterType>('pencil');
   const [intensity, setIntensity] = useState<number>(80);
   const [brushSize, setBrushSize] = useState<number>(4);
-  const [comparePos, setComparePos] = useState<number>(50);
 
   const [resultDataUrl, setResultDataUrl] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
@@ -61,7 +80,6 @@ export function ArtStyleView() {
   const resizeStartWidthRef = useRef<number>(360);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDividerPointerDown = (e: React.PointerEvent) => {
     e.preventDefault();
@@ -94,23 +112,10 @@ export function ArtStyleView() {
     const reader = new FileReader();
     reader.onload = (event) => {
       setImageSrc(event.target?.result as string);
+      setResultDataUrl('');
     };
     reader.readAsDataURL(file);
   }, []);
-
-  const { isDragActive, getRootProps } = useImageDropPaste({
-    onFiles: (files) => {
-      if (files[0]) processFile(files[0]);
-    },
-    multiple: false,
-  });
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    processFile(file);
-    if (e.target) e.target.value = '';
-  };
 
   const applyFilter = useCallback(async () => {
     if (!imageSrc) {
@@ -424,64 +429,28 @@ export function ArtStyleView() {
         </Typography>
       </Box>
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleFileUpload}
-        style={{ display: 'none' }}
-      />
-
       <canvas ref={canvasRef} style={{ display: 'none' }} />
 
       {!imageSrc ? (
-        <Card
-          {...getRootProps({
-            onClick: () => fileInputRef.current?.click(),
-          })}
-          sx={{
-            p: 6,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            border: '2px dashed',
-            borderColor: isDragActive ? 'primary.main' : 'divider',
-            bgcolor: isDragActive ? 'action.hover' : 'transparent',
-            borderRadius: 3,
-            flex: '1 1 auto',
-            minHeight: 0,
-            height: '100%',
-            transition: (theme) => theme.transitions.create(['border-color', 'background-color']),
-            '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
+        <PhotoUploadWorkspace
+          sampleImages={ART_SAMPLE_IMAGES}
+          onSelectSample={(url) => {
+            setImageSrc(url);
+            setResultDataUrl('');
           }}
-        >
-          <Box
-            sx={{
-              width: 64,
-              height: 64,
-              borderRadius: '50%',
-              bgcolor: 'primary.lighter',
-              color: 'primary.main',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              mb: 2,
-            }}
-          >
-            <AutoFixHighRoundedIcon sx={{ fontSize: 32 }} />
-          </Box>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
-            스타일을 적용할 이미지 업로드
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-            PNG, JPG, WEBP 이미지를 클릭하거나 올려주세요
-          </Typography>
-          <Button variant="contained" color="primary" startIcon={<CloudUploadRoundedIcon />}>
-            이미지 선택하기
-          </Button>
-        </Card>
+          onFileSelect={(file) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const src = e.target?.result as string;
+              setImageSrc(src);
+              setResultDataUrl('');
+            };
+            reader.readAsDataURL(file);
+          }}
+          title="스타일을 적용할 이미지 업로드"
+          subtitle="PNG, JPG, WEBP 이미지를 드래그하거나 클릭하여 올려주세요."
+          icon={<AutoFixHighRoundedIcon sx={{ fontSize: 36 }} />}
+        />
       ) : (
         <Box
           sx={{
@@ -506,115 +475,26 @@ export function ArtStyleView() {
               pr: { md: 1 },
             }}
           >
-            <Card
-              sx={{
-                p: 2.5,
-                borderRadius: 3,
-                display: 'flex',
-                flexDirection: 'column',
-                flex: '1 1 auto',
-                minHeight: 0,
-                height: '100%',
-              }}
-            >
-              <Box
-                sx={{
-                  position: 'relative',
-                  width: '100%',
-                  flex: '1 1 auto',
-                  minHeight: 0,
-                  height: '100%',
-                  bgcolor: '#0f172a',
-                  borderRadius: 2,
-                  overflow: 'hidden',
-                  userSelect: 'none',
-                }}
-              >
-                {/* Processed Image */}
-                {resultDataUrl && (
-                  <img
-                    src={resultDataUrl}
-                    alt="Processed"
-                    style={{
-                      position: 'absolute',
-                      inset: 0,
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'contain',
-                    }}
-                  />
-                )}
-
-                {/* Original Image (Clipped) */}
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    inset: 0,
-                    overflow: 'hidden',
-                    width: `${comparePos}%`,
-                    borderRight: '2px solid #ffffff',
-                    boxShadow: '2px 0 8px rgba(0,0,0,0.5)',
-                  }}
-                >
-                  <img
-                    src={imageSrc}
-                    alt="Original"
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'contain',
-                      maxWidth: 'none',
-                    }}
-                  />
-                </Box>
-
-                {/* Split Slider Handle */}
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: `${comparePos}%`,
-                    transform: 'translate(-50%, -50%)',
-                    width: 32,
-                    height: 32,
-                    borderRadius: '50%',
-                    bgcolor: '#ffffff',
-                    color: '#0f172a',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: 3,
-                    fontSize: 12,
-                    fontWeight: 800,
-                    pointerEvents: 'none',
-                  }}
-                >
-                  ↔
-                </Box>
-              </Box>
-
-              {/* Slider Controller */}
-              <Box sx={{ mt: 2, px: 1, flexShrink: 0 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                  <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                    원본 (Left)
-                  </Typography>
-                  <Typography variant="caption" sx={{ fontWeight: 700, color: 'primary.main' }}>
-                    Before / After 비교 ({comparePos}%)
-                  </Typography>
-                  <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                    필터 적용 (Right)
-                  </Typography>
-                </Box>
-                <Slider
+            <PhotoCompareViewport
+              originalSrc={imageSrc}
+              resultSrc={resultDataUrl}
+              isLoading={isProcessing}
+              bgStyle="neutral"
+              extraTopActions={
+                <Button
+                  variant="outlined"
                   size="small"
-                  min={0}
-                  max={100}
-                  value={comparePos}
-                  onChange={(_, v) => setComparePos(v as number)}
-                />
-              </Box>
-            </Card>
+                  color="inherit"
+                  onClick={() => {
+                    setImageSrc('');
+                    setResultDataUrl('');
+                  }}
+                  startIcon={<RefreshRoundedIcon />}
+                >
+                  다른 사진
+                </Button>
+              }
+            />
           </Box>
 
           {/* Draggable Divider (Desktop) */}
@@ -831,7 +711,7 @@ export function ArtStyleView() {
                 }
                 sx={{ py: 1.4, borderRadius: 2, fontWeight: 700, fontSize: '0.95rem' }}
               >
-                작품 저장
+                저장
               </Button>
               <Button
                 fullWidth

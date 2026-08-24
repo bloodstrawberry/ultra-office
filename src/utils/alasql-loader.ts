@@ -9,8 +9,7 @@ export async function loadAlaSql(): Promise<any> {
     return (window as any).alasql;
   }
   try {
-    // @ts-ignore
-    const mod = await import('alasql/dist/alasql.min.js');
+    const mod = await import('alasql');
     const instance = (window as any).alasql || mod.default || mod;
     return instance;
   } catch (err) {

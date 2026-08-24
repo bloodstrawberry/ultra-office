@@ -3,20 +3,21 @@
 export type SupportedLanguage =
   | 'javascript'
   | 'typescript'
+  | 'react'
+  | 'html'
+  | 'node-server'
   | 'python'
   | 'c'
   | 'cpp'
-  | 'rust'
-  | 'go'
+  | 'csharp'
   | 'java'
+  | 'go'
   | 'sql'
-  | 'php'
   | 'ruby'
+  | 'php'
   | 'lua'
   | 'bash'
-  | 'html'
-  | 'react'
-  | 'node-server';
+  | 'rust';
 
 export type RunnerEngine =
   | 'webcontainer'

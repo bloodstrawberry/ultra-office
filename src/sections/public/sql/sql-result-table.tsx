@@ -24,6 +24,9 @@ import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded';
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
 
+import StorageRoundedIcon from '@mui/icons-material/StorageRounded';
+import TableChartRoundedIcon from '@mui/icons-material/TableChartRounded';
+
 // ----------------------------------------------------------------------
 
 interface SqlResultTableProps {
@@ -45,6 +48,7 @@ export function SqlResultTable({
     return (
       <Card
         sx={{
+          width: '100%',
           p: 4,
           height: '100%',
           display: 'flex',
@@ -53,10 +57,29 @@ export function SqlResultTable({
           justifyContent: 'center',
           bgcolor: 'background.neutral',
           border: (theme) => `1px dashed ${theme.vars.palette.divider}`,
+          textAlign: 'center',
+          gap: 1.5,
         }}
       >
-        <Typography variant="body2" color="text.secondary">
-          상단에서 쿼리를 작성한 후 <strong>실행 (Ctrl + Enter)</strong> 버튼을 눌러주세요.
+        <Box
+          sx={{
+            width: 48,
+            height: 48,
+            borderRadius: '50%',
+            bgcolor: 'action.hover',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'text.secondary',
+          }}
+        >
+          <TableChartRoundedIcon sx={{ fontSize: 28 }} />
+        </Box>
+        <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+          실행된 쿼리 결과가 여기에 표시됩니다.
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          SQL 에디터에서 쿼리를 작성한 후 <strong>실행 (Ctrl + Enter)</strong>을 눌러주세요.
         </Typography>
       </Card>
     );
@@ -64,7 +87,7 @@ export function SqlResultTable({
 
   if (result.error) {
     return (
-      <Alert severity="error" sx={{ height: '100%', overflowY: 'auto' }}>
+      <Alert severity="error" sx={{ width: '100%', height: '100%', overflowY: 'auto' }}>
         <AlertTitle sx={{ fontWeight: 'bold' }}>SQL 실행 오류</AlertTitle>
         <Box sx={{ fontFamily: 'monospace', fontSize: 13, mt: 1, whiteSpace: 'pre-wrap' }}>
           {result.error}
@@ -121,6 +144,7 @@ export function SqlResultTable({
   return (
     <Card
       sx={{
+        width: '100%',
         display: 'flex',
         flexDirection: 'column',
         height: '100%',

@@ -24,12 +24,10 @@ import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import CompareArrowsRoundedIcon from '@mui/icons-material/CompareArrowsRounded';
-
-import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
-
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { downloadDataUrl, shareToKakaoTalk } from '../utils/image-processor';
+import { PhotoUploadWorkspace } from '../components';
 import {
   MEME_EFFECTS,
   MEME_SAMPLES,
@@ -92,7 +90,6 @@ export function MemeLabView() {
   const resizeStartXRef = useRef<number>(0);
   const resizeStartWidthRef = useRef<number>(380);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const compareContainerRef = useRef<HTMLDivElement>(null);
   const animFrameRef = useRef<number | null>(null);
 
@@ -144,20 +141,6 @@ export function MemeLabView() {
     };
     reader.readAsDataURL(file);
   }, []);
-
-  const { isDragActive, getRootProps } = useImageDropPaste({
-    onFiles: (files) => {
-      if (files[0]) processFile(files[0]);
-    },
-    multiple: false,
-  });
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    processFile(file);
-    if (e.target) e.target.value = '';
-  };
 
   // 3D Live Spinning loop
   useEffect(() => {
@@ -405,132 +388,17 @@ export function MemeLabView() {
       </Box>
 
       {!imageSrc ? (
-        /* Upload & Sample Meme Box */
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 3,
-            flex: '1 1 auto',
-            minHeight: 0,
-            overflowY: 'auto',
+        <PhotoUploadWorkspace
+          sampleImages={MEME_SAMPLES}
+          onSelectSample={(url) => {
+            setImageSrc(url);
+            setResultDataUrl('');
           }}
-        >
-          <Card
-            {...getRootProps()}
-            onClick={() => fileInputRef.current?.click()}
-            sx={{
-              p: 6,
-              textAlign: 'center',
-              cursor: 'pointer',
-              border: '2px dashed',
-              borderColor: isDragActive ? 'primary.main' : 'divider',
-              bgcolor: isDragActive ? 'action.hover' : 'background.paper',
-              borderRadius: 3,
-              flex: '1 1 auto',
-              minHeight: 0,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.2s',
-              '&:hover': {
-                borderColor: 'primary.main',
-                bgcolor: 'action.hover',
-              },
-            }}
-          >
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleFileUpload}
-              style={{ display: 'none' }}
-            />
-            <Box
-              sx={{
-                width: 72,
-                height: 72,
-                borderRadius: 3,
-                bgcolor: 'primary.lighter',
-                color: 'primary.dark',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mx: 'auto',
-                mb: 2,
-                fontSize: '2rem',
-              }}
-            >
-              🧪
-            </Box>
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
-              변환할 사진을 업로드하세요
-            </Typography>
-            <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-              인물, 동물, 밈 캡처 등 사진을 드래그 앤 드롭하거나 클릭하여 선택
-            </Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<CloudUploadRoundedIcon />}
-              sx={{ borderRadius: 2 }}
-            >
-              사진 파일 선택
-            </Button>
-          </Card>
-
-          {/* Sample Memes Quick Load */}
-          <Card sx={{ p: 2.5, borderRadius: 3 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
-              ⚡ 샘플 짤방으로 즉시 체험하기
-            </Typography>
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: { xs: 'repeat(3, 1fr)' },
-                gap: 1.5,
-              }}
-            >
-              {MEME_SAMPLES.map((sample) => (
-                <Box
-                  key={sample.id}
-                  onClick={() => setImageSrc(sample.url)}
-                  sx={{
-                    p: 1,
-                    borderRadius: 2,
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    cursor: 'pointer',
-                    textAlign: 'center',
-                    transition: 'all 0.2s',
-                    '&:hover': {
-                      borderColor: 'primary.main',
-                      bgcolor: 'action.hover',
-                      transform: 'translateY(-2px)',
-                    },
-                  }}
-                >
-                  <Box
-                    component="img"
-                    src={sample.url}
-                    alt={sample.label}
-                    sx={{
-                      width: '100%',
-                      height: 80,
-                      objectFit: 'cover',
-                      borderRadius: 1.5,
-                      mb: 0.5,
-                    }}
-                  />
-                  <Typography variant="caption" sx={{ fontWeight: 600, display: 'block' }}>
-                    {sample.label}
-                  </Typography>
-                </Box>
-              ))}
-            </Box>
-          </Card>
-        </Box>
+          onFileSelect={processFile}
+          title="변환할 사진을 업로드하세요"
+          subtitle="인물, 동물, 밈 캡처 등 사진을 드래그 앤 드롭하거나 클릭하여 선택"
+          icon={<Typography sx={{ fontSize: 36 }}>🧪</Typography>}
+        />
       ) : (
         <Box
           sx={{
@@ -1285,57 +1153,47 @@ export function MemeLabView() {
             >
               <Button
                 fullWidth
-                variant="contained"
-                color="primary"
-                startIcon={<DownloadRoundedIcon />}
-                onClick={handleDownload}
-                sx={{ py: 1.4, fontWeight: 700, borderRadius: 2, fontSize: '0.95rem' }}
-              >
-                이미지 다운로드
-              </Button>
-              {currentMeta?.hasGifExport && (
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  color="secondary"
-                  startIcon={<GifBoxRoundedIcon />}
-                  onClick={handleExportGif}
-                  disabled={isGeneratingGif}
-                  sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
-                >
-                  움짤(GIF) 다운로드
-                </Button>
-              )}
-              <Button
-                fullWidth
-                variant="outlined"
-                color="inherit"
-                startIcon={<ContentCopyRoundedIcon />}
-                onClick={handleCopyClipboard}
-                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
-              >
-                복사
-              </Button>
-              <Button
-                fullWidth
-                variant="contained"
-                color="warning"
-                startIcon={<ShareRoundedIcon />}
-                onClick={handleShare}
-                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
-              >
-                카톡 공유
-              </Button>
-              <Button
-                fullWidth
                 variant="outlined"
                 color="inherit"
                 startIcon={<RefreshRoundedIcon />}
                 onClick={() => setImageSrc('')}
                 sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
               >
-                새 사진
+                다른 사진
               </Button>
+              <Button
+                fullWidth
+                variant="contained"
+                color="primary"
+                startIcon={<DownloadRoundedIcon />}
+                onClick={handleDownload}
+                sx={{ py: 1.4, fontWeight: 700, borderRadius: 2, fontSize: '0.95rem' }}
+              >
+                저장
+              </Button>
+              <Button
+                fullWidth
+                variant="contained"
+                color="secondary"
+                startIcon={<ShareRoundedIcon />}
+                onClick={handleShare}
+                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+              >
+                공유
+              </Button>
+              {currentMeta?.hasGifExport && (
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  color="inherit"
+                  startIcon={<GifBoxRoundedIcon />}
+                  onClick={handleExportGif}
+                  disabled={isGeneratingGif}
+                  sx={{ py: 1, borderRadius: 2, fontWeight: 600 }}
+                >
+                  움짤(GIF) 다운로드
+                </Button>
+              )}
             </Box>
           </Box>
         </Box>

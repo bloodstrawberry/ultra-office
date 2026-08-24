@@ -27,13 +27,11 @@ import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import ColorizeRoundedIcon from '@mui/icons-material/ColorizeRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 import AspectRatioRoundedIcon from '@mui/icons-material/AspectRatioRounded';
-import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import InvertColorsRoundedIcon from '@mui/icons-material/InvertColorsRounded';
 import FormatColorFillRoundedIcon from '@mui/icons-material/FormatColorFillRounded';
-
-import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
-
+import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import { DashboardContent } from 'src/layouts/dashboard';
+import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
 
 import {
   downloadDataUrl,
@@ -45,6 +43,28 @@ import {
   PADDING_GRADIENT_PRESETS,
   toggleBackgroundWhiteTransparent,
 } from '../utils/image-processor';
+import { PhotoUploadWorkspace, type SampleImageItem } from '../components';
+
+const COLOR_SAMPLE_IMAGES: SampleImageItem[] = [
+  {
+    id: 'sample-logo',
+    label: '화이트 배경 로고/아이콘 (배경 투명화/색상 변경)',
+    url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80',
+    subLabel: '로고 & 그래픽',
+  },
+  {
+    id: 'sample-product',
+    label: '단색 배경 제품 컷 (여백 & 컬러 채우기)',
+    url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&auto=format&fit=crop&q=80',
+    subLabel: '제품 썸네일',
+  },
+  {
+    id: 'sample-profile',
+    label: '인물 프로필 (배경색 변경)',
+    url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80',
+    subLabel: '프로필 증명사진',
+  },
+];
 
 type ToolMode = 'fill' | 'erase' | 'spoid';
 
@@ -182,12 +202,7 @@ export function ColorView() {
     const left = paddingLinked ? paddingAll : paddingLeft;
     const right = paddingLinked ? paddingAll : paddingRight;
 
-    if (top <= 0 && bottom <= 0 && left <= 0 && right <= 0) {
-      toast.info('추가할 여백 크기(px)를 1 이상으로 설정해 주세요.');
-      return;
-    }
-
-    const { newWidth, newHeight } = applyPaddingToCanvas(canvas, {
+    applyPaddingToCanvas(canvas, {
       top,
       bottom,
       left,
@@ -198,45 +213,55 @@ export function ColorView() {
       blurAmount: paddingBlurAmount,
     });
 
-    setImageDimensions({ width: newWidth, height: newHeight });
+    setImageDimensions({ width: canvas.width, height: canvas.height });
     pushHistory();
-    toast.success(`여백이 추가되었습니다! (${newWidth} × ${newHeight} px)`);
+    toast.success('여백이 적용되었습니다.');
   };
 
-  const handleApplyRatioPreset = (w: number, h: number) => {
-    if (imageDimensions.width <= 0 || imageDimensions.height <= 0) return;
-    const padding = calculateAspectPadding(imageDimensions.width, imageDimensions.height, w, h);
-    setPaddingLinked(false);
-    setPaddingTop(padding.top);
-    setPaddingBottom(padding.bottom);
-    setPaddingLeft(padding.left);
-    setPaddingRight(padding.right);
-    toast.info(
-      `비율 맞춤 계산 완료: 상/하 +${padding.top + padding.bottom}px, 좌/우 +${padding.left + padding.right}px`
-    );
+  const handleAutoAspect = (targetRatioW: number, targetRatioH: number) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const p = calculateAspectPadding(canvas.width, canvas.height, targetRatioW, targetRatioH);
+
+    applyPaddingToCanvas(canvas, {
+      top: p.top,
+      bottom: p.bottom,
+      left: p.left,
+      right: p.right,
+      bgType: paddingBgType,
+      solidColor: paddingSolidColor,
+      gradientPreset: paddingGradientPreset,
+      blurAmount: paddingBlurAmount,
+    });
+
+    setImageDimensions({ width: canvas.width, height: canvas.height });
+    pushHistory();
+    toast.success(`비율 (${targetRatioW}:${targetRatioH})에 맞추어 여백이 확장되었습니다.`);
   };
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
 
-    const clickX = Math.floor((e.clientX - rect.left) * scaleX);
-    const clickY = Math.floor((e.clientY - rect.top) * scaleY);
+    const clickX = Math.round((e.clientX - rect.left) * scaleX);
+    const clickY = Math.round((e.clientY - rect.top) * scaleY);
 
     if (mode === 'spoid') {
-      const ctx = canvas.getContext('2d', { willReadFrequently: true });
-      if (ctx) {
-        const p = ctx.getImageData(clickX, clickY, 1, 1).data;
-        const toHex = (n: number) => n.toString(16).padStart(2, '0');
-        const hex = `#${toHex(p[0])}${toHex(p[1])}${toHex(p[2])}`;
-        setPaddingSolidColor(hex);
-        setPaddingBgType('color');
+      const pixel = ctx.getImageData(clickX, clickY, 1, 1).data;
+      if (pixel[3] === 0) {
+        toast.info('투명한 영역을 클릭했습니다.');
+      } else {
+        const hex = `#${((1 << 24) + (pixel[0] << 16) + (pixel[1] << 8) + pixel[2]).toString(16).slice(1).toUpperCase()}`;
         setFillColorHex(hex);
-        toast.success(`스포이드 색상 추출: ${hex} (여백 색상으로 설정됨)`);
+        setPaddingSolidColor(hex);
+        toast.success(`색상이 추출되었습니다: ${hex}`);
       }
       return;
     }
@@ -253,6 +278,27 @@ export function ColorView() {
     floodFillCanvas(canvas, clickX, clickY, fillRGBA, tolerance);
     pushHistory();
   };
+
+  const loadSampleImage = useCallback((url: string) => {
+    setImageSrc(url);
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      setImageDimensions({ width: img.width, height: img.height });
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+
+      setHistory([ctx.getImageData(0, 0, canvas.width, canvas.height)]);
+    };
+    img.src = url;
+  }, []);
 
   const processFile = useCallback((file: File) => {
     const reader = new FileReader();
@@ -280,20 +326,6 @@ export function ColorView() {
     };
     reader.readAsDataURL(file);
   }, []);
-
-  const { isDragActive, getRootProps } = useImageDropPaste({
-    onFiles: (files) => {
-      if (files[0]) processFile(files[0]);
-    },
-    multiple: false,
-  });
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    processFile(file);
-    if (e.target) e.target.value = '';
-  };
 
   const handleSave = async () => {
     const canvas = canvasRef.current;
@@ -349,72 +381,15 @@ export function ColorView() {
         </Typography>
       </Box>
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleFileChange}
-        style={{ display: 'none' }}
-      />
-
       {!imageSrc ? (
-        <Card
-          {...getRootProps({
-            onClick: () => fileInputRef.current?.click(),
-          })}
-          sx={{
-            p: 4,
-            flex: '1 1 auto',
-            minHeight: 0,
-            width: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            border: '2px dashed',
-            borderColor: isDragActive ? 'primary.main' : 'divider',
-            bgcolor: isDragActive ? 'action.hover' : 'transparent',
-            borderRadius: 3,
-            transition: (theme) => theme.transitions.create(['border-color', 'background-color']),
-            '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
-          }}
-        >
-          <Box
-            sx={{
-              width: { xs: 64, sm: 80 },
-              height: { xs: 64, sm: 80 },
-              borderRadius: '50%',
-              bgcolor: 'primary.lighter',
-              color: 'primary.main',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              mb: 2.5,
-            }}
-          >
-            <InvertColorsRoundedIcon sx={{ fontSize: { xs: 36, sm: 44 } }} />
-          </Box>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 1, textAlign: 'center' }}>
-            이미지 업로드
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{ color: 'text.secondary', mb: 3, textAlign: 'center', maxWidth: 480 }}
-          >
-            단색 배경 로고, 아이콘, 누끼 작업에 최적화되어 있습니다.
-            <br />
-            이미지를 드래그하거나 클립보드(Ctrl+V)에서 붙여넣으세요.
-          </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            size="large"
-            startIcon={<CloudUploadRoundedIcon />}
-          >
-            사진 선택하기
-          </Button>
-        </Card>
+        <PhotoUploadWorkspace
+          sampleImages={COLOR_SAMPLE_IMAGES}
+          onSelectSample={loadSampleImage}
+          onFileSelect={processFile}
+          title="이미지 업로드"
+          subtitle="단색 배경 로고, 아이콘, 누끼 작업, 제품 썸네일에 최적화되어 있습니다."
+          icon={<InvertColorsRoundedIcon sx={{ fontSize: 36 }} />}
+        />
       ) : (
         <Box
           sx={{
@@ -763,7 +738,7 @@ export function ColorView() {
                     size="small"
                     clickable
                     variant="outlined"
-                    onClick={() => handleApplyRatioPreset(preset.w, preset.h)}
+                    onClick={() => handleAutoAspect(preset.w, preset.h)}
                     sx={{ fontWeight: 600 }}
                   />
                 ))}
@@ -1228,7 +1203,7 @@ export function ColorView() {
                 }
                 sx={{ py: 1.4, borderRadius: 2, fontWeight: 700, fontSize: '0.95rem' }}
               >
-                PNG 저장
+                저장
               </Button>
               <Button
                 fullWidth

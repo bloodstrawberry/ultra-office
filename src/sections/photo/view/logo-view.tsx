@@ -19,15 +19,36 @@ import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import LockOpenRoundedIcon from '@mui/icons-material/LockOpenRounded';
 import CropSquareRoundedIcon from '@mui/icons-material/CropSquareRounded';
-import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 import AspectRatioRoundedIcon from '@mui/icons-material/AspectRatioRounded';
-
-import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
+import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
+import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
 
 import { type CropRect, InteractiveCropBox } from '../components/interactive-crop-box';
 import { downloadDataUrl, shareToKakaoTalk, cropAndResizeLogo } from '../utils/image-processor';
+import { PhotoUploadWorkspace, type SampleImageItem } from '../components';
+
+const LOGO_SAMPLE_IMAGES: SampleImageItem[] = [
+  {
+    id: 'sample-app-icon',
+    label: '앱 아이콘 & 브랜딩 (1:1 / 파비콘)',
+    url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80',
+    subLabel: '앱 아이콘',
+  },
+  {
+    id: 'sample-thumbnail',
+    label: '유튜브/블로그 썸네일 (16:9)',
+    url: 'https://images.unsplash.com/photo-1514565131-fce0801e5785?w=800&auto=format&fit=crop&q=80',
+    subLabel: '가로 썸네일',
+  },
+  {
+    id: 'sample-profile',
+    label: 'SNS 프로필 & 로고 (정사각형)',
+    url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80',
+    subLabel: '프로필 & 로고',
+  },
+];
 
 // ----------------------------------------------------------------------
 
@@ -125,8 +146,6 @@ export function LogoView() {
   const isResizingRef = useRef<boolean>(false);
   const resizeStartXRef = useRef<number>(0);
   const resizeStartWidthRef = useRef<number>(380);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const naturalDimensionsRef = useRef<{ width: number; height: number }>({ width: 0, height: 0 });
 
   const handleDividerPointerDown = (e: React.PointerEvent) => {
@@ -173,6 +192,42 @@ export function LogoView() {
     [outputWidth, outputHeight]
   );
 
+  const loadSampleImage = useCallback(
+    (url: string) => {
+      setImageSrc(url);
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        naturalDimensionsRef.current = { width: img.width, height: img.height };
+        setImageDimensions({ width: img.width, height: img.height });
+
+        const targetAspect = outputWidth / (outputHeight || 1);
+        const imgAspect = img.width / img.height;
+        let cropW = 0;
+        let cropH = 0;
+
+        if (imgAspect > targetAspect) {
+          cropH = img.height * 0.8;
+          cropW = cropH * targetAspect;
+        } else {
+          cropW = img.width * 0.8;
+          cropH = cropW / targetAspect;
+        }
+
+        const initialCrop: CropRect = {
+          x: Math.round((img.width - cropW) / 2),
+          y: Math.round((img.height - cropH) / 2),
+          width: Math.max(1, Math.round(cropW)),
+          height: Math.max(1, Math.round(cropH)),
+        };
+        setCrop(initialCrop);
+        generateLogo(url, initialCrop, outputWidth, outputHeight);
+      };
+      img.src = url;
+    },
+    [generateLogo, outputWidth, outputHeight]
+  );
+
   const processFile = useCallback(
     (file: File) => {
       const reader = new FileReader();
@@ -214,20 +269,6 @@ export function LogoView() {
     },
     [generateLogo, outputWidth, outputHeight]
   );
-
-  const { isDragActive, getRootProps } = useImageDropPaste({
-    onFiles: (files) => {
-      if (files[0]) processFile(files[0]);
-    },
-    multiple: false,
-  });
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    processFile(file);
-    if (e.target) e.target.value = '';
-  };
 
   const handleCropChange = (newCrop: CropRect) => {
     setCrop(newCrop);
@@ -376,72 +417,15 @@ export function LogoView() {
         </Typography>
       </Box>
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleFileUpload}
-        style={{ display: 'none' }}
-      />
-
       {!imageSrc ? (
-        <Card
-          {...getRootProps({
-            onClick: () => fileInputRef.current?.click(),
-          })}
-          sx={{
-            p: 4,
-            flex: '1 1 auto',
-            minHeight: 0,
-            width: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            border: '2px dashed',
-            borderColor: isDragActive ? 'primary.main' : 'divider',
-            bgcolor: isDragActive ? 'action.hover' : 'transparent',
-            borderRadius: 3,
-            transition: (theme) => theme.transitions.create(['border-color', 'background-color']),
-            '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
-          }}
-        >
-          <Box
-            sx={{
-              width: { xs: 64, sm: 80 },
-              height: { xs: 64, sm: 80 },
-              borderRadius: '50%',
-              bgcolor: 'primary.lighter',
-              color: 'primary.main',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              mb: 2.5,
-            }}
-          >
-            <CropSquareRoundedIcon sx={{ fontSize: { xs: 36, sm: 44 } }} />
-          </Box>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 1, textAlign: 'center' }}>
-            이미지 업로드
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{ color: 'text.secondary', mb: 3, textAlign: 'center', maxWidth: 480 }}
-          >
-            프로필 사진, 앱 아이콘, 썸네일에 최적화되어 있습니다.
-            <br />
-            이미지를 드래그하거나 클립보드(Ctrl+V)에서 붙여넣으세요.
-          </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            size="large"
-            startIcon={<CloudUploadRoundedIcon />}
-          >
-            사진 선택하기
-          </Button>
-        </Card>
+        <PhotoUploadWorkspace
+          sampleImages={LOGO_SAMPLE_IMAGES}
+          onSelectSample={loadSampleImage}
+          onFileSelect={processFile}
+          title="로고 / 썸네일 제작할 이미지 업로드"
+          subtitle="프로필 사진, 앱 아이콘, 썸네일에 최적화되어 있습니다."
+          icon={<CropSquareRoundedIcon sx={{ fontSize: 36 }} />}
+        />
       ) : (
         <Box
           sx={{
@@ -817,7 +801,7 @@ export function LogoView() {
                 }
                 sx={{ py: 1.4, borderRadius: 2, fontWeight: 700, fontSize: '0.95rem' }}
               >
-                {outputWidth} × {outputHeight} 저장
+                저장
               </Button>
               <Button
                 fullWidth

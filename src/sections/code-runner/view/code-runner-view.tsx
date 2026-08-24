@@ -21,16 +21,21 @@ import InsertDriveFileRoundedIcon from '@mui/icons-material/InsertDriveFileRound
 
 import { TEMPLATES } from '../core/templates';
 import { usePyodide } from '../core/use-pyodide';
-import { getThemeById } from '../core/editor-themes';
 import { CodeEditor } from '../components/code-editor';
 import { useWasmRunner } from '../core/use-wasm-runner';
+import { SplitResizer } from '../components/split-resizer';
 import { useWebContainer } from '../core/use-webcontainer';
 import { PreviewPanel } from '../components/preview-panel';
 import { RunnerToolbar } from '../components/runner-toolbar';
 import { usePolyglotRunner } from '../core/use-polyglot-runner';
 import { TerminalView, type TerminalRef } from '../components/terminal-view';
+import { IDE_THEMES, getThemeById, DEFAULT_THEME_ID } from '../core/editor-themes';
 
 // ----------------------------------------------------------------------
+
+const THEME_STORAGE_KEY = 'code-runner-theme';
+const SPLIT_X_STORAGE_KEY = 'code-runner-split-x';
+const SPLIT_Y_STORAGE_KEY = 'code-runner-split-y';
 
 export function CodeRunnerView() {
   const [selectedTemplate, setSelectedTemplate] = useState<CodeTemplate>(TEMPLATES[0]);
@@ -41,8 +46,87 @@ export function CodeRunnerView() {
   // Editor & IDE Settings
   const [fontSize, setFontSize] = useState(14);
   const [minimap, setMinimap] = useState(true);
-  const [currentThemeId, setCurrentThemeId] = useState<string>('vs-dark');
+  const [currentThemeId, setCurrentThemeId] = useState<string>(DEFAULT_THEME_ID);
+  const [hasLoadedTheme, setHasLoadedTheme] = useState(false);
   const [layoutMode, setLayoutMode] = useState<'split' | 'editor-only' | 'terminal-only'>('split');
+
+  // Split Panel Ratios & Resizing
+  const [splitRatioX, setSplitRatioX] = useState<number>(50);
+  const [splitRatioY, setSplitRatioY] = useState<number>(50);
+  const [isDraggingX, setIsDraggingX] = useState(false);
+  const [isDraggingY, setIsDraggingY] = useState(false);
+  const [hasLoadedSplits, setHasLoadedSplits] = useState(false);
+
+  const workspaceRef = useRef<HTMLDivElement | null>(null);
+  const rightPanelRef = useRef<HTMLDivElement | null>(null);
+
+  // Safe Hydration: Load saved split ratios
+  useEffect(() => {
+    try {
+      const savedX = localStorage.getItem(SPLIT_X_STORAGE_KEY);
+      if (savedX) {
+        const numX = Number(savedX);
+        if (!isNaN(numX) && numX >= 15 && numX <= 85) {
+          setSplitRatioX(numX);
+        }
+      }
+      const savedY = localStorage.getItem(SPLIT_Y_STORAGE_KEY);
+      if (savedY) {
+        const numY = Number(savedY);
+        if (!isNaN(numY) && numY >= 15 && numY <= 85) {
+          setSplitRatioY(numY);
+        }
+      }
+    } catch {
+      // ignore storage access error
+    }
+    setHasLoadedSplits(true);
+  }, []);
+
+  // Sync split ratios to localStorage
+  useEffect(() => {
+    if (hasLoadedSplits) {
+      try {
+        localStorage.setItem(SPLIT_X_STORAGE_KEY, String(Math.round(splitRatioX)));
+      } catch {
+        // ignore storage access error
+      }
+    }
+  }, [splitRatioX, hasLoadedSplits]);
+
+  useEffect(() => {
+    if (hasLoadedSplits) {
+      try {
+        localStorage.setItem(SPLIT_Y_STORAGE_KEY, String(Math.round(splitRatioY)));
+      } catch {
+        // ignore storage access error
+      }
+    }
+  }, [splitRatioY, hasLoadedSplits]);
+
+  // Safe Hydration: Load saved theme from localStorage
+  useEffect(() => {
+    try {
+      const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+      if (savedTheme && IDE_THEMES.some((t) => t.id === savedTheme)) {
+        setCurrentThemeId(savedTheme);
+      }
+    } catch {
+      // ignore storage access error
+    }
+    setHasLoadedTheme(true);
+  }, []);
+
+  // Sync theme changes to localStorage
+  useEffect(() => {
+    if (hasLoadedTheme) {
+      try {
+        localStorage.setItem(THEME_STORAGE_KEY, currentThemeId);
+      } catch {
+        // ignore storage access error
+      }
+    }
+  }, [currentThemeId, hasLoadedTheme]);
 
   // Runner state
   const [runnerState, setRunnerState] = useState<RunnerState>({
@@ -302,8 +386,8 @@ export function CodeRunnerView() {
         return;
       }
 
-      // 10. C / Rust Wasm Runner
-      if (currentLang === 'c' || currentLang === 'cpp') {
+      // 10. C / C++ / C# / Rust Wasm Runner
+      if (currentLang === 'c') {
         await wasmRunner.runC(
           mainCode,
           (msg) => terminalRef.current?.write(msg),
@@ -313,6 +397,34 @@ export function CodeRunnerView() {
           ...prev,
           status: 'success',
           statusMessage: 'C Done',
+        }));
+        return;
+      }
+
+      if (currentLang === 'cpp') {
+        await wasmRunner.runCpp(
+          mainCode,
+          (msg) => terminalRef.current?.write(msg),
+          (msg) => terminalRef.current?.write(msg)
+        );
+        setRunnerState((prev) => ({
+          ...prev,
+          status: 'success',
+          statusMessage: 'C++ Done',
+        }));
+        return;
+      }
+
+      if (currentLang === 'csharp') {
+        await wasmRunner.runCsharp(
+          mainCode,
+          (msg) => terminalRef.current?.write(msg),
+          (msg) => terminalRef.current?.write(msg)
+        );
+        setRunnerState((prev) => ({
+          ...prev,
+          status: 'success',
+          statusMessage: 'C# Done',
         }));
         return;
       }
@@ -424,6 +536,65 @@ export function CodeRunnerView() {
     handleStop,
   ]);
 
+  // Drag handlers for resizing
+  const handleMouseDownX = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDraggingX(true);
+  }, []);
+
+  const handleMouseDownY = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDraggingY(true);
+  }, []);
+
+  const handleResetSplitX = useCallback(() => {
+    setSplitRatioX(50);
+  }, []);
+
+  const handleResetSplitY = useCallback(() => {
+    setSplitRatioY(50);
+  }, []);
+
+  useEffect(() => {
+    if (isDraggingX || isDraggingY) {
+      const handleMouseMove = (e: MouseEvent) => {
+        if (isDraggingX && workspaceRef.current) {
+          const rect = workspaceRef.current.getBoundingClientRect();
+          if (rect.width > 0) {
+            const offsetX = e.clientX - rect.left;
+            const ratio = (offsetX / rect.width) * 100;
+            const clamped = Math.min(Math.max(ratio, 15), 85);
+            setSplitRatioX(clamped);
+          }
+        }
+
+        if (isDraggingY && rightPanelRef.current) {
+          const rect = rightPanelRef.current.getBoundingClientRect();
+          if (rect.height > 0) {
+            const offsetY = e.clientY - rect.top;
+            const ratio = (offsetY / rect.height) * 100;
+            const clamped = Math.min(Math.max(ratio, 15), 85);
+            setSplitRatioY(clamped);
+          }
+        }
+      };
+
+      const handleMouseUp = () => {
+        setIsDraggingX(false);
+        setIsDraggingY(false);
+      };
+
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+    return undefined;
+  }, [isDraggingX, isDraggingY]);
+
   // Code Reset
   const handleReset = () => {
     setFiles(selectedTemplate.files);
@@ -493,6 +664,7 @@ export function CodeRunnerView() {
 
       {/* Main Workspace (Editor + Preview & Terminal Split) */}
       <Box
+        ref={workspaceRef}
         sx={{
           display: 'flex',
           flex: 1,
@@ -500,19 +672,40 @@ export function CodeRunnerView() {
           flexDirection: { xs: 'column', md: 'row' },
           height: { xs: 'auto', md: 'calc(100% - 53px)' },
           overflow: { xs: 'visible', md: 'hidden' },
+          position: 'relative',
         }}
       >
+        {/* Transparent Drag Overlay to prevent iframe capturing mouse events */}
+        {(isDraggingX || isDraggingY) && (
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 9999,
+              cursor: isDraggingX ? 'col-resize' : 'row-resize',
+              userSelect: 'none',
+            }}
+          />
+        )}
+
         {/* Left Side: Code Editor with File Tabs */}
         {(layoutMode === 'split' || layoutMode === 'editor-only') && (
           <Box
             sx={{
               display: 'flex',
               flexDirection: 'column',
-              flex: layoutMode === 'editor-only' ? 1 : 1.1,
+              width: layoutMode === 'editor-only' ? '100%' : { xs: '100%', md: `${splitRatioX}%` },
+              flexShrink: 0,
               height: { xs: 'auto', md: '100%' },
               minHeight: { xs: 350, md: 'auto' },
               bgcolor: activeTheme.previewBg,
-              borderRight: { xs: 'none', md: `1px solid ${activeTheme.uiColors.border}` },
+              borderRight:
+                layoutMode === 'editor-only'
+                  ? 'none'
+                  : { xs: 'none', md: `1px solid ${activeTheme.uiColors.border}` },
               borderBottom: { xs: `1px solid ${activeTheme.uiColors.border}`, md: 'none' },
               overflow: { xs: 'visible', md: 'hidden' },
             }}
@@ -598,13 +791,31 @@ export function CodeRunnerView() {
           </Box>
         )}
 
+        {/* Vertical Split Resizer (between Editor and Right Panel) */}
+        {layoutMode === 'split' && (
+          <SplitResizer
+            direction="vertical"
+            isDragging={isDraggingX}
+            theme={activeTheme}
+            onMouseDown={handleMouseDownX}
+            onDoubleClick={handleResetSplitX}
+            tooltipText="좌우 너비 조절 (더블 클릭: 5:5 복원)"
+          />
+        )}
+
         {/* Right Side: Split between Preview Panel (Top) and Terminal (Bottom) */}
         {(layoutMode === 'split' || layoutMode === 'terminal-only') && (
           <Box
+            ref={rightPanelRef}
             sx={{
               display: 'flex',
               flexDirection: 'column',
-              flex: layoutMode === 'terminal-only' ? 1 : 0.9,
+              flex: 1,
+              width:
+                layoutMode === 'terminal-only'
+                  ? '100%'
+                  : { xs: '100%', md: `calc(${100 - splitRatioX}% - 6px)` },
+              minWidth: 0,
               height: { xs: 'auto', md: '100%' },
               bgcolor: activeTheme.terminalTheme.background || '#0d1117',
               overflow: { xs: 'visible', md: 'hidden' },
@@ -613,10 +824,10 @@ export function CodeRunnerView() {
             {/* Top: Preview Panel (Live Server / Matplotlib Plots / System Info) */}
             <Box
               sx={{
-                flex: 1,
-                height: { xs: 320, md: '50%' },
+                height: { xs: 320, md: `${splitRatioY}%` },
                 minHeight: { xs: 280, md: 'auto' },
                 overflow: 'hidden',
+                flexShrink: 0,
               }}
             >
               <PreviewPanel
@@ -639,12 +850,21 @@ export function CodeRunnerView() {
               />
             </Box>
 
+            {/* Horizontal Split Resizer (between Preview Panel and Terminal) */}
+            <SplitResizer
+              direction="horizontal"
+              isDragging={isDraggingY}
+              theme={activeTheme}
+              onMouseDown={handleMouseDownY}
+              onDoubleClick={handleResetSplitY}
+              tooltipText="상하 높이 조절 (더블 클릭: 5:5 복원)"
+            />
+
             {/* Bottom: XTerm Terminal */}
             <Box
               sx={{
                 flex: 1,
-                height: { xs: 280, md: '50%' },
-                minHeight: { xs: 240, md: 'auto' },
+                minHeight: { xs: 240, md: 0 },
                 overflow: 'hidden',
               }}
             >

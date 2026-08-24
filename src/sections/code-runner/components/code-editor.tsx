@@ -7,7 +7,7 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 
-import { IDE_THEMES, getThemeById } from '../core/editor-themes';
+import { IDE_THEMES, getThemeById, DEFAULT_THEME_ID } from '../core/editor-themes';
 
 // ----------------------------------------------------------------------
 
@@ -22,7 +22,7 @@ const MonacoEditor = dynamic(() => import('@monaco-editor/react').then((mod) => 
         alignItems: 'center',
         justifyContent: 'center',
         gap: 1.5,
-        bgcolor: '#1e1e1e',
+        bgcolor: 'transparent',
         color: '#94a3b8',
       }}
     >
@@ -64,8 +64,11 @@ function getMonacoLanguage(lang: string): string {
     case 'lua':
       return 'lua';
     case 'c':
+      return 'c';
     case 'cpp':
       return 'cpp';
+    case 'csharp':
+      return 'csharp';
     case 'rust':
       return 'rust';
     case 'python':
@@ -84,7 +87,7 @@ export function CodeEditor({
   value,
   onChange,
   onRun,
-  themeId = 'vs-dark',
+  themeId = DEFAULT_THEME_ID,
   fontSize = 14,
   minimap = true,
   readOnly = false,
@@ -109,6 +112,7 @@ export function CodeEditor({
       });
 
       if (onRun) {
+        // eslint-disable-next-line no-bitwise
         editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
           onRun();
         });

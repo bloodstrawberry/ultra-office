@@ -2,10 +2,14 @@
 
 import type { SqlProblem, QueryResult, VerificationResult } from './types';
 
+import { toast } from 'sonner';
 import React, { useState, useCallback } from 'react';
+import { Group, Panel, Separator } from 'react-resizable-panels';
 
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
+import Chip from '@mui/material/Chip';
 import Tabs from '@mui/material/Tabs';
 import Button from '@mui/material/Button';
 import Select from '@mui/material/Select';
@@ -109,7 +113,7 @@ export function SqlPracticeView() {
     resetCurrentDb();
     setQueryResult(null);
     setVerificationResult(null);
-    alert(`[${currentDataset.name}] 데이터베이스가 초기 상태로 리셋되었습니다.`);
+    toast.success(`[${currentDataset.name}] 데이터베이스가 초기 샘플 데이터로 복원되었습니다.`);
   };
 
   return (
@@ -124,174 +128,407 @@ export function SqlPracticeView() {
         overflow: 'hidden',
       }}
     >
-      {/* Top Header Bar */}
+      {/* 1. Header Title & Description */}
       <Box
         sx={{
+          mb: 1.75,
+          flexShrink: 0,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          flexWrap: 'wrap',
+          gap: 1.5,
+        }}
+      >
+        <Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, mb: 0.5 }}>
+            <Typography variant="h4" sx={{ fontWeight: 800 }}>
+              SQL 연습실
+            </Typography>
+            <Chip
+              label="In-Memory SQLite"
+              size="small"
+              color="primary"
+              variant="outlined"
+              sx={{ fontWeight: 700, fontSize: '0.75rem' }}
+            />
+          </Box>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            브라우저 로컬 엔진 기반 실시간 쿼리 실행 • SQLD/SQLP 대비 단계별 연습문제 풀이 및
+            인터랙티브 샌드박스
+          </Typography>
+        </Box>
+      </Box>
+
+      {/* 2. Controls Toolbar Bar (연습문제 풀이, 자유 쿼리 샌드박스, DB 선택, DB 초기화, 실행기록) */}
+      <Card
+        sx={{
+          p: 1.25,
+          mb: 2,
+          flexShrink: 0,
+          borderRadius: 2,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
-          gap: 2,
-          mb: 2,
-          flexShrink: 0,
+          gap: 1.5,
+          bgcolor: 'background.paper',
+          border: (theme) => `1px solid ${theme.vars.palette.divider}`,
         }}
       >
-        {/* Title & Mode Switcher */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <StorageRoundedIcon color="primary" sx={{ fontSize: 28 }} />
-            <Typography variant="h4" sx={{ fontWeight: 800 }}>
-              SQL 연습실
-            </Typography>
-          </Box>
-
-          <Tabs
-            value={mode}
-            onChange={handleModeChange}
-            sx={{
-              minHeight: 40,
-              bgcolor: 'background.neutral',
-              borderRadius: 1.5,
-              p: 0.5,
-              '& .MuiTab-root': {
-                minHeight: 32,
-                borderRadius: 1,
-                py: 0.5,
-                px: 2,
-                fontWeight: 'bold',
-                fontSize: 13,
-                '&.Mui-selected': {
-                  bgcolor: 'background.paper',
-                  boxShadow: (theme) => theme.customShadows?.z1 || '0 1px 3px rgba(0,0,0,0.1)',
-                },
+        {/* Left: Mode Switcher Tabs */}
+        <Tabs
+          value={mode}
+          onChange={handleModeChange}
+          sx={{
+            minHeight: 38,
+            bgcolor: 'background.neutral',
+            borderRadius: 1.5,
+            p: 0.5,
+            '& .MuiTab-root': {
+              minHeight: 30,
+              borderRadius: 1,
+              py: 0.5,
+              px: 2,
+              fontWeight: 700,
+              fontSize: '0.875rem',
+              '&.Mui-selected': {
+                bgcolor: 'background.paper',
+                color: 'primary.main',
+                boxShadow: (theme) => theme.customShadows?.z1 || '0 1px 3px rgba(0,0,0,0.1)',
               },
-              '& .MuiTabs-indicator': {
-                display: 'none',
-              },
-            }}
-          >
-            <Tab
-              value="challenges"
-              icon={<SchoolRoundedIcon sx={{ fontSize: 18 }} />}
-              iconPosition="start"
-              label="연습 문제 풀이"
-            />
-            <Tab
-              value="playground"
-              icon={<CodeRoundedIcon sx={{ fontSize: 18 }} />}
-              iconPosition="start"
-              label="자유 쿼리 샌드박스"
-            />
-          </Tabs>
-        </Box>
+            },
+            '& .MuiTabs-indicator': {
+              display: 'none',
+            },
+          }}
+        >
+          <Tab
+            value="challenges"
+            icon={<SchoolRoundedIcon sx={{ fontSize: 18 }} />}
+            iconPosition="start"
+            label="연습문제 풀이"
+          />
+          <Tab
+            value="playground"
+            icon={<CodeRoundedIcon sx={{ fontSize: 18 }} />}
+            iconPosition="start"
+            label="자유 쿼리 샌드박스"
+          />
+        </Tabs>
 
-        {/* Global Controls: Dataset Selector, Reset DB, History */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
-          <FormControl size="small" sx={{ minWidth: 200 }}>
-            <InputLabel id="dataset-select-label">데이터베이스 선택</InputLabel>
+        {/* Right: DB Selector, Reset DB, Query History */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, flexWrap: 'wrap' }}>
+          <FormControl size="small" sx={{ minWidth: 220 }}>
+            <InputLabel id="dataset-select-label" sx={{ fontSize: '0.85rem' }}>
+              데이터베이스 선택
+            </InputLabel>
             <Select
               labelId="dataset-select-label"
               value={currentDatasetId}
               label="데이터베이스 선택"
               onChange={(e) => setCurrentDatasetId(e.target.value)}
-              sx={{ fontSize: 13 }}
+              sx={{ fontSize: '0.875rem', height: 36, fontWeight: 600 }}
             >
               {datasets.map((ds) => (
-                <MenuItem key={ds.id} value={ds.id} sx={{ fontSize: 13 }}>
-                  {ds.name}
+                <MenuItem key={ds.id} value={ds.id} sx={{ fontSize: '0.875rem' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <StorageRoundedIcon sx={{ fontSize: 18, color: 'primary.main' }} />
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      {ds.name}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      ({ds.tables.length}개)
+                    </Typography>
+                  </Box>
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
 
-          <Tooltip title="데이터베이스를 초기 샘플 데이터로 복원합니다.">
+          <Tooltip title="현재 데이터베이스를 초기 샘플 데이터로 복원합니다.">
             <Button
               size="small"
               variant="outlined"
               color="inherit"
               startIcon={<RefreshRoundedIcon />}
               onClick={handleResetDb}
-              sx={{ height: 38 }}
+              sx={{ height: 36, px: 1.75, fontWeight: 600, borderRadius: 1.5 }}
             >
               DB 초기화
             </Button>
           </Tooltip>
 
-          <Tooltip title="쿼리 실행 기록">
+          <Tooltip title="이전에 실행한 쿼리 히스토리를 확인합니다.">
             <Button
               size="small"
               variant="outlined"
               color="inherit"
               startIcon={<HistoryRoundedIcon />}
               onClick={() => setHistoryOpen(true)}
-              sx={{ height: 38 }}
+              sx={{ height: 36, px: 1.75, fontWeight: 600, borderRadius: 1.5 }}
             >
-              실행 기록 ({queryHistory.length})
+              실행기록 ({queryHistory.length})
             </Button>
           </Tooltip>
         </Box>
-      </Box>
+      </Card>
 
-      {/* Main Workspace Panels */}
+      {/* Resizable Workspace Layout */}
       <Box
         sx={{
           flex: 1,
           minHeight: 0,
-          display: 'grid',
-          gridTemplateColumns: {
-            xs: '1fr',
-            md: mode === 'challenges' ? '380px 1fr' : '320px 1fr',
-          },
-          gap: 2,
+          minWidth: 0,
           width: '100%',
+          height: '100%',
+          display: 'flex',
+          overflow: 'hidden',
         }}
       >
-        {/* Left Panel: Problem List or Schema Browser */}
-        <Box sx={{ height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-          {mode === 'challenges' ? (
-            <SqlProblemPanel
-              problems={SAMPLE_PROBLEMS}
-              selectedProblem={selectedProblem}
-              onSelectProblem={handleSelectProblem}
-              solvedProblemIds={solvedProblemIds}
-              verificationResult={verificationResult}
-              onInsertSolution={handleInsertQuery}
-            />
-          ) : (
-            <SchemaBrowser dataset={currentDataset} onInsertQuery={handleInsertQuery} />
-          )}
-        </Box>
+        <Group orientation="horizontal" style={{ width: '100%', height: '100%' }}>
+          {/* Left Column: SQL Editor (Top) & Result Table (Bottom) */}
+          <Panel
+            id="left-column"
+            defaultSize={65}
+            minSize={30}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              width: '100%',
+              height: '100%',
+              minHeight: 0,
+              minWidth: 0,
+              overflow: 'hidden',
+            }}
+          >
+            <Group orientation="vertical" style={{ width: '100%', height: '100%' }}>
+              {/* Top: SQL Editor */}
+              <Panel
+                id="sql-editor"
+                defaultSize={45}
+                minSize={20}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  width: '100%',
+                  height: '100%',
+                  minHeight: 0,
+                  minWidth: 0,
+                  overflow: 'hidden',
+                }}
+              >
+                <Box
+                  sx={{
+                    width: '100%',
+                    height: '100%',
+                    minHeight: 0,
+                    minWidth: 0,
+                    display: 'flex',
+                    flex: 1,
+                  }}
+                >
+                  <SqlEditorPanel
+                    value={editorSql}
+                    onChange={setEditorSql}
+                    onRun={handleRunQuery}
+                    onSubmit={mode === 'challenges' ? handleSubmitChallenge : undefined}
+                    isChallengeMode={mode === 'challenges'}
+                    datasetName={currentDataset.name}
+                  />
+                </Box>
+              </Panel>
 
-        {/* Right Panel: Editor (Top) & Result Table (Bottom) */}
-        <Box
-          sx={{
-            height: '100%',
-            minHeight: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 2,
-          }}
-        >
-          {/* Editor Top (45% height) */}
-          <Box sx={{ flex: '1 1 45%', minHeight: 180, display: 'flex' }}>
-            <SqlEditorPanel
-              value={editorSql}
-              onChange={setEditorSql}
-              onRun={handleRunQuery}
-              onSubmit={mode === 'challenges' ? handleSubmitChallenge : undefined}
-              isChallengeMode={mode === 'challenges'}
-              datasetName={currentDataset.name}
-            />
-          </Box>
+              {/* Horizontal Separator (----------) */}
+              <Separator
+                style={{
+                  height: 10,
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'row-resize',
+                  position: 'relative',
+                  zIndex: 5,
+                  outline: 'none',
+                  flexShrink: 0,
+                }}
+              >
+                <Box
+                  sx={{
+                    width: '100%',
+                    height: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    position: 'relative',
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      left: 0,
+                      right: 0,
+                      height: '1px',
+                      bgcolor: 'divider',
+                      transition: (theme) =>
+                        theme.transitions.create(['background-color', 'height']),
+                    },
+                    '&:hover::before, &:active::before': {
+                      bgcolor: 'primary.main',
+                      height: '2px',
+                    },
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 40,
+                      height: 4,
+                      borderRadius: 2,
+                      bgcolor: 'text.disabled',
+                      opacity: 0.4,
+                      transition: (theme) =>
+                        theme.transitions.create(['background-color', 'opacity', 'width']),
+                      '&:hover, &:active': {
+                        bgcolor: 'primary.main',
+                        opacity: 1,
+                        width: 52,
+                      },
+                    }}
+                  />
+                </Box>
+              </Separator>
 
-          {/* Result Table Bottom (55% height) */}
-          <Box sx={{ flex: '1 1 55%', minHeight: 200, display: 'flex' }}>
-            <SqlResultTable
-              result={queryResult}
-              title={mode === 'challenges' ? '내 쿼리 실행 결과' : '실행 결과'}
-            />
-          </Box>
-        </Box>
+              {/* Bottom: Result Table */}
+              <Panel
+                id="sql-result"
+                defaultSize={55}
+                minSize={20}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  width: '100%',
+                  height: '100%',
+                  minHeight: 0,
+                  minWidth: 0,
+                  overflow: 'hidden',
+                }}
+              >
+                <Box
+                  sx={{
+                    width: '100%',
+                    height: '100%',
+                    minHeight: 0,
+                    minWidth: 0,
+                    display: 'flex',
+                    flex: 1,
+                  }}
+                >
+                  <SqlResultTable
+                    result={queryResult}
+                    title={mode === 'challenges' ? '내 쿼리 실행 결과' : '실행 결과'}
+                  />
+                </Box>
+              </Panel>
+            </Group>
+          </Panel>
+
+          {/* Vertical Separator (|) */}
+          <Separator
+            style={{
+              width: 10,
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'col-resize',
+              position: 'relative',
+              zIndex: 5,
+              outline: 'none',
+              flexShrink: 0,
+            }}
+          >
+            <Box
+              sx={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  bottom: 0,
+                  width: '1px',
+                  bgcolor: 'divider',
+                  transition: (theme) => theme.transitions.create(['background-color', 'width']),
+                },
+                '&:hover::before, &:active::before': {
+                  bgcolor: 'primary.main',
+                  width: '2px',
+                },
+              }}
+            >
+              <Box
+                sx={{
+                  height: 40,
+                  width: 4,
+                  borderRadius: 2,
+                  bgcolor: 'text.disabled',
+                  opacity: 0.4,
+                  transition: (theme) =>
+                    theme.transitions.create(['background-color', 'opacity', 'height']),
+                  '&:hover, &:active': {
+                    bgcolor: 'primary.main',
+                    opacity: 1,
+                    height: 52,
+                  },
+                }}
+              />
+            </Box>
+          </Separator>
+
+          {/* Right Column: Problem List or Schema Browser */}
+          <Panel
+            id="right-column"
+            defaultSize={35}
+            minSize={20}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              width: '100%',
+              height: '100%',
+              minHeight: 0,
+              minWidth: 0,
+              overflow: 'hidden',
+            }}
+          >
+            <Box
+              sx={{
+                width: '100%',
+                height: '100%',
+                minHeight: 0,
+                minWidth: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                flex: 1,
+              }}
+            >
+              {mode === 'challenges' ? (
+                <SqlProblemPanel
+                  problems={SAMPLE_PROBLEMS}
+                  selectedProblem={selectedProblem}
+                  onSelectProblem={handleSelectProblem}
+                  solvedProblemIds={solvedProblemIds}
+                  verificationResult={verificationResult}
+                  onInsertSolution={handleInsertQuery}
+                />
+              ) : (
+                <SchemaBrowser dataset={currentDataset} onInsertQuery={handleInsertQuery} />
+              )}
+            </Box>
+          </Panel>
+        </Group>
       </Box>
 
       {/* Query History Dialog */}

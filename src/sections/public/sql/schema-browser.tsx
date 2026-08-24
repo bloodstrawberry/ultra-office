@@ -24,6 +24,9 @@ import IconButton from '@mui/material/IconButton';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import TableContainer from '@mui/material/TableContainer';
+import TextField from '@mui/material/TextField';
+import InputAdornment from '@mui/material/InputAdornment';
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import KeyRoundedIcon from '@mui/icons-material/KeyRounded';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
@@ -43,6 +46,7 @@ interface SchemaBrowserProps {
 
 export function SchemaBrowser({ dataset, onInsertQuery }: SchemaBrowserProps) {
   const [previewTable, setPreviewTable] = useState<SqlTableInfo | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   const handleOpenPreview = (table: SqlTableInfo, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -58,9 +62,21 @@ export function SchemaBrowser({ dataset, onInsertQuery }: SchemaBrowserProps) {
     onInsertQuery?.(`SELECT *\nFROM ${tableName}\nLIMIT 10;`);
   };
 
+  const filteredTables = dataset.tables.filter((table) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    const tableMatch =
+      table.name.toLowerCase().includes(q) || table.description?.toLowerCase().includes(q);
+    const colMatch = table.columns.some(
+      (col) => col.name.toLowerCase().includes(q) || col.type.toLowerCase().includes(q)
+    );
+    return tableMatch || colMatch;
+  });
+
   return (
     <Card
       sx={{
+        width: '100%',
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
@@ -73,158 +89,192 @@ export function SchemaBrowser({ dataset, onInsertQuery }: SchemaBrowserProps) {
       <Box
         sx={{
           px: 2,
-          py: 1.2,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
+          py: 1.5,
           borderBottom: (theme) => `1px solid ${theme.vars.palette.divider}`,
           bgcolor: 'background.neutral',
           flexShrink: 0,
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <TableChartRoundedIcon color="primary" fontSize="small" />
-          <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
-            테이블 스키마
-          </Typography>
-          <Chip
-            size="small"
-            label={`${dataset.tables.length}개`}
-            variant="outlined"
-            sx={{ fontSize: 11 }}
-          />
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <TableChartRoundedIcon color="primary" fontSize="small" />
+            <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+              테이블 스키마
+            </Typography>
+            <Chip
+              size="small"
+              label={`${dataset.tables.length}개 테이블`}
+              variant="outlined"
+              sx={{ fontSize: 11, fontWeight: 700 }}
+            />
+          </Box>
         </Box>
+
+        <TextField
+          fullWidth
+          size="small"
+          placeholder="테이블 또는 컬럼명 검색..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchRoundedIcon fontSize="small" sx={{ color: 'text.disabled' }} />
+                </InputAdornment>
+              ),
+              sx: { height: 32, fontSize: 12.5, bgcolor: 'background.paper', borderRadius: 1.5 },
+            },
+          }}
+        />
       </Box>
 
       {/* Tables List Accordion */}
       <Scrollbar sx={{ flex: 1, minHeight: 0 }}>
-        <Box sx={{ p: 1 }}>
-          {dataset.tables.map((table) => (
-            <Accordion
-              key={table.name}
-              disableGutters
-              sx={{
-                mb: 1,
-                border: (theme) => `1px solid ${theme.vars.palette.divider}`,
-                borderRadius: '8px !important',
-                '&:before': { display: 'none' },
-                overflow: 'hidden',
-              }}
-            >
-              <AccordionSummary
-                expandIcon={<ExpandMoreRoundedIcon />}
+        <Box sx={{ p: 1.25 }}>
+          {filteredTables.length === 0 ? (
+            <Box sx={{ p: 4, textAlign: 'center', color: 'text.secondary' }}>
+              <Typography variant="body2" sx={{ fontSize: 13 }}>
+                검색된 테이블 또는 컬럼이 없습니다.
+              </Typography>
+            </Box>
+          ) : (
+            filteredTables.map((table) => (
+              <Accordion
+                key={table.name}
+                defaultExpanded={filteredTables.length <= 3}
+                disableGutters
                 sx={{
-                  px: 1.5,
-                  minHeight: 48,
-                  '& .MuiAccordionSummary-content': {
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    my: 0.5,
-                    mr: 1,
-                  },
+                  mb: 1,
+                  border: (theme) => `1px solid ${theme.vars.palette.divider}`,
+                  borderRadius: '8px !important',
+                  '&:before': { display: 'none' },
+                  overflow: 'hidden',
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-                  <Typography
-                    variant="subtitle2"
-                    sx={{ fontFamily: 'monospace', fontWeight: 'bold' }}
-                  >
-                    {table.name}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: 11 }}>
-                    ({table.initialData.length}행)
-                  </Typography>
-                </Box>
-
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <Tooltip title="데이터 미리보기">
-                    <IconButton size="small" onClick={(e) => handleOpenPreview(table, e)}>
-                      <VisibilityRoundedIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                  {onInsertQuery && (
-                    <Tooltip title="SELECT 쿼리 삽입">
-                      <IconButton size="small" onClick={(e) => handleInsertSelect(table.name, e)}>
-                        <AddCircleOutlineRoundedIcon fontSize="small" color="primary" />
-                      </IconButton>
-                    </Tooltip>
-                  )}
-                </Box>
-              </AccordionSummary>
-
-              <AccordionDetails sx={{ p: 1.5, pt: 0, bgcolor: 'background.neutral' }}>
-                <Typography
-                  variant="caption"
-                  sx={{ color: 'text.secondary', display: 'block', mb: 1 }}
-                >
-                  {table.description}
-                </Typography>
-                <List
-                  dense
+                <AccordionSummary
+                  expandIcon={<ExpandMoreRoundedIcon />}
                   sx={{
-                    p: 0,
-                    bgcolor: 'background.paper',
-                    borderRadius: 1,
-                    border: (theme) => `1px solid ${theme.vars.palette.divider}`,
+                    px: 1.5,
+                    minHeight: 48,
+                    '& .MuiAccordionSummary-content': {
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      my: 0.5,
+                      mr: 1,
+                    },
                   }}
                 >
-                  {table.columns.map((col) => (
-                    <ListItem
-                      key={col.name}
-                      sx={{
-                        py: 0.5,
-                        px: 1.5,
-                        borderBottom: (theme) => `1px solid ${theme.vars.palette.divider}`,
-                        '&:last-child': { borderBottom: 'none' },
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                      }}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+                    <Typography
+                      variant="subtitle2"
+                      sx={{ fontFamily: 'monospace', fontWeight: 'bold' }}
                     >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                        {col.isPrimary && (
-                          <Tooltip title="Primary Key (기본키)">
-                            <KeyRoundedIcon sx={{ fontSize: 14, color: 'warning.main' }} />
-                          </Tooltip>
-                        )}
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            fontFamily: 'monospace',
-                            fontSize: 12,
-                            fontWeight: col.isPrimary ? 'bold' : 'normal',
-                          }}
+                      {table.name}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: 11 }}>
+                      ({table.initialData.length}행)
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Tooltip title="데이터 미리보기">
+                      <IconButton
+                        component="span"
+                        size="small"
+                        onClick={(e) => handleOpenPreview(table, e)}
+                      >
+                        <VisibilityRoundedIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                    {onInsertQuery && (
+                      <Tooltip title="SELECT 쿼리 삽입">
+                        <IconButton
+                          component="span"
+                          size="small"
+                          onClick={(e) => handleInsertSelect(table.name, e)}
                         >
-                          {col.name}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography
-                          variant="caption"
-                          sx={{ color: 'text.secondary', fontSize: 11, fontFamily: 'monospace' }}
-                        >
-                          {col.type}
-                        </Typography>
-                        {col.description && (
+                          <AddCircleOutlineRoundedIcon fontSize="small" color="primary" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                  </Box>
+                </AccordionSummary>
+
+                <AccordionDetails sx={{ p: 1.5, pt: 0, bgcolor: 'background.neutral' }}>
+                  <Typography
+                    variant="caption"
+                    sx={{ color: 'text.secondary', display: 'block', mb: 1 }}
+                  >
+                    {table.description}
+                  </Typography>
+                  <List
+                    dense
+                    sx={{
+                      p: 0,
+                      bgcolor: 'background.paper',
+                      borderRadius: 1,
+                      border: (theme) => `1px solid ${theme.vars.palette.divider}`,
+                    }}
+                  >
+                    {table.columns.map((col) => (
+                      <ListItem
+                        key={col.name}
+                        sx={{
+                          py: 0.5,
+                          px: 1.5,
+                          borderBottom: (theme) => `1px solid ${theme.vars.palette.divider}`,
+                          '&:last-child': { borderBottom: 'none' },
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                          {col.isPrimary && (
+                            <Tooltip title="Primary Key (기본키)">
+                              <KeyRoundedIcon sx={{ fontSize: 14, color: 'warning.main' }} />
+                            </Tooltip>
+                          )}
                           <Typography
-                            variant="caption"
+                            variant="body2"
                             sx={{
-                              color: 'text.disabled',
-                              fontSize: 11,
-                              display: { xs: 'none', sm: 'inline' },
+                              fontFamily: 'monospace',
+                              fontSize: 12,
+                              fontWeight: col.isPrimary ? 'bold' : 'normal',
                             }}
                           >
-                            {col.description}
+                            {col.name}
                           </Typography>
-                        )}
-                      </Box>
-                    </ListItem>
-                  ))}
-                </List>
-              </AccordionDetails>
-            </Accordion>
-          ))}
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography
+                            variant="caption"
+                            sx={{ color: 'text.secondary', fontSize: 11, fontFamily: 'monospace' }}
+                          >
+                            {col.type}
+                          </Typography>
+                          {col.description && (
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                color: 'text.disabled',
+                                fontSize: 11,
+                                display: { xs: 'none', sm: 'inline' },
+                              }}
+                            >
+                              {col.description}
+                            </Typography>
+                          )}
+                        </Box>
+                      </ListItem>
+                    ))}
+                  </List>
+                </AccordionDetails>
+              </Accordion>
+            ))
+          )}
         </Box>
       </Scrollbar>
 

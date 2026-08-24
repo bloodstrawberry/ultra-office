@@ -55,7 +55,7 @@ interface LanguageOption {
 }
 
 const LANGUAGE_OPTIONS: LanguageOption[] = [
-  // Web & Frontend
+  // 1. JavaScript
   {
     value: 'javascript',
     label: 'JavaScript (Node.js)',
@@ -63,6 +63,7 @@ const LANGUAGE_OPTIONS: LanguageOption[] = [
     group: 'Frontend & Node',
     engine: 'WebContainer',
   },
+  // 2. TypeScript
   {
     value: 'typescript',
     label: 'TypeScript',
@@ -70,6 +71,7 @@ const LANGUAGE_OPTIONS: LanguageOption[] = [
     group: 'Frontend & Node',
     engine: 'WebContainer',
   },
+  // 3. React Live Component
   {
     value: 'react',
     label: 'React Live Component',
@@ -77,6 +79,7 @@ const LANGUAGE_OPTIONS: LanguageOption[] = [
     group: 'Frontend & Node',
     engine: 'React Live',
   },
+  // 4. HTML5 / CSS / JS
   {
     value: 'html',
     label: 'HTML5 / CSS / JS Sandbox',
@@ -84,6 +87,7 @@ const LANGUAGE_OPTIONS: LanguageOption[] = [
     group: 'Frontend & Node',
     engine: 'DOM Sandbox',
   },
+  // 5. Express.js Web Server
   {
     value: 'node-server',
     label: 'Express.js Web Server',
@@ -91,8 +95,7 @@ const LANGUAGE_OPTIONS: LanguageOption[] = [
     group: 'Frontend & Node',
     engine: 'WebContainer Server',
   },
-
-  // Data & Scientific
+  // 6. Python 3
   {
     value: 'python',
     label: 'Python 3 (Pyodide Wasm)',
@@ -100,22 +103,31 @@ const LANGUAGE_OPTIONS: LanguageOption[] = [
     group: 'Data & Database',
     engine: 'Pyodide Wasm',
   },
+  // 7. C
   {
-    value: 'sql',
-    label: 'SQL (In-Memory Database)',
-    icon: '🗄️',
-    group: 'Data & Database',
-    engine: 'SQL Engine',
+    value: 'c',
+    label: 'C Language',
+    icon: '⚡',
+    group: 'Systems & Native',
+    engine: 'Wasm Clang',
   },
-
-  // Backend & Scripting
+  // 8. C++
   {
-    value: 'go',
-    label: 'Go (Golang)',
-    icon: '🐹',
+    value: 'cpp',
+    label: 'C++ (Clang++ / Wasm)',
+    icon: '🔵',
+    group: 'Systems & Native',
+    engine: 'Wasm Clang++',
+  },
+  // 9. C#
+  {
+    value: 'csharp',
+    label: 'C# (.NET 8 / Roslyn)',
+    icon: '🟣',
     group: 'Backend & Systems',
-    engine: 'Wasm Toolchain',
+    engine: '.NET Wasm',
   },
+  // 10. Java
   {
     value: 'java',
     label: 'Java (OpenJDK)',
@@ -123,9 +135,47 @@ const LANGUAGE_OPTIONS: LanguageOption[] = [
     group: 'Backend & Systems',
     engine: 'Wasm JVM',
   },
-  { value: 'ruby', label: 'Ruby 3.3', icon: '💎', group: 'Backend & Systems', engine: 'Ruby Wasm' },
-  { value: 'php', label: 'PHP 8.3', icon: '🐘', group: 'Backend & Systems', engine: 'PHP Wasm' },
-  { value: 'lua', label: 'Lua 5.3', icon: '🌙', group: 'Backend & Systems', engine: 'Lua Wasm' },
+  // 11. Go
+  {
+    value: 'go',
+    label: 'Go (Golang)',
+    icon: '🐹',
+    group: 'Backend & Systems',
+    engine: 'Wasm Toolchain',
+  },
+  // 12. SQL
+  {
+    value: 'sql',
+    label: 'SQL (In-Memory Database)',
+    icon: '🗄️',
+    group: 'Data & Database',
+    engine: 'SQL Engine',
+  },
+  // 13. Ruby
+  {
+    value: 'ruby',
+    label: 'Ruby 3.3',
+    icon: '💎',
+    group: 'Backend & Systems',
+    engine: 'Ruby Wasm',
+  },
+  // 14. PHP
+  {
+    value: 'php',
+    label: 'PHP 8.3',
+    icon: '🐘',
+    group: 'Backend & Systems',
+    engine: 'PHP Wasm',
+  },
+  // 15. Lua
+  {
+    value: 'lua',
+    label: 'Lua 5.3',
+    icon: '🌙',
+    group: 'Backend & Systems',
+    engine: 'Lua Wasm',
+  },
+  // 16. Bash
   {
     value: 'bash',
     label: 'Bash 쉘 스크립트',
@@ -133,10 +183,14 @@ const LANGUAGE_OPTIONS: LanguageOption[] = [
     group: 'Backend & Systems',
     engine: 'Virtual Shell',
   },
-
-  // Systems & Native
-  { value: 'c', label: 'C Language', icon: '⚡', group: 'Systems & Native', engine: 'Wasm Clang' },
-  { value: 'rust', label: 'Rust', icon: '🦀', group: 'Systems & Native', engine: 'Wasm Toolchain' },
+  // 17. Rust
+  {
+    value: 'rust',
+    label: 'Rust (Wasm Toolchain)',
+    icon: '🦀',
+    group: 'Systems & Native',
+    engine: 'Wasm Toolchain',
+  },
 ];
 
 export function RunnerToolbar({
@@ -191,7 +245,7 @@ export function RunnerToolbar({
       {/* Left Area: Language & Template & Theme Selectors */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
         {/* Language Selector */}
-        <FormControl size="small" sx={{ minWidth: 190 }}>
+        <FormControl size="small" sx={{ minWidth: 220 }}>
           <Select
             value={currentLanguage}
             onChange={(e) => onLanguageChange(e.target.value as SupportedLanguage)}

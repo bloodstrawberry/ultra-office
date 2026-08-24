@@ -28,12 +28,10 @@ import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded';
 import DocumentScannerRoundedIcon from '@mui/icons-material/DocumentScannerRounded';
 import SentimentSatisfiedAltRoundedIcon from '@mui/icons-material/SentimentSatisfiedAltRounded';
-
-import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
-
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { downloadDataUrl, shareToKakaoTalk } from '../utils/image-processor';
+import { PhotoUploadWorkspace } from '../components';
 import {
   runOcrOnImage,
   type MosaicMode,
@@ -97,7 +95,6 @@ export function MosaicView() {
   const resizeStartWidthRef = useRef<number>(380);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const isDrawingRef = useRef<boolean>(false);
   const dragStartRef = useRef<{ x: number; y: number } | null>(null);
 
@@ -188,20 +185,6 @@ export function MosaicView() {
       toast.success('샘플 이미지가 로드되었습니다.');
     };
     img.src = url;
-  };
-
-  const { isDragActive, getRootProps } = useImageDropPaste({
-    onFiles: (files) => {
-      if (files[0]) processFile(files[0]);
-    },
-    multiple: false,
-  });
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    processFile(file);
-    if (e.target) e.target.value = '';
   };
 
   const handleUndo = useCallback(() => {
@@ -564,140 +547,20 @@ export function MosaicView() {
         />
       </Box>
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleFileUpload}
-        style={{ display: 'none' }}
-      />
-
       {!imageSrc ? (
-        /* Empty / Upload & Sample State */
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 3,
-            flex: '1 1 auto',
-            minHeight: 0,
-            overflowY: 'auto',
-          }}
-        >
-          <Card
-            {...getRootProps({
-              onClick: () => fileInputRef.current?.click(),
-            })}
-            sx={{
-              p: { xs: 4, md: 6 },
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              border: '2px dashed',
-              borderColor: isDragActive ? 'primary.main' : 'divider',
-              bgcolor: isDragActive ? 'action.hover' : 'background.paper',
-              borderRadius: 3,
-              flex: '1 1 auto',
-              minHeight: 0,
-              transition: (theme) => theme.transitions.create(['border-color', 'background-color']),
-              '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
-            }}
-          >
-            <Box
-              sx={{
-                width: 72,
-                height: 72,
-                borderRadius: '50%',
-                bgcolor: 'primary.lighter',
-                color: 'primary.main',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mb: 2,
-              }}
-            >
-              <BlurOnRoundedIcon sx={{ fontSize: 36 }} />
-            </Box>
-
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, textAlign: 'center' }}>
-              모자이크 및 비식별화할 사진을 업로드하세요
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{ color: 'text.secondary', mb: 2.5, textAlign: 'center' }}
-            >
-              드래그 & 드롭 및 클립보드 붙여넣기(Ctrl+V) 지원 • 다중 인물, 단체 사진, 신분증/영수증
-            </Typography>
-
-            <Button
-              variant="contained"
-              color="primary"
-              size="large"
-              startIcon={<CloudUploadRoundedIcon />}
-              sx={{ px: 3, py: 1.2, fontWeight: 700, borderRadius: 2 }}
-            >
-              사진 선택하기
-            </Button>
-          </Card>
-
-          {/* Preset Samples */}
-          <Card sx={{ p: 2.5, borderRadius: 3 }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 0.5 }}>
-              ⚡ 1초 즉석 테스트 샘플 이미지
-            </Typography>
-            <Typography variant="caption" sx={{ color: 'text.secondary', mb: 2, display: 'block' }}>
-              MediaPipe 다중 얼굴 감지 및 OCR 마스킹 성능을 클릭 한 번으로 체험해 보세요.
-            </Typography>
-
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
-                gap: 2,
-              }}
-            >
-              {SAMPLE_MOSAIC_IMAGES.map((sample) => (
-                <Card
-                  key={sample.id}
-                  onClick={() => loadSampleImage(sample.url)}
-                  sx={{
-                    p: 1.5,
-                    borderRadius: 2,
-                    cursor: 'pointer',
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1.5,
-                    transition: 'all 0.2s',
-                    '&:hover': {
-                      borderColor: 'primary.main',
-                      bgcolor: 'action.hover',
-                      transform: 'translateY(-2px)',
-                    },
-                  }}
-                >
-                  <Box
-                    component="img"
-                    src={sample.url}
-                    alt={sample.label}
-                    sx={{ width: 56, height: 56, borderRadius: 1.5, objectFit: 'cover' }}
-                  />
-                  <Box>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                      {sample.label}
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 600 }}>
-                      {sample.desc} ➜
-                    </Typography>
-                  </Box>
-                </Card>
-              ))}
-            </Box>
-          </Card>
-        </Box>
+        <PhotoUploadWorkspace
+          sampleImages={SAMPLE_MOSAIC_IMAGES.map((s) => ({
+            id: s.id,
+            label: s.label,
+            url: s.url,
+            subLabel: s.desc,
+          }))}
+          onSelectSample={loadSampleImage}
+          onFileSelect={processFile}
+          title="모자이크 및 비식별화할 사진을 업로드하세요"
+          subtitle="드래그 & 드롭 및 클립보드 붙여넣기(Ctrl+V) 지원 • 다중 인물, 단체 사진, 신분증/영수증"
+          icon={<BlurOnRoundedIcon sx={{ fontSize: 36 }} />}
+        />
       ) : (
         /* Active Editing Workspace */
         <Box
@@ -1137,6 +1000,19 @@ export function MosaicView() {
             >
               <Button
                 fullWidth
+                variant="outlined"
+                color="inherit"
+                onClick={() => {
+                  setImageSrc('');
+                  setHistory([]);
+                }}
+                startIcon={<RefreshRoundedIcon />}
+                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+              >
+                다른 사진
+              </Button>
+              <Button
+                fullWidth
                 variant="contained"
                 color="primary"
                 onClick={handleSave}
@@ -1150,18 +1026,7 @@ export function MosaicView() {
                 }
                 sx={{ py: 1.4, fontWeight: 700, borderRadius: 2, fontSize: '0.95rem' }}
               >
-                보호된 사진 저장 (PNG)
-              </Button>
-              <Button
-                fullWidth
-                variant="outlined"
-                color="inherit"
-                onClick={handleCopyClipboard}
-                disabled={isProcessing}
-                startIcon={<ContentCopyRoundedIcon />}
-                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
-              >
-                클립보드 복사
+                저장
               </Button>
               <Button
                 fullWidth
@@ -1172,20 +1037,7 @@ export function MosaicView() {
                 startIcon={<ShareRoundedIcon />}
                 sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
               >
-                카카오 공유
-              </Button>
-              <Button
-                fullWidth
-                variant="outlined"
-                color="inherit"
-                onClick={() => {
-                  setImageSrc('');
-                  setHistory([]);
-                }}
-                startIcon={<RefreshRoundedIcon />}
-                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
-              >
-                다른 사진
+                공유
               </Button>
             </Box>
           </Box>

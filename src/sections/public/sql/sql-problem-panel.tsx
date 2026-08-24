@@ -86,6 +86,7 @@ export function SqlProblemPanel({
   return (
     <Card
       sx={{
+        width: '100%',
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
@@ -105,17 +106,17 @@ export function SqlProblemPanel({
         }}
       >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
-            연습 문제 목록
+          <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+            연습 문제 ({problems.length}제)
           </Typography>
-          <Typography variant="caption" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-            진행률: {solvedCount} / {problems.length} ({progressPercent}%)
+          <Typography variant="caption" sx={{ fontWeight: 700, color: 'primary.main' }}>
+            해결: {solvedCount} / {problems.length} ({progressPercent}%)
           </Typography>
         </Box>
         <LinearProgress
           variant="determinate"
           value={progressPercent}
-          sx={{ height: 6, borderRadius: 3 }}
+          sx={{ height: 6, borderRadius: 3, mb: 1.5 }}
           color="primary"
         />
 
@@ -125,76 +126,89 @@ export function SqlProblemPanel({
           onChange={handleTabChange}
           variant="fullWidth"
           sx={{
-            mt: 1.5,
-            minHeight: 36,
+            minHeight: 34,
+            bgcolor: 'background.paper',
+            borderRadius: 1.5,
+            p: 0.3,
+            border: (theme) => `1px solid ${theme.vars.palette.divider}`,
             '& .MuiTab-root': {
-              minHeight: 36,
+              minHeight: 28,
               fontSize: 12,
-              py: 0.5,
-              fontWeight: 'bold',
+              py: 0.4,
+              fontWeight: 700,
+              borderRadius: 1,
+              '&.Mui-selected': {
+                bgcolor: 'primary.main',
+                color: '#ffffff !important',
+              },
+            },
+            '& .MuiTabs-indicator': {
+              display: 'none',
             },
           }}
         >
-          <Tab value={1} label="Lv 1" />
-          <Tab value={2} label="Lv 2" />
-          <Tab value={3} label="Lv 3" />
-          <Tab value={4} label="Lv 4" />
+          <Tab value={1} label="Lv 1 기초" />
+          <Tab value={2} label="Lv 2 중급" />
+          <Tab value={3} label="Lv 3 고급" />
+          <Tab value={4} label="Lv 4 심화" />
         </Tabs>
-      </Box>
 
-      {/* Split Section: Problem List & Problem Detail */}
-      <Scrollbar sx={{ flex: 1, minHeight: 0 }}>
-        {/* Horizontal or Vertical Problem Selector */}
-        <List
-          dense
-          sx={{ p: 1, borderBottom: (theme) => `1px solid ${theme.vars.palette.divider}` }}
+        {/* Horizontal Problem Selector for Current Level */}
+        <Box
+          sx={{
+            display: 'flex',
+            gap: 1,
+            mt: 1.5,
+            overflowX: 'auto',
+            pb: 0.5,
+            '&::-webkit-scrollbar': { height: 4 },
+            '&::-webkit-scrollbar-thumb': { bgcolor: 'divider', borderRadius: 2 },
+          }}
         >
-          {filteredProblems.map((prob) => {
+          {filteredProblems.map((prob, idx) => {
             const isSelected = prob.id === selectedProblem.id;
             const isSolved = solvedProblemIds.includes(prob.id);
 
             return (
-              <ListItem key={prob.id} disablePadding sx={{ mb: 0.5 }}>
-                <ListItemButton
-                  selected={isSelected}
-                  onClick={() => handleProblemClick(prob)}
-                  sx={{
-                    borderRadius: 1,
-                    py: 0.8,
-                    px: 1.2,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    bgcolor: isSelected ? 'action.selected' : 'transparent',
-                  }}
-                >
-                  {isSolved ? (
-                    <CheckCircleRoundedIcon color="success" sx={{ fontSize: 18, flexShrink: 0 }} />
+              <Button
+                key={prob.id}
+                size="small"
+                variant={isSelected ? 'contained' : 'outlined'}
+                color={isSelected ? 'primary' : 'inherit'}
+                onClick={() => handleProblemClick(prob)}
+                startIcon={
+                  isSolved ? (
+                    <CheckCircleRoundedIcon
+                      sx={{ fontSize: 16, color: isSelected ? '#ffffff' : 'success.main' }}
+                    />
                   ) : (
                     <RadioButtonUncheckedRoundedIcon
-                      color="disabled"
-                      sx={{ fontSize: 18, flexShrink: 0 }}
+                      sx={{
+                        fontSize: 16,
+                        color: isSelected ? 'rgba(255,255,255,0.7)' : 'text.disabled',
+                      }}
                     />
-                  )}
-                  <ListItemText
-                    primary={prob.title}
-                    secondary={prob.category}
-                    primaryTypographyProps={{
-                      fontSize: 13,
-                      fontWeight: isSelected ? 'bold' : 'medium',
-                      noWrap: true,
-                    }}
-                    secondaryTypographyProps={{
-                      fontSize: 11,
-                    }}
-                  />
-                </ListItemButton>
-              </ListItem>
+                  )
+                }
+                sx={{
+                  flexShrink: 0,
+                  fontSize: 12,
+                  py: 0.5,
+                  px: 1.25,
+                  borderRadius: 1.5,
+                  fontWeight: isSelected ? 700 : 500,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Q{idx + 1}. {prob.title.length > 14 ? prob.title.slice(0, 14) + '…' : prob.title}
+              </Button>
             );
           })}
-        </List>
+        </Box>
+      </Box>
 
-        {/* Selected Problem Details */}
+      {/* Selected Problem Details */}
+      <Scrollbar sx={{ flex: 1, minHeight: 0 }}>
         <Box sx={{ p: 2 }}>
           {/* Tags & Level */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5, flexWrap: 'wrap' }}>
@@ -202,29 +216,40 @@ export function SqlProblemPanel({
               size="small"
               label={LEVEL_CONFIG[selectedProblem.level].label}
               color={LEVEL_CONFIG[selectedProblem.level].color}
-              sx={{ fontWeight: 'bold' }}
+              sx={{ fontWeight: 700 }}
             />
-            <Chip size="small" label={selectedProblem.category} variant="outlined" />
+            <Chip
+              size="small"
+              label={selectedProblem.category}
+              variant="outlined"
+              sx={{ fontWeight: 600 }}
+            />
+            <Chip
+              size="small"
+              label={`DB: ${selectedProblem.datasetId}`}
+              variant="outlined"
+              sx={{ fontWeight: 600, bgcolor: 'action.hover' }}
+            />
             {solvedProblemIds.includes(selectedProblem.id) && (
               <Chip
                 size="small"
                 icon={<CheckCircleRoundedIcon />}
                 label="해결 완료"
                 color="success"
-                variant="soft"
+                sx={{ fontWeight: 700 }}
               />
             )}
           </Box>
 
-          <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1.5 }}>
+          <Typography variant="h6" sx={{ fontWeight: 800, mb: 1.5 }}>
             {selectedProblem.title}
           </Typography>
 
           {/* Description */}
           <Box
             sx={{
-              p: 1.8,
-              borderRadius: 1.5,
+              p: 2,
+              borderRadius: 2,
               bgcolor: 'background.neutral',
               border: (theme) => `1px solid ${theme.vars.palette.divider}`,
               mb: 2,
@@ -234,16 +259,20 @@ export function SqlProblemPanel({
               variant="body2"
               sx={{
                 whiteSpace: 'pre-line',
-                lineHeight: 1.7,
+                lineHeight: 1.8,
                 color: 'text.primary',
-                '& strong': { color: 'primary.main' },
+                fontSize: '0.875rem',
+                '& strong': { color: 'primary.main', fontWeight: 700 },
                 '& code': {
                   bgcolor: 'action.hover',
-                  px: 0.6,
-                  py: 0.2,
-                  borderRadius: 0.5,
+                  px: 0.8,
+                  py: 0.3,
+                  borderRadius: 0.75,
                   fontFamily: 'monospace',
-                  fontSize: 12,
+                  fontSize: 12.5,
+                  color: 'info.main',
+                  fontWeight: 600,
+                  border: (theme) => `1px solid ${theme.vars.palette.divider}`,
                 },
               }}
             >

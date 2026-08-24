@@ -27,42 +27,10 @@ export interface IDETheme {
   };
 }
 
-export const IDE_THEMES: IDETheme[] = [
-  // 1. Visual Studio Dark (Default)
-  {
-    id: 'vs-dark',
-    name: 'Visual Studio Dark',
-    category: 'Dark',
-    isDark: true,
-    previewBg: '#1e1e1e',
-    previewAccent: '#007acc',
-    monacoThemeId: 'vs-dark',
-    terminalTheme: {
-      background: '#0d1117',
-      foreground: '#c9d1d9',
-      cursor: '#58a6ff',
-      cursorAccent: '#0d1117',
-      selectionBackground: '#264f78',
-      black: '#484f58',
-      red: '#ff7b72',
-      green: '#3fb950',
-      yellow: '#d29922',
-      blue: '#58a6ff',
-      magenta: '#bc8cff',
-      cyan: '#39c5cf',
-      white: '#b1bac4',
-    },
-    uiColors: {
-      bg: '#090d16',
-      surface: '#0f172a',
-      card: '#1e293b',
-      border: '#1e293b',
-      text: '#f8fafc',
-      textMuted: '#94a3b8',
-    },
-  },
+export const DEFAULT_THEME_ID = 'light';
 
-  // 2. Visual Studio Light
+export const IDE_THEMES: IDETheme[] = [
+  // 1. Visual Studio Light (Default)
   {
     id: 'light',
     name: 'Visual Studio Light',
@@ -93,6 +61,40 @@ export const IDE_THEMES: IDETheme[] = [
       border: '#e2e8f0',
       text: '#0f172a',
       textMuted: '#64748b',
+    },
+  },
+
+  // 2. Visual Studio Dark
+  {
+    id: 'vs-dark',
+    name: 'Visual Studio Dark',
+    category: 'Dark',
+    isDark: true,
+    previewBg: '#1e1e1e',
+    previewAccent: '#007acc',
+    monacoThemeId: 'vs-dark',
+    terminalTheme: {
+      background: '#0d1117',
+      foreground: '#c9d1d9',
+      cursor: '#58a6ff',
+      cursorAccent: '#0d1117',
+      selectionBackground: '#264f78',
+      black: '#484f58',
+      red: '#ff7b72',
+      green: '#3fb950',
+      yellow: '#d29922',
+      blue: '#58a6ff',
+      magenta: '#bc8cff',
+      cyan: '#39c5cf',
+      white: '#b1bac4',
+    },
+    uiColors: {
+      bg: '#090d16',
+      surface: '#0f172a',
+      card: '#1e293b',
+      border: '#1e293b',
+      text: '#f8fafc',
+      textMuted: '#94a3b8',
     },
   },
 
@@ -396,6 +398,13 @@ export const IDE_THEMES: IDETheme[] = [
   },
 ];
 
-export function getThemeById(id: string): IDETheme {
-  return IDE_THEMES.find((t) => t.id === id) || IDE_THEMES[0];
+export function getThemeById(id?: string): IDETheme {
+  if (!id) {
+    return IDE_THEMES.find((t) => t.id === DEFAULT_THEME_ID) || IDE_THEMES[0];
+  }
+  return (
+    IDE_THEMES.find((t) => t.id === id) ||
+    IDE_THEMES.find((t) => t.id === DEFAULT_THEME_ID) ||
+    IDE_THEMES[0]
+  );
 }

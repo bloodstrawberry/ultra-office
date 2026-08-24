@@ -21,7 +21,7 @@ import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import InsertChartOutlinedRoundedIcon from '@mui/icons-material/InsertChartOutlinedRounded';
 
-import { getThemeById } from '../core/editor-themes';
+import { getThemeById, DEFAULT_THEME_ID } from '../core/editor-themes';
 
 // ----------------------------------------------------------------------
 
@@ -37,7 +37,7 @@ export interface PreviewPanelProps {
 }
 
 export function PreviewPanel({
-  themeId = 'vs-dark',
+  themeId = DEFAULT_THEME_ID,
   previewUrl,
   htmlContent,
   isServerRunning,

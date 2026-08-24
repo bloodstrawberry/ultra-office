@@ -14,6 +14,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
+import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import PhotoFilterRoundedIcon from '@mui/icons-material/PhotoFilterRounded';
 import AddPhotoAlternateRoundedIcon from '@mui/icons-material/AddPhotoAlternateRounded';
@@ -823,6 +824,19 @@ export function FourCutView() {
           >
             <Button
               fullWidth
+              variant="outlined"
+              color="inherit"
+              onClick={() => {
+                setImages([]);
+                setStickers([]);
+              }}
+              startIcon={<RefreshRoundedIcon />}
+              sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+            >
+              다른 사진
+            </Button>
+            <Button
+              fullWidth
               variant="contained"
               color="primary"
               onClick={handleSave}
@@ -836,7 +850,7 @@ export function FourCutView() {
               }
               sx={{ py: 1.4, borderRadius: 2, fontWeight: 700, fontSize: '0.95rem' }}
             >
-              인생네컷 저장
+              저장
             </Button>
             <Button
               fullWidth
@@ -848,18 +862,6 @@ export function FourCutView() {
               sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
             >
               공유
-            </Button>
-            <Button
-              fullWidth
-              variant="outlined"
-              color="inherit"
-              onClick={() => {
-                setImages([]);
-                setStickers([]);
-              }}
-              sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
-            >
-              전체 초기화
             </Button>
           </Box>
         </Box>

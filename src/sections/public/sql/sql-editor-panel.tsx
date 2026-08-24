@@ -146,9 +146,30 @@ export function SqlEditorPanel({
 }: SqlEditorPanelProps) {
   const [templateAnchor, setTemplateAnchor] = useState<null | HTMLElement>(null);
   const [copied, setCopied] = useState(false);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const lines = value ? value.split('\n') : [''];
+  const lineNumbersRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleScroll = () => {
+    if (!textareaRef.current || !lineNumbersRef.current) return;
+    lineNumbersRef.current.scrollTop = textareaRef.current.scrollTop;
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    // Tab key support in textarea
+    if (e.key === 'Tab' && textareaRef.current) {
+      e.preventDefault();
+      const target = textareaRef.current;
+      const start = target.selectionStart;
+      const end = target.selectionEnd;
+      const newValue = value.substring(0, start) + '  ' + value.substring(end);
+      onChange(newValue);
+      setTimeout(() => {
+        target.selectionStart = target.selectionEnd = start + 2;
+      }, 0);
+      return;
+    }
+
     // Ctrl + Enter or Cmd + Enter to Run / Submit
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
       e.preventDefault();
@@ -237,16 +258,19 @@ export function SqlEditorPanel({
 
   const handleClear = () => {
     onChange('');
+    if (textareaRef.current) textareaRef.current.focus();
   };
 
   const handleSelectTemplate = (templateQuery: string) => {
     onChange(templateQuery);
     setTemplateAnchor(null);
+    if (textareaRef.current) textareaRef.current.focus();
   };
 
   return (
     <Card
       sx={{
+        width: '100%',
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
@@ -266,23 +290,32 @@ export function SqlEditorPanel({
           borderBottom: (theme) => `1px solid ${theme.vars.palette.divider}`,
           bgcolor: 'background.neutral',
           flexShrink: 0,
+          gap: 1,
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
             SQL 에디터
           </Typography>
           {datasetName && (
             <Typography
               variant="caption"
-              sx={{ color: 'text.secondary', display: { xs: 'none', sm: 'inline' } }}
+              sx={{
+                bgcolor: 'action.hover',
+                px: 1,
+                py: 0.2,
+                borderRadius: 1,
+                fontWeight: 600,
+                color: 'text.secondary',
+                display: { xs: 'none', sm: 'inline-block' },
+              }}
             >
-              ({datasetName})
+              {datasetName}
             </Typography>
           )}
         </Box>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
           {!isChallengeMode && (
             <>
               <Button
@@ -291,7 +324,7 @@ export function SqlEditorPanel({
                 color="inherit"
                 startIcon={<BookmarkBorderRoundedIcon fontSize="small" />}
                 onClick={(e) => setTemplateAnchor(e.currentTarget)}
-                sx={{ fontSize: 12, height: 30 }}
+                sx={{ fontSize: 12, height: 32, fontWeight: 600, borderRadius: 1.5 }}
               >
                 예제 템플릿
               </Button>
@@ -299,12 +332,17 @@ export function SqlEditorPanel({
                 anchorEl={templateAnchor}
                 open={Boolean(templateAnchor)}
                 onClose={() => setTemplateAnchor(null)}
+                slotProps={{
+                  paper: {
+                    sx: { maxHeight: 400, width: 340 },
+                  },
+                }}
               >
                 {SQL_TEMPLATES.map((tmpl, idx) => (
                   <MenuItem
                     key={idx}
                     onClick={() => handleSelectTemplate(tmpl.query)}
-                    sx={{ fontSize: 13 }}
+                    sx={{ fontSize: 13, py: 1 }}
                   >
                     {tmpl.label}
                   </MenuItem>
@@ -313,7 +351,7 @@ export function SqlEditorPanel({
             </>
           )}
 
-          <Tooltip title="SQL 키워드 정리">
+          <Tooltip title="SQL 키워드 대문자 자동 정리">
             <IconButton size="small" onClick={handleFormatSql}>
               <AutoFixHighRoundedIcon fontSize="small" />
             </IconButton>
@@ -329,7 +367,7 @@ export function SqlEditorPanel({
             </IconButton>
           </Tooltip>
 
-          <Tooltip title="지우기">
+          <Tooltip title="내용 지우기">
             <IconButton size="small" onClick={handleClear} color="default">
               <DeleteSweepRoundedIcon fontSize="small" />
             </IconButton>
@@ -342,7 +380,7 @@ export function SqlEditorPanel({
             startIcon={<PlayArrowRoundedIcon />}
             onClick={onRun}
             disabled={disabled || !value.trim()}
-            sx={{ height: 32, px: 1.5, fontWeight: 'bold' }}
+            sx={{ height: 32, px: 1.75, fontWeight: 700, borderRadius: 1.5 }}
           >
             실행 (Run)
           </Button>
@@ -355,7 +393,7 @@ export function SqlEditorPanel({
               startIcon={<FactCheckRoundedIcon />}
               onClick={onSubmit}
               disabled={disabled || !value.trim()}
-              sx={{ height: 32, px: 1.5, fontWeight: 'bold' }}
+              sx={{ height: 32, px: 1.75, fontWeight: 700, borderRadius: 1.5 }}
             >
               제출 & 채점
             </Button>
@@ -363,51 +401,67 @@ export function SqlEditorPanel({
         </Box>
       </Box>
 
-      {/* Editor Content Area */}
+      {/* Editor Content Area with Line Numbering */}
       <Box
         sx={{
           flex: 1,
           minHeight: 0,
           display: 'flex',
-          bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'grey.900' : 'background.paper'),
+          bgcolor: (theme) => (theme.palette.mode === 'dark' ? '#0d1117' : '#ffffff'),
           position: 'relative',
+          overflow: 'hidden',
         }}
         onKeyDown={handleKeyDown}
       >
-        <TextField
-          fullWidth
-          multiline
-          placeholder="-- 여기에 SQL 쿼리를 작성하세요 (예: SELECT * FROM customers;)"
+        {/* Line Numbers Gutter */}
+        <Box
+          ref={lineNumbersRef}
+          sx={{
+            width: 44,
+            py: '14px',
+            px: '8px',
+            userSelect: 'none',
+            textAlign: 'right',
+            color: 'text.disabled',
+            fontFamily: 'SFMono-Regular, Consolas, "Liberation Mono", Menlo, Courier, monospace',
+            fontSize: '13px',
+            lineHeight: '22px',
+            bgcolor: (theme) =>
+              theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
+            borderRight: (theme) => `1px solid ${theme.vars.palette.divider}`,
+            overflow: 'hidden',
+            flexShrink: 0,
+          }}
+        >
+          {lines.map((_, i) => (
+            <div key={i} style={{ height: '22px' }}>
+              {i + 1}
+            </div>
+          ))}
+        </Box>
+
+        {/* Textarea Input */}
+        <textarea
+          ref={textareaRef}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          inputRef={inputRef}
-          slotProps={{
-            input: {
-              spellCheck: false,
-            },
-            htmlInput: {
-              style: {
-                fontFamily:
-                  'SFMono-Regular, Consolas, "Liberation Mono", Menlo, Courier, monospace',
-                fontSize: '14px',
-                lineHeight: 1.6,
-                height: '100%',
-                overflow: 'auto',
-                boxSizing: 'border-box',
-                padding: '16px',
-              },
-            },
-          }}
-          sx={{
+          onScroll={handleScroll}
+          placeholder="-- 여기에 SQL 쿼리를 작성하세요 (예: SELECT * FROM customers;)"
+          spellCheck={false}
+          style={{
+            flex: 1,
+            minWidth: 0,
             height: '100%',
-            '& .MuiInputBase-root': {
-              height: '100%',
-              alignItems: 'flex-start',
-              p: 0,
-            },
-            '& .MuiOutlinedInput-notchedOutline': {
-              border: 'none',
-            },
+            border: 'none',
+            outline: 'none',
+            resize: 'none',
+            background: 'transparent',
+            color: 'inherit',
+            fontFamily: 'SFMono-Regular, Consolas, "Liberation Mono", Menlo, Courier, monospace',
+            fontSize: '13px',
+            lineHeight: '22px',
+            padding: '14px 16px',
+            boxSizing: 'border-box',
           }}
         />
       </Box>
@@ -426,9 +480,12 @@ export function SqlEditorPanel({
         }}
       >
         <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 11 }}>
-          단축키: <strong>Ctrl + Enter</strong> 또는 <strong>Cmd + Enter</strong>로 쿼리 실행
+          단축키: <strong>Ctrl + Enter</strong>로 쿼리 실행 • <strong>Tab</strong> 키 들여쓰기
         </Typography>
-        <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: 11 }}>
+        <Typography
+          variant="caption"
+          sx={{ color: 'text.disabled', fontSize: 11, fontWeight: 600 }}
+        >
           In-Memory SQLite Engine
         </Typography>
       </Box>

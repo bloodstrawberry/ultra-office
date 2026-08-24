@@ -17,14 +17,33 @@ import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import TextFieldsRoundedIcon from '@mui/icons-material/TextFieldsRounded';
-import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
-
-import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { downloadDataUrl, shareToKakaoTalk } from '../utils/image-processor';
+import { PhotoUploadWorkspace, type SampleImageItem } from '../components';
+
+const ASCII_SAMPLE_IMAGES: SampleImageItem[] = [
+  {
+    id: 'sample-portrait',
+    label: '인물 아스키 (고밀도 영문/한글)',
+    url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80',
+    subLabel: '인물 & 초상',
+  },
+  {
+    id: 'sample-matrix',
+    label: '매트릭스 사이버 코드 (네온)',
+    url: 'https://images.unsplash.com/photo-1514565131-fce0801e5785?w=800&auto=format&fit=crop&q=80',
+    subLabel: '사이버 & 야경',
+  },
+  {
+    id: 'sample-cat',
+    label: '고양이 텍스트 아트',
+    url: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800&auto=format&fit=crop&q=80',
+    subLabel: '반려동물',
+  },
+];
 
 type CharsetType = 'standard' | 'dense' | 'korean' | 'binary' | 'custom';
 type ThemeType = 'dark' | 'matrix' | 'color' | 'cyber' | 'paper';
@@ -67,7 +86,6 @@ export function AsciiView() {
   const resizeStartWidthRef = useRef<number>(360);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDividerPointerDown = (e: React.PointerEvent) => {
     e.preventDefault();
@@ -103,20 +121,6 @@ export function AsciiView() {
     };
     reader.readAsDataURL(file);
   }, []);
-
-  const { isDragActive, getRootProps } = useImageDropPaste({
-    onFiles: (files) => {
-      if (files[0]) processFile(files[0]);
-    },
-    multiple: false,
-  });
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    processFile(file);
-    if (e.target) e.target.value = '';
-  };
 
   const generateAscii = useCallback(async () => {
     if (!imageSrc) {
@@ -306,64 +310,19 @@ export function AsciiView() {
         </Typography>
       </Box>
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleFileUpload}
-        style={{ display: 'none' }}
-      />
-
       <canvas ref={canvasRef} style={{ display: 'none' }} />
 
       {!imageSrc ? (
-        <Card
-          {...getRootProps({
-            onClick: () => fileInputRef.current?.click(),
-          })}
-          sx={{
-            p: 6,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            border: '2px dashed',
-            borderColor: isDragActive ? 'primary.main' : 'divider',
-            bgcolor: isDragActive ? 'action.hover' : 'transparent',
-            borderRadius: 3,
-            flex: '1 1 auto',
-            minHeight: 0,
-            height: '100%',
-            transition: (t) => t.transitions.create(['border-color', 'background-color']),
-            '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
+        <PhotoUploadWorkspace
+          sampleImages={ASCII_SAMPLE_IMAGES}
+          onSelectSample={(url) => {
+            setImageSrc(url);
           }}
-        >
-          <Box
-            sx={{
-              width: 64,
-              height: 64,
-              borderRadius: '50%',
-              bgcolor: 'primary.lighter',
-              color: 'primary.main',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              mb: 2,
-            }}
-          >
-            <TextFieldsRoundedIcon sx={{ fontSize: 32 }} />
-          </Box>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
-            아스키 아트로 변환할 사진 업로드
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-            사진을 끌어다 놓거나 클릭하여 선택하세요
-          </Typography>
-          <Button variant="contained" color="primary" startIcon={<CloudUploadRoundedIcon />}>
-            사진 선택하기
-          </Button>
-        </Card>
+          onFileSelect={processFile}
+          title="아스키 아트로 변환할 사진 업로드"
+          subtitle="사진을 끌어다 놓거나 클릭하여 선택하세요."
+          icon={<TextFieldsRoundedIcon sx={{ fontSize: 36 }} />}
+        />
       ) : (
         <Box
           sx={{
@@ -695,7 +654,7 @@ export function AsciiView() {
                 startIcon={<RefreshRoundedIcon />}
                 sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
               >
-                다른 사진 선택
+                다른 사진
               </Button>
               <Button
                 fullWidth
@@ -705,27 +664,7 @@ export function AsciiView() {
                 startIcon={<DownloadRoundedIcon />}
                 sx={{ py: 1.4, borderRadius: 2, fontWeight: 700, fontSize: '0.95rem' }}
               >
-                PNG 이미지 저장
-              </Button>
-              <Button
-                fullWidth
-                variant="outlined"
-                color="inherit"
-                onClick={handleCopyText}
-                startIcon={<ContentCopyRoundedIcon />}
-                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
-              >
-                텍스트 복사
-              </Button>
-              <Button
-                fullWidth
-                variant="outlined"
-                color="inherit"
-                onClick={handleDownloadTxt}
-                startIcon={<DownloadRoundedIcon />}
-                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
-              >
-                TXT 파일 저장
+                저장
               </Button>
               <Button
                 fullWidth
@@ -737,6 +676,30 @@ export function AsciiView() {
               >
                 공유
               </Button>
+              <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                  color="inherit"
+                  onClick={handleCopyText}
+                  startIcon={<ContentCopyRoundedIcon />}
+                  sx={{ py: 0.9, borderRadius: 1.5, fontWeight: 600, fontSize: '0.8rem' }}
+                >
+                  텍스트 복사
+                </Button>
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                  color="inherit"
+                  onClick={handleDownloadTxt}
+                  startIcon={<DownloadRoundedIcon />}
+                  sx={{ py: 0.9, borderRadius: 1.5, fontWeight: 600, fontSize: '0.8rem' }}
+                >
+                  TXT 저장
+                </Button>
+              </Box>
             </Box>
           </Box>
         </Box>
