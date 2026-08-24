@@ -53,14 +53,19 @@ export function StampGenerator({ onStampGenerated }: StampGeneratorProps) {
   const [config, setConfig] = useState<StampConfig>(DEFAULT_CONFIG);
   const [stampDataUrl, setStampDataUrl] = useState<string>('');
 
+  const onStampGeneratedRef = useRef(onStampGenerated);
+  useEffect(() => {
+    onStampGeneratedRef.current = onStampGenerated;
+  }, [onStampGenerated]);
+
   const updateCanvas = useCallback(() => {
     if (!canvasRef.current) return;
     const url = renderStampCanvas(canvasRef.current, config);
     setStampDataUrl(url);
-    if (onStampGenerated) {
-      onStampGenerated(url);
+    if (onStampGeneratedRef.current) {
+      onStampGeneratedRef.current(url);
     }
-  }, [config, onStampGenerated]);
+  }, [config]);
 
   useEffect(() => {
     updateCanvas();

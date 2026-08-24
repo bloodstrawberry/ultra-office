@@ -82,10 +82,42 @@ export function GifView() {
   const [bgTolerance, setBgTolerance] = useState<number>(30);
   const [bgResultUrl, setBgResultUrl] = useState<string>('');
   const [isModifyingBg, setIsModifyingBg] = useState<boolean>(false);
+  const [rightPanelWidth, setRightPanelWidth] = useState<number>(380);
+
+  const isResizingRef = useRef<boolean>(false);
+  const resizeStartXRef = useRef<number>(0);
+  const resizeStartWidthRef = useRef<number>(380);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const splitInputRef = useRef<HTMLInputElement>(null);
   const bgInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDividerPointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    isResizingRef.current = true;
+    resizeStartXRef.current = e.clientX;
+    resizeStartWidthRef.current = rightPanelWidth;
+  };
+
+  const handleDividerPointerMove = (e: React.PointerEvent) => {
+    if (!isResizingRef.current) return;
+    const deltaX = resizeStartXRef.current - e.clientX;
+    const newWidth = Math.max(280, Math.min(650, resizeStartWidthRef.current + deltaX));
+    setRightPanelWidth(newWidth);
+  };
+
+  const handleDividerPointerUp = (e: React.PointerEvent) => {
+    if (isResizingRef.current) {
+      isResizingRef.current = false;
+      try {
+        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+      } catch {
+        // ignore
+      }
+    }
+  };
 
   // Preview player for Tab 1
   useEffect(() => {
@@ -285,8 +317,17 @@ export function GifView() {
   });
 
   return (
-    <DashboardContent>
-      <Box sx={{ mb: 3 }}>
+    <DashboardContent
+      sx={{
+        flex: '1 1 auto',
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: 0,
+        height: '100%',
+        pb: { xs: 2, sm: 3 },
+      }}
+    >
+      <Box sx={{ mb: 2, flexShrink: 0 }}>
         <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
           GIF 스튜디오 (GIF Maker & Studio)
         </Typography>
@@ -299,7 +340,7 @@ export function GifView() {
       <Tabs
         value={currentTab}
         onChange={(_, v) => setCurrentTab(v)}
-        sx={{ mb: 3, borderBottom: 1, borderColor: 'divider' }}
+        sx={{ mb: 2, borderBottom: 1, borderColor: 'divider', flexShrink: 0 }}
       >
         <Tab
           label="GIF 만들기 (움짤 제작)"
@@ -348,7 +389,9 @@ export function GifView() {
                 border: '2px dashed',
                 borderColor: 'divider',
                 borderRadius: 3,
-                minHeight: 320,
+                flex: '1 1 auto',
+                minHeight: 0,
+                height: '100%',
                 '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
               }}
             >
@@ -379,17 +422,46 @@ export function GifView() {
             </Card>
           ) : (
             <Box
-              sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '6fr 6fr' }, gap: 3 }}
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', lg: 'row' },
+                gap: { xs: 2, lg: 0 },
+                flex: '1 1 auto',
+                minHeight: 0,
+                height: '100%',
+                position: 'relative',
+              }}
             >
-              {/* Left: Preview */}
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <Card sx={{ p: 2, borderRadius: 3 }}>
+              {/* Left: Preview & Strip */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  flex: '1 1 0px',
+                  minWidth: 0,
+                  minHeight: 0,
+                  height: '100%',
+                  gap: 1.5,
+                  pr: { lg: 1 },
+                }}
+              >
+                <Card
+                  sx={{
+                    p: 2,
+                    borderRadius: 3,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    flex: '1 1 auto',
+                    minHeight: 0,
+                  }}
+                >
                   <Box
                     sx={{
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
                       mb: 1.5,
+                      flexShrink: 0,
                     }}
                   >
                     <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
@@ -404,7 +476,9 @@ export function GifView() {
                     sx={{
                       position: 'relative',
                       width: '100%',
-                      height: { xs: 280, sm: 380 },
+                      flex: '1 1 auto',
+                      minHeight: 0,
+                      height: '100%',
                       bgcolor: '#0f172a',
                       borderRadius: 2,
                       overflow: 'hidden',
@@ -425,7 +499,7 @@ export function GifView() {
                           <img
                             src={createImages[previewFrameIndex].src}
                             alt="preview frame"
-                            style={{ maxWidth: '100%', maxHeight: 380, objectFit: 'contain' }}
+                            style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
                           />
                           {overlayText.trim() && (
                             <Typography
@@ -453,11 +527,11 @@ export function GifView() {
                 </Card>
 
                 {/* Frames List */}
-                <Card sx={{ p: 2, borderRadius: 3 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
+                <Card sx={{ p: 1.5, borderRadius: 3, flexShrink: 0, maxHeight: 110 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 700, mb: 0.5, display: 'block' }}>
                     프레임 순서 ({createImages.length}개)
                   </Typography>
-                  <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', py: 1 }}>
+                  <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', py: 0.5 }}>
                     {createImages.map((img, idx) => (
                       <Box
                         key={img.id}
@@ -467,8 +541,8 @@ export function GifView() {
                         }}
                         sx={{
                           position: 'relative',
-                          width: 64,
-                          height: 64,
+                          width: 52,
+                          height: 52,
                           borderRadius: 1.5,
                           overflow: 'hidden',
                           bgcolor: '#0f172a',
@@ -498,7 +572,7 @@ export function GifView() {
                             p: 0.2,
                           }}
                         >
-                          <DeleteRoundedIcon sx={{ fontSize: 14 }} />
+                          <DeleteRoundedIcon sx={{ fontSize: 12 }} />
                         </IconButton>
                       </Box>
                     ))}
@@ -506,8 +580,104 @@ export function GifView() {
                 </Card>
               </Box>
 
+              {/* Draggable Divider (Desktop) */}
+              <Box
+                onPointerDown={handleDividerPointerDown}
+                onPointerMove={handleDividerPointerMove}
+                onPointerUp={handleDividerPointerUp}
+                sx={{
+                  display: { xs: 'none', lg: 'flex' },
+                  width: 16,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'col-resize',
+                  userSelect: 'none',
+                  touchAction: 'none',
+                  zIndex: 10,
+                  flexShrink: 0,
+                  position: 'relative',
+                  '&:hover .divider-bar, &:active .divider-bar': {
+                    bgcolor: 'primary.main',
+                    width: '3px',
+                  },
+                  '&:hover .divider-handle, &:active .divider-handle': {
+                    bgcolor: 'primary.main',
+                    borderColor: 'primary.main',
+                    '& > div > div': {
+                      bgcolor: '#ffffff',
+                    },
+                  },
+                }}
+              >
+                {/* Divider Line */}
+                <Box
+                  className="divider-bar"
+                  sx={{
+                    width: '2px',
+                    height: '100%',
+                    bgcolor: 'divider',
+                    borderRadius: '1px',
+                    transition: 'all 0.15s ease',
+                  }}
+                />
+                {/* Grab Handle */}
+                <Box
+                  className="divider-handle"
+                  sx={{
+                    position: 'absolute',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    width: 14,
+                    height: 36,
+                    borderRadius: 1,
+                    bgcolor: 'background.paper',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    boxShadow: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.15s ease',
+                    pointerEvents: 'none',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 4,
+                      height: 14,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      '& > div': {
+                        width: 1.5,
+                        height: '100%',
+                        bgcolor: 'text.disabled',
+                        borderRadius: 1,
+                        transition: 'all 0.15s ease',
+                      },
+                    }}
+                  >
+                    <div />
+                    <div />
+                  </Box>
+                </Box>
+              </Box>
+
               {/* Right: GIF Controls */}
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  width: { xs: '100%', lg: `${rightPanelWidth}px` },
+                  minWidth: { lg: `${rightPanelWidth}px` },
+                  maxWidth: { lg: `${rightPanelWidth}px` },
+                  flexShrink: 0,
+                  gap: 2,
+                  minHeight: 0,
+                  overflow: 'auto',
+                  pl: { lg: 1 },
+                  pr: 0.5,
+                }}
+              >
                 <Card sx={{ p: 2.5, borderRadius: 3 }}>
                   {/* FPS Slider */}
                   <Box sx={{ mb: 2 }}>
@@ -540,9 +710,9 @@ export function GifView() {
                     size="small"
                     sx={{ mb: 2 }}
                   >
-                    <ToggleButton value="normal">정방향 루프</ToggleButton>
-                    <ToggleButton value="reverse">역방향 루프</ToggleButton>
-                    <ToggleButton value="boomerang">부메랑 (왕복)</ToggleButton>
+                    <ToggleButton value="normal">정방향</ToggleButton>
+                    <ToggleButton value="reverse">역방향</ToggleButton>
+                    <ToggleButton value="boomerang">부메랑</ToggleButton>
                   </ToggleButtonGroup>
 
                   {/* Fit mode */}
@@ -557,9 +727,9 @@ export function GifView() {
                     size="small"
                     sx={{ mb: 2 }}
                   >
-                    <ToggleButton value="contain">여백 포함 (Contain)</ToggleButton>
-                    <ToggleButton value="cover">꽉 채움 (Cover)</ToggleButton>
-                    <ToggleButton value="stretch">비율 왜곡 (Stretch)</ToggleButton>
+                    <ToggleButton value="contain">여백 포함</ToggleButton>
+                    <ToggleButton value="cover">꽉 채움</ToggleButton>
+                    <ToggleButton value="stretch">비율 왜곡</ToggleButton>
                   </ToggleButtonGroup>
 
                   {/* Resolution */}
@@ -581,7 +751,7 @@ export function GifView() {
                   </Box>
 
                   {/* Text Overlay */}
-                  <Box sx={{ mb: 2 }}>
+                  <Box>
                     <Typography
                       variant="caption"
                       sx={{ fontWeight: 600, mb: 0.5, display: 'block' }}
@@ -611,7 +781,7 @@ export function GifView() {
                     </Box>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                       <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                        자막 폰트 크기: {fontSize}px
+                        자막 크기: {fontSize}px
                       </Typography>
                     </Box>
                     <Slider
@@ -622,25 +792,22 @@ export function GifView() {
                       onChange={(_, v) => setFontSize(v as number)}
                     />
                   </Box>
-
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    fullWidth
-                    onClick={() => fileInputRef.current?.click()}
-                    startIcon={<CloudUploadRoundedIcon />}
-                    sx={{ py: 1, borderRadius: 2 }}
-                  >
-                    + 사진 추가하기
-                  </Button>
                 </Card>
 
-                {/* Actions */}
-                <Box sx={{ display: 'flex', gap: 1.5 }}>
+                {/* Actions Column */}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1.25,
+                    mt: 'auto',
+                    pt: 0.5,
+                  }}
+                >
                   <Button
+                    fullWidth
                     variant="contained"
                     color="primary"
-                    size="large"
                     onClick={handleGenerateGif}
                     disabled={isCreating || createImages.length < 2}
                     startIcon={
@@ -650,21 +817,44 @@ export function GifView() {
                         <GifRoundedIcon />
                       )
                     }
-                    sx={{ flex: 1.5, py: 1.5, borderRadius: 2, fontWeight: 800 }}
+                    sx={{ py: 1.4, borderRadius: 2, fontWeight: 700, fontSize: '0.95rem' }}
                   >
                     {isCreating ? `생성 중 (${createProgress}%)` : 'GIF 생성하기'}
                   </Button>
                   {createResultUrl && (
                     <Button
+                      fullWidth
                       variant="contained"
-                      color="success"
+                      color="secondary"
                       onClick={() => downloadDataUrl(createResultUrl, `animated_${Date.now()}.gif`)}
                       startIcon={<DownloadRoundedIcon />}
-                      sx={{ flex: 1, py: 1.5, borderRadius: 2 }}
+                      sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
                     >
-                      저장
+                      GIF 저장하기
                     </Button>
                   )}
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    color="inherit"
+                    onClick={() => fileInputRef.current?.click()}
+                    startIcon={<CloudUploadRoundedIcon />}
+                    sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+                  >
+                    + 사진 추가하기
+                  </Button>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    color="inherit"
+                    onClick={() => {
+                      setCreateImages([]);
+                      setCreateResultUrl('');
+                    }}
+                    sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+                  >
+                    전체 초기화
+                  </Button>
                 </Box>
               </Box>
             </Box>
@@ -699,7 +889,9 @@ export function GifView() {
                 borderColor: splitDrop.isDragActive ? 'primary.main' : 'divider',
                 bgcolor: splitDrop.isDragActive ? 'action.hover' : 'transparent',
                 borderRadius: 3,
-                minHeight: 320,
+                flex: '1 1 auto',
+                minHeight: 0,
+                height: '100%',
                 transition: (theme) =>
                   theme.transitions.create(['border-color', 'background-color']),
                 '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
@@ -742,108 +934,297 @@ export function GifView() {
               </Button>
             </Card>
           ) : (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-              <Card
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', lg: 'row' },
+                gap: { xs: 2, lg: 0 },
+                flex: '1 1 auto',
+                minHeight: 0,
+                height: '100%',
+                position: 'relative',
+              }}
+            >
+              {/* Left: Frames Grid */}
+              <Box
                 sx={{
-                  p: 2.5,
-                  borderRadius: 3,
                   display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
+                  flexDirection: 'column',
+                  flex: '1 1 0px',
+                  minWidth: 0,
+                  minHeight: 0,
+                  height: '100%',
+                  pr: { lg: 1 },
                 }}
               >
-                <Box>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                    {splitFile.name} (총 {splitFrames.length} 프레임)
+                <Card
+                  sx={{
+                    p: 2,
+                    borderRadius: 3,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    flex: '1 1 auto',
+                    minHeight: 0,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      mb: 1.5,
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Box>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                        {splitFile.name} (총 {splitFrames.length} 프레임)
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                        선택된 프레임: {selectedFrameIds.size}개
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        startIcon={isPlayingSplit ? <PauseRoundedIcon /> : <PlayArrowRoundedIcon />}
+                        onClick={() => setIsPlayingSplit(!isPlayingSplit)}
+                      >
+                        {isPlayingSplit ? '정지' : '재생'}
+                      </Button>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={() => setSelectedFrameIds(new Set(splitFrames.map((f) => f.id)))}
+                      >
+                        전체 선택
+                      </Button>
+                    </Box>
+                  </Box>
+
+                  {/* Grid of frames */}
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
+                      gap: 1.5,
+                      flex: '1 1 auto',
+                      minHeight: 0,
+                      overflowY: 'auto',
+                    }}
+                  >
+                    {splitFrames.map((frame, idx) => {
+                      const isSelected = selectedFrameIds.has(frame.id);
+                      return (
+                        <Card
+                          key={frame.id}
+                          onClick={() => toggleSelectFrame(frame.id)}
+                          sx={{
+                            p: 1,
+                            borderRadius: 2,
+                            cursor: 'pointer',
+                            border: '2px solid',
+                            borderColor: isSelected ? 'primary.main' : 'transparent',
+                            bgcolor: isSelected ? 'action.selected' : 'action.hover',
+                            flexShrink: 0,
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              width: '100%',
+                              aspectRatio: '1',
+                              borderRadius: 1,
+                              overflow: 'hidden',
+                              bgcolor: '#0f172a',
+                              mb: 0.5,
+                            }}
+                          >
+                            <img
+                              src={frame.dataUrl}
+                              alt={`frame ${idx + 1}`}
+                              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                            />
+                          </Box>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                            }}
+                          >
+                            <Typography variant="caption" sx={{ fontWeight: 800 }}>
+                              #{idx + 1}
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                              {frame.delay}ms
+                            </Typography>
+                          </Box>
+                        </Card>
+                      );
+                    })}
+                  </Box>
+                </Card>
+              </Box>
+
+              {/* Draggable Divider (Desktop) */}
+              <Box
+                onPointerDown={handleDividerPointerDown}
+                onPointerMove={handleDividerPointerMove}
+                onPointerUp={handleDividerPointerUp}
+                sx={{
+                  display: { xs: 'none', lg: 'flex' },
+                  width: 16,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'col-resize',
+                  userSelect: 'none',
+                  touchAction: 'none',
+                  zIndex: 10,
+                  flexShrink: 0,
+                  position: 'relative',
+                  '&:hover .divider-bar, &:active .divider-bar': {
+                    bgcolor: 'primary.main',
+                    width: '3px',
+                  },
+                  '&:hover .divider-handle, &:active .divider-handle': {
+                    bgcolor: 'primary.main',
+                    borderColor: 'primary.main',
+                    '& > div > div': {
+                      bgcolor: '#ffffff',
+                    },
+                  },
+                }}
+              >
+                {/* Divider Line */}
+                <Box
+                  className="divider-bar"
+                  sx={{
+                    width: '2px',
+                    height: '100%',
+                    bgcolor: 'divider',
+                    borderRadius: '1px',
+                    transition: 'all 0.15s ease',
+                  }}
+                />
+                {/* Grab Handle */}
+                <Box
+                  className="divider-handle"
+                  sx={{
+                    position: 'absolute',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    width: 14,
+                    height: 36,
+                    borderRadius: 1,
+                    bgcolor: 'background.paper',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    boxShadow: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.15s ease',
+                    pointerEvents: 'none',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 4,
+                      height: 14,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      '& > div': {
+                        width: 1.5,
+                        height: '100%',
+                        bgcolor: 'text.disabled',
+                        borderRadius: 1,
+                        transition: 'all 0.15s ease',
+                      },
+                    }}
+                  >
+                    <div />
+                    <div />
+                  </Box>
+                </Box>
+              </Box>
+
+              {/* Right: Actions */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  width: { xs: '100%', lg: `${rightPanelWidth}px` },
+                  minWidth: { lg: `${rightPanelWidth}px` },
+                  maxWidth: { lg: `${rightPanelWidth}px` },
+                  flexShrink: 0,
+                  gap: 2,
+                  minHeight: 0,
+                  overflow: 'auto',
+                  pl: { lg: 1 },
+                  pr: 0.5,
+                }}
+              >
+                <Card sx={{ p: 2.5, borderRadius: 3 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
+                    프레임 추출 정보
                   </Typography>
-                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>
+                    파일명: {splitFile.name}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>
+                    총 프레임: {splitFrames.length}개
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                     선택된 프레임: {selectedFrameIds.size}개
                   </Typography>
-                </Box>
-                <Box sx={{ display: 'flex', gap: 1 }}>
+                </Card>
+
+                {/* Actions Column */}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1.25,
+                    mt: 'auto',
+                    pt: 0.5,
+                  }}
+                >
                   <Button
-                    size="small"
-                    variant="outlined"
-                    startIcon={isPlayingSplit ? <PauseRoundedIcon /> : <PlayArrowRoundedIcon />}
-                    onClick={() => setIsPlayingSplit(!isPlayingSplit)}
-                  >
-                    {isPlayingSplit ? '정지' : '재생'}
-                  </Button>
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    onClick={() => setSelectedFrameIds(new Set(splitFrames.map((f) => f.id)))}
-                  >
-                    전체 선택
-                  </Button>
-                  <Button
+                    fullWidth
                     variant="contained"
-                    color="success"
+                    color="primary"
                     startIcon={<ArchiveRoundedIcon />}
                     onClick={handleExportFramesZip}
                     disabled={selectedFrameIds.size === 0}
+                    sx={{ py: 1.4, borderRadius: 2, fontWeight: 700, fontSize: '0.95rem' }}
                   >
                     선택 프레임 ZIP 다운로드
                   </Button>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    color="inherit"
+                    onClick={() => splitInputRef.current?.click()}
+                    startIcon={<CloudUploadRoundedIcon />}
+                    sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+                  >
+                    다른 GIF 파일 선택
+                  </Button>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    color="inherit"
+                    onClick={() => {
+                      setSplitFile(null);
+                      setSplitFrames([]);
+                      setSelectedFrameIds(new Set());
+                    }}
+                    sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+                  >
+                    초기화
+                  </Button>
                 </Box>
-              </Card>
-
-              {/* Grid of frames */}
-              <Box
-                sx={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
-                  gap: 1.5,
-                }}
-              >
-                {splitFrames.map((frame, idx) => {
-                  const isSelected = selectedFrameIds.has(frame.id);
-                  return (
-                    <Card
-                      key={frame.id}
-                      onClick={() => toggleSelectFrame(frame.id)}
-                      sx={{
-                        p: 1,
-                        borderRadius: 2,
-                        cursor: 'pointer',
-                        border: '2px solid',
-                        borderColor: isSelected ? 'primary.main' : 'transparent',
-                        bgcolor: isSelected ? 'action.selected' : 'action.hover',
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          width: '100%',
-                          aspectRatio: '1',
-                          borderRadius: 1,
-                          overflow: 'hidden',
-                          bgcolor: '#0f172a',
-                          mb: 0.5,
-                        }}
-                      >
-                        <img
-                          src={frame.dataUrl}
-                          alt={`frame ${idx + 1}`}
-                          style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                        />
-                      </Box>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                        }}
-                      >
-                        <Typography variant="caption" sx={{ fontWeight: 800 }}>
-                          #{idx + 1}
-                        </Typography>
-                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                          {frame.delay}ms
-                        </Typography>
-                      </Box>
-                    </Card>
-                  );
-                })}
               </Box>
             </Box>
           )}
@@ -877,7 +1258,9 @@ export function GifView() {
                 borderColor: bgDrop.isDragActive ? 'primary.main' : 'divider',
                 bgcolor: bgDrop.isDragActive ? 'action.hover' : 'transparent',
                 borderRadius: 3,
-                minHeight: 320,
+                flex: '1 1 auto',
+                minHeight: 0,
+                height: '100%',
                 transition: (theme) =>
                   theme.transitions.create(['border-color', 'background-color']),
                 '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
@@ -910,104 +1293,261 @@ export function GifView() {
             </Card>
           ) : (
             <Box
-              sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '7fr 5fr' }, gap: 3 }}
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', lg: 'row' },
+                gap: { xs: 2, lg: 0 },
+                flex: '1 1 auto',
+                minHeight: 0,
+                height: '100%',
+                position: 'relative',
+              }}
             >
-              <Card
+              {/* Left: Preview */}
+              <Box
                 sx={{
-                  p: 2,
-                  borderRadius: 3,
                   display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  minHeight: 340,
-                  bgcolor: '#0f172a',
+                  flexDirection: 'column',
+                  flex: '1 1 0px',
+                  minWidth: 0,
+                  minHeight: 0,
+                  height: '100%',
+                  pr: { lg: 1 },
                 }}
               >
-                {bgResultUrl ? (
-                  <img
-                    src={bgResultUrl}
-                    alt="Modified GIF"
-                    style={{ maxWidth: '100%', maxHeight: 340, objectFit: 'contain' }}
-                  />
-                ) : (
-                  <Typography variant="body2" sx={{ color: '#94a3b8' }}>
-                    수정 버튼을 누르면 새 GIF가 렌더링됩니다
-                  </Typography>
-                )}
-              </Card>
+                <Card
+                  sx={{
+                    p: 2,
+                    borderRadius: 3,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flex: '1 1 auto',
+                    minHeight: 0,
+                    height: '100%',
+                    bgcolor: '#0f172a',
+                  }}
+                >
+                  {bgResultUrl ? (
+                    <img
+                      src={bgResultUrl}
+                      alt="Modified GIF"
+                      style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                    />
+                  ) : (
+                    <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+                      수정 버튼을 누르면 새 GIF가 렌더링됩니다
+                    </Typography>
+                  )}
+                </Card>
+              </Box>
 
-              <Card
-                sx={{ p: 2.5, borderRadius: 3, display: 'flex', flexDirection: 'column', gap: 2 }}
+              {/* Draggable Divider (Desktop) */}
+              <Box
+                onPointerDown={handleDividerPointerDown}
+                onPointerMove={handleDividerPointerMove}
+                onPointerUp={handleDividerPointerUp}
+                sx={{
+                  display: { xs: 'none', lg: 'flex' },
+                  width: 16,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'col-resize',
+                  userSelect: 'none',
+                  touchAction: 'none',
+                  zIndex: 10,
+                  flexShrink: 0,
+                  position: 'relative',
+                  '&:hover .divider-bar, &:active .divider-bar': {
+                    bgcolor: 'primary.main',
+                    width: '3px',
+                  },
+                  '&:hover .divider-handle, &:active .divider-handle': {
+                    bgcolor: 'primary.main',
+                    borderColor: 'primary.main',
+                    '& > div > div': {
+                      bgcolor: '#ffffff',
+                    },
+                  },
+                }}
               >
-                <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                  배경 색상 설정
-                </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    변경할 새 배경색:
-                  </Typography>
-                  <input
-                    type="color"
-                    value={targetBgColor}
-                    onChange={(e) => setTargetBgColor(e.target.value)}
-                    style={{
-                      width: 44,
-                      height: 40,
-                      borderRadius: 6,
-                      border: 'none',
-                      cursor: 'pointer',
+                {/* Divider Line */}
+                <Box
+                  className="divider-bar"
+                  sx={{
+                    width: '2px',
+                    height: '100%',
+                    bgcolor: 'divider',
+                    borderRadius: '1px',
+                    transition: 'all 0.15s ease',
+                  }}
+                />
+                {/* Grab Handle */}
+                <Box
+                  className="divider-handle"
+                  sx={{
+                    position: 'absolute',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    width: 14,
+                    height: 36,
+                    borderRadius: 1,
+                    bgcolor: 'background.paper',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    boxShadow: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.15s ease',
+                    pointerEvents: 'none',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 4,
+                      height: 14,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      '& > div': {
+                        width: 1.5,
+                        height: '100%',
+                        bgcolor: 'text.disabled',
+                        borderRadius: 1,
+                        transition: 'all 0.15s ease',
+                      },
                     }}
-                  />
-                  <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                    {targetBgColor}
-                  </Typography>
+                  >
+                    <div />
+                    <div />
+                  </Box>
                 </Box>
+              </Box>
 
-                <Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                    <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                      색상 허용 오차: {bgTolerance}
+              {/* Right: Controls & Actions */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  width: { xs: '100%', lg: `${rightPanelWidth}px` },
+                  minWidth: { lg: `${rightPanelWidth}px` },
+                  maxWidth: { lg: `${rightPanelWidth}px` },
+                  flexShrink: 0,
+                  gap: 2,
+                  minHeight: 0,
+                  overflow: 'auto',
+                  pl: { lg: 1 },
+                  pr: 0.5,
+                }}
+              >
+                <Card
+                  sx={{ p: 2.5, borderRadius: 3, display: 'flex', flexDirection: 'column', gap: 2 }}
+                >
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                    배경 색상 설정
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      변경할 새 배경색:
+                    </Typography>
+                    <input
+                      type="color"
+                      value={targetBgColor}
+                      onChange={(e) => setTargetBgColor(e.target.value)}
+                      style={{
+                        width: 44,
+                        height: 40,
+                        borderRadius: 6,
+                        border: 'none',
+                        cursor: 'pointer',
+                      }}
+                    />
+                    <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                      {targetBgColor}
                     </Typography>
                   </Box>
-                  <Slider
-                    size="small"
-                    min={5}
-                    max={80}
-                    value={bgTolerance}
-                    onChange={(_, v) => setBgTolerance(v as number)}
-                  />
-                </Box>
 
-                <Button
-                  variant="contained"
-                  color="primary"
-                  size="large"
-                  onClick={handleApplyBgColor}
-                  disabled={isModifyingBg}
-                  startIcon={
-                    isModifyingBg ? (
-                      <CircularProgress size={18} color="inherit" />
-                    ) : (
-                      <ColorLensRoundedIcon />
-                    )
-                  }
-                  sx={{ py: 1.2, borderRadius: 2 }}
+                  <Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                        색상 허용 오차: {bgTolerance}
+                      </Typography>
+                    </Box>
+                    <Slider
+                      size="small"
+                      min={5}
+                      max={80}
+                      value={bgTolerance}
+                      onChange={(_, v) => setBgTolerance(v as number)}
+                    />
+                  </Box>
+                </Card>
+
+                {/* Actions Column */}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1.25,
+                    mt: 'auto',
+                    pt: 0.5,
+                  }}
                 >
-                  배경색 변경 적용하기
-                </Button>
-
-                {bgResultUrl && (
                   <Button
+                    fullWidth
                     variant="contained"
-                    color="success"
-                    onClick={() => downloadDataUrl(bgResultUrl, `bg_modified_${Date.now()}.gif`)}
-                    startIcon={<DownloadRoundedIcon />}
-                    sx={{ py: 1.2, borderRadius: 2 }}
+                    color="primary"
+                    onClick={handleApplyBgColor}
+                    disabled={isModifyingBg}
+                    startIcon={
+                      isModifyingBg ? (
+                        <CircularProgress size={18} color="inherit" />
+                      ) : (
+                        <ColorLensRoundedIcon />
+                      )
+                    }
+                    sx={{ py: 1.4, borderRadius: 2, fontWeight: 700, fontSize: '0.95rem' }}
                   >
-                    새 GIF 저장하기
+                    배경색 변경 적용하기
                   </Button>
-                )}
-              </Card>
+
+                  {bgResultUrl && (
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      color="secondary"
+                      onClick={() => downloadDataUrl(bgResultUrl, `bg_modified_${Date.now()}.gif`)}
+                      startIcon={<DownloadRoundedIcon />}
+                      sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+                    >
+                      새 GIF 저장하기
+                    </Button>
+                  )}
+
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    color="inherit"
+                    onClick={() => bgInputRef.current?.click()}
+                    startIcon={<CloudUploadRoundedIcon />}
+                    sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+                  >
+                    다른 GIF 파일 선택
+                  </Button>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    color="inherit"
+                    onClick={() => {
+                      setBgFile(null);
+                      setBgResultUrl('');
+                    }}
+                    sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+                  >
+                    초기화
+                  </Button>
+                </Box>
+              </Box>
             </Box>
           )}
         </>

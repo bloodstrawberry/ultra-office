@@ -49,12 +49,44 @@ export function ScanView() {
   const [activeItemIndex, setActiveItemIndex] = useState<number>(0);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [isExportingPdf, setIsExportingPdf] = useState<boolean>(false);
+  const [rightPanelWidth, setRightPanelWidth] = useState<number>(380);
+
+  const isResizingRef = useRef<boolean>(false);
+  const resizeStartXRef = useRef<number>(0);
+  const resizeStartWidthRef = useRef<number>(380);
 
   // Scan Configurations
   const [config, setConfig] = useState<ScanConfig>(DEFAULT_SCAN_CONFIG);
   const [viewMode, setViewMode] = useState<'split' | 'scanned' | 'original'>('scanned');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDividerPointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    isResizingRef.current = true;
+    resizeStartXRef.current = e.clientX;
+    resizeStartWidthRef.current = rightPanelWidth;
+  };
+
+  const handleDividerPointerMove = (e: React.PointerEvent) => {
+    if (!isResizingRef.current) return;
+    const deltaX = resizeStartXRef.current - e.clientX;
+    const newWidth = Math.max(280, Math.min(650, resizeStartWidthRef.current + deltaX));
+    setRightPanelWidth(newWidth);
+  };
+
+  const handleDividerPointerUp = (e: React.PointerEvent) => {
+    if (isResizingRef.current) {
+      isResizingRef.current = false;
+      try {
+        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+      } catch {
+        // ignore
+      }
+    }
+  };
 
   const addFiles = useCallback((selectedFiles: File[]) => {
     if (selectedFiles.length === 0) return;
@@ -174,24 +206,22 @@ export function ScanView() {
 
   return (
     <DashboardContent
-      maxWidth={false}
       sx={{
+        flex: '1 1 auto',
         display: 'flex',
         flexDirection: 'column',
-        flex: '1 1 auto',
         minHeight: 0,
         height: '100%',
-        pb: 2,
+        pb: { xs: 2, sm: 3 },
       }}
     >
-      {/* Header */}
       <Box sx={{ mb: 2, flexShrink: 0 }}>
         <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
-          스캔 효과 & 문서 스캐너 (Document Scanner)
+          스캔 효과 · 문서 스캐너 (Scanner Effect & PDF)
         </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          일반 스마트폰 촬영 사진이나 문서를 평판 스캐너 및 사무용 복사기로 스캔한 것처럼 깨끗하게
-          보정하고 PDF로 내보냅니다.
+          스마트폰으로 찍은 사진을 복합기에서 정밀 스캔한 것처럼 보정하고, 다중 페이지 PDF 및
+          ZIP으로 일괄 변환합니다.
         </Typography>
       </Box>
 
@@ -221,7 +251,8 @@ export function ScanView() {
             bgcolor: isDragActive ? 'action.hover' : 'transparent',
             borderRadius: 3,
             flex: '1 1 auto',
-            minHeight: 360,
+            minHeight: 0,
+            height: '100%',
             transition: (theme) => theme.transitions.create(['border-color', 'background-color']),
             '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
           }}
@@ -254,12 +285,13 @@ export function ScanView() {
       ) : (
         <Box
           sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', lg: '7fr 5fr' },
-            gap: 2.5,
+            display: 'flex',
+            flexDirection: { xs: 'column', lg: 'row' },
+            gap: { xs: 2, lg: 0 },
             flex: '1 1 auto',
             minHeight: 0,
-            overflow: 'hidden',
+            height: '100%',
+            position: 'relative',
           }}
         >
           {/* Left: Preview Panel & Document List */}
@@ -267,19 +299,32 @@ export function ScanView() {
             sx={{
               display: 'flex',
               flexDirection: 'column',
-              gap: 2,
+              flex: '1 1 0px',
+              minWidth: 0,
               minHeight: 0,
-              overflowY: 'auto',
+              height: '100%',
+              gap: 1.5,
+              pr: { lg: 1 },
             }}
           >
             {activeItem && (
-              <Card sx={{ p: 2, borderRadius: 3, flexShrink: 0 }}>
+              <Card
+                sx={{
+                  p: 2,
+                  borderRadius: 3,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  flex: '1 1 auto',
+                  minHeight: 0,
+                }}
+              >
                 <Box
                   sx={{
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     mb: 1.5,
+                    flexShrink: 0,
                   }}
                 >
                   <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
@@ -288,8 +333,6 @@ export function ScanView() {
 
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     {isProcessing && <CircularProgress size={18} />}
-
-                    {/* View Mode Toggle */}
                     <ToggleButtonGroup
                       size="small"
                       value={viewMode}
@@ -316,7 +359,9 @@ export function ScanView() {
                   sx={{
                     position: 'relative',
                     width: '100%',
-                    height: { xs: 320, sm: 440 },
+                    flex: '1 1 auto',
+                    minHeight: 0,
+                    height: '100%',
                     bgcolor: '#0f172a',
                     borderRadius: 2,
                     overflow: 'hidden',
@@ -332,24 +377,20 @@ export function ScanView() {
                         : activeItem.resultUrl || activeItem.origUrl
                     }
                     alt="Scan Preview"
-                    style={{
-                      maxWidth: '100%',
-                      maxHeight: '100%',
-                      objectFit: 'contain',
-                    }}
+                    style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
                   />
                 </Box>
               </Card>
             )}
 
             {/* Document list strip */}
-            <Card sx={{ p: 2, borderRadius: 3, flex: '1 1 auto', minHeight: 0 }}>
+            <Card sx={{ p: 2, borderRadius: 3, flexShrink: 0, maxHeight: 180 }}>
               <Box
                 sx={{
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  mb: 1.5,
+                  mb: 1,
                   flexShrink: 0,
                 }}
               >
@@ -371,8 +412,8 @@ export function ScanView() {
                 sx={{
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 1,
-                  maxHeight: 200,
+                  gap: 0.8,
+                  maxHeight: 110,
                   overflowY: 'auto',
                 }}
               >
@@ -381,7 +422,7 @@ export function ScanView() {
                     key={item.id}
                     onClick={() => setActiveItemIndex(idx)}
                     sx={{
-                      p: 1,
+                      p: 0.8,
                       borderRadius: 1.5,
                       bgcolor: activeItemIndex === idx ? 'action.selected' : 'action.hover',
                       border: '1px solid',
@@ -396,8 +437,8 @@ export function ScanView() {
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0 }}>
                       <Box
                         sx={{
-                          width: 42,
-                          height: 42,
+                          width: 36,
+                          height: 36,
                           borderRadius: 1,
                           overflow: 'hidden',
                           bgcolor: '#ffffff',
@@ -420,7 +461,10 @@ export function ScanView() {
                       <IconButton
                         size="small"
                         color="primary"
-                        onClick={() => handleDownloadSingle(item)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDownloadSingle(item);
+                        }}
                       >
                         <DownloadRoundedIcon fontSize="small" />
                       </IconButton>
@@ -441,19 +485,106 @@ export function ScanView() {
             </Card>
           </Box>
 
+          {/* Draggable Divider (Desktop) */}
+          <Box
+            onPointerDown={handleDividerPointerDown}
+            onPointerMove={handleDividerPointerMove}
+            onPointerUp={handleDividerPointerUp}
+            sx={{
+              display: { xs: 'none', lg: 'flex' },
+              width: 16,
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'col-resize',
+              userSelect: 'none',
+              touchAction: 'none',
+              zIndex: 10,
+              flexShrink: 0,
+              position: 'relative',
+              '&:hover .divider-bar, &:active .divider-bar': {
+                bgcolor: 'primary.main',
+                width: '3px',
+              },
+              '&:hover .divider-handle, &:active .divider-handle': {
+                bgcolor: 'primary.main',
+                borderColor: 'primary.main',
+                '& > div > div': {
+                  bgcolor: '#ffffff',
+                },
+              },
+            }}
+          >
+            {/* Divider Line */}
+            <Box
+              className="divider-bar"
+              sx={{
+                width: '2px',
+                height: '100%',
+                bgcolor: 'divider',
+                borderRadius: '1px',
+                transition: 'all 0.15s ease',
+              }}
+            />
+            {/* Grab Handle */}
+            <Box
+              className="divider-handle"
+              sx={{
+                position: 'absolute',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                width: 14,
+                height: 36,
+                borderRadius: 1,
+                bgcolor: 'background.paper',
+                border: '1px solid',
+                borderColor: 'divider',
+                boxShadow: 2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.15s ease',
+                pointerEvents: 'none',
+              }}
+            >
+              <Box
+                sx={{
+                  width: 4,
+                  height: 14,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  '& > div': {
+                    width: 1.5,
+                    height: '100%',
+                    bgcolor: 'text.disabled',
+                    borderRadius: 1,
+                    transition: 'all 0.15s ease',
+                  },
+                }}
+              >
+                <div />
+                <div />
+              </Box>
+            </Box>
+          </Box>
+
           {/* Right: Controls & Adjustments */}
           <Box
             sx={{
               display: 'flex',
               flexDirection: 'column',
+              width: { xs: '100%', lg: `${rightPanelWidth}px` },
+              minWidth: { lg: `${rightPanelWidth}px` },
+              maxWidth: { lg: `${rightPanelWidth}px` },
+              flexShrink: 0,
               gap: 2,
               minHeight: 0,
-              overflowY: 'auto',
+              overflow: 'auto',
+              pl: { lg: 1 },
               pr: 0.5,
             }}
           >
-            {/* 1. Presets */}
-            <Card sx={{ p: 2.5, borderRadius: 3, flexShrink: 0 }}>
+            {/* Presets Selector Card */}
+            <Card sx={{ p: 2, borderRadius: 3 }}>
               <Box
                 sx={{
                   display: 'flex',
@@ -462,81 +593,79 @@ export function ScanView() {
                   mb: 1.5,
                 }}
               >
-                <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
-                  1. 스캐너 프리셋 선택
+                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                  스캔 프리셋 스타일
                 </Typography>
                 <Button
                   size="small"
-                  color="inherit"
+                  startIcon={<RestartAltRoundedIcon />}
                   onClick={handleResetConfig}
-                  startIcon={<RestartAltRoundedIcon fontSize="small" />}
-                  sx={{ fontSize: '0.75rem', textTransform: 'none' }}
+                  sx={{ color: 'text.secondary' }}
                 >
                   기본값 복원
                 </Button>
               </Box>
 
-              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr', gap: 1, mb: 1.5 }}>
-                {SCAN_PRESETS.map((pst) => {
-                  const isSelected = config.preset === pst.id;
+              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 1 }}>
+                {SCAN_PRESETS.map((preset) => {
+                  const isSelected = config.preset === preset.id;
                   return (
                     <Box
-                      key={pst.id}
-                      onClick={() => handleSelectPreset(pst.id)}
+                      key={preset.id}
+                      onClick={() => handleSelectPreset(preset.id)}
                       sx={{
-                        p: 1.5,
+                        p: 1.2,
                         borderRadius: 2,
-                        border: '1.5px solid',
-                        borderColor: isSelected ? 'primary.main' : 'divider',
-                        bgcolor: isSelected ? 'primary.lighter' : 'background.paper',
                         cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1.5,
-                        transition: 'all 0.15s ease',
+                        bgcolor: isSelected ? 'primary.lighter' : 'action.hover',
+                        border: '1.5px solid',
+                        borderColor: isSelected ? 'primary.main' : 'transparent',
+                        transition: 'all 0.15s',
                         '&:hover': {
-                          borderColor: 'primary.main',
-                          transform: 'translateY(-1px)',
+                          borderColor: isSelected ? 'primary.main' : 'primary.light',
                         },
                       }}
                     >
-                      <Typography variant="h5" sx={{ flexShrink: 0 }}>
-                        {pst.icon}
-                      </Typography>
-                      <Box sx={{ flex: '1 1 auto', minWidth: 0 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.2 }}>
+                        <Typography sx={{ fontSize: '1.2rem' }}>{preset.icon}</Typography>
                         <Typography
-                          variant="subtitle2"
+                          variant="body2"
                           sx={{
-                            fontWeight: 800,
+                            fontWeight: 700,
                             color: isSelected ? 'primary.dark' : 'text.primary',
                           }}
                         >
-                          {pst.name}
-                        </Typography>
-                        <Typography
-                          variant="caption"
-                          sx={{ color: 'text.secondary', display: 'block' }}
-                        >
-                          {pst.desc}
+                          {preset.name}
                         </Typography>
                       </Box>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: 'text.secondary',
+                          fontSize: '0.7rem',
+                          display: 'block',
+                          lineHeight: 1.2,
+                        }}
+                      >
+                        {preset.desc}
+                      </Typography>
                     </Box>
                   );
                 })}
               </Box>
             </Card>
 
-            {/* 2. Fine-tuning Sliders */}
-            <Card sx={{ p: 2.5, borderRadius: 3, flexShrink: 0 }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1.5 }}>
-                2. 스캐너 세부 조절
+            {/* Detailed Sliders Card */}
+            <Card sx={{ p: 2, borderRadius: 3 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2 }}>
+                정밀 스캔 파라미터 조절
               </Typography>
 
               {/* Contrast */}
               <Box sx={{ mb: 2 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                   <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                    명암 대비 (Contrast)
+                    대비 강조 (Contrast)
                   </Typography>
                   <Typography variant="caption" sx={{ fontWeight: 700, color: 'primary.main' }}>
                     {config.contrast}
@@ -544,7 +673,7 @@ export function ScanView() {
                 </Box>
                 <Slider
                   size="small"
-                  min={-20}
+                  min={0}
                   max={80}
                   value={config.contrast}
                   onChange={(_, v) => setConfig((prev) => ({ ...prev, contrast: v as number }))}
@@ -670,30 +799,47 @@ export function ScanView() {
             </Card>
 
             {/* Actions: Export PDF & ZIP */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2, flexShrink: 0 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1.25,
+                mt: 'auto',
+                pt: 0.5,
+              }}
+            >
               <Button
+                fullWidth
                 variant="contained"
                 color="primary"
-                size="large"
-                fullWidth
                 onClick={handleExportPdf}
                 disabled={isProcessing || isExportingPdf || items.length === 0}
                 startIcon={<PictureAsPdfRoundedIcon />}
-                sx={{ py: 1.4, borderRadius: 2, fontWeight: 800 }}
+                sx={{ py: 1.4, borderRadius: 2, fontWeight: 700, fontSize: '0.95rem' }}
               >
                 스캔 문서 PDF로 내보내기 (A4 {items.length}페이지)
               </Button>
 
               <Button
+                fullWidth
                 variant="outlined"
                 color="inherit"
-                fullWidth
                 onClick={handleDownloadAllZip}
                 disabled={isProcessing || items.length === 0}
                 startIcon={<ArchiveRoundedIcon />}
-                sx={{ borderRadius: 2, fontWeight: 700 }}
+                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
               >
                 스캔 이미지 일괄 ZIP 다운로드
+              </Button>
+
+              <Button
+                fullWidth
+                variant="outlined"
+                color="inherit"
+                onClick={() => setItems([])}
+                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+              >
+                목록 비우기
               </Button>
             </Box>
           </Box>

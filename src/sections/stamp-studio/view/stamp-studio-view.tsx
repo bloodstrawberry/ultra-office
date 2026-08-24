@@ -9,8 +9,8 @@ import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 import ApprovalRoundedIcon from '@mui/icons-material/ApprovalRounded';
 import AutoFixHighRoundedIcon from '@mui/icons-material/AutoFixHighRounded';
-import ReceiptLongRoundedIcon from '@mui/icons-material/ReceiptLongRounded';
 import TouchAppRoundedIcon from '@mui/icons-material/TouchAppRounded';
+import ReceiptLongRoundedIcon from '@mui/icons-material/ReceiptLongRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
@@ -24,6 +24,10 @@ export function StampStudioView() {
   const [hasLoaded, setHasLoaded] = useState(false);
   const [currentTab, setCurrentTab] = useState<'generator' | 'stamper' | 'invoice'>('generator');
   const [activeStampUrl, setActiveStampUrl] = useState<string>('');
+
+  const handleStampGenerated = React.useCallback((url: string) => {
+    setActiveStampUrl(url);
+  }, []);
 
   useEffect(() => {
     setHasLoaded(true);
@@ -84,9 +88,7 @@ export function StampStudioView() {
 
       {/* 3. Tab Contents */}
       <Box sx={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', pb: 4 }}>
-        {currentTab === 'generator' && (
-          <StampGenerator onStampGenerated={(url) => setActiveStampUrl(url)} />
-        )}
+        {currentTab === 'generator' && <StampGenerator onStampGenerated={handleStampGenerated} />}
         {currentTab === 'stamper' && <DocumentStamper currentStampUrl={activeStampUrl} />}
         {currentTab === 'invoice' && <QuickInvoiceForm currentStampUrl={activeStampUrl} />}
       </Box>

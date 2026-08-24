@@ -34,9 +34,41 @@ export function GlitchView() {
 
   const [resultDataUrl, setResultDataUrl] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [rightPanelWidth, setRightPanelWidth] = useState<number>(360);
+
+  const isResizingRef = useRef<boolean>(false);
+  const resizeStartXRef = useRef<number>(0);
+  const resizeStartWidthRef = useRef<number>(360);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDividerPointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    isResizingRef.current = true;
+    resizeStartXRef.current = e.clientX;
+    resizeStartWidthRef.current = rightPanelWidth;
+  };
+
+  const handleDividerPointerMove = (e: React.PointerEvent) => {
+    if (!isResizingRef.current) return;
+    const deltaX = resizeStartXRef.current - e.clientX;
+    const newWidth = Math.max(280, Math.min(650, resizeStartWidthRef.current + deltaX));
+    setRightPanelWidth(newWidth);
+  };
+
+  const handleDividerPointerUp = (e: React.PointerEvent) => {
+    if (isResizingRef.current) {
+      isResizingRef.current = false;
+      try {
+        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+      } catch {
+        // ignore
+      }
+    }
+  };
 
   const processFile = useCallback((file: File) => {
     const reader = new FileReader();
@@ -223,8 +255,17 @@ export function GlitchView() {
   };
 
   return (
-    <DashboardContent>
-      <Box sx={{ mb: 3 }}>
+    <DashboardContent
+      sx={{
+        flex: '1 1 auto',
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: 0,
+        height: '100%',
+        pb: { xs: 2, sm: 3 },
+      }}
+    >
+      <Box sx={{ mb: 2, flexShrink: 0 }}>
         <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
           글리치 효과 생성기 (Glitch Art FX)
         </Typography>
@@ -259,7 +300,9 @@ export function GlitchView() {
             borderColor: isDragActive ? 'primary.main' : 'divider',
             bgcolor: isDragActive ? 'action.hover' : 'transparent',
             borderRadius: 3,
-            minHeight: 320,
+            flex: '1 1 auto',
+            minHeight: 0,
+            height: '100%',
             transition: (theme) => theme.transitions.create(['border-color', 'background-color']),
             '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
           }}
@@ -290,15 +333,47 @@ export function GlitchView() {
           </Button>
         </Card>
       ) : (
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '7fr 5fr' }, gap: 3 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            gap: { xs: 2, md: 0 },
+            flex: '1 1 auto',
+            minHeight: 0,
+            height: '100%',
+            position: 'relative',
+          }}
+        >
           {/* Left: Preview */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Card sx={{ p: 2.5, borderRadius: 3 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              flex: '1 1 0px',
+              minWidth: 0,
+              minHeight: 0,
+              height: '100%',
+              pr: { md: 1 },
+            }}
+          >
+            <Card
+              sx={{
+                p: 2.5,
+                borderRadius: 3,
+                display: 'flex',
+                flexDirection: 'column',
+                flex: '1 1 auto',
+                minHeight: 0,
+                height: '100%',
+              }}
+            >
               <Box
                 sx={{
                   position: 'relative',
                   width: '100%',
-                  height: { xs: 320, sm: 460 },
+                  flex: '1 1 auto',
+                  minHeight: 0,
+                  height: '100%',
                   bgcolor: '#050515',
                   borderRadius: 2,
                   overflow: 'hidden',
@@ -325,8 +400,104 @@ export function GlitchView() {
             </Card>
           </Box>
 
+          {/* Draggable Divider (Desktop) */}
+          <Box
+            onPointerDown={handleDividerPointerDown}
+            onPointerMove={handleDividerPointerMove}
+            onPointerUp={handleDividerPointerUp}
+            sx={{
+              display: { xs: 'none', md: 'flex' },
+              width: 16,
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'col-resize',
+              userSelect: 'none',
+              touchAction: 'none',
+              zIndex: 10,
+              flexShrink: 0,
+              position: 'relative',
+              '&:hover .divider-bar, &:active .divider-bar': {
+                bgcolor: 'primary.main',
+                width: '3px',
+              },
+              '&:hover .divider-handle, &:active .divider-handle': {
+                bgcolor: 'primary.main',
+                borderColor: 'primary.main',
+                '& > div > div': {
+                  bgcolor: '#ffffff',
+                },
+              },
+            }}
+          >
+            {/* Divider Line */}
+            <Box
+              className="divider-bar"
+              sx={{
+                width: '2px',
+                height: '100%',
+                bgcolor: 'divider',
+                borderRadius: '1px',
+                transition: 'all 0.15s ease',
+              }}
+            />
+            {/* Grab Handle */}
+            <Box
+              className="divider-handle"
+              sx={{
+                position: 'absolute',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                width: 14,
+                height: 36,
+                borderRadius: 1,
+                bgcolor: 'background.paper',
+                border: '1px solid',
+                borderColor: 'divider',
+                boxShadow: 2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.15s ease',
+                pointerEvents: 'none',
+              }}
+            >
+              <Box
+                sx={{
+                  width: 4,
+                  height: 14,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  '& > div': {
+                    width: 1.5,
+                    height: '100%',
+                    bgcolor: 'text.disabled',
+                    borderRadius: 1,
+                    transition: 'all 0.15s ease',
+                  },
+                }}
+              >
+                <div />
+                <div />
+              </Box>
+            </Box>
+          </Box>
+
           {/* Right: Controls */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              width: { xs: '100%', md: `${rightPanelWidth}px` },
+              minWidth: { md: `${rightPanelWidth}px` },
+              maxWidth: { md: `${rightPanelWidth}px` },
+              flexShrink: 0,
+              gap: 2,
+              minHeight: 0,
+              overflow: 'auto',
+              pl: { md: 1 },
+              pr: 0.5,
+            }}
+          >
             <Card sx={{ p: 2.5, borderRadius: 3 }}>
               <Box
                 sx={{
@@ -417,8 +588,18 @@ export function GlitchView() {
               />
             </Card>
 
-            <Box sx={{ display: 'flex', gap: 1.5 }}>
+            {/* Action Buttons */}
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1.25,
+                mt: 'auto',
+                pt: 0.5,
+              }}
+            >
               <Button
+                fullWidth
                 variant="outlined"
                 color="inherit"
                 onClick={() => {
@@ -426,11 +607,12 @@ export function GlitchView() {
                   setResultDataUrl('');
                 }}
                 startIcon={<RefreshRoundedIcon />}
-                sx={{ flex: 1, py: 1.2, borderRadius: 2 }}
+                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
               >
                 다른 사진
               </Button>
               <Button
+                fullWidth
                 variant="contained"
                 color="primary"
                 onClick={handleSave}
@@ -442,17 +624,18 @@ export function GlitchView() {
                     <DownloadRoundedIcon />
                   )
                 }
-                sx={{ flex: 1.5, py: 1.2, borderRadius: 2 }}
+                sx={{ py: 1.4, borderRadius: 2, fontWeight: 700, fontSize: '0.95rem' }}
               >
                 글리치 저장
               </Button>
               <Button
+                fullWidth
                 variant="contained"
                 color="secondary"
                 onClick={handleShare}
                 disabled={isProcessing || !resultDataUrl}
                 startIcon={<ShareRoundedIcon />}
-                sx={{ flex: 1, py: 1.2, borderRadius: 2 }}
+                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
               >
                 공유
               </Button>

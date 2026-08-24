@@ -82,6 +82,15 @@ const ICONS = {
  */
 export const navData: NavSectionProps['data'] = [
   /**
+   * 0. Hub / Overview
+   */
+  {
+    items: [
+      { title: '전체 도구 허브', path: paths.photo.root, icon: ICONS.photo },
+    ],
+  },
+
+  /**
    * 1. Overview & Workspace
    */
   {
@@ -98,6 +107,31 @@ export const navData: NavSectionProps['data'] = [
           { title: '가로 스크린샷', path: paths.photo.garo },
         ],
       },
+      {
+        title: '사진 편집 스튜디오',
+        path: paths.photo.root,
+        icon: ICONS.photo,
+        children: [
+          { title: 'AI 배경 제거', path: paths.photo.bgRemove },
+          { title: '스마트 OCR', path: paths.ocr },
+          { title: '화풍 변환', path: paths.photo.artStyle },
+          { title: '아스키 아트', path: paths.photo.ascii },
+          { title: '픽셀 아트', path: paths.photo.pixel },
+          { title: '글리치 효과', path: paths.photo.glitch },
+          { title: '디지털 풍화 효과', path: paths.photo.weathering },
+          { title: '종합 밈 연구소', path: paths.photo.memeLab },
+          { title: '인생네컷', path: paths.photo.fourCut },
+          { title: '스포이드 색상 추출', path: paths.photo.colorPicker },
+          { title: '사진 용량 압축', path: paths.photo.compress },
+          { title: '확장자 변환', path: paths.photo.convert },
+          { title: '도형 자르기', path: paths.photo.shapeCrop },
+          { title: '모자이크 & 블러', path: paths.photo.mosaic },
+          { title: '워터마크 각인', path: paths.photo.watermark },
+          { title: '스캔 효과 · 문서 스캐너', path: paths.photo.scan },
+          { title: 'GIF 스튜디오', path: paths.photo.gif },
+          { title: 'PDF 스튜디오', path: paths.photo.pdf },
+        ],
+      },
       { title: 'Drive', path: paths.fileManager, icon: ICONS.folder },
     ],
   },
@@ -109,8 +143,6 @@ export const navData: NavSectionProps['data'] = [
     subheader: 'AI & Smart',
     items: [
       { title: 'AI Agent', path: paths.agent, icon: ICONS.agent },
-      { title: 'AI 배경 제거', path: paths.photo.bgRemove, icon: ICONS.bgRemove },
-      { title: '스마트 OCR', path: paths.ocr, icon: ICONS.ocr },
       {
         title: '개인정보 마스킹 · EXIF 파기',
         path: paths.privacySanitizer,
@@ -188,31 +220,6 @@ export const navData: NavSectionProps['data'] = [
       },
       { title: '다이어그램 & 문서', path: paths.diagram, icon: ICONS.diagram },
       { title: '이미지 툴킷', path: paths.imageTool, icon: ICONS.imageTool },
-      {
-        title: '사진 편집 스튜디오',
-        path: paths.photo.root,
-        icon: ICONS.photo,
-        children: [
-          { title: '전체 도구 허브', path: paths.photo.root },
-          { title: 'AI 배경 제거', path: paths.photo.bgRemove },
-          { title: '화풍 변환', path: paths.photo.artStyle },
-          { title: '아스키 아트', path: paths.photo.ascii },
-          { title: '픽셀 아트', path: paths.photo.pixel },
-          { title: '글리치 효과', path: paths.photo.glitch },
-          { title: '디지털 풍화 효과', path: paths.photo.weathering },
-          { title: '종합 밈 연구소', path: paths.photo.memeLab },
-          { title: '인생네컷', path: paths.photo.fourCut },
-          { title: '스포이드 색상 추출', path: paths.photo.colorPicker },
-          { title: '사진 용량 압축', path: paths.photo.compress },
-          { title: '확장자 변환', path: paths.photo.convert },
-          { title: '도형 자르기', path: paths.photo.shapeCrop },
-          { title: '모자이크 & 블러', path: paths.photo.mosaic },
-          { title: '워터마크 각인', path: paths.photo.watermark },
-          { title: '스캔 효과 · 문서 스캐너', path: paths.photo.scan },
-          { title: 'GIF 스튜디오', path: paths.photo.gif },
-          { title: 'PDF 스튜디오', path: paths.photo.pdf },
-        ],
-      },
     ],
   },
 

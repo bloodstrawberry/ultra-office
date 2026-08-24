@@ -51,17 +51,48 @@ export function WeatheringView() {
   const [showScreenshotUi, setShowScreenshotUi] = useState<boolean>(true);
   const [screenshotUiLevel, setScreenshotUiLevel] = useState<number>(2);
   const [watermarkCount, setWatermarkCount] = useState<number>(2);
-  const [noiseIntensity, setNoiseIntensity] = useState<number>(50);
-
+  const [noiseIntensity, setNoiseIntensity] = useState<number>(30);
   // Compare slider
   const [comparePos, setComparePos] = useState<number>(50);
   const [isDraggingCompare, setIsDraggingCompare] = useState<boolean>(false);
 
   const [resultDataUrl, setResultDataUrl] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [rightPanelWidth, setRightPanelWidth] = useState<number>(380);
+
+  const isResizingRef = useRef<boolean>(false);
+  const resizeStartXRef = useRef<number>(0);
+  const resizeStartWidthRef = useRef<number>(380);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const compareContainerRef = useRef<HTMLDivElement>(null);
+  const compareContainerRef = useRef<HTMLDivElement | null>(null);
+
+  const handleDividerPointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    isResizingRef.current = true;
+    resizeStartXRef.current = e.clientX;
+    resizeStartWidthRef.current = rightPanelWidth;
+  };
+
+  const handleDividerPointerMove = (e: React.PointerEvent) => {
+    if (!isResizingRef.current) return;
+    const deltaX = resizeStartXRef.current - e.clientX;
+    const newWidth = Math.max(280, Math.min(650, resizeStartWidthRef.current + deltaX));
+    setRightPanelWidth(newWidth);
+  };
+
+  const handleDividerPointerUp = (e: React.PointerEvent) => {
+    if (isResizingRef.current) {
+      isResizingRef.current = false;
+      try {
+        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+      } catch {
+        // ignore
+      }
+    }
+  };
 
   const processFile = useCallback((file: File) => {
     const reader = new FileReader();
@@ -222,9 +253,18 @@ export function WeatheringView() {
   };
 
   return (
-    <DashboardContent>
+    <DashboardContent
+      sx={{
+        flex: '1 1 auto',
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: 0,
+        height: '100%',
+        pb: { xs: 2, sm: 3 },
+      }}
+    >
       {/* Header */}
-      <Box sx={{ mb: { xs: 2.5, md: 3 } }}>
+      <Box sx={{ mb: 2, flexShrink: 0 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>
           <Typography variant="h4" sx={{ fontWeight: 800 }}>
             디지털 풍화 시뮬레이터
@@ -237,606 +277,723 @@ export function WeatheringView() {
         </Typography>
       </Box>
 
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', lg: '1fr 380px' },
-          gap: 3,
-          alignItems: 'start',
-        }}
-      >
-        {/* Main Left: Preview / Compare Canvas */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-          {!imageSrc ? (
-            /* Upload Box & Samples */
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              <Card
-                {...getRootProps()}
-                onClick={() => fileInputRef.current?.click()}
+      {!imageSrc ? (
+        /* Upload Box & Samples */
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 3,
+            flex: '1 1 auto',
+            minHeight: 0,
+            overflowY: 'auto',
+          }}
+        >
+          <Card
+            {...getRootProps()}
+            onClick={() => fileInputRef.current?.click()}
+            sx={{
+              p: 6,
+              textAlign: 'center',
+              cursor: 'pointer',
+              border: '2px dashed',
+              borderColor: isDragActive ? 'primary.main' : 'divider',
+              bgcolor: isDragActive ? 'action.hover' : 'background.paper',
+              borderRadius: 3,
+              flex: '1 1 auto',
+              minHeight: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s',
+              '&:hover': {
+                borderColor: 'primary.main',
+                bgcolor: 'action.hover',
+              },
+            }}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileUpload}
+              style={{ display: 'none' }}
+            />
+            <Box
+              sx={{
+                width: 72,
+                height: 72,
+                borderRadius: 3,
+                bgcolor: 'success.lighter',
+                color: 'success.dark',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mx: 'auto',
+                mb: 2,
+                fontSize: '2rem',
+              }}
+            >
+              🍵
+            </Box>
+            <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
+              풍화시킬 사진을 업로드하세요
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
+              클릭하거나 사진을 이곳으로 드래그 앤 드롭 (PNG, JPG, WEBP)
+            </Typography>
+            <Button
+              variant="contained"
+              color="success"
+              startIcon={<CloudUploadRoundedIcon />}
+              sx={{ borderRadius: 2 }}
+            >
+              사진 파일 선택
+            </Button>
+          </Card>
+
+          {/* Sample Memes */}
+          <Card sx={{ p: 2.5, borderRadius: 3 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
+              ⚡ 샘플 짤방으로 즉시 체험하기
+            </Typography>
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: 'repeat(3, 1fr)' },
+                gap: 1.5,
+              }}
+            >
+              {WEATHERING_SAMPLES.map((sample) => (
+                <Box
+                  key={sample.id}
+                  onClick={() => setImageSrc(sample.url)}
+                  sx={{
+                    p: 1,
+                    borderRadius: 2,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                    transition: 'all 0.2s',
+                    '&:hover': {
+                      borderColor: 'success.main',
+                      bgcolor: 'action.hover',
+                      transform: 'translateY(-2px)',
+                    },
+                  }}
+                >
+                  <Box
+                    component="img"
+                    src={sample.url}
+                    alt={sample.label}
+                    sx={{
+                      width: '100%',
+                      height: 80,
+                      objectFit: 'cover',
+                      borderRadius: 1.5,
+                      mb: 0.5,
+                    }}
+                  />
+                  <Typography variant="caption" sx={{ fontWeight: 600, display: 'block' }}>
+                    {sample.label}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          </Card>
+        </Box>
+      ) : (
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', lg: 'row' },
+            gap: { xs: 2, lg: 0 },
+            flex: '1 1 auto',
+            minHeight: 0,
+            height: '100%',
+            position: 'relative',
+          }}
+        >
+          {/* Main Left: Preview / Compare Canvas */}
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              flex: '1 1 0px',
+              minWidth: 0,
+              minHeight: 0,
+              height: '100%',
+              pr: { lg: 1 },
+            }}
+          >
+            {/* Compare Container */}
+            <Card
+              ref={compareContainerRef}
+              onMouseDown={() => setIsDraggingCompare(true)}
+              onMouseUp={() => setIsDraggingCompare(false)}
+              onMouseLeave={() => setIsDraggingCompare(false)}
+              onMouseMove={handleMouseMove}
+              onTouchMove={handleTouchMove}
+              sx={{
+                position: 'relative',
+                width: '100%',
+                flex: '1 1 auto',
+                minHeight: 0,
+                height: '100%',
+                bgcolor: '#0a0a0a',
+                borderRadius: 3,
+                overflow: 'hidden',
+                userSelect: 'none',
+                cursor: 'ew-resize',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: (theme) => theme.customShadows?.z16 || theme.shadows[16],
+              }}
+            >
+              {/* 1. After (Weathered Image) - Base Layer */}
+              {resultDataUrl && (
+                <Box
+                  component="img"
+                  src={resultDataUrl}
+                  alt="Weathered Result"
+                  sx={{
+                    position: 'absolute',
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain',
+                    pointerEvents: 'none',
+                  }}
+                />
+              )}
+
+              {/* 2. Before (Original Image) - Clipped Top Layer */}
+              <Box
                 sx={{
-                  p: 6,
-                  textAlign: 'center',
-                  cursor: 'pointer',
-                  border: '2px dashed',
-                  borderColor: isDragActive ? 'primary.main' : 'divider',
-                  bgcolor: isDragActive ? 'action.hover' : 'background.paper',
-                  borderRadius: 3,
-                  transition: 'all 0.2s',
-                  '&:hover': {
-                    borderColor: 'primary.main',
-                    bgcolor: 'action.hover',
-                  },
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  overflow: 'hidden',
+                  clipPath: `polygon(0 0, ${comparePos}% 0, ${comparePos}% 100%, 0 100%)`,
+                  pointerEvents: 'none',
                 }}
               >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileUpload}
-                  style={{ display: 'none' }}
+                <Box
+                  component="img"
+                  src={imageSrc}
+                  alt="Original Source"
+                  sx={{
+                    position: 'absolute',
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain',
+                  }}
                 />
+              </Box>
+
+              {/* Badges */}
+              <Chip
+                label="원본 (Before)"
+                size="small"
+                sx={{
+                  position: 'absolute',
+                  top: 14,
+                  left: 14,
+                  bgcolor: 'rgba(0,0,0,0.65)',
+                  color: '#fff',
+                  fontWeight: 700,
+                  backdropFilter: 'blur(4px)',
+                  pointerEvents: 'none',
+                }}
+              />
+              <Chip
+                label="풍화 완료 (After)"
+                size="small"
+                color="success"
+                sx={{
+                  position: 'absolute',
+                  top: 14,
+                  right: 14,
+                  fontWeight: 800,
+                  boxShadow: 2,
+                  pointerEvents: 'none',
+                }}
+              />
+
+              {/* Divider Line & Handle */}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  bottom: 0,
+                  left: `${comparePos}%`,
+                  width: '2px',
+                  bgcolor: '#ffffff',
+                  boxShadow: '0 0 10px rgba(0,0,0,0.8)',
+                  transform: 'translateX(-50%)',
+                  pointerEvents: 'none',
+                }}
+              >
+                {/* Center Drag Handle */}
                 <Box
                   sx={{
-                    width: 72,
-                    height: 72,
-                    borderRadius: 3,
-                    bgcolor: 'success.lighter',
-                    color: 'success.dark',
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: 36,
+                    height: 36,
+                    borderRadius: '50%',
+                    bgcolor: '#ffffff',
+                    color: '#111827',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    mx: 'auto',
-                    mb: 2,
-                    fontSize: '2rem',
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
                   }}
                 >
-                  🍵
+                  <CompareArrowsRoundedIcon sx={{ fontSize: 20 }} />
                 </Box>
-                <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
-                  풍화시킬 사진을 업로드하세요
-                </Typography>
-                <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-                  클릭하거나 사진을 이곳으로 드래그 앤 드롭 (PNG, JPG, WEBP)
-                </Typography>
-                <Button
-                  variant="contained"
-                  color="success"
-                  startIcon={<CloudUploadRoundedIcon />}
-                  sx={{ borderRadius: 2 }}
-                >
-                  사진 파일 선택
-                </Button>
-              </Card>
+              </Box>
 
-              {/* Sample Memes */}
-              <Card sx={{ p: 2.5, borderRadius: 3 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
-                  ⚡ 샘플 짤방으로 즉시 체험하기
-                </Typography>
+              {/* Processing Overlay */}
+              {isProcessing && (
                 <Box
                   sx={{
-                    display: 'grid',
-                    gridTemplateColumns: { xs: 'repeat(3, 1fr)' },
+                    position: 'absolute',
+                    inset: 0,
+                    bgcolor: 'rgba(0,0,0,0.6)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 20,
                     gap: 1.5,
+                    color: 'white',
                   }}
                 >
-                  {WEATHERING_SAMPLES.map((sample) => (
+                  <CircularProgress color="success" size={42} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                    디지털 풍화 연산 중...
+                  </Typography>
+                </Box>
+              )}
+            </Card>
+          </Box>
+
+          {/* Draggable Divider (Desktop) */}
+          <Box
+            onPointerDown={handleDividerPointerDown}
+            onPointerMove={handleDividerPointerMove}
+            onPointerUp={handleDividerPointerUp}
+            sx={{
+              display: { xs: 'none', lg: 'flex' },
+              width: 16,
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'col-resize',
+              userSelect: 'none',
+              touchAction: 'none',
+              zIndex: 10,
+              flexShrink: 0,
+              position: 'relative',
+              '&:hover .divider-bar, &:active .divider-bar': {
+                bgcolor: 'success.main',
+                width: '3px',
+              },
+              '&:hover .divider-handle, &:active .divider-handle': {
+                bgcolor: 'success.main',
+                borderColor: 'success.main',
+                '& > div > div': {
+                  bgcolor: '#ffffff',
+                },
+              },
+            }}
+          >
+            {/* Divider Line */}
+            <Box
+              className="divider-bar"
+              sx={{
+                width: '2px',
+                height: '100%',
+                bgcolor: 'divider',
+                borderRadius: '1px',
+                transition: 'all 0.15s ease',
+              }}
+            />
+            {/* Grab Handle */}
+            <Box
+              className="divider-handle"
+              sx={{
+                position: 'absolute',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                width: 14,
+                height: 36,
+                borderRadius: 1,
+                bgcolor: 'background.paper',
+                border: '1px solid',
+                borderColor: 'divider',
+                boxShadow: 2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.15s ease',
+                pointerEvents: 'none',
+              }}
+            >
+              <Box
+                sx={{
+                  width: 4,
+                  height: 14,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  '& > div': {
+                    width: 1.5,
+                    height: '100%',
+                    bgcolor: 'text.disabled',
+                    borderRadius: 1,
+                    transition: 'all 0.15s ease',
+                  },
+                }}
+              >
+                <div />
+                <div />
+              </Box>
+            </Box>
+          </Box>
+
+          {/* Right Sidebar: Preset & Fine Tuning Controls */}
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              width: { xs: '100%', lg: `${rightPanelWidth}px` },
+              minWidth: { lg: `${rightPanelWidth}px` },
+              maxWidth: { lg: `${rightPanelWidth}px` },
+              flexShrink: 0,
+              gap: 2,
+              minHeight: 0,
+              overflow: 'auto',
+              pl: { lg: 1 },
+              pr: 0.5,
+            }}
+          >
+            {/* Preset Selector */}
+            <Card sx={{ p: 2.5, borderRadius: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                <AutoAwesomeRoundedIcon sx={{ color: 'success.main', fontSize: 20 }} />
+                <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+                  1. 풍화 프리셋 선택
+                </Typography>
+              </Box>
+
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                {WEATHERING_PRESETS.map((p) => {
+                  const isSelected = activePresetId === p.id;
+                  return (
                     <Box
-                      key={sample.id}
-                      onClick={() => setImageSrc(sample.url)}
+                      key={p.id}
+                      onClick={() => applyPreset(p.id)}
                       sx={{
-                        p: 1,
+                        p: 1.5,
                         borderRadius: 2,
-                        border: '1px solid',
-                        borderColor: 'divider',
+                        border: '2px solid',
+                        borderColor: isSelected ? 'success.main' : 'divider',
+                        bgcolor: isSelected ? 'success.lighter' : 'background.paper',
                         cursor: 'pointer',
-                        textAlign: 'center',
                         transition: 'all 0.2s',
                         '&:hover': {
                           borderColor: 'success.main',
-                          bgcolor: 'action.hover',
-                          transform: 'translateY(-2px)',
                         },
                       }}
                     >
                       <Box
-                        component="img"
-                        src={sample.url}
-                        alt={sample.label}
                         sx={{
-                          width: '100%',
-                          height: 80,
-                          objectFit: 'cover',
-                          borderRadius: 1.5,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
                           mb: 0.5,
                         }}
-                      />
-                      <Typography variant="caption" sx={{ fontWeight: 600, display: 'block' }}>
-                        {sample.label}
-                      </Typography>
-                    </Box>
-                  ))}
-                </Box>
-              </Card>
-            </Box>
-          ) : (
-            /* Workspace: Comparison Viewer */
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {/* Compare Container */}
-              <Card
-                ref={compareContainerRef}
-                onMouseDown={() => setIsDraggingCompare(true)}
-                onMouseUp={() => setIsDraggingCompare(false)}
-                onMouseLeave={() => setIsDraggingCompare(false)}
-                onMouseMove={handleMouseMove}
-                onTouchMove={handleTouchMove}
-                sx={{
-                  position: 'relative',
-                  width: '100%',
-                  height: { xs: 380, sm: 480, md: 540 },
-                  bgcolor: '#0a0a0a',
-                  borderRadius: 3,
-                  overflow: 'hidden',
-                  userSelect: 'none',
-                  cursor: 'ew-resize',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: (theme) => theme.customShadows?.z16 || theme.shadows[16],
-                }}
-              >
-                {/* 1. After (Weathered Image) - Base Layer */}
-                {resultDataUrl && (
-                  <Box
-                    component="img"
-                    src={resultDataUrl}
-                    alt="Weathered Result"
-                    sx={{
-                      position: 'absolute',
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'contain',
-                      pointerEvents: 'none',
-                    }}
-                  />
-                )}
-
-                {/* 2. Before (Original Image) - Clipped Top Layer */}
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    overflow: 'hidden',
-                    clipPath: `polygon(0 0, ${comparePos}% 0, ${comparePos}% 100%, 0 100%)`,
-                    pointerEvents: 'none',
-                  }}
-                >
-                  <Box
-                    component="img"
-                    src={imageSrc}
-                    alt="Original Source"
-                    sx={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'contain',
-                    }}
-                  />
-                  {/* Before Label */}
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: 16,
-                      left: 16,
-                      bgcolor: 'rgba(0,0,0,0.65)',
-                      color: 'white',
-                      px: 1.5,
-                      py: 0.5,
-                      borderRadius: 1,
-                      fontSize: '0.75rem',
-                      fontWeight: 700,
-                      backdropFilter: 'blur(4px)',
-                    }}
-                  >
-                    원본 (Original)
-                  </Box>
-                </Box>
-
-                {/* After Label */}
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: 16,
-                    right: 16,
-                    bgcolor: 'rgba(34, 197, 94, 0.85)',
-                    color: 'white',
-                    px: 1.5,
-                    py: 0.5,
-                    borderRadius: 1,
-                    fontSize: '0.75rem',
-                    fontWeight: 700,
-                    backdropFilter: 'blur(4px)',
-                  }}
-                >
-                  풍화 완료 (Weathered)
-                </Box>
-
-                {/* Compare Divider Line */}
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: 0,
-                    bottom: 0,
-                    left: `${comparePos}%`,
-                    width: '2px',
-                    bgcolor: '#ffffff',
-                    transform: 'translateX(-50%)',
-                    zIndex: 10,
-                    boxShadow: '0 0 8px rgba(0,0,0,0.5)',
-                  }}
-                >
-                  {/* Center Drag Handle */}
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)',
-                      width: 36,
-                      height: 36,
-                      borderRadius: '50%',
-                      bgcolor: '#ffffff',
-                      color: '#111827',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
-                    }}
-                  >
-                    <CompareArrowsRoundedIcon sx={{ fontSize: 20 }} />
-                  </Box>
-                </Box>
-
-                {/* Processing Overlay */}
-                {isProcessing && (
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      inset: 0,
-                      bgcolor: 'rgba(0,0,0,0.6)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      zIndex: 20,
-                      gap: 1.5,
-                      color: 'white',
-                    }}
-                  >
-                    <CircularProgress color="success" size={42} />
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                      디지털 풍화 연산 중...
-                    </Typography>
-                  </Box>
-                )}
-              </Card>
-
-              {/* Action Buttons */}
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: 1.5,
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                }}
-              >
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <Button
-                    variant="outlined"
-                    color="inherit"
-                    startIcon={<RefreshRoundedIcon />}
-                    onClick={() => setImageSrc('')}
-                  >
-                    새 사진 업로드
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    startIcon={<ContentCopyRoundedIcon />}
-                    onClick={handleCopyClipboard}
-                  >
-                    복사
-                  </Button>
-                </Box>
-
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <Button
-                    variant="outlined"
-                    color="warning"
-                    startIcon={<ShareRoundedIcon />}
-                    onClick={handleShare}
-                  >
-                    카카오톡 공유
-                  </Button>
-                  <Button
-                    variant="contained"
-                    color="success"
-                    startIcon={<DownloadRoundedIcon />}
-                    onClick={handleDownload}
-                    sx={{ fontWeight: 700, px: 3 }}
-                  >
-                    풍화 짤방 다운로드
-                  </Button>
-                </Box>
-              </Box>
-            </Box>
-          )}
-        </Box>
-
-        {/* Right Sidebar: Preset & Fine Tuning Controls */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-          {/* Preset Selector */}
-          <Card sx={{ p: 2.5, borderRadius: 3 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-              <AutoAwesomeRoundedIcon sx={{ color: 'success.main', fontSize: 20 }} />
-              <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
-                1. 풍화 프리셋 선택
-              </Typography>
-            </Box>
-
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-              {WEATHERING_PRESETS.map((p) => {
-                const isSelected = activePresetId === p.id;
-                return (
-                  <Box
-                    key={p.id}
-                    onClick={() => applyPreset(p.id)}
-                    sx={{
-                      p: 1.5,
-                      borderRadius: 2,
-                      border: '2px solid',
-                      borderColor: isSelected ? 'success.main' : 'divider',
-                      bgcolor: isSelected ? 'success.lighter' : 'background.paper',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1.5,
-                      transition: 'all 0.2s',
-                      '&:hover': {
-                        borderColor: 'success.main',
-                      },
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        width: 38,
-                        height: 38,
-                        borderRadius: 1.5,
-                        bgcolor: 'background.paper',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '1.25rem',
-                        boxShadow: 1,
-                        flexShrink: 0,
-                      }}
-                    >
-                      {p.icon}
-                    </Box>
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                      >
+                        <Typography
+                          variant="subtitle2"
+                          sx={{
+                            fontWeight: 800,
+                            color: isSelected ? 'success.dark' : 'text.primary',
+                          }}
+                        >
                           {p.name}
                         </Typography>
-                        <Chip
-                          label={p.subtitle}
-                          size="small"
-                          sx={{
-                            height: 18,
-                            fontSize: '0.65rem',
-                            fontWeight: 600,
-                            bgcolor: isSelected ? 'success.main' : 'action.selected',
-                            color: isSelected ? 'white' : 'text.secondary',
-                          }}
-                        />
+                        {isSelected && (
+                          <Chip
+                            label="선택됨"
+                            color="success"
+                            size="small"
+                            sx={{ height: 20, fontSize: '0.7rem', fontWeight: 700 }}
+                          />
+                        )}
                       </Box>
                       <Typography
                         variant="caption"
-                        sx={{ color: 'text.secondary', display: 'block', mt: 0.2 }}
+                        sx={{
+                          color: isSelected ? 'success.darker' : 'text.secondary',
+                          display: 'block',
+                        }}
                       >
                         {p.desc}
                       </Typography>
                     </Box>
+                  );
+                })}
+              </Box>
+            </Card>
+
+            {/* Fine Tuning Panel */}
+            <Card sx={{ p: 2.5, borderRadius: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                <TuneRoundedIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
+                <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+                  2. 세부 파라미터 미세조정
+                </Typography>
+              </Box>
+
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                {/* Generations */}
+                <Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      재업로드 반복 횟수 (세대)
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 800, color: 'success.main' }}>
+                      {generations}회
+                    </Typography>
                   </Box>
-                );
-              })}
-            </Box>
-          </Card>
-
-          {/* Detailed Fine-Tuning Controls */}
-          <Card sx={{ p: 2.5, borderRadius: 3 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-              <TuneRoundedIcon sx={{ color: 'primary.main', fontSize: 20 }} />
-              <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
-                2. 디테일 세부 조절
-              </Typography>
-            </Box>
-
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-              {/* Generations */}
-              <Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    풍화 세대 (재압축 횟수)
-                  </Typography>
-                  <Typography variant="caption" sx={{ fontWeight: 700, color: 'success.main' }}>
-                    {generations}세대 반복
-                  </Typography>
+                  <Slider
+                    value={generations}
+                    min={1}
+                    max={25}
+                    step={1}
+                    size="small"
+                    color="success"
+                    onChange={(_, val) => setGenerations(val as number)}
+                  />
                 </Box>
-                <Slider
-                  value={generations}
-                  min={1}
-                  max={25}
-                  step={1}
-                  onChange={(_, val) => setGenerations(val as number)}
-                  color="success"
-                />
-              </Box>
 
-              {/* JPEG Quality */}
-              <Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    JPEG 압축 품질 (저품질 열화)
-                  </Typography>
-                  <Typography variant="caption" sx={{ fontWeight: 700, color: 'error.main' }}>
-                    {Math.round(jpegQuality * 100)}%
-                  </Typography>
+                {/* JPEG Quality */}
+                <Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      JPEG 압축 품질 (손실률)
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 800, color: 'success.main' }}>
+                      {Math.round(jpegQuality * 100)}%
+                    </Typography>
+                  </Box>
+                  <Slider
+                    value={jpegQuality}
+                    min={0.02}
+                    max={0.5}
+                    step={0.01}
+                    size="small"
+                    color="success"
+                    onChange={(_, val) => setJpegQuality(val as number)}
+                  />
                 </Box>
-                <Slider
-                  value={jpegQuality}
-                  min={0.01}
-                  max={0.5}
-                  step={0.01}
-                  onChange={(_, val) => setJpegQuality(val as number)}
-                  color="error"
-                />
-              </Box>
 
-              {/* Color Mode */}
-              <FormControl fullWidth size="small">
-                <InputLabel id="color-mode-label">색상 변색 & 열화 틴트</InputLabel>
-                <Select
-                  labelId="color-mode-label"
-                  value={colorMode}
-                  label="색상 변색 & 열화 틴트"
-                  onChange={(e) => setColorMode(e.target.value as WeatheringColorMode)}
+                {/* Downscale */}
+                <Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      해상도 축소 비율 (화질 뭉개짐)
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 800, color: 'success.main' }}>
+                      {Math.round(downscaleFactor * 100)}%
+                    </Typography>
+                  </Box>
+                  <Slider
+                    value={downscaleFactor}
+                    min={0.15}
+                    max={0.8}
+                    step={0.05}
+                    size="small"
+                    color="success"
+                    onChange={(_, val) => setDownscaleFactor(val as number)}
+                  />
+                </Box>
+
+                {/* Color Mode Select */}
+                <FormControl fullWidth size="small">
+                  <InputLabel>색상 변색 모드 (Color Shift)</InputLabel>
+                  <Select
+                    value={colorMode}
+                    label="색상 변색 모드 (Color Shift)"
+                    onChange={(e) => setColorMode(e.target.value as WeatheringColorMode)}
+                  >
+                    <MenuItem value="none">변색 없음 (표준)</MenuItem>
+                    <MenuItem value="green_mold">초록 곰팡이 (디시/인벤 풍화)</MenuItem>
+                    <MenuItem value="yellow_aged">누런 변색 (오래된 종이/네이버 뿜)</MenuItem>
+                    <MenuItem value="cyan_shift">시안/파랑 뭉개짐 (페이스북 캡처)</MenuItem>
+                    <MenuItem value="magenta_burn">마젠타 타버림 (극단적 색번짐)</MenuItem>
+                  </Select>
+                </FormControl>
+
+                {/* Sharpen */}
+                <Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      과도한 샤픈/외곽선 찌꺼기
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 800, color: 'success.main' }}>
+                      {sharpenIntensity}%
+                    </Typography>
+                  </Box>
+                  <Slider
+                    value={sharpenIntensity}
+                    min={0}
+                    max={100}
+                    step={5}
+                    size="small"
+                    color="success"
+                    onChange={(_, val) => setSharpenIntensity(val as number)}
+                  />
+                </Box>
+
+                {/* Watermarks */}
+                <Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      커뮤니티 워터마크 덕지덕지 각인
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 800, color: 'success.main' }}>
+                      {watermarkCount}개
+                    </Typography>
+                  </Box>
+                  <Slider
+                    value={watermarkCount}
+                    min={0}
+                    max={5}
+                    step={1}
+                    size="small"
+                    color="success"
+                    onChange={(_, val) => setWatermarkCount(val as number)}
+                  />
+                </Box>
+
+                {/* Screenshot UI Switch */}
+                <Box
+                  sx={{
+                    pt: 1,
+                    borderTop: '1px solid',
+                    borderColor: 'divider',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1,
+                  }}
                 >
-                  <MenuItem value="green_mold">🍵 초록빛 썩은 짤 (Green Mold)</MenuItem>
-                  <MenuItem value="aged_yellow">📜 누런 황변 (Aged Yellow)</MenuItem>
-                  <MenuItem value="deep_fried">🔥 딥 프라이드 (Deep Fried)</MenuItem>
-                  <MenuItem value="natural">📷 자연스러운 압축 (Natural)</MenuItem>
-                  <MenuItem value="grayscale">📠 흑백 저화질 (Low-Fi Gray)</MenuItem>
-                </Select>
-              </FormControl>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={showScreenshotUi}
+                        onChange={(e) => setShowScreenshotUi(e.target.checked)}
+                        color="success"
+                      />
+                    }
+                    label={
+                      <Box>
+                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                          모바일 캡처 UI 프레임 합성
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                          배터리 3%, 볼륨 바, 중첩 레터박스 테두리
+                        </Typography>
+                      </Box>
+                    }
+                  />
 
-              {/* Sharpen / Halo */}
-              <Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    샤프닝 & 자막 에지 번짐
-                  </Typography>
-                  <Typography variant="caption" sx={{ fontWeight: 700 }}>
-                    {sharpenIntensity}%
-                  </Typography>
+                  {showScreenshotUi && (
+                    <Box sx={{ pl: 4, pt: 0.5 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                          중첩 레이어 단계
+                        </Typography>
+                        <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                          {screenshotUiLevel}단계
+                        </Typography>
+                      </Box>
+                      <Slider
+                        value={screenshotUiLevel}
+                        min={1}
+                        max={3}
+                        step={1}
+                        marks
+                        size="small"
+                        onChange={(_, val) => setScreenshotUiLevel(val as number)}
+                      />
+                    </Box>
+                  )}
                 </Box>
-                <Slider
-                  value={sharpenIntensity}
-                  min={0}
-                  max={100}
-                  step={5}
-                  onChange={(_, val) => setSharpenIntensity(val as number)}
-                />
               </Box>
+            </Card>
 
-              {/* Downscale */}
-              <Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    해상도 축소 비율 (8x8 블록 노이즈)
-                  </Typography>
-                  <Typography variant="caption" sx={{ fontWeight: 700 }}>
-                    {Math.round(downscaleFactor * 100)}%
-                  </Typography>
-                </Box>
-                <Slider
-                  value={downscaleFactor}
-                  min={0.2}
-                  max={1.0}
-                  step={0.05}
-                  onChange={(_, val) => setDownscaleFactor(val as number)}
-                />
-              </Box>
-
-              {/* Watermarks */}
-              <Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    커뮤니티 워터마크 중첩
-                  </Typography>
-                  <Typography variant="caption" sx={{ fontWeight: 700, color: 'primary.main' }}>
-                    {watermarkCount}개 로고
-                  </Typography>
-                </Box>
-                <Slider
-                  value={watermarkCount}
-                  min={0}
-                  max={4}
-                  step={1}
-                  marks
-                  onChange={(_, val) => setWatermarkCount(val as number)}
-                />
-              </Box>
-
-              {/* Screenshot UI Toggle */}
-              <Box
-                sx={{
-                  p: 1.5,
-                  borderRadius: 2,
-                  bgcolor: 'action.hover',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 1,
-                }}
+            {/* Action Buttons */}
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1.25,
+                mt: 'auto',
+                pt: 0.5,
+              }}
+            >
+              <Button
+                fullWidth
+                variant="contained"
+                color="success"
+                startIcon={<DownloadRoundedIcon />}
+                onClick={handleDownload}
+                sx={{ py: 1.4, fontWeight: 700, borderRadius: 2, fontSize: '0.95rem' }}
               >
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={showScreenshotUi}
-                      onChange={(e) => setShowScreenshotUi(e.target.checked)}
-                      color="success"
-                    />
-                  }
-                  label={
-                    <Box>
-                      <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                        모바일 캡처 UI 프레임 합성
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                        배터리 3%, 볼륨 바, 중첩 레터박스 테두리
-                      </Typography>
-                    </Box>
-                  }
-                />
-
-                {showScreenshotUi && (
-                  <Box sx={{ pl: 4, pt: 0.5 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                      <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                        중첩 레이어 단계
-                      </Typography>
-                      <Typography variant="caption" sx={{ fontWeight: 700 }}>
-                        {screenshotUiLevel}단계
-                      </Typography>
-                    </Box>
-                    <Slider
-                      value={screenshotUiLevel}
-                      min={1}
-                      max={3}
-                      step={1}
-                      marks
-                      size="small"
-                      onChange={(_, val) => setScreenshotUiLevel(val as number)}
-                    />
-                  </Box>
-                )}
-              </Box>
+                풍화 짤방 다운로드
+              </Button>
+              <Button
+                fullWidth
+                variant="outlined"
+                color="inherit"
+                startIcon={<ContentCopyRoundedIcon />}
+                onClick={handleCopyClipboard}
+                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+              >
+                복사
+              </Button>
+              <Button
+                fullWidth
+                variant="contained"
+                color="warning"
+                startIcon={<ShareRoundedIcon />}
+                onClick={handleShare}
+                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+              >
+                카카오톡 공유
+              </Button>
+              <Button
+                fullWidth
+                variant="outlined"
+                color="inherit"
+                startIcon={<RefreshRoundedIcon />}
+                onClick={() => setImageSrc('')}
+                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+              >
+                새 사진 업로드
+              </Button>
             </Box>
-          </Card>
+          </Box>
         </Box>
-      </Box>
+      )}
     </DashboardContent>
   );
 }

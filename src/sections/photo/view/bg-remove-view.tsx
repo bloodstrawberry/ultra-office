@@ -120,9 +120,42 @@ export function BgRemoveView() {
   // Preview Mode
   const [previewMode, setPreviewMode] = useState<'split' | 'single' | 'mask'>('split');
   const [splitPos, setSplitPos] = useState<number>(50); // percentage 0 - 100
+  const [rightPanelWidth, setRightPanelWidth] = useState<number>(380);
+
+  const isResizingRef = useRef<boolean>(false);
+  const resizeStartXRef = useRef<number>(0);
+  const resizeStartWidthRef = useRef<number>(380);
+
   const isDraggingSplit = useRef<boolean>(false);
   const splitContainerRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDividerPointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    isResizingRef.current = true;
+    resizeStartXRef.current = e.clientX;
+    resizeStartWidthRef.current = rightPanelWidth;
+  };
+
+  const handleDividerPointerMove = (e: React.PointerEvent) => {
+    if (!isResizingRef.current) return;
+    const deltaX = resizeStartXRef.current - e.clientX;
+    const newWidth = Math.max(280, Math.min(650, resizeStartWidthRef.current + deltaX));
+    setRightPanelWidth(newWidth);
+  };
+
+  const handleDividerPointerUp = (e: React.PointerEvent) => {
+    if (isResizingRef.current) {
+      isResizingRef.current = false;
+      try {
+        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+      } catch {
+        // ignore
+      }
+    }
+  };
 
   // Check WebGPU on mount (Hydration safe)
   useEffect(() => {
@@ -314,10 +347,28 @@ export function BgRemoveView() {
         style={{ display: 'none' }}
       />
 
-      <Box sx={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', pb: 3 }}>
+      <Box
+        sx={{
+          flex: '1 1 auto',
+          minHeight: 0,
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
         {!imageSrc ? (
           /* Empty / Upload State */
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 3,
+              flex: '1 1 auto',
+              minHeight: 0,
+              overflowY: 'auto',
+              pb: 3,
+            }}
+          >
             <Card
               {...getRootProps({
                 onClick: () => fileInputRef.current?.click(),
@@ -439,379 +490,464 @@ export function BgRemoveView() {
           /* Active Processing / Result Workspace */
           <Box
             sx={{
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', lg: '1fr 380px' },
-              gap: 3,
-              alignItems: 'start',
+              display: 'flex',
+              flexDirection: { xs: 'column', lg: 'row' },
+              gap: { xs: 2, lg: 0 },
+              flex: '1 1 auto',
+              minHeight: 0,
+              height: '100%',
+              position: 'relative',
             }}
           >
             {/* Left: Viewport Area */}
-            <Card
+            <Box
               sx={{
-                p: 2,
-                borderRadius: 3,
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 2,
+                flex: '1 1 0px',
+                minWidth: 0,
+                minHeight: 0,
+                height: '100%',
+                pr: { lg: 1 },
               }}
             >
-              {/* Top View Mode Bar */}
-              <Box
+              <Card
                 sx={{
+                  p: 2,
+                  borderRadius: 3,
                   display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  gap: 1,
+                  flexDirection: 'column',
+                  gap: 2,
+                  flex: '1 1 auto',
+                  minHeight: 0,
+                  height: '100%',
                 }}
               >
-                <ToggleButtonGroup
-                  value={previewMode}
-                  exclusive
-                  onChange={(_, v) => v && setPreviewMode(v)}
-                  size="small"
+                {/* Top View Mode Bar */}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: 1,
+                    flexShrink: 0,
+                  }}
                 >
-                  <ToggleButton value="split">
-                    <CompareArrowsRoundedIcon sx={{ mr: 0.5, fontSize: 18 }} />
-                    Before/After 비교 슬라이더
-                  </ToggleButton>
-                  <ToggleButton value="single">
-                    <ViewStreamRoundedIcon sx={{ mr: 0.5, fontSize: 18 }} />
-                    결과물 보기
-                  </ToggleButton>
-                  <ToggleButton value="mask">
-                    <BlurOnRoundedIcon sx={{ mr: 0.5, fontSize: 18 }} />
-                    알파 마스크 보기
-                  </ToggleButton>
-                </ToggleButtonGroup>
-
-                <Box sx={{ display: 'flex', gap: 0.8 }}>
-                  <Button
-                    variant="outlined"
+                  <ToggleButtonGroup
+                    value={previewMode}
+                    exclusive
+                    onChange={(_, v) => v && setPreviewMode(v)}
                     size="small"
-                    color="inherit"
-                    onClick={() => {
-                      setImageSrc('');
-                      setResult(null);
-                    }}
-                    startIcon={<RefreshRoundedIcon />}
                   >
-                    다른 사진
-                  </Button>
-                </Box>
-              </Box>
+                    <ToggleButton value="split">
+                      <CompareArrowsRoundedIcon sx={{ mr: 0.5, fontSize: 18 }} />
+                      Before/After 비교 슬라이더
+                    </ToggleButton>
+                    <ToggleButton value="single">
+                      <ViewStreamRoundedIcon sx={{ mr: 0.5, fontSize: 18 }} />
+                      결과물 보기
+                    </ToggleButton>
+                    <ToggleButton value="mask">
+                      <BlurOnRoundedIcon sx={{ mr: 0.5, fontSize: 18 }} />
+                      알파 마스크 보기
+                    </ToggleButton>
+                  </ToggleButtonGroup>
 
-              {/* Viewport Canvas Container */}
-              <Box
-                ref={splitContainerRef}
-                sx={{
-                  position: 'relative',
-                  width: '100%',
-                  height: { xs: 360, sm: 520 },
-                  borderRadius: 2,
-                  overflow: 'hidden',
-                  userSelect: 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background:
-                    bgStyle === 'transparent' || previewMode === 'split'
-                      ? 'repeating-conic-gradient(#cbd5e1 0% 25%, #f1f5f9 0% 50%) 50% / 20px 20px'
-                      : 'background.neutral',
-                }}
-              >
-                {isLoading ? (
-                  /* Loading / Progress State */
-                  <Box
-                    sx={{
-                      p: 4,
-                      textAlign: 'center',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: 2,
-                      maxWidth: 420,
-                    }}
-                  >
-                    <CircularProgress size={48} thickness={4} color="primary" />
-                    <Box sx={{ width: '100%' }}>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 0.5 }}>
-                        {progressInfo.text || 'AI 배경 제거 처리 중...'}
-                      </Typography>
-                      <LinearProgress
-                        variant={progressInfo.progress > 0 ? 'determinate' : 'indeterminate'}
-                        value={progressInfo.progress * 100}
-                        sx={{ height: 8, borderRadius: 4, mb: 1 }}
-                      />
-                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                        최초 1회 모델 가중치를 로드한 후에는 캐시되어 즉시 처리됩니다.
-                      </Typography>
-                    </Box>
+                  <Box sx={{ display: 'flex', gap: 0.8 }}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      color="inherit"
+                      onClick={() => {
+                        setImageSrc('');
+                        setResult(null);
+                      }}
+                      startIcon={<RefreshRoundedIcon />}
+                    >
+                      다른 사진
+                    </Button>
                   </Box>
-                ) : result ? (
-                  previewMode === 'split' ? (
-                    /* Interactive Split Slider */
-                    <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
-                      {/* Background Layer: Edited Result */}
-                      <Box
-                        component="img"
-                        src={currentRenderedUrl}
-                        alt="AI Result"
-                        sx={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'contain',
-                        }}
-                      />
+                </Box>
 
-                      {/* Foreground Layer: Original Image (Clipped) */}
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          width: '100%',
-                          height: '100%',
-                          overflow: 'hidden',
-                          clipPath: `polygon(0 0, ${splitPos}% 0, ${splitPos}% 100%, 0 100%)`,
-                        }}
-                      >
+                {/* Viewport Canvas Container */}
+                <Box
+                  ref={splitContainerRef}
+                  sx={{
+                    position: 'relative',
+                    width: '100%',
+                    flex: '1 1 auto',
+                    minHeight: 0,
+                    height: '100%',
+                    borderRadius: 2,
+                    overflow: 'hidden',
+                    userSelect: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background:
+                      bgStyle === 'transparent' || previewMode === 'split'
+                        ? 'repeating-conic-gradient(#cbd5e1 0% 25%, #f1f5f9 0% 50%) 50% / 20px 20px'
+                        : 'background.neutral',
+                  }}
+                >
+                  {isLoading ? (
+                    /* Loading / Progress State */
+                    <Box
+                      sx={{
+                        p: 4,
+                        textAlign: 'center',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: 2,
+                        maxWidth: 420,
+                      }}
+                    >
+                      <CircularProgress size={48} thickness={4} color="primary" />
+                      <Box sx={{ width: '100%' }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 0.5 }}>
+                          {progressInfo.text || 'AI 배경 제거 처리 중...'}
+                        </Typography>
+                        <LinearProgress
+                          variant={progressInfo.progress > 0 ? 'determinate' : 'indeterminate'}
+                          value={progressInfo.progress * 100}
+                          sx={{ height: 8, borderRadius: 4, mb: 1 }}
+                        />
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                          최초 1회 모델 가중치를 로드한 후에는 캐시되어 즉시 처리됩니다.
+                        </Typography>
+                      </Box>
+                    </Box>
+                  ) : result ? (
+                    previewMode === 'split' ? (
+                      /* Interactive Split Slider */
+                      <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
+                        {/* Background Layer: Edited Result */}
                         <Box
                           component="img"
-                          src={imageSrc}
-                          alt="Original"
+                          src={currentRenderedUrl}
+                          alt="AI Result"
                           sx={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
                             width: '100%',
                             height: '100%',
                             objectFit: 'contain',
                           }}
                         />
-                      </Box>
 
-                      {/* Split Divider Line & Handle */}
-                      <Box
-                        onMouseDown={handleMouseDown}
-                        onTouchStart={handleMouseDown}
-                        sx={{
-                          position: 'absolute',
-                          top: 0,
-                          bottom: 0,
-                          left: `${splitPos}%`,
-                          width: 4,
-                          bgcolor: '#FFFFFF',
-                          boxShadow: '0 0 8px rgba(0,0,0,0.5)',
-                          cursor: 'ew-resize',
-                          transform: 'translateX(-50%)',
-                          zIndex: 10,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
+                        {/* Foreground Layer: Original Image (Clipped) */}
                         <Box
                           sx={{
-                            width: 32,
-                            height: 32,
-                            borderRadius: '50%',
-                            bgcolor: '#FFFFFF',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            overflow: 'hidden',
+                            clipPath: `polygon(0 0, ${splitPos}% 0, ${splitPos}% 100%, 0 100%)`,
+                          }}
+                        >
+                          <Box
+                            component="img"
+                            src={imageSrc}
+                            alt="Original"
+                            sx={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'contain',
+                            }}
+                          />
+                        </Box>
+
+                        {/* Split Divider Line & Handle */}
+                        <Box
+                          onMouseDown={handleMouseDown}
+                          onTouchStart={handleMouseDown}
+                          sx={{
+                            position: 'absolute',
+                            top: 0,
+                            bottom: 0,
+                            left: `${splitPos}%`,
+                            width: 3,
+                            bgcolor: '#ffffff',
+                            boxShadow: '0 0 8px rgba(0,0,0,0.5)',
+                            cursor: 'ew-resize',
+                            zIndex: 10,
+                            transform: 'translateX(-50%)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            color: 'text.primary',
                           }}
                         >
-                          <CompareArrowsRoundedIcon sx={{ fontSize: 18 }} />
+                          <Box
+                            sx={{
+                              width: 32,
+                              height: 32,
+                              borderRadius: '50%',
+                              bgcolor: 'primary.main',
+                              color: '#ffffff',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              boxShadow: 3,
+                              border: '2px solid #ffffff',
+                            }}
+                          >
+                            <CompareArrowsRoundedIcon sx={{ fontSize: 18 }} />
+                          </Box>
                         </Box>
                       </Box>
+                    ) : previewMode === 'mask' ? (
+                      /* Mask Only Mode */
+                      <Box
+                        component="img"
+                        src={result.maskDataUrl}
+                        alt="Alpha Mask"
+                        sx={{
+                          maxWidth: '100%',
+                          maxHeight: '100%',
+                          objectFit: 'contain',
+                        }}
+                      />
+                    ) : (
+                      /* Single Result View Mode */
+                      <Box
+                        component="img"
+                        src={currentRenderedUrl}
+                        alt="AI Cutout"
+                        sx={{
+                          maxWidth: '100%',
+                          maxHeight: '100%',
+                          objectFit: 'contain',
+                        }}
+                      />
+                    )
+                  ) : null}
+                </Box>
+              </Card>
+            </Box>
 
-                      {/* Badges */}
-                      <Chip
-                        label="원본 (Before)"
-                        size="small"
-                        sx={{
-                          position: 'absolute',
-                          bottom: 12,
-                          left: 12,
-                          bgcolor: 'rgba(0,0,0,0.6)',
-                          color: '#fff',
-                          fontWeight: 700,
-                          fontSize: '0.7rem',
-                        }}
-                      />
-                      <Chip
-                        label="AI 누끼 (After)"
-                        size="small"
-                        color="primary"
-                        sx={{
-                          position: 'absolute',
-                          bottom: 12,
-                          right: 12,
-                          fontWeight: 700,
-                          fontSize: '0.7rem',
-                        }}
-                      />
-                    </Box>
-                  ) : previewMode === 'mask' ? (
-                    /* Mask View */
-                    <Box
-                      component="img"
-                      src={result.maskDataUrl}
-                      alt="Alpha Mask"
-                      sx={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                    />
-                  ) : (
-                    /* Single Result View */
-                    <Box
-                      component="img"
-                      src={currentRenderedUrl}
-                      alt="Result"
-                      sx={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                    />
-                  )
-                ) : (
-                  <Box
-                    component="img"
-                    src={imageSrc}
-                    alt="Original"
-                    sx={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                  />
-                )}
+            {/* Draggable Divider (Desktop) */}
+            <Box
+              onPointerDown={handleDividerPointerDown}
+              onPointerMove={handleDividerPointerMove}
+              onPointerUp={handleDividerPointerUp}
+              sx={{
+                display: { xs: 'none', lg: 'flex' },
+                width: 16,
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'col-resize',
+                userSelect: 'none',
+                touchAction: 'none',
+                zIndex: 10,
+                flexShrink: 0,
+                position: 'relative',
+                '&:hover .divider-bar, &:active .divider-bar': {
+                  bgcolor: 'primary.main',
+                  width: '3px',
+                },
+                '&:hover .divider-handle, &:active .divider-handle': {
+                  bgcolor: 'primary.main',
+                  borderColor: 'primary.main',
+                  '& > div > div': {
+                    bgcolor: '#ffffff',
+                  },
+                },
+              }}
+            >
+              {/* Divider Line */}
+              <Box
+                className="divider-bar"
+                sx={{
+                  width: '2px',
+                  height: '100%',
+                  bgcolor: 'divider',
+                  borderRadius: '1px',
+                  transition: 'all 0.15s ease',
+                }}
+              />
+              {/* Grab Handle */}
+              <Box
+                className="divider-handle"
+                sx={{
+                  position: 'absolute',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  width: 14,
+                  height: 36,
+                  borderRadius: 1,
+                  bgcolor: 'background.paper',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  boxShadow: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.15s ease',
+                  pointerEvents: 'none',
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 4,
+                    height: 14,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    '& > div': {
+                      width: 1.5,
+                      height: '100%',
+                      bgcolor: 'text.disabled',
+                      borderRadius: 1,
+                      transition: 'all 0.15s ease',
+                    },
+                  }}
+                >
+                  <div />
+                  <div />
+                </Box>
               </Box>
-            </Card>
+            </Box>
 
-            {/* Right: Controls & Export Sidebar */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-              {/* AI Model Setting */}
+            {/* Right: Sidebar Control Panel */}
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                width: { xs: '100%', lg: `${rightPanelWidth}px` },
+                minWidth: { lg: `${rightPanelWidth}px` },
+                maxWidth: { lg: `${rightPanelWidth}px` },
+                flexShrink: 0,
+                gap: 2,
+                minHeight: 0,
+                overflow: 'auto',
+                pl: { lg: 1 },
+                pr: 0.5,
+              }}
+            >
+              {/* Model & AI Settings Card */}
               <Card sx={{ p: 2.5, borderRadius: 3 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1.5 }}>
-                  1. AI 모델 설정
+                  1. AI 누끼 모델 선택
                 </Typography>
-
-                <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-                  <InputLabel>AI 엔진 모델</InputLabel>
+                <FormControl fullWidth size="small">
+                  <InputLabel id="ai-model-select-label">AI 모델</InputLabel>
                   <Select
+                    labelId="ai-model-select-label"
                     value={selectedModel}
-                    label="AI 엔진 모델"
+                    label="AI 모델"
                     onChange={(e) => {
                       const newModel = e.target.value;
                       setSelectedModel(newModel);
                       if (imageSrc) handleProcessImage(imageSrc, newModel);
                     }}
+                    disabled={isLoading}
                   >
                     {BG_REMOVE_MODELS.map((m) => (
                       <MenuItem key={m.id} value={m.id}>
-                        {m.name} ({m.size})
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                            {m.name}
+                          </Typography>
+                          <Chip
+                            size="small"
+                            label={m.size}
+                            variant="outlined"
+                            sx={{ height: 20, fontSize: '0.7rem' }}
+                          />
+                        </Box>
                       </MenuItem>
                     ))}
                   </Select>
                 </FormControl>
-
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  fullWidth
-                  disabled={isLoading || !imageSrc}
-                  onClick={() => handleProcessImage(imageSrc, selectedModel)}
-                  startIcon={<AutoAwesomeRoundedIcon />}
-                  sx={{ borderRadius: 2, fontWeight: 700 }}
-                >
-                  AI 재분석 실행
-                </Button>
+                {result && (
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    size="small"
+                    fullWidth
+                    onClick={() => handleProcessImage(imageSrc, selectedModel)}
+                    disabled={isLoading}
+                    startIcon={<AutoAwesomeRoundedIcon />}
+                    sx={{ mt: 1.5, borderRadius: 2 }}
+                  >
+                    선택한 모델로 다시 누끼 따기
+                  </Button>
+                )}
               </Card>
 
-              {/* Background Customization */}
+              {/* Background Customizer Card */}
               <Card sx={{ p: 2.5, borderRadius: 3 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1.5 }}>
-                  2. 배경 스타일 교체
+                  2. 배경 스타일 지정
                 </Typography>
 
-                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, mb: 2 }}>
-                  <Button
-                    variant={bgStyle === 'transparent' ? 'contained' : 'outlined'}
-                    size="small"
-                    onClick={() => setBgStyle('transparent')}
-                    startIcon={<InvertColorsRoundedIcon />}
-                    sx={{ py: 1, fontWeight: 700 }}
-                  >
-                    투명 배경
-                  </Button>
-                  <Button
-                    variant={bgStyle === 'solid' || bgStyle === 'white' ? 'contained' : 'outlined'}
-                    size="small"
-                    onClick={() => setBgStyle('solid')}
-                    startIcon={<ColorLensRoundedIcon />}
-                    sx={{ py: 1, fontWeight: 700 }}
-                  >
-                    단색 컬러
-                  </Button>
-                  <Button
-                    variant={bgStyle === 'gradient' ? 'contained' : 'outlined'}
-                    size="small"
-                    onClick={() => setBgStyle('gradient')}
-                    startIcon={<GradientRoundedIcon />}
-                    sx={{ py: 1, fontWeight: 700 }}
-                  >
-                    그라데이션
-                  </Button>
-                </Box>
-
-                <Button
-                  variant={bgStyle === 'blur' ? 'contained' : 'outlined'}
-                  color="secondary"
+                {/* Style Selector Tabs */}
+                <ToggleButtonGroup
+                  value={bgStyle}
+                  exclusive
+                  onChange={(_, v) => v && setBgStyle(v)}
                   size="small"
                   fullWidth
-                  onClick={() => setBgStyle('blur')}
-                  startIcon={<BlurOnRoundedIcon />}
-                  sx={{ mb: 2, py: 1, fontWeight: 700 }}
+                  sx={{ mb: 2 }}
                 >
-                  원본 배경 보케(Bokeh) 블러
-                </Button>
+                  <ToggleButton value="transparent">
+                    <InvertColorsRoundedIcon sx={{ fontSize: 18, mr: 0.5 }} /> 투명
+                  </ToggleButton>
+                  <ToggleButton value="solid">
+                    <ColorLensRoundedIcon sx={{ fontSize: 18, mr: 0.5 }} /> 단색
+                  </ToggleButton>
+                  <ToggleButton value="gradient">
+                    <GradientRoundedIcon sx={{ fontSize: 18, mr: 0.5 }} /> 그라디언트
+                  </ToggleButton>
+                  <ToggleButton value="blur">
+                    <BlurOnRoundedIcon sx={{ fontSize: 18, mr: 0.5 }} /> 원본블러
+                  </ToggleButton>
+                </ToggleButtonGroup>
 
                 {/* Solid Color Options */}
                 {bgStyle === 'solid' && (
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="caption" sx={{ fontWeight: 700, mb: 1, display: 'block' }}>
-                      추천 배경 색상
-                    </Typography>
+                  <Box>
                     <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1.5 }}>
                       {SOLID_COLORS.map((c) => (
-                        <Tooltip key={c.hex} title={c.label}>
-                          <Box
-                            onClick={() => setSolidColor(c.hex)}
-                            sx={{
-                              width: 30,
-                              height: 30,
-                              borderRadius: '50%',
-                              bgcolor: c.hex,
-                              border: '2px solid',
-                              borderColor: solidColor === c.hex ? 'primary.main' : 'divider',
-                              cursor: 'pointer',
-                              transform: solidColor === c.hex ? 'scale(1.15)' : 'none',
-                              transition: 'all 0.15s',
-                            }}
-                          />
-                        </Tooltip>
+                        <Box
+                          key={c.hex}
+                          onClick={() => setSolidColor(c.hex)}
+                          sx={{
+                            width: 28,
+                            height: 28,
+                            borderRadius: '50%',
+                            bgcolor: c.hex,
+                            border: '2px solid',
+                            borderColor: solidColor === c.hex ? 'primary.main' : 'divider',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease',
+                            transform: solidColor === c.hex ? 'scale(1.15)' : 'none',
+                          }}
+                        />
                       ))}
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                        직접 선택:
+                      </Typography>
                       <input
                         type="color"
                         value={solidColor}
                         onChange={(e) => setSolidColor(e.target.value)}
                         style={{
-                          width: 40,
-                          height: 34,
-                          borderRadius: 6,
+                          width: 36,
+                          height: 28,
+                          borderRadius: 4,
                           border: 'none',
                           cursor: 'pointer',
                         }}
                       />
-                      <Typography variant="caption" sx={{ fontWeight: 700 }}>
-                        커스텀 HEX: {solidColor}
+                      <Typography variant="caption" sx={{ fontWeight: 800 }}>
+                        {solidColor}
                       </Typography>
                     </Box>
                   </Box>
@@ -819,31 +955,36 @@ export function BgRemoveView() {
 
                 {/* Gradient Options */}
                 {bgStyle === 'gradient' && (
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="caption" sx={{ fontWeight: 700, mb: 1, display: 'block' }}>
-                      그라데이션 프리셋
-                    </Typography>
-                    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 1 }}>
-                      {GRADIENT_PRESETS.map((g) => (
-                        <Button
-                          key={g.id}
-                          variant="outlined"
-                          size="small"
-                          onClick={() => setGradientPreset(g.id)}
+                  <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 1 }}>
+                    {GRADIENT_PRESETS.map((g) => (
+                      <Box
+                        key={g.id}
+                        onClick={() => setGradientPreset(g.id)}
+                        sx={{
+                          p: 1,
+                          borderRadius: 1.5,
+                          background: g.color,
+                          border: '2px solid',
+                          borderColor: gradientPreset === g.id ? 'primary.main' : 'transparent',
+                          cursor: 'pointer',
+                          textAlign: 'center',
+                          transition: 'all 0.15s ease',
+                          transform: gradientPreset === g.id ? 'scale(1.03)' : 'none',
+                          boxShadow: gradientPreset === g.id ? 2 : 'none',
+                        }}
+                      >
+                        <Typography
+                          variant="caption"
                           sx={{
-                            background: g.color,
-                            color: '#FFFFFF',
-                            fontWeight: 700,
-                            borderColor: gradientPreset === g.id ? 'primary.main' : 'transparent',
-                            borderWidth: 2,
-                            textShadow: '0 1px 2px rgba(0,0,0,0.6)',
-                            py: 1,
+                            fontWeight: 800,
+                            color: g.id.includes('dark') ? '#ffffff' : '#1e293b',
+                            textShadow: '0 0 4px rgba(255,255,255,0.4)',
                           }}
                         >
                           {g.label}
-                        </Button>
-                      ))}
-                    </Box>
+                        </Typography>
+                      </Box>
+                    ))}
                   </Box>
                 )}
 
@@ -869,88 +1010,52 @@ export function BgRemoveView() {
               </Card>
 
               {/* Action & Download Bar */}
-              <Card
-                sx={{ p: 2.5, borderRadius: 3, display: 'flex', flexDirection: 'column', gap: 1.5 }}
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 1.25,
+                  mt: 'auto',
+                  pt: 0.5,
+                }}
               >
-                <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
-                  3. 저장 및 공유
-                </Typography>
-
                 <Button
+                  fullWidth
                   variant="contained"
                   color="primary"
                   size="large"
                   onClick={() => handleDownload('png')}
                   disabled={!result || isLoading}
                   startIcon={<DownloadRoundedIcon />}
-                  sx={{ py: 1.3, fontWeight: 800, borderRadius: 2 }}
+                  sx={{ py: 1.4, fontWeight: 700, borderRadius: 2, fontSize: '0.95rem' }}
                 >
                   고화질 PNG 다운로드
                 </Button>
 
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <Button
-                    variant="outlined"
-                    color="inherit"
-                    fullWidth
-                    onClick={handleCopyClipboard}
-                    disabled={!result || isLoading}
-                    startIcon={<ContentCopyRoundedIcon />}
-                    sx={{ borderRadius: 2, fontWeight: 700 }}
-                  >
-                    클립보드 복사
-                  </Button>
-
-                  <Button
-                    variant="outlined"
-                    color="inherit"
-                    fullWidth
-                    onClick={() => handleDownload('jpeg')}
-                    disabled={!result || isLoading}
-                    startIcon={<DownloadRoundedIcon />}
-                    sx={{ borderRadius: 2, fontWeight: 700 }}
-                  >
-                    JPG 저장
-                  </Button>
-                </Box>
-
-                {/* Connect to other photo tools */}
-                <Typography
-                  variant="caption"
-                  sx={{ fontWeight: 700, color: 'text.secondary', mt: 1 }}
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  color="inherit"
+                  onClick={handleCopyClipboard}
+                  disabled={!result || isLoading}
+                  startIcon={<ContentCopyRoundedIcon />}
+                  sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
                 >
-                  다른 사진 도구로 연계하기:
-                </Typography>
-                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                  <Button
-                    component={RouterLink}
-                    href={paths.photo.fourCut}
-                    size="small"
-                    variant="soft"
-                    sx={{ fontSize: '0.75rem', fontWeight: 700 }}
-                  >
-                    인생네컷 스티커
-                  </Button>
-                  <Button
-                    component={RouterLink}
-                    href={paths.photo.watermark}
-                    size="small"
-                    variant="soft"
-                    sx={{ fontSize: '0.75rem', fontWeight: 700 }}
-                  >
-                    워터마크 각인
-                  </Button>
-                  <Button
-                    component={RouterLink}
-                    href={paths.photo.sero}
-                    size="small"
-                    variant="soft"
-                    sx={{ fontSize: '0.75rem', fontWeight: 700 }}
-                  >
-                    모바일 썸네일
-                  </Button>
-                </Box>
-              </Card>
+                  클립보드 복사
+                </Button>
+
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  color="inherit"
+                  onClick={() => handleDownload('jpeg')}
+                  disabled={!result || isLoading}
+                  startIcon={<DownloadRoundedIcon />}
+                  sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+                >
+                  JPG 저장
+                </Button>
+              </Box>
             </Box>
           </Box>
         )}

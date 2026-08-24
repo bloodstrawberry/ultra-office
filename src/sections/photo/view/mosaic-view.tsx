@@ -90,11 +90,43 @@ export function MosaicView() {
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [scanActionName, setScanActionName] = useState<string>('');
+  const [rightPanelWidth, setRightPanelWidth] = useState<number>(380);
+
+  const isResizingRef = useRef<boolean>(false);
+  const resizeStartXRef = useRef<number>(0);
+  const resizeStartWidthRef = useRef<number>(380);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isDrawingRef = useRef<boolean>(false);
   const dragStartRef = useRef<{ x: number; y: number } | null>(null);
+
+  const handleDividerPointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    isResizingRef.current = true;
+    resizeStartXRef.current = e.clientX;
+    resizeStartWidthRef.current = rightPanelWidth;
+  };
+
+  const handleDividerPointerMove = (e: React.PointerEvent) => {
+    if (!isResizingRef.current) return;
+    const deltaX = resizeStartXRef.current - e.clientX;
+    const newWidth = Math.max(280, Math.min(650, resizeStartWidthRef.current + deltaX));
+    setRightPanelWidth(newWidth);
+  };
+
+  const handleDividerPointerUp = (e: React.PointerEvent) => {
+    if (isResizingRef.current) {
+      isResizingRef.current = false;
+      try {
+        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+      } catch {
+        // ignore
+      }
+    }
+  };
 
   const pushState = useCallback(
     (imgData: ImageData) => {
@@ -213,9 +245,7 @@ export function MosaicView() {
       const target = e.target as HTMLElement | null;
       if (
         target &&
-        (target.tagName === 'INPUT' ||
-          target.tagName === 'TEXTAREA' ||
-          target.isContentEditable)
+        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
       ) {
         return;
       }
@@ -458,53 +488,58 @@ export function MosaicView() {
     const canvas = canvasRef.current;
     if (!canvas) return;
     try {
-      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
-      if (blob) {
+      canvas.toBlob(async (blob) => {
+        if (!blob) return;
         await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-        toast.success('클립보드에 이미지가 복사되었습니다!');
-      }
+        toast.success('클립보드에 복사되었습니다.');
+      });
     } catch {
-      toast.error('클립보드 복사에 실패했습니다.');
+      toast.error('클립보드 복사 중 오류가 발생했습니다.');
     }
   };
 
   const handleShare = async () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    setIsProcessing(true);
     try {
       const dataUrl = canvas.toDataURL('image/png');
-      const res = await shareToKakaoTalk(
+      await shareToKakaoTalk(
         dataUrl,
-        '모자이크 처리된 사진',
-        `mosaic_${Date.now()}.png`
+        '모자이크 비식별화 사진',
+        'AI 스마트 모자이크 비식별화 처리된 사진입니다.'
       );
-      toast.success(res.message);
     } catch {
-      toast.error('공유 중 오류가 발생했습니다.');
-    } finally {
-      setIsProcessing(false);
+      toast.error('카카오톡 공유 중 오류가 발생했습니다.');
     }
   };
 
   return (
-    <DashboardContent>
+    <DashboardContent
+      sx={{
+        flex: '1 1 auto',
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: 0,
+        height: '100%',
+        pb: { xs: 2, sm: 3 },
+      }}
+    >
       {/* Header */}
       <Box
         sx={{
-          mb: 2.5,
+          mb: 2,
           flexShrink: 0,
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          flexWrap: 'wrap',
-          gap: 1.5,
+          alignItems: { xs: 'flex-start', sm: 'center' },
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: 1,
         }}
       >
         <Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, mb: 0.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>
             <Typography variant="h4" sx={{ fontWeight: 800 }}>
-              모자이크 & AI 비식별화 스튜디오
+              AI 스마트 모자이크 & 블러 비식별화
             </Typography>
             <Chip
               label="Google MediaPipe Vision AI 탑재"
@@ -537,498 +572,625 @@ export function MosaicView() {
         style={{ display: 'none' }}
       />
 
-      <Box sx={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', pb: 3 }}>
-        {!imageSrc ? (
-          /* Empty / Upload & Sample State */
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <Card
-              {...getRootProps({
-                onClick: () => fileInputRef.current?.click(),
-              })}
+      {!imageSrc ? (
+        /* Empty / Upload & Sample State */
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 3,
+            flex: '1 1 auto',
+            minHeight: 0,
+            overflowY: 'auto',
+          }}
+        >
+          <Card
+            {...getRootProps({
+              onClick: () => fileInputRef.current?.click(),
+            })}
+            sx={{
+              p: { xs: 4, md: 6 },
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              border: '2px dashed',
+              borderColor: isDragActive ? 'primary.main' : 'divider',
+              bgcolor: isDragActive ? 'action.hover' : 'background.paper',
+              borderRadius: 3,
+              flex: '1 1 auto',
+              minHeight: 0,
+              transition: (theme) => theme.transitions.create(['border-color', 'background-color']),
+              '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
+            }}
+          >
+            <Box
               sx={{
-                p: { xs: 4, md: 6 },
+                width: 72,
+                height: 72,
+                borderRadius: '50%',
+                bgcolor: 'primary.lighter',
+                color: 'primary.main',
                 display: 'flex',
-                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                cursor: 'pointer',
-                border: '2px dashed',
-                borderColor: isDragActive ? 'primary.main' : 'divider',
-                bgcolor: isDragActive ? 'action.hover' : 'background.paper',
+                mb: 2,
+              }}
+            >
+              <BlurOnRoundedIcon sx={{ fontSize: 36 }} />
+            </Box>
+
+            <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, textAlign: 'center' }}>
+              모자이크 및 비식별화할 사진을 업로드하세요
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{ color: 'text.secondary', mb: 2.5, textAlign: 'center' }}
+            >
+              드래그 & 드롭 및 클립보드 붙여넣기(Ctrl+V) 지원 • 다중 인물, 단체 사진, 신분증/영수증
+            </Typography>
+
+            <Button
+              variant="contained"
+              color="primary"
+              size="large"
+              startIcon={<CloudUploadRoundedIcon />}
+              sx={{ px: 3, py: 1.2, fontWeight: 700, borderRadius: 2 }}
+            >
+              사진 선택하기
+            </Button>
+          </Card>
+
+          {/* Preset Samples */}
+          <Card sx={{ p: 2.5, borderRadius: 3 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 0.5 }}>
+              ⚡ 1초 즉석 테스트 샘플 이미지
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary', mb: 2, display: 'block' }}>
+              MediaPipe 다중 얼굴 감지 및 OCR 마스킹 성능을 클릭 한 번으로 체험해 보세요.
+            </Typography>
+
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+                gap: 2,
+              }}
+            >
+              {SAMPLE_MOSAIC_IMAGES.map((sample) => (
+                <Card
+                  key={sample.id}
+                  onClick={() => loadSampleImage(sample.url)}
+                  sx={{
+                    p: 1.5,
+                    borderRadius: 2,
+                    cursor: 'pointer',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1.5,
+                    transition: 'all 0.2s',
+                    '&:hover': {
+                      borderColor: 'primary.main',
+                      bgcolor: 'action.hover',
+                      transform: 'translateY(-2px)',
+                    },
+                  }}
+                >
+                  <Box
+                    component="img"
+                    src={sample.url}
+                    alt={sample.label}
+                    sx={{ width: 56, height: 56, borderRadius: 1.5, objectFit: 'cover' }}
+                  />
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                      {sample.label}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 600 }}>
+                      {sample.desc} ➜
+                    </Typography>
+                  </Box>
+                </Card>
+              ))}
+            </Box>
+          </Card>
+        </Box>
+      ) : (
+        /* Active Editing Workspace */
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', lg: 'row' },
+            gap: { xs: 2, lg: 0 },
+            flex: '1 1 auto',
+            minHeight: 0,
+            height: '100%',
+            position: 'relative',
+          }}
+        >
+          {/* Left: Canvas Area */}
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              flex: '1 1 0px',
+              minWidth: 0,
+              minHeight: 0,
+              height: '100%',
+              pr: { lg: 1 },
+            }}
+          >
+            <Card
+              sx={{
+                p: 2,
                 borderRadius: 3,
-                minHeight: 320,
-                transition: (theme) =>
-                  theme.transitions.create(['border-color', 'background-color']),
-                '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
+                display: 'flex',
+                flexDirection: 'column',
+                flex: '1 1 auto',
+                minHeight: 0,
+                height: '100%',
               }}
             >
               <Box
                 sx={{
-                  width: 72,
-                  height: 72,
-                  borderRadius: '50%',
-                  bgcolor: 'primary.lighter',
-                  color: 'primary.main',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  mb: 1.5,
+                  flexWrap: 'wrap',
+                  gap: 1,
+                  flexShrink: 0,
+                }}
+              >
+                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                  편집 캔버스 (도구: {tool === 'brush' ? '브러시 칠하기' : '사각형 드래그'})
+                </Typography>
+
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Tooltip title="실행 취소 (Ctrl + Z)">
+                    <span>
+                      <IconButton size="small" onClick={handleUndo} disabled={historyIndex <= 0}>
+                        <UndoRoundedIcon fontSize="small" />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                  <Tooltip title="다시 실행 (Ctrl + Y)">
+                    <span>
+                      <IconButton
+                        size="small"
+                        onClick={handleRedo}
+                        disabled={historyIndex >= history.length - 1}
+                      >
+                        <RedoRoundedIcon fontSize="small" />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    color="inherit"
+                    onClick={() => {
+                      setImageSrc('');
+                      setHistory([]);
+                    }}
+                    startIcon={<RefreshRoundedIcon />}
+                    sx={{ ml: 1 }}
+                  >
+                    다른 사진
+                  </Button>
+                </Box>
+              </Box>
+
+              <Box
+                sx={{
+                  position: 'relative',
+                  width: '100%',
+                  flex: '1 1 auto',
+                  minHeight: 0,
+                  height: '100%',
+                  bgcolor: '#0f172a',
+                  borderRadius: 2,
+                  overflow: 'auto',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  mb: 2,
                 }}
               >
-                <BlurOnRoundedIcon sx={{ fontSize: 36 }} />
+                {isScanning && (
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      bgcolor: 'rgba(15, 23, 42, 0.7)',
+                      zIndex: 10,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 1.5,
+                      color: 'white',
+                      backdropFilter: 'blur(2px)',
+                    }}
+                  >
+                    <CircularProgress color="primary" size={40} />
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                      {scanActionName || 'AI 분석 중...'}
+                    </Typography>
+                  </Box>
+                )}
+
+                <canvas
+                  ref={canvasRef}
+                  onPointerDown={handlePointerDown}
+                  onPointerMove={handlePointerMove}
+                  onPointerUp={handlePointerUp}
+                  style={{
+                    maxWidth: '100%',
+                    maxHeight: '100%',
+                    objectFit: 'contain',
+                    cursor: 'crosshair',
+                    touchAction: 'none',
+                    borderRadius: 4,
+                  }}
+                />
+              </Box>
+            </Card>
+          </Box>
+
+          {/* Draggable Divider (Desktop) */}
+          <Box
+            onPointerDown={handleDividerPointerDown}
+            onPointerMove={handleDividerPointerMove}
+            onPointerUp={handleDividerPointerUp}
+            sx={{
+              display: { xs: 'none', lg: 'flex' },
+              width: 16,
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'col-resize',
+              userSelect: 'none',
+              touchAction: 'none',
+              zIndex: 10,
+              flexShrink: 0,
+              position: 'relative',
+              '&:hover .divider-bar, &:active .divider-bar': {
+                bgcolor: 'primary.main',
+                width: '3px',
+              },
+              '&:hover .divider-handle, &:active .divider-handle': {
+                bgcolor: 'primary.main',
+                borderColor: 'primary.main',
+                '& > div > div': {
+                  bgcolor: '#ffffff',
+                },
+              },
+            }}
+          >
+            {/* Divider Line */}
+            <Box
+              className="divider-bar"
+              sx={{
+                width: '2px',
+                height: '100%',
+                bgcolor: 'divider',
+                borderRadius: '1px',
+                transition: 'all 0.15s ease',
+              }}
+            />
+            {/* Grab Handle */}
+            <Box
+              className="divider-handle"
+              sx={{
+                position: 'absolute',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                width: 14,
+                height: 36,
+                borderRadius: 1,
+                bgcolor: 'background.paper',
+                border: '1px solid',
+                borderColor: 'divider',
+                boxShadow: 2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.15s ease',
+                pointerEvents: 'none',
+              }}
+            >
+              <Box
+                sx={{
+                  width: 4,
+                  height: 14,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  '& > div': {
+                    width: 1.5,
+                    height: '100%',
+                    bgcolor: 'text.disabled',
+                    borderRadius: 1,
+                    transition: 'all 0.15s ease',
+                  },
+                }}
+              >
+                <div />
+                <div />
+              </Box>
+            </Box>
+          </Box>
+
+          {/* Right Sidebar: AI Auto Masking & Manual Tools */}
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              width: { xs: '100%', lg: `${rightPanelWidth}px` },
+              minWidth: { lg: `${rightPanelWidth}px` },
+              maxWidth: { lg: `${rightPanelWidth}px` },
+              flexShrink: 0,
+              gap: 2,
+              minHeight: 0,
+              overflow: 'auto',
+              pl: { lg: 1 },
+              pr: 0.5,
+            }}
+          >
+            {/* 1. AI Auto Detection & One-Click Masking */}
+            <Card sx={{ p: 2.5, borderRadius: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                <AutoAwesomeRoundedIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+                <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+                  1. AI 자동 얼굴 & 개인정보 감지
+                </Typography>
               </Box>
 
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, textAlign: 'center' }}>
-                모자이크 및 비식별화할 사진을 업로드하세요
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{ color: 'text.secondary', mb: 2.5, textAlign: 'center' }}
-              >
-                드래그 & 드롭 및 클립보드 붙여넣기(Ctrl+V) 지원 • 다중 인물, 단체 사진,
-                신분증/영수증
-              </Typography>
-
-              <Button
-                variant="contained"
-                color="primary"
-                size="large"
-                startIcon={<CloudUploadRoundedIcon />}
-                sx={{ px: 3, py: 1.2, fontWeight: 700, borderRadius: 2 }}
-              >
-                사진 선택하기
-              </Button>
-            </Card>
-
-            {/* Preset Samples */}
-            <Card sx={{ p: 2.5, borderRadius: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 0.5 }}>
-                ⚡ 1초 즉석 테스트 샘플 이미지
-              </Typography>
               <Typography
                 variant="caption"
                 sx={{ color: 'text.secondary', mb: 2, display: 'block' }}
               >
-                MediaPipe 다중 얼굴 감지 및 OCR 마스킹 성능을 클릭 한 번으로 체험해 보세요.
+                MediaPipe 초고속 AI로 사진 속 얼굴과 민감정보를 한 번에 자동 가림 처리합니다.
               </Typography>
 
-              <Box
-                sx={{
-                  display: 'grid',
-                  gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
-                  gap: 2,
-                }}
-              >
-                {SAMPLE_MOSAIC_IMAGES.map((sample) => (
-                  <Card
-                    key={sample.id}
-                    onClick={() => loadSampleImage(sample.url)}
-                    sx={{
-                      p: 1.5,
-                      borderRadius: 2,
-                      cursor: 'pointer',
-                      border: '1px solid',
-                      borderColor: 'divider',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1.5,
-                      transition: 'all 0.2s',
-                      '&:hover': {
-                        borderColor: 'primary.main',
-                        bgcolor: 'action.hover',
-                        transform: 'translateY(-2px)',
-                      },
-                    }}
-                  >
-                    <Box
-                      component="img"
-                      src={sample.url}
-                      alt={sample.label}
-                      sx={{ width: 56, height: 56, borderRadius: 1.5, objectFit: 'cover' }}
-                    />
-                    <Box>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                        {sample.label}
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 600 }}>
-                        {sample.desc} ➜
-                      </Typography>
-                    </Box>
-                  </Card>
-                ))}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2 }}>
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  fullWidth
+                  disabled={isScanning}
+                  onClick={handleAutoDetectFaces}
+                  startIcon={<BlurOnRoundedIcon />}
+                  sx={{ justifyContent: 'flex-start', py: 1, borderRadius: 2, fontWeight: 700 }}
+                >
+                  👤 모든 얼굴 자동 모자이크
+                </Button>
+
+                <Button
+                  variant="outlined"
+                  color="error"
+                  fullWidth
+                  disabled={isScanning}
+                  onClick={() => handleAutoEyeBar('black')}
+                  startIcon={<VisibilityOffRoundedIcon />}
+                  sx={{ justifyContent: 'flex-start', py: 1, borderRadius: 2, fontWeight: 700 }}
+                >
+                  🕶️ 눈 부위 방송용 블랙 바 가림
+                </Button>
+
+                <Button
+                  variant="outlined"
+                  color="warning"
+                  fullWidth
+                  disabled={isScanning}
+                  onClick={() => handleAutoEmojiMask(selectedEmoji)}
+                  startIcon={<SentimentSatisfiedAltRoundedIcon />}
+                  sx={{ justifyContent: 'flex-start', py: 1, borderRadius: 2, fontWeight: 700 }}
+                >
+                  {selectedEmoji} 얼굴에 이모지 스티커 부착
+                </Button>
+
+                <Button
+                  variant="outlined"
+                  color="inherit"
+                  fullWidth
+                  disabled={isScanning}
+                  onClick={handleAutoDetectSensitive}
+                  startIcon={<DocumentScannerRoundedIcon />}
+                  sx={{ justifyContent: 'flex-start', py: 1, borderRadius: 2, fontWeight: 700 }}
+                >
+                  📄 영수증/신분증 민감정보 블랙아웃
+                </Button>
               </Box>
             </Card>
-          </Box>
-        ) : (
-          /* Active Editing Workspace */
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', lg: '1fr 380px' },
-              gap: 3,
-              alignItems: 'start',
-            }}
-          >
-            {/* Left: Canvas Area */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <Card sx={{ p: 2, borderRadius: 3 }}>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    mb: 1.5,
-                    flexWrap: 'wrap',
-                    gap: 1,
-                  }}
-                >
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                    편집 캔버스 (도구: {tool === 'brush' ? '브러시 칠하기' : '사각형 드래그'})
-                  </Typography>
 
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <Tooltip title="실행 취소 (Ctrl + Z)">
-                      <span>
-                        <IconButton size="small" onClick={handleUndo} disabled={historyIndex <= 0}>
-                          <UndoRoundedIcon fontSize="small" />
-                        </IconButton>
-                      </span>
-                    </Tooltip>
-                    <Tooltip title="다시 실행 (Ctrl + Y)">
-                      <span>
-                        <IconButton
-                          size="small"
-                          onClick={handleRedo}
-                          disabled={historyIndex >= history.length - 1}
-                        >
-                          <RedoRoundedIcon fontSize="small" />
-                        </IconButton>
-                      </span>
-                    </Tooltip>
+            {/* 2. Manual Custom Tools & Effect Config */}
+            <Card sx={{ p: 2.5, borderRadius: 3 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 1.5 }}>
+                2. 수동 편집 도구 설정
+              </Typography>
 
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      color="inherit"
-                      onClick={() => {
-                        setImageSrc('');
-                        setHistory([]);
-                      }}
-                      startIcon={<RefreshRoundedIcon />}
-                      sx={{ ml: 1 }}
-                    >
-                      다른 사진
-                    </Button>
-                  </Box>
-                </Box>
+              {/* Tool Selector */}
+              <Typography variant="caption" sx={{ fontWeight: 700, mb: 0.8, display: 'block' }}>
+                가림 방식 도구
+              </Typography>
+              <ToggleButtonGroup
+                value={tool}
+                exclusive
+                onChange={(_, v) => v && setTool(v)}
+                fullWidth
+                size="small"
+                sx={{ mb: 2 }}
+              >
+                <ToggleButton value="brush" sx={{ fontWeight: 700 }}>
+                  <BrushRoundedIcon sx={{ fontSize: 18, mr: 0.5 }} />
+                  브러시 칠하기
+                </ToggleButton>
+                <ToggleButton value="rect" sx={{ fontWeight: 700 }}>
+                  <CropSquareRoundedIcon sx={{ fontSize: 18, mr: 0.5 }} />
+                  사각형 드래그
+                </ToggleButton>
+              </ToggleButtonGroup>
 
-                <Box
-                  sx={{
-                    position: 'relative',
-                    width: '100%',
-                    height: { xs: 360, sm: 520 },
-                    bgcolor: '#0f172a',
-                    borderRadius: 2,
-                    overflow: 'auto',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  {isScanning && (
+              {/* Mode Selector */}
+              <Typography variant="caption" sx={{ fontWeight: 700, mb: 0.8, display: 'block' }}>
+                마스킹 효과 스타일
+              </Typography>
+              <ToggleButtonGroup
+                value={mode}
+                exclusive
+                onChange={(_, v) => v && setMode(v)}
+                fullWidth
+                size="small"
+                sx={{ mb: 2 }}
+              >
+                <ToggleButton value="pixelate" sx={{ fontWeight: 700 }}>
+                  픽셀 모자이크
+                </ToggleButton>
+                <ToggleButton value="blur" sx={{ fontWeight: 700 }}>
+                  부드러운 블러
+                </ToggleButton>
+                <ToggleButton value="blackout" sx={{ fontWeight: 700 }}>
+                  블랙 가림
+                </ToggleButton>
+              </ToggleButtonGroup>
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, mb: 0.8, display: 'block' }}>
+                  부착할 이모지 선택
+                </Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                  {EMOJI_STICKER_OPTIONS.map((item) => (
                     <Box
+                      key={item.emoji}
+                      onClick={() => setSelectedEmoji(item.emoji)}
                       sx={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        bgcolor: 'rgba(15, 23, 42, 0.7)',
-                        zIndex: 10,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 1.5,
+                        fontSize: '1.4rem',
+                        p: 0.8,
+                        borderRadius: 2,
+                        cursor: 'pointer',
+                        border: '2px solid',
+                        borderColor: selectedEmoji === item.emoji ? 'primary.main' : 'divider',
+                        bgcolor: selectedEmoji === item.emoji ? 'primary.lighter' : 'transparent',
+                        transition: 'all 0.15s',
                       }}
                     >
-                      <CircularProgress size={44} thickness={4} color="primary" />
-                      <Typography variant="subtitle2" sx={{ color: '#fff', fontWeight: 700 }}>
-                        {scanActionName || 'AI 비전 분석 중...'}
-                      </Typography>
+                      {item.emoji}
                     </Box>
-                  )}
-
-                  <canvas
-                    ref={canvasRef}
-                    onPointerDown={handlePointerDown}
-                    onPointerMove={handlePointerMove}
-                    onPointerUp={handlePointerUp}
-                    style={{
-                      maxWidth: '100%',
-                      maxHeight: '100%',
-                      objectFit: 'contain',
-                      cursor: 'crosshair',
-                      touchAction: 'none',
-                    }}
-                  />
+                  ))}
                 </Box>
-              </Card>
-            </Box>
+              </Box>
 
-            {/* Right: Controls & AI Tools */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-              {/* 1. MediaPipe Vision AI Actions */}
-              <Card sx={{ p: 2.5, borderRadius: 3 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
-                    1. MediaPipe AI 원클릭 비식별화
+              {/* Sliders */}
+              <Box sx={{ mb: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                    효과 강도 / 블록 크기
                   </Typography>
-                  <Chip
-                    label="GPU AI"
-                    size="small"
-                    color="success"
-                    sx={{ height: 20, fontSize: '0.65rem', fontWeight: 800 }}
-                  />
+                  <Typography variant="caption" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                    {blockSize}px
+                  </Typography>
                 </Box>
-
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2, mb: 2 }}>
-                  {/* Full Face */}
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    fullWidth
-                    onClick={handleAutoDetectFaces}
-                    disabled={isScanning}
-                    startIcon={<AutoAwesomeRoundedIcon />}
-                    sx={{ py: 1.1, fontWeight: 700, borderRadius: 2 }}
-                  >
-                    AI 얼굴 전체 자동 모자이크
-                  </Button>
-
-                  {/* Eye-bar Censor */}
-                  <Box sx={{ display: 'flex', gap: 1 }}>
-                    <Button
-                      variant="outlined"
-                      color="inherit"
-                      fullWidth
-                      onClick={() => handleAutoEyeBar('black')}
-                      disabled={isScanning}
-                      startIcon={<VisibilityOffRoundedIcon />}
-                      sx={{ py: 1, fontWeight: 700, borderRadius: 2 }}
-                    >
-                      눈 가림 블랙 바
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      color="inherit"
-                      fullWidth
-                      onClick={() => handleAutoEyeBar('blur')}
-                      disabled={isScanning}
-                      startIcon={<BlurOnRoundedIcon />}
-                      sx={{ py: 1, fontWeight: 700, borderRadius: 2 }}
-                    >
-                      눈 가림 블러 바
-                    </Button>
-                  </Box>
-
-                  {/* OCR Sensitive Info */}
-                  <Button
-                    variant="outlined"
-                    color="secondary"
-                    fullWidth
-                    onClick={handleAutoDetectSensitive}
-                    disabled={isScanning}
-                    startIcon={<DocumentScannerRoundedIcon />}
-                    sx={{ py: 1, fontWeight: 700, borderRadius: 2 }}
-                  >
-                    OCR 개인정보(주민/계좌/전화) 가리기
-                  </Button>
-                </Box>
-
-                {/* Emoji Sticker Masking */}
-                <Box sx={{ pt: 1.5, borderTop: 1, borderColor: 'divider' }}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      mb: 1,
-                    }}
-                  >
-                    <Typography variant="caption" sx={{ fontWeight: 700 }}>
-                      얼굴 이모지 스티커 자동 부착
-                    </Typography>
-                    <Button
-                      size="small"
-                      variant="soft"
-                      color="warning"
-                      onClick={() => handleAutoEmojiMask(selectedEmoji)}
-                      disabled={isScanning}
-                      startIcon={<SentimentSatisfiedAltRoundedIcon />}
-                      sx={{ fontWeight: 700, py: 0.4 }}
-                    >
-                      {selectedEmoji} 스티커 부착
-                    </Button>
-                  </Box>
-
-                  <Box sx={{ display: 'flex', gap: 0.8, flexWrap: 'wrap' }}>
-                    {EMOJI_STICKER_OPTIONS.map((em) => (
-                      <Tooltip key={em.id} title={em.label}>
-                        <Button
-                          variant={selectedEmoji === em.emoji ? 'contained' : 'outlined'}
-                          color={selectedEmoji === em.emoji ? 'primary' : 'inherit'}
-                          size="small"
-                          onClick={() => {
-                            setSelectedEmoji(em.emoji);
-                            handleAutoEmojiMask(em.emoji);
-                          }}
-                          sx={{ minWidth: 38, px: 1, py: 0.5, fontSize: '1.1rem' }}
-                        >
-                          {em.emoji}
-                        </Button>
-                      </Tooltip>
-                    ))}
-                  </Box>
-                </Box>
-              </Card>
-
-              {/* 2. Manual Tools & Mode Setting */}
-              <Card sx={{ p: 2.5, borderRadius: 3 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1.5 }}>
-                  2. 수동 마스킹 도구 & 효과
-                </Typography>
-
-                <Typography variant="caption" sx={{ fontWeight: 700, mb: 0.8, display: 'block' }}>
-                  모자이크 효과 형태
-                </Typography>
-                <ToggleButtonGroup
-                  value={mode}
-                  exclusive
-                  onChange={(_, v) => v && setMode(v)}
-                  fullWidth
+                <Slider
                   size="small"
-                  sx={{ mb: 2 }}
-                >
-                  <ToggleButton value="pixelate">픽셀 모자이크</ToggleButton>
-                  <ToggleButton value="blur">부드러운 블러</ToggleButton>
-                  <ToggleButton value="blackout">블랙아웃</ToggleButton>
-                </ToggleButtonGroup>
+                  min={4}
+                  max={48}
+                  value={blockSize}
+                  onChange={(_, v) => setBlockSize(v as number)}
+                />
+              </Box>
 
-                <Typography variant="caption" sx={{ fontWeight: 700, mb: 0.8, display: 'block' }}>
-                  그리기 도구
-                </Typography>
-                <ToggleButtonGroup
-                  value={tool}
-                  exclusive
-                  onChange={(_, v) => v && setTool(v)}
-                  fullWidth
-                  size="small"
-                  sx={{ mb: 2 }}
-                >
-                  <ToggleButton value="brush">
-                    <BrushRoundedIcon sx={{ mr: 0.5, fontSize: 18 }} /> 브러시
-                  </ToggleButton>
-                  <ToggleButton value="rect">
-                    <CropSquareRoundedIcon sx={{ mr: 0.5, fontSize: 18 }} /> 사각형 드래그
-                  </ToggleButton>
-                </ToggleButtonGroup>
-
-                {/* Sliders */}
-                <Box sx={{ mb: 1.5 }}>
+              {tool === 'brush' && (
+                <Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                     <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                      효과 강도 / 블록 크기
+                      브러시 반경 크기
                     </Typography>
                     <Typography variant="caption" sx={{ fontWeight: 700, color: 'primary.main' }}>
-                      {blockSize}px
+                      {brushRadius}px
                     </Typography>
                   </Box>
                   <Slider
                     size="small"
-                    min={4}
-                    max={48}
-                    value={blockSize}
-                    onChange={(_, v) => setBlockSize(v as number)}
+                    min={8}
+                    max={64}
+                    value={brushRadius}
+                    onChange={(_, v) => setBrushRadius(v as number)}
                   />
                 </Box>
+              )}
+            </Card>
 
-                {tool === 'brush' && (
-                  <Box>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                      <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                        브러시 반경 크기
-                      </Typography>
-                      <Typography variant="caption" sx={{ fontWeight: 700, color: 'primary.main' }}>
-                        {brushRadius}px
-                      </Typography>
-                    </Box>
-                    <Slider
-                      size="small"
-                      min={8}
-                      max={64}
-                      value={brushRadius}
-                      onChange={(_, v) => setBrushRadius(v as number)}
-                    />
-                  </Box>
-                )}
-              </Card>
-
-              {/* 3. Export & Actions */}
-              <Card
-                sx={{ p: 2.5, borderRadius: 3, display: 'flex', flexDirection: 'column', gap: 1.5 }}
+            {/* Action Buttons Column */}
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1.25,
+                mt: 'auto',
+                pt: 0.5,
+              }}
+            >
+              <Button
+                fullWidth
+                variant="contained"
+                color="primary"
+                onClick={handleSave}
+                disabled={isProcessing}
+                startIcon={
+                  isProcessing ? (
+                    <CircularProgress size={18} color="inherit" />
+                  ) : (
+                    <DownloadRoundedIcon />
+                  )
+                }
+                sx={{ py: 1.4, fontWeight: 700, borderRadius: 2, fontSize: '0.95rem' }}
               >
-                <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
-                  3. 저장 및 내보내기
-                </Typography>
-
-                <Button
-                  variant="contained"
-                  color="primary"
-                  size="large"
-                  onClick={handleSave}
-                  disabled={isProcessing}
-                  startIcon={
-                    isProcessing ? (
-                      <CircularProgress size={18} color="inherit" />
-                    ) : (
-                      <DownloadRoundedIcon />
-                    )
-                  }
-                  sx={{ py: 1.3, fontWeight: 800, borderRadius: 2 }}
-                >
-                  보호된 사진 저장 (PNG)
-                </Button>
-
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <Button
-                    variant="outlined"
-                    color="inherit"
-                    fullWidth
-                    onClick={handleCopyClipboard}
-                    disabled={isProcessing}
-                    startIcon={<ContentCopyRoundedIcon />}
-                    sx={{ borderRadius: 2, fontWeight: 700 }}
-                  >
-                    클립보드 복사
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    color="secondary"
-                    fullWidth
-                    onClick={handleShare}
-                    disabled={isProcessing}
-                    startIcon={<ShareRoundedIcon />}
-                    sx={{ borderRadius: 2, fontWeight: 700 }}
-                  >
-                    카카오 공유
-                  </Button>
-                </Box>
-              </Card>
+                보호된 사진 저장 (PNG)
+              </Button>
+              <Button
+                fullWidth
+                variant="outlined"
+                color="inherit"
+                onClick={handleCopyClipboard}
+                disabled={isProcessing}
+                startIcon={<ContentCopyRoundedIcon />}
+                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+              >
+                클립보드 복사
+              </Button>
+              <Button
+                fullWidth
+                variant="contained"
+                color="secondary"
+                onClick={handleShare}
+                disabled={isProcessing}
+                startIcon={<ShareRoundedIcon />}
+                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+              >
+                카카오 공유
+              </Button>
+              <Button
+                fullWidth
+                variant="outlined"
+                color="inherit"
+                onClick={() => {
+                  setImageSrc('');
+                  setHistory([]);
+                }}
+                startIcon={<RefreshRoundedIcon />}
+                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+              >
+                다른 사진
+              </Button>
             </Box>
           </Box>
-        )}
-      </Box>
+        </Box>
+      )}
     </DashboardContent>
   );
 }

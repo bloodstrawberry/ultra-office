@@ -108,8 +108,41 @@ export function WatermarkView() {
   const [activeItemIndex, setActiveItemIndex] = useState<number>(0);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
+  const [rightPanelWidth, setRightPanelWidth] = useState<number>(380);
+
+  const isResizingRef = useRef<boolean>(false);
+  const resizeStartXRef = useRef<number>(0);
+  const resizeStartWidthRef = useRef<number>(380);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const customWatermarkInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDividerPointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    isResizingRef.current = true;
+    resizeStartXRef.current = e.clientX;
+    resizeStartWidthRef.current = rightPanelWidth;
+  };
+
+  const handleDividerPointerMove = (e: React.PointerEvent) => {
+    if (!isResizingRef.current) return;
+    const deltaX = resizeStartXRef.current - e.clientX;
+    const newWidth = Math.max(280, Math.min(650, resizeStartWidthRef.current + deltaX));
+    setRightPanelWidth(newWidth);
+  };
+
+  const handleDividerPointerUp = (e: React.PointerEvent) => {
+    if (isResizingRef.current) {
+      isResizingRef.current = false;
+      try {
+        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+      } catch {
+        // ignore
+      }
+    }
+  };
 
   const addFiles = useCallback((selectedFiles: File[]) => {
     if (selectedFiles.length === 0) return;
@@ -420,19 +453,18 @@ export function WatermarkView() {
 
   return (
     <DashboardContent
-      maxWidth={false}
       sx={{
+        flex: '1 1 auto',
         display: 'flex',
         flexDirection: 'column',
-        flex: '1 1 auto',
         minHeight: 0,
         height: '100%',
-        pb: 2,
+        pb: { xs: 2, sm: 3 },
       }}
     >
       <Box sx={{ mb: 2, flexShrink: 0 }}>
         <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
-          워터마크 각인기 (Watermark Studio)
+          사진 워터마크 & 서명 각인
         </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
           텍스트, 사용자 지정 로고/도장, AI 아이콘을 단일 위치 또는 대각선 반복 타일 패턴으로 일괄
@@ -473,7 +505,8 @@ export function WatermarkView() {
             bgcolor: isDragActive ? 'action.hover' : 'transparent',
             borderRadius: 3,
             flex: '1 1 auto',
-            minHeight: 360,
+            minHeight: 0,
+            height: '100%',
             transition: (theme) => theme.transitions.create(['border-color', 'background-color']),
             '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
           }}
@@ -491,10 +524,10 @@ export function WatermarkView() {
               mb: 2,
             }}
           >
-            <BrandingWatermarkRoundedIcon sx={{ fontSize: 36 }} />
+            <BrandingWatermarkRoundedIcon sx={{ fontSize: 34 }} />
           </Box>
           <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
-            워터마크를 넣을 사진 업로드
+            워터마크를 각인할 사진들을 업로드하세요
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
             사진을 드래그하여 놓거나 클릭하여 다중 선택하세요 (클라이언트 100% 로컬 처리)
@@ -506,12 +539,13 @@ export function WatermarkView() {
       ) : (
         <Box
           sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', lg: '7fr 5fr' },
-            gap: 2.5,
+            display: 'flex',
+            flexDirection: { xs: 'column', lg: 'row' },
+            gap: { xs: 2, lg: 0 },
             flex: '1 1 auto',
             minHeight: 0,
-            overflow: 'hidden',
+            height: '100%',
+            position: 'relative',
           }}
         >
           {/* Left: Preview & File List */}
@@ -519,19 +553,32 @@ export function WatermarkView() {
             sx={{
               display: 'flex',
               flexDirection: 'column',
-              gap: 2,
+              flex: '1 1 0px',
+              minWidth: 0,
               minHeight: 0,
-              overflowY: 'auto',
+              height: '100%',
+              gap: 1.5,
+              pr: { lg: 1 },
             }}
           >
             {activeItem && (
-              <Card sx={{ p: 2, borderRadius: 3, flexShrink: 0 }}>
+              <Card
+                sx={{
+                  p: 2,
+                  borderRadius: 3,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  flex: '1 1 auto',
+                  minHeight: 0,
+                }}
+              >
                 <Box
                   sx={{
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     mb: 1.5,
+                    flexShrink: 0,
                   }}
                 >
                   <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
@@ -544,7 +591,9 @@ export function WatermarkView() {
                   sx={{
                     position: 'relative',
                     width: '100%',
-                    height: { xs: 300, sm: 420 },
+                    flex: '1 1 auto',
+                    minHeight: 0,
+                    height: '100%',
                     bgcolor: '#0f172a',
                     borderRadius: 2,
                     overflow: 'hidden',
@@ -567,36 +616,27 @@ export function WatermarkView() {
             )}
 
             {/* List Strip */}
-            <Card sx={{ p: 2, borderRadius: 3, flex: '1 1 auto', minHeight: 0 }}>
+            <Card sx={{ p: 2, borderRadius: 3, flexShrink: 0, maxHeight: 180 }}>
               <Box
                 sx={{
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  mb: 1.5,
+                  mb: 1,
                   flexShrink: 0,
                 }}
               >
                 <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                   사진 목록 ({items.length}장)
                 </Typography>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  color="inherit"
-                  onClick={() => fileInputRef.current?.click()}
-                  startIcon={<CloudUploadRoundedIcon />}
-                >
-                  + 사진 추가
-                </Button>
               </Box>
 
               <Box
                 sx={{
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 1,
-                  maxHeight: 200,
+                  gap: 0.8,
+                  maxHeight: 110,
                   overflowY: 'auto',
                 }}
               >
@@ -605,7 +645,7 @@ export function WatermarkView() {
                     key={item.id}
                     onClick={() => setActiveItemIndex(idx)}
                     sx={{
-                      p: 1,
+                      p: 0.8,
                       borderRadius: 1.5,
                       bgcolor: activeItemIndex === idx ? 'action.selected' : 'action.hover',
                       border: '1px solid',
@@ -620,8 +660,8 @@ export function WatermarkView() {
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0 }}>
                       <Box
                         sx={{
-                          width: 42,
-                          height: 42,
+                          width: 36,
+                          height: 36,
                           borderRadius: 1,
                           overflow: 'hidden',
                           bgcolor: '#0f172a',
@@ -664,14 +704,101 @@ export function WatermarkView() {
             </Card>
           </Box>
 
+          {/* Draggable Divider (Desktop) */}
+          <Box
+            onPointerDown={handleDividerPointerDown}
+            onPointerMove={handleDividerPointerMove}
+            onPointerUp={handleDividerPointerUp}
+            sx={{
+              display: { xs: 'none', lg: 'flex' },
+              width: 16,
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'col-resize',
+              userSelect: 'none',
+              touchAction: 'none',
+              zIndex: 10,
+              flexShrink: 0,
+              position: 'relative',
+              '&:hover .divider-bar, &:active .divider-bar': {
+                bgcolor: 'primary.main',
+                width: '3px',
+              },
+              '&:hover .divider-handle, &:active .divider-handle': {
+                bgcolor: 'primary.main',
+                borderColor: 'primary.main',
+                '& > div > div': {
+                  bgcolor: '#ffffff',
+                },
+              },
+            }}
+          >
+            {/* Divider Line */}
+            <Box
+              className="divider-bar"
+              sx={{
+                width: '2px',
+                height: '100%',
+                bgcolor: 'divider',
+                borderRadius: '1px',
+                transition: 'all 0.15s ease',
+              }}
+            />
+            {/* Grab Handle */}
+            <Box
+              className="divider-handle"
+              sx={{
+                position: 'absolute',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                width: 14,
+                height: 36,
+                borderRadius: 1,
+                bgcolor: 'background.paper',
+                border: '1px solid',
+                borderColor: 'divider',
+                boxShadow: 2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.15s ease',
+                pointerEvents: 'none',
+              }}
+            >
+              <Box
+                sx={{
+                  width: 4,
+                  height: 14,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  '& > div': {
+                    width: 1.5,
+                    height: '100%',
+                    bgcolor: 'text.disabled',
+                    borderRadius: 1,
+                    transition: 'all 0.15s ease',
+                  },
+                }}
+              >
+                <div />
+                <div />
+              </Box>
+            </Box>
+          </Box>
+
           {/* Right: Watermark Customization Sidebar */}
           <Box
             sx={{
               display: 'flex',
               flexDirection: 'column',
+              width: { xs: '100%', lg: `${rightPanelWidth}px` },
+              minWidth: { lg: `${rightPanelWidth}px` },
+              maxWidth: { lg: `${rightPanelWidth}px` },
+              flexShrink: 0,
               gap: 2,
               minHeight: 0,
-              overflowY: 'auto',
+              overflow: 'auto',
+              pl: { lg: 1 },
               pr: 0.5,
             }}
           >
@@ -699,179 +826,108 @@ export function WatermarkView() {
                 </ToggleButton>
               </ToggleButtonGroup>
 
-              {/* Mode 1: Text Watermark */}
+              {/* Text Watermark Config */}
               {type === 'text' && (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.8, mb: 2 }}>
-                  <Box sx={{ display: 'flex', gap: 1 }}>
-                    <TextField
-                      size="small"
-                      fullWidth
-                      label="워터마크 문구"
-                      value={text}
-                      onChange={(e) => setText(e.target.value)}
-                    />
-                    <Box
-                      sx={{
-                        position: 'relative',
-                        width: 44,
-                        height: 40,
-                        borderRadius: 1.5,
-                        overflow: 'hidden',
-                        border: '1px solid',
-                        borderColor: 'divider',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <input
-                        type="color"
-                        value={fontColor}
-                        onChange={(e) => setFontColor(e.target.value)}
-                        style={{
-                          position: 'absolute',
-                          top: -6,
-                          left: -6,
-                          width: 56,
-                          height: 52,
-                          cursor: 'pointer',
-                          border: 'none',
-                        }}
-                      />
-                    </Box>
-                  </Box>
+                <Box sx={{ mb: 2.5 }}>
+                  <TextField
+                    label="워터마크 텍스트 문구"
+                    fullWidth
+                    size="small"
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    sx={{ mb: 1.5 }}
+                  />
 
-                  {/* Preset chips */}
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.6 }}>
-                    {TEXT_PRESETS.map((pst) => (
+                  {/* Preset quick pills */}
+                  <Typography
+                    variant="caption"
+                    sx={{ fontWeight: 600, color: 'text.secondary', display: 'block', mb: 0.8 }}
+                  >
+                    자주 쓰는 문구 프리셋:
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.8, mb: 2 }}>
+                    {TEXT_PRESETS.map((preset) => (
                       <Chip
-                        key={pst}
-                        label={pst}
+                        key={preset}
+                        label={preset}
                         size="small"
-                        variant={text === pst ? 'filled' : 'outlined'}
-                        color={text === pst ? 'primary' : 'default'}
-                        onClick={() => setText(pst)}
-                        sx={{ fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+                        clickable
+                        onClick={() => setText(preset)}
+                        color={text === preset ? 'primary' : 'default'}
+                        variant={text === preset ? 'filled' : 'outlined'}
                       />
                     ))}
                   </Box>
 
-                  {/* Color Preset Chips */}
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>
-                      색상:
-                    </Typography>
-                    <Box sx={{ display: 'flex', gap: 0.8 }}>
-                      {COLOR_PRESETS.map((cp) => (
-                        <Box
-                          key={cp.label}
-                          onClick={() => setFontColor(cp.color)}
-                          sx={{
-                            width: 22,
-                            height: 22,
-                            borderRadius: '50%',
-                            bgcolor: cp.color,
-                            border: '2px solid',
-                            borderColor: fontColor === cp.color ? 'primary.main' : '#cbd5e1',
-                            cursor: 'pointer',
-                            transition: 'transform 0.15s',
-                            '&:hover': { transform: 'scale(1.15)' },
-                          }}
-                        />
-                      ))}
-                    </Box>
-                  </Box>
-
-                  {/* Font Family & Shadow */}
-                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+                  {/* Font Family & Color */}
+                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, mb: 2 }}>
                     <FormControl size="small" fullWidth>
-                      <InputLabel>글꼴 (Font)</InputLabel>
+                      <InputLabel>폰트 서체</InputLabel>
                       <Select
                         value={fontFamily}
-                        label="글꼴 (Font)"
+                        label="폰트 서체"
                         onChange={(e) => setFontFamily(e.target.value)}
                       >
-                        {FONT_FAMILIES.map((ff) => (
-                          <MenuItem key={ff.value} value={ff.value}>
-                            {ff.label}
+                        {FONT_FAMILIES.map((f) => (
+                          <MenuItem key={f.value} value={f.value}>
+                            {f.label}
                           </MenuItem>
                         ))}
                       </Select>
                     </FormControl>
 
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={enableShadow}
-                          onChange={(e) => setEnableShadow(e.target.checked)}
-                        />
-                      }
-                      label={
-                        <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                          외곽 그림자
-                        </Typography>
-                      }
-                    />
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <input
+                        type="color"
+                        value={fontColor}
+                        onChange={(e) => setFontColor(e.target.value)}
+                        style={{
+                          width: 40,
+                          height: 38,
+                          borderRadius: 8,
+                          border: '1px solid #ccc',
+                          cursor: 'pointer',
+                        }}
+                      />
+                      <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                        {fontColor}
+                      </Typography>
+                    </Box>
                   </Box>
+
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={enableShadow}
+                        onChange={(e) => setEnableShadow(e.target.checked)}
+                      />
+                    }
+                    label={
+                      <Typography variant="body2">텍스트 가독성 그림자 효과 (Shadow)</Typography>
+                    }
+                  />
                 </Box>
               )}
 
-              {/* Mode 2: Custom Image Watermark */}
+              {/* Custom Image Watermark Config */}
               {type === 'image' && (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mb: 2 }}>
-                  <Box
+                <Box sx={{ mb: 2.5 }}>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    fullWidth
+                    startIcon={<ImageRoundedIcon />}
                     onClick={() => customWatermarkInputRef.current?.click()}
-                    sx={{
-                      p: 2,
-                      border: '2px dashed',
-                      borderColor: customImageSrc ? 'primary.main' : 'divider',
-                      borderRadius: 2,
-                      bgcolor: 'action.hover',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 1.5,
-                      cursor: 'pointer',
-                      '&:hover': { borderColor: 'primary.main' },
-                    }}
+                    sx={{ mb: 2, py: 1.2, borderRadius: 2 }}
                   >
-                    {customImageSrc ? (
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                        <img
-                          src={customImageSrc}
-                          alt="Custom logo"
-                          style={{
-                            maxWidth: 60,
-                            maxHeight: 50,
-                            objectFit: 'contain',
-                            background: '#f1f5f9',
-                            borderRadius: 4,
-                            padding: 2,
-                          }}
-                        />
-                        <Box>
-                          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                            워터마크 이미지 등록됨
-                          </Typography>
-                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                            클릭하여 다른 이미지로 교체
-                          </Typography>
-                        </Box>
-                      </Box>
-                    ) : (
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <AddPhotoAlternateRoundedIcon color="primary" />
-                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                          도장/로고 PNG 이미지 선택하기
-                        </Typography>
-                      </Box>
-                    )}
-                  </Box>
+                    {customImageSrc ? '워터마크 이미지 교체하기' : '워터마크 PNG/SVG 로고 선택'}
+                  </Button>
 
                   {customImageSrc && (
-                    <Box>
+                    <Box sx={{ mb: 2 }}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                         <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                          이미지 크기 비율
+                          로고 크기 비율
                         </Typography>
                         <Typography
                           variant="caption"
@@ -883,7 +939,7 @@ export function WatermarkView() {
                       <Slider
                         size="small"
                         min={5}
-                        max={70}
+                        max={80}
                         value={customImageScale}
                         onChange={(_, v) => setCustomImageScale(v as number)}
                       />
@@ -892,79 +948,93 @@ export function WatermarkView() {
                 </Box>
               )}
 
-              {/* Mode 3: AI Logos */}
+              {/* AI Logo Watermark Config */}
               {type === 'logo' && (
-                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 1, mb: 2 }}>
-                  {AI_LOGOS.map((lg) => (
-                    <Button
-                      key={lg.id}
-                      size="small"
-                      variant={selectedLogoId === lg.id ? 'contained' : 'outlined'}
-                      color={selectedLogoId === lg.id ? 'primary' : 'inherit'}
-                      onClick={() => setSelectedLogoId(lg.id)}
-                      sx={{ p: 0.8, borderRadius: 1.5, display: 'flex', flexDirection: 'column' }}
-                    >
-                      <img
-                        src={lg.src}
-                        alt={lg.name}
-                        style={{ width: 24, height: 24, marginBottom: 4 }}
-                      />
-                      <Typography variant="caption" sx={{ fontSize: '0.65rem' }} noWrap>
-                        {lg.name}
+                <Box sx={{ mb: 2.5 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 700, mb: 1, display: 'block' }}>
+                    AI 모델 워터마크 선택
+                  </Typography>
+                  <Box
+                    sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, mb: 2 }}
+                  >
+                    {AI_LOGOS.map((logo) => (
+                      <Button
+                        key={logo.id}
+                        variant={customImageSrc === logo.src ? 'contained' : 'outlined'}
+                        color={customImageSrc === logo.src ? 'primary' : 'inherit'}
+                        onClick={() => setCustomImageSrc(logo.src)}
+                        size="small"
+                        sx={{ py: 1, borderRadius: 2, fontSize: '0.8rem' }}
+                      >
+                        {logo.name}
+                      </Button>
+                    ))}
+                  </Box>
+
+                  <Box sx={{ mb: 2 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                        로고 크기 비율
                       </Typography>
-                    </Button>
-                  ))}
+                      <Typography variant="caption" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                        {customImageScale}%
+                      </Typography>
+                    </Box>
+                    <Slider
+                      size="small"
+                      min={5}
+                      max={60}
+                      value={customImageScale}
+                      onChange={(_, v) => setCustomImageScale(v as number)}
+                    />
+                  </Box>
                 </Box>
               )}
 
-              {/* 2. Position & Layout */}
+              {/* 2. Position & Arrangement */}
               <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1.2 }}>
-                2. 위치 & 패턴 스타일
+                2. 위치 및 배열 방식
               </Typography>
+              <ToggleButtonGroup
+                value={repeatTiled ? 'tile' : 'single'}
+                exclusive
+                onChange={(_, v) => v && setRepeatTiled(v === 'tile')}
+                fullWidth
+                size="small"
+                sx={{ mb: 2 }}
+              >
+                <ToggleButton value="single" sx={{ fontWeight: 700 }}>
+                  단일 지정 위치
+                </ToggleButton>
+                <ToggleButton value="tile" sx={{ fontWeight: 700 }}>
+                  대각선 반복 타일 패턴
+                </ToggleButton>
+              </ToggleButtonGroup>
 
-              <Box sx={{ mb: 2 }}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={repeatTiled}
-                      onChange={(e) => setRepeatTiled(e.target.checked)}
-                      color="primary"
-                    />
-                  }
-                  label={
-                    <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                      반복 타일 패턴으로 전체 덮기 (보안/복제방지)
-                    </Typography>
-                  }
-                />
-              </Box>
-
-              {/* 9-grid position selector */}
               {!repeatTiled ? (
                 <Box sx={{ mb: 2 }}>
-                  <Typography
-                    variant="caption"
-                    sx={{ fontWeight: 700, color: 'text.secondary', mb: 0.8, display: 'block' }}
-                  >
-                    워터마크 위치 (9분할)
+                  <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 1 }}>
+                    9분할 배치 위치
                   </Typography>
                   <Box
                     sx={{
                       display: 'grid',
                       gridTemplateColumns: 'repeat(3, 1fr)',
-                      gap: 0.8,
-                      maxWidth: 180,
+                      gap: 1,
+                      width: 180,
+                      mx: 'auto',
+                      mb: 2,
                     }}
                   >
                     {(['tl', 'tc', 'tr', 'ml', 'mc', 'mr', 'bl', 'bc', 'br'] as PositionGrid[]).map(
                       (pos) => (
                         <Button
                           key={pos}
-                          size="small"
                           variant={position === pos ? 'contained' : 'outlined'}
                           color={position === pos ? 'primary' : 'inherit'}
+                          size="small"
                           onClick={() => setPosition(pos)}
-                          sx={{ minWidth: 0, p: 0.8, fontWeight: 800, fontSize: '0.75rem' }}
+                          sx={{ py: 1, minWidth: 0, fontWeight: 700 }}
                         >
                           {pos.toUpperCase()}
                         </Button>
@@ -972,10 +1042,10 @@ export function WatermarkView() {
                     )}
                   </Box>
 
-                  <Box sx={{ mt: 1.5 }}>
+                  <Box>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                       <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                        가장자리 여백 (Margin)
+                        외곽선 여백 (Margin)
                       </Typography>
                       <Typography variant="caption" sx={{ fontWeight: 700, color: 'primary.main' }}>
                         {margin}px
@@ -1068,19 +1138,58 @@ export function WatermarkView() {
               </Box>
             </Card>
 
-            {/* Actions */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, flexShrink: 0 }}>
+            {/* Action Buttons Column */}
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1.25,
+                mt: 'auto',
+                pt: 0.5,
+              }}
+            >
               <Button
+                fullWidth
                 variant="contained"
                 color="primary"
-                size="large"
-                fullWidth
                 onClick={handleDownloadAllZip}
                 disabled={isProcessing || items.length === 0}
                 startIcon={<ArchiveRoundedIcon />}
-                sx={{ py: 1.5, borderRadius: 2, fontWeight: 800 }}
+                sx={{ py: 1.4, borderRadius: 2, fontWeight: 700, fontSize: '0.95rem' }}
               >
                 전체 일괄 ZIP 다운로드 ({items.length}장)
+              </Button>
+              {activeItem && (
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  color="inherit"
+                  onClick={() => handleDownloadSingle(activeItem)}
+                  disabled={isProcessing}
+                  startIcon={<DownloadRoundedIcon />}
+                  sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+                >
+                  현재 사진 개별 저장
+                </Button>
+              )}
+              <Button
+                fullWidth
+                variant="outlined"
+                color="inherit"
+                onClick={() => fileInputRef.current?.click()}
+                startIcon={<CloudUploadRoundedIcon />}
+                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+              >
+                사진 추가하기
+              </Button>
+              <Button
+                fullWidth
+                variant="outlined"
+                color="inherit"
+                onClick={() => setItems([])}
+                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+              >
+                전체 비우기
               </Button>
             </Box>
           </Box>

@@ -55,9 +55,41 @@ export function PdfView() {
   const [extractedPages, setExtractedPages] = useState<PdfImageItem[]>([]);
   const [selectedExtractPages, setSelectedExtractPages] = useState<Set<string>>(new Set());
   const [isExtracting, setIsExtracting] = useState<boolean>(false);
+  const [rightPanelWidth, setRightPanelWidth] = useState<number>(380);
+
+  const isResizingRef = useRef<boolean>(false);
+  const resizeStartXRef = useRef<number>(0);
+  const resizeStartWidthRef = useRef<number>(380);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pdfInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDividerPointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    isResizingRef.current = true;
+    resizeStartXRef.current = e.clientX;
+    resizeStartWidthRef.current = rightPanelWidth;
+  };
+
+  const handleDividerPointerMove = (e: React.PointerEvent) => {
+    if (!isResizingRef.current) return;
+    const deltaX = resizeStartXRef.current - e.clientX;
+    const newWidth = Math.max(280, Math.min(650, resizeStartWidthRef.current + deltaX));
+    setRightPanelWidth(newWidth);
+  };
+
+  const handleDividerPointerUp = (e: React.PointerEvent) => {
+    if (isResizingRef.current) {
+      isResizingRef.current = false;
+      try {
+        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+      } catch {
+        // ignore
+      }
+    }
+  };
 
   // Tab 1: Upload Images
   const addImages = useCallback((files: File[]) => {
@@ -206,8 +238,17 @@ export function PdfView() {
   };
 
   return (
-    <DashboardContent>
-      <Box sx={{ mb: 3 }}>
+    <DashboardContent
+      sx={{
+        flex: '1 1 auto',
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: 0,
+        height: '100%',
+        pb: { xs: 2, sm: 3 },
+      }}
+    >
+      <Box sx={{ mb: 2, flexShrink: 0 }}>
         <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
           PDF 변환 & 분할 (Image & PDF Studio)
         </Typography>
@@ -220,7 +261,7 @@ export function PdfView() {
       <Tabs
         value={currentTab}
         onChange={(_, v) => setCurrentTab(v)}
-        sx={{ mb: 3, borderBottom: 1, borderColor: 'divider' }}
+        sx={{ mb: 2, borderBottom: 1, borderColor: 'divider', flexShrink: 0 }}
       >
         <Tab
           label="이미지를 PDF로 만들기"
@@ -264,7 +305,9 @@ export function PdfView() {
                 borderColor: createDrop.isDragActive ? 'primary.main' : 'divider',
                 bgcolor: createDrop.isDragActive ? 'action.hover' : 'transparent',
                 borderRadius: 3,
-                minHeight: 320,
+                flex: '1 1 auto',
+                minHeight: 0,
+                height: '100%',
                 transition: (theme) =>
                   theme.transitions.create(['border-color', 'background-color']),
                 '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
@@ -297,33 +340,59 @@ export function PdfView() {
             </Card>
           ) : (
             <Box
-              sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '7fr 5fr' }, gap: 3 }}
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', lg: 'row' },
+                gap: { xs: 2, lg: 0 },
+                flex: '1 1 auto',
+                minHeight: 0,
+                height: '100%',
+                position: 'relative',
+              }}
             >
               {/* Left: Pages Grid */}
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <Card sx={{ p: 2.5, borderRadius: 3 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  flex: '1 1 0px',
+                  minWidth: 0,
+                  minHeight: 0,
+                  height: '100%',
+                  pr: { lg: 1 },
+                }}
+              >
+                <Card
+                  sx={{
+                    p: 2,
+                    borderRadius: 3,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    flex: '1 1 auto',
+                    minHeight: 0,
+                  }}
+                >
                   <Box
                     sx={{
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
-                      mb: 2,
+                      mb: 1.5,
+                      flexShrink: 0,
                     }}
                   >
                     <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                       PDF 페이지 목록 ({pages.length}페이지)
                     </Typography>
-                    <Button size="small" color="error" onClick={() => setPages([])}>
-                      전체 삭제
-                    </Button>
                   </Box>
 
                   <Box
                     sx={{
                       display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-                      gap: 2,
-                      maxHeight: 480,
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
+                      gap: 1.5,
+                      flex: '1 1 auto',
+                      minHeight: 0,
                       overflowY: 'auto',
                     }}
                   >
@@ -338,6 +407,7 @@ export function PdfView() {
                           flexDirection: 'column',
                           alignItems: 'center',
                           position: 'relative',
+                          flexShrink: 0,
                         }}
                       >
                         <Box
@@ -406,8 +476,104 @@ export function PdfView() {
                 </Card>
               </Box>
 
-              {/* Right: PDF Settings */}
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+              {/* Draggable Divider (Desktop) */}
+              <Box
+                onPointerDown={handleDividerPointerDown}
+                onPointerMove={handleDividerPointerMove}
+                onPointerUp={handleDividerPointerUp}
+                sx={{
+                  display: { xs: 'none', lg: 'flex' },
+                  width: 16,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'col-resize',
+                  userSelect: 'none',
+                  touchAction: 'none',
+                  zIndex: 10,
+                  flexShrink: 0,
+                  position: 'relative',
+                  '&:hover .divider-bar, &:active .divider-bar': {
+                    bgcolor: 'primary.main',
+                    width: '3px',
+                  },
+                  '&:hover .divider-handle, &:active .divider-handle': {
+                    bgcolor: 'primary.main',
+                    borderColor: 'primary.main',
+                    '& > div > div': {
+                      bgcolor: '#ffffff',
+                    },
+                  },
+                }}
+              >
+                {/* Divider Line */}
+                <Box
+                  className="divider-bar"
+                  sx={{
+                    width: '2px',
+                    height: '100%',
+                    bgcolor: 'divider',
+                    borderRadius: '1px',
+                    transition: 'all 0.15s ease',
+                  }}
+                />
+                {/* Grab Handle */}
+                <Box
+                  className="divider-handle"
+                  sx={{
+                    position: 'absolute',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    width: 14,
+                    height: 36,
+                    borderRadius: 1,
+                    bgcolor: 'background.paper',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    boxShadow: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.15s ease',
+                    pointerEvents: 'none',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 4,
+                      height: 14,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      '& > div': {
+                        width: 1.5,
+                        height: '100%',
+                        bgcolor: 'text.disabled',
+                        borderRadius: 1,
+                        transition: 'all 0.15s ease',
+                      },
+                    }}
+                  >
+                    <div />
+                    <div />
+                  </Box>
+                </Box>
+              </Box>
+
+              {/* Right: PDF Settings & Actions */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  width: { xs: '100%', lg: `${rightPanelWidth}px` },
+                  minWidth: { lg: `${rightPanelWidth}px` },
+                  maxWidth: { lg: `${rightPanelWidth}px` },
+                  flexShrink: 0,
+                  gap: 2,
+                  minHeight: 0,
+                  overflow: 'auto',
+                  pl: { lg: 1 },
+                  pr: 0.5,
+                }}
+              >
                 <Card sx={{ p: 2.5, borderRadius: 3 }}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
                     1. 용지 규격
@@ -436,8 +602,8 @@ export function PdfView() {
                     size="small"
                     sx={{ mb: 2 }}
                   >
-                    <ToggleButton value="portrait">세로 방향 (Portrait)</ToggleButton>
-                    <ToggleButton value="landscape">가로 방향 (Landscape)</ToggleButton>
+                    <ToggleButton value="portrait">세로 (Portrait)</ToggleButton>
+                    <ToggleButton value="landscape">가로 (Landscape)</ToggleButton>
                   </ToggleButtonGroup>
 
                   {/* Margins */}
@@ -452,9 +618,9 @@ export function PdfView() {
                     size="small"
                     sx={{ mb: 2 }}
                   >
-                    <ToggleButton value="none">여백 없음</ToggleButton>
-                    <ToggleButton value="small">보통 (5mm)</ToggleButton>
-                    <ToggleButton value="medium">넓게 (10mm)</ToggleButton>
+                    <ToggleButton value="none">없음</ToggleButton>
+                    <ToggleButton value="small">5mm</ToggleButton>
+                    <ToggleButton value="medium">10mm</ToggleButton>
                   </ToggleButtonGroup>
 
                   <FormControlLabel
@@ -469,39 +635,56 @@ export function PdfView() {
                         하단 페이지 번호 자동 삽입
                       </Typography>
                     }
-                    sx={{ mb: 2 }}
                   />
+                </Card>
 
+                {/* Actions Column */}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1.25,
+                    mt: 'auto',
+                    pt: 0.5,
+                  }}
+                >
                   <Button
-                    variant="outlined"
-                    color="primary"
                     fullWidth
+                    variant="contained"
+                    color="primary"
+                    onClick={handleGeneratePdf}
+                    disabled={isCreatingPdf || pages.length === 0}
+                    startIcon={
+                      isCreatingPdf ? (
+                        <CircularProgress size={18} color="inherit" />
+                      ) : (
+                        <PictureAsPdfRoundedIcon />
+                      )
+                    }
+                    sx={{ py: 1.4, borderRadius: 2, fontWeight: 700, fontSize: '0.95rem' }}
+                  >
+                    PDF 문서 생성 및 다운로드
+                  </Button>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    color="inherit"
                     onClick={() => fileInputRef.current?.click()}
                     startIcon={<CloudUploadRoundedIcon />}
-                    sx={{ py: 1.2, borderRadius: 2 }}
+                    sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
                   >
                     + 이미지 추가하기
                   </Button>
-                </Card>
-
-                <Button
-                  variant="contained"
-                  color="primary"
-                  size="large"
-                  fullWidth
-                  onClick={handleGeneratePdf}
-                  disabled={isCreatingPdf || pages.length === 0}
-                  startIcon={
-                    isCreatingPdf ? (
-                      <CircularProgress size={18} color="inherit" />
-                    ) : (
-                      <PictureAsPdfRoundedIcon />
-                    )
-                  }
-                  sx={{ py: 1.5, borderRadius: 2, fontWeight: 800 }}
-                >
-                  PDF 문서 생성 및 다운로드
-                </Button>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    color="inherit"
+                    onClick={() => setPages([])}
+                    sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+                  >
+                    전체 삭제
+                  </Button>
+                </Box>
               </Box>
             </Box>
           )}
@@ -535,7 +718,9 @@ export function PdfView() {
                 borderColor: extractDrop.isDragActive ? 'primary.main' : 'divider',
                 bgcolor: extractDrop.isDragActive ? 'action.hover' : 'transparent',
                 borderRadius: 3,
-                minHeight: 320,
+                flex: '1 1 auto',
+                minHeight: 0,
+                height: '100%',
                 transition: (theme) =>
                   theme.transitions.create(['border-color', 'background-color']),
                 '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
@@ -578,95 +763,282 @@ export function PdfView() {
               </Button>
             </Card>
           ) : (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-              <Card
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', lg: 'row' },
+                gap: { xs: 2, lg: 0 },
+                flex: '1 1 auto',
+                minHeight: 0,
+                height: '100%',
+                position: 'relative',
+              }}
+            >
+              {/* Left: Pages Grid */}
+              <Box
                 sx={{
-                  p: 2.5,
-                  borderRadius: 3,
                   display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
+                  flexDirection: 'column',
+                  flex: '1 1 0px',
+                  minWidth: 0,
+                  minHeight: 0,
+                  height: '100%',
+                  pr: { lg: 1 },
                 }}
               >
-                <Box>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                    {extractPdfFile.name} (총 {extractedPages.length} 페이지)
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                    선택된 페이지: {selectedExtractPages.size}개
-                  </Typography>
-                </Box>
-
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    onClick={() =>
-                      setSelectedExtractPages(new Set(extractedPages.map((p) => p.id)))
-                    }
+                <Card
+                  sx={{
+                    p: 2,
+                    borderRadius: 3,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    flex: '1 1 auto',
+                    minHeight: 0,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      mb: 1.5,
+                      flexShrink: 0,
+                    }}
                   >
-                    전체 선택
-                  </Button>
+                    <Box>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                        {extractPdfFile.name} (총 {extractedPages.length} 페이지)
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                        선택된 페이지: {selectedExtractPages.size}개
+                      </Typography>
+                    </Box>
+
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() =>
+                        setSelectedExtractPages(new Set(extractedPages.map((p) => p.id)))
+                      }
+                    >
+                      전체 선택
+                    </Button>
+                  </Box>
+
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+                      gap: 1.5,
+                      flex: '1 1 auto',
+                      minHeight: 0,
+                      overflowY: 'auto',
+                    }}
+                  >
+                    {extractedPages.map((page, idx) => {
+                      const isSelected = selectedExtractPages.has(page.id);
+                      return (
+                        <Card
+                          key={page.id}
+                          onClick={() => toggleSelectExtractPage(page.id)}
+                          sx={{
+                            p: 1.5,
+                            borderRadius: 2,
+                            cursor: 'pointer',
+                            border: '2px solid',
+                            borderColor: isSelected ? 'primary.main' : 'transparent',
+                            bgcolor: isSelected ? 'action.selected' : 'action.hover',
+                            flexShrink: 0,
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              width: '100%',
+                              aspectRatio: '210/297',
+                              borderRadius: 1,
+                              overflow: 'hidden',
+                              bgcolor: '#ffffff',
+                              boxShadow: 1,
+                              mb: 1,
+                            }}
+                          >
+                            <img
+                              src={page.src}
+                              alt={page.name}
+                              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                            />
+                          </Box>
+                          <Typography
+                            variant="caption"
+                            sx={{ fontWeight: 800, textAlign: 'center', display: 'block' }}
+                          >
+                            Page {idx + 1}
+                          </Typography>
+                        </Card>
+                      );
+                    })}
+                  </Box>
+                </Card>
+              </Box>
+
+              {/* Draggable Divider (Desktop) */}
+              <Box
+                onPointerDown={handleDividerPointerDown}
+                onPointerMove={handleDividerPointerMove}
+                onPointerUp={handleDividerPointerUp}
+                sx={{
+                  display: { xs: 'none', lg: 'flex' },
+                  width: 16,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'col-resize',
+                  userSelect: 'none',
+                  touchAction: 'none',
+                  zIndex: 10,
+                  flexShrink: 0,
+                  position: 'relative',
+                  '&:hover .divider-bar, &:active .divider-bar': {
+                    bgcolor: 'primary.main',
+                    width: '3px',
+                  },
+                  '&:hover .divider-handle, &:active .divider-handle': {
+                    bgcolor: 'primary.main',
+                    borderColor: 'primary.main',
+                    '& > div > div': {
+                      bgcolor: '#ffffff',
+                    },
+                  },
+                }}
+              >
+                {/* Divider Line */}
+                <Box
+                  className="divider-bar"
+                  sx={{
+                    width: '2px',
+                    height: '100%',
+                    bgcolor: 'divider',
+                    borderRadius: '1px',
+                    transition: 'all 0.15s ease',
+                  }}
+                />
+                {/* Grab Handle */}
+                <Box
+                  className="divider-handle"
+                  sx={{
+                    position: 'absolute',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    width: 14,
+                    height: 36,
+                    borderRadius: 1,
+                    bgcolor: 'background.paper',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    boxShadow: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.15s ease',
+                    pointerEvents: 'none',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 4,
+                      height: 14,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      '& > div': {
+                        width: 1.5,
+                        height: '100%',
+                        bgcolor: 'text.disabled',
+                        borderRadius: 1,
+                        transition: 'all 0.15s ease',
+                      },
+                    }}
+                  >
+                    <div />
+                    <div />
+                  </Box>
+                </Box>
+              </Box>
+
+              {/* Right: Actions */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  width: { xs: '100%', lg: `${rightPanelWidth}px` },
+                  minWidth: { lg: `${rightPanelWidth}px` },
+                  maxWidth: { lg: `${rightPanelWidth}px` },
+                  flexShrink: 0,
+                  gap: 2,
+                  minHeight: 0,
+                  overflow: 'auto',
+                  pl: { lg: 1 },
+                  pr: 0.5,
+                }}
+              >
+                <Card sx={{ p: 2.5, borderRadius: 3 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
+                    추출 정보
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>
+                    파일명: {extractPdfFile.name}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>
+                    총 페이지: {extractedPages.length}장
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    선택된 페이지: {selectedExtractPages.size}장
+                  </Typography>
+                </Card>
+
+                {/* Actions Column */}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1.25,
+                    mt: 'auto',
+                    pt: 0.5,
+                  }}
+                >
                   <Button
+                    fullWidth
                     variant="contained"
-                    color="success"
+                    color="primary"
                     startIcon={<ArchiveRoundedIcon />}
                     onClick={handleDownloadExtractedZip}
                     disabled={selectedExtractPages.size === 0}
+                    sx={{ py: 1.4, borderRadius: 2, fontWeight: 700, fontSize: '0.95rem' }}
                   >
                     선택 페이지 ZIP 다운로드
                   </Button>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    color="inherit"
+                    onClick={() => pdfInputRef.current?.click()}
+                    startIcon={<CloudUploadRoundedIcon />}
+                    sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+                  >
+                    다른 PDF 파일 선택
+                  </Button>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    color="inherit"
+                    onClick={() => {
+                      setExtractPdfFile(null);
+                      setExtractedPages([]);
+                      setSelectedExtractPages(new Set());
+                    }}
+                    sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+                  >
+                    초기화
+                  </Button>
                 </Box>
-              </Card>
-
-              <Box
-                sx={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
-                  gap: 2,
-                }}
-              >
-                {extractedPages.map((page, idx) => {
-                  const isSelected = selectedExtractPages.has(page.id);
-                  return (
-                    <Card
-                      key={page.id}
-                      onClick={() => toggleSelectExtractPage(page.id)}
-                      sx={{
-                        p: 1.5,
-                        borderRadius: 2,
-                        cursor: 'pointer',
-                        border: '2px solid',
-                        borderColor: isSelected ? 'primary.main' : 'transparent',
-                        bgcolor: isSelected ? 'action.selected' : 'action.hover',
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          width: '100%',
-                          aspectRatio: '210/297',
-                          borderRadius: 1,
-                          overflow: 'hidden',
-                          bgcolor: '#ffffff',
-                          boxShadow: 1,
-                          mb: 1,
-                        }}
-                      >
-                        <img
-                          src={page.src}
-                          alt={page.name}
-                          style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                        />
-                      </Box>
-                      <Typography
-                        variant="caption"
-                        sx={{ fontWeight: 800, textAlign: 'center', display: 'block' }}
-                      >
-                        Page {idx + 1}
-                      </Typography>
-                    </Card>
-                  );
-                })}
               </Box>
             </Box>
           )}
