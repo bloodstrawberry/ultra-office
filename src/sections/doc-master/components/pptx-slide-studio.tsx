@@ -523,18 +523,19 @@ export function PptxSlideStudio() {
       {/* 3. Right Column: Inspector & Theme Settings */}
       <Card
         sx={{
-          p: 2,
+          p: 2.5,
           borderRadius: 2,
           border: (theme) => `1px solid ${theme.palette.divider}`,
           bgcolor: 'background.paper',
           display: 'flex',
           flexDirection: 'column',
-          gap: 2,
+          gap: 2.5,
+          boxShadow: (theme) => theme.shadows[1],
           overflowY: 'auto',
         }}
       >
         {/* Theme Settings */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2 }}>
           <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 1 }}>
             <PaletteRoundedIcon color="primary" fontSize="small" />
             <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
@@ -561,8 +562,8 @@ export function PptxSlideStudio() {
           sx={{
             display: 'flex',
             flexDirection: 'column',
-            gap: 1.5,
-            pt: 1.5,
+            gap: 2,
+            pt: 2,
             borderTop: (theme) => `1px solid ${theme.palette.divider}`,
           }}
         >

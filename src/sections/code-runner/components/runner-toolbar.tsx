@@ -22,7 +22,7 @@ import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 
-import { TEMPLATES } from '../core/templates';
+import { getTemplatesByLanguage } from '../core/templates';
 import { IDE_THEMES, getThemeById } from '../core/editor-themes';
 
 // ----------------------------------------------------------------------
@@ -82,7 +82,7 @@ const LANGUAGE_OPTIONS: LanguageOption[] = [
   // 4. HTML5 / CSS / JS
   {
     value: 'html',
-    label: 'HTML5 / CSS / JS Sandbox',
+    label: 'HTML5 / CSS / Canvas Sandbox',
     icon: '🎨',
     group: 'Frontend & Node',
     engine: 'DOM Sandbox',
@@ -130,7 +130,7 @@ const LANGUAGE_OPTIONS: LanguageOption[] = [
   // 10. Java
   {
     value: 'java',
-    label: 'Java (OpenJDK)',
+    label: 'Java (OpenJDK 21)',
     icon: '☕',
     group: 'Backend & Systems',
     engine: 'Wasm JVM',
@@ -138,7 +138,7 @@ const LANGUAGE_OPTIONS: LanguageOption[] = [
   // 11. Go
   {
     value: 'go',
-    label: 'Go (Golang)',
+    label: 'Go (Golang 1.23)',
     icon: '🐹',
     group: 'Backend & Systems',
     engine: 'Wasm Toolchain',
@@ -216,6 +216,9 @@ export function RunnerToolbar({
   const isRunning = runnerState.status === 'running' || runnerState.status === 'booting';
   const activeTheme = getThemeById(currentThemeId);
 
+  // 언어별 하위 예시 목록 필터링
+  const availableTemplates = getTemplatesByLanguage(currentLanguage);
+
   const engineChipColor =
     runnerState.currentEngine === 'webcontainer'
       ? '#3b82f6'
@@ -242,10 +245,10 @@ export function RunnerToolbar({
         flexWrap: 'wrap',
       }}
     >
-      {/* Left Area: Language & Template & Theme Selectors */}
+      {/* Left Area: Language & Sub-Category Template & Theme Selectors */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
-        {/* Language Selector */}
-        <FormControl size="small" sx={{ minWidth: 220 }}>
+        {/* 1. 언어 선택 드롭다운 (17개 언어) */}
+        <FormControl size="small" sx={{ minWidth: 200 }}>
           <Select
             value={currentLanguage}
             onChange={(e) => onLanguageChange(e.target.value as SupportedLanguage)}
@@ -282,12 +285,16 @@ export function RunnerToolbar({
           </Select>
         </FormControl>
 
-        {/* Template Selector */}
-        <FormControl size="small" sx={{ minWidth: 210 }}>
+        {/* 2. 해당 언어의 10대 하위 예시 (서브 카테고리) 드롭다운 */}
+        <FormControl size="small" sx={{ minWidth: { xs: 220, sm: 270 } }}>
           <Select
-            value={currentTemplateId}
+            value={
+              availableTemplates.some((t) => t.id === currentTemplateId)
+                ? currentTemplateId
+                : availableTemplates[0]?.id || ''
+            }
             onChange={(e) => {
-              const selected = TEMPLATES.find((t) => t.id === e.target.value);
+              const selected = availableTemplates.find((t) => t.id === e.target.value);
               if (selected) onTemplateChange(selected);
             }}
             displayEmpty
@@ -309,20 +316,20 @@ export function RunnerToolbar({
               },
             }}
           >
-            {TEMPLATES.map((tmpl) => (
+            {availableTemplates.map((tmpl) => (
               <MenuItem key={tmpl.id} value={tmpl.id} sx={{ fontSize: '13px', py: 0.8 }}>
-                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
                   <Typography
                     variant="caption"
-                    sx={{ fontWeight: 600, color: activeTheme.uiColors.text }}
+                    sx={{ fontWeight: 600, color: activeTheme.uiColors.text, fontSize: '12px' }}
                   >
                     {tmpl.title}
                   </Typography>
                   <Typography
                     variant="caption"
-                    sx={{ color: activeTheme.uiColors.textMuted, fontSize: '11px' }}
+                    sx={{ color: activeTheme.uiColors.textMuted, fontSize: '10px' }}
                   >
-                    {tmpl.category} • {tmpl.engine}
+                    {tmpl.tags.slice(0, 3).join(' • ')}
                   </Typography>
                 </Box>
               </MenuItem>
@@ -330,8 +337,8 @@ export function RunnerToolbar({
           </Select>
         </FormControl>
 
-        {/* Theme Selector */}
-        <FormControl size="small" sx={{ minWidth: 175 }}>
+        {/* 3. 에디터 테마 선택 드롭다운 */}
+        <FormControl size="small" sx={{ minWidth: 160 }}>
           <Select
             value={currentThemeId}
             onChange={(e) => onThemeChange(e.target.value as string)}

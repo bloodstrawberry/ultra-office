@@ -1,10 +1,4 @@
-export type OfficeTabType =
-  | 'word-scratch'
-  | 'word-template'
-  | 'word-viewer'
-  | 'pptx-studio'
-  | 'markdown-studio'
-  | 'batch-hub';
+export type OfficeTabType = 'word-scratch' | 'word-template' | 'word-viewer' | 'batch-hub';
 
 // ----------------------------------------------------------------------
 // Word (DOCX) Models

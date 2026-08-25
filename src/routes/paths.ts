@@ -42,6 +42,8 @@ export const paths = {
   gigaViewer: '/giga-viewer',
   privacySanitizer: '/privacy-sanitizer',
   spreadsheet: '/spreadsheet',
+  markdown: '/markdown',
+  powerpoint: '/powerpoint',
   text: {
     root: `/text`,
     diff: `/text/diff`,

@@ -19,7 +19,6 @@ import FullscreenRoundedIcon from '@mui/icons-material/FullscreenRounded';
 import VerticalSplitRoundedIcon from '@mui/icons-material/VerticalSplitRounded';
 import InsertDriveFileRoundedIcon from '@mui/icons-material/InsertDriveFileRounded';
 
-import { TEMPLATES } from '../core/templates';
 import { usePyodide } from '../core/use-pyodide';
 import { CodeEditor } from '../components/code-editor';
 import { useWasmRunner } from '../core/use-wasm-runner';
@@ -28,6 +27,7 @@ import { useWebContainer } from '../core/use-webcontainer';
 import { PreviewPanel } from '../components/preview-panel';
 import { RunnerToolbar } from '../components/runner-toolbar';
 import { usePolyglotRunner } from '../core/use-polyglot-runner';
+import { TEMPLATES, getTemplatesByLanguage } from '../core/templates';
 import { TerminalView, type TerminalRef } from '../components/terminal-view';
 import { IDE_THEMES, getThemeById, DEFAULT_THEME_ID } from '../core/editor-themes';
 
@@ -177,11 +177,10 @@ export function CodeRunnerView() {
 
   // Handle language switch
   const handleLanguageChange = (lang: SupportedLanguage) => {
-    const matched = TEMPLATES.find((t) => t.language === lang);
-    if (matched) {
-      setSelectedTemplate(matched);
-    } else {
-      setCurrentLanguage(lang);
+    setCurrentLanguage(lang);
+    const matched = getTemplatesByLanguage(lang);
+    if (matched.length > 0) {
+      setSelectedTemplate(matched[0]);
     }
   };
 

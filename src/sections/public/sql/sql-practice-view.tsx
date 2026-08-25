@@ -186,6 +186,13 @@ export function SqlPracticeView() {
     setEditorSql(query);
   };
 
+  // Insert and immediately execute query
+  const handleInsertAndRunQuery = (query: string) => {
+    setEditorSql(query);
+    const res = runQuery(query);
+    setQueryResult(res);
+  };
+
   // Reset database with feedback
   const handleResetDb = () => {
     resetCurrentDb();
@@ -614,6 +621,7 @@ export function SqlPracticeView() {
                   solvedProblemIds={solvedProblemIds}
                   verificationResult={verificationResult}
                   onInsertSolution={handleInsertQuery}
+                  onInsertAndRun={handleInsertAndRunQuery}
                 />
               )}
             </Box>

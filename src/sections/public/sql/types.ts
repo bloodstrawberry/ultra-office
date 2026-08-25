@@ -22,18 +22,34 @@ export interface SqlDataset {
   tables: SqlTableInfo[];
 }
 
+export interface SqlQuickExample {
+  label: string;
+  query: string;
+  description?: string;
+}
+
+export interface SqlTryModification {
+  label: string;
+  query: string;
+  guide: string;
+}
+
 export interface SqlProblem {
   id: string;
   datasetId: string;
   level: ProblemLevel;
   title: string;
   category: string;
+  subCategory?: string;
+  targetTable?: string;
   description: string;
   expectedColumns?: string[];
   initialQuery?: string;
   solutionQuery: string;
   hint: string;
   explanation?: string;
+  quickExamples?: SqlQuickExample[];
+  tryModifications?: SqlTryModification[];
 }
 
 export interface QueryResult {

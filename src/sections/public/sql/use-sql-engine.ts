@@ -101,10 +101,6 @@ export function useSqlEngine() {
     const dataset = SAMPLE_DATASETS.find((d) => d.id === datasetId);
     if (!dataset) return;
 
-    if (!forceReset && initializedDatasets.current.has(datasetId)) {
-      return;
-    }
-
     const dbName = `db_${datasetId}`;
 
     try {
@@ -116,34 +112,38 @@ export function useSqlEngine() {
         }
       }
       alasql(`USE ${dbName}`);
+      const dbObj = alasql.databases && alasql.databases[dbName];
 
       dataset.tables.forEach((table) => {
-        try {
-          alasql(`DROP TABLE IF EXISTS ${table.name}`);
-        } catch {
-          // ignore drop errors
-        }
-        try {
-          alasql(table.ddl);
-        } catch (ddlErr) {
-          console.warn(`DDL execution warning on table ${table.name}`, ddlErr);
-        }
-        if (table.initialData.length > 0) {
-          const columns = Object.keys(table.initialData[0]).join(', ');
-          table.initialData.forEach((row) => {
-            const values = Object.values(row)
-              .map((val) => {
-                if (val === null || val === undefined) return 'NULL';
-                if (typeof val === 'string') return `'${val.replace(/'/g, "''")}'`;
-                return val;
-              })
-              .join(', ');
-            try {
-              alasql(`INSERT INTO ${table.name} (${columns}) VALUES (${values})`);
-            } catch (insertErr) {
-              console.warn(`Insert error on table ${table.name}`, insertErr);
-            }
-          });
+        const tableExists = !forceReset && dbObj && dbObj.tables && dbObj.tables[table.name];
+        if (!tableExists) {
+          try {
+            alasql(`DROP TABLE IF EXISTS ${table.name}`);
+          } catch {
+            // ignore drop errors
+          }
+          try {
+            alasql(table.ddl);
+          } catch (ddlErr) {
+            console.warn(`DDL execution warning on table ${table.name}`, ddlErr);
+          }
+          if (table.initialData.length > 0) {
+            const columns = Object.keys(table.initialData[0]).join(', ');
+            table.initialData.forEach((row) => {
+              const values = Object.values(row)
+                .map((val) => {
+                  if (val === null || val === undefined) return 'NULL';
+                  if (typeof val === 'string') return `'${val.replace(/'/g, "''")}'`;
+                  return val;
+                })
+                .join(', ');
+              try {
+                alasql(`INSERT INTO ${table.name} (${columns}) VALUES (${values})`);
+              } catch (insertErr) {
+                console.warn(`Insert error on table ${table.name}`, insertErr);
+              }
+            });
+          }
         }
       });
 

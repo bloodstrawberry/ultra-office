@@ -685,6 +685,31 @@ export const SAMPLE_DATASETS: SqlDataset[] = [
         initialData: [{ dummy: 'X' }],
       },
       {
+        name: 'emp_sample',
+        description: '산술 및 NULL 연산 실습용 5행 직관 샘플 테이블 (EMP_SAMPLE)',
+        columns: [
+          { name: 'empno', type: 'INT', isPrimary: true, description: '사원 번호' },
+          { name: 'ename', type: 'VARCHAR(20)', description: '사원 이름' },
+          { name: 'sal', type: 'INT', description: '기본 급여' },
+          { name: 'comm', type: 'INT', description: '커미션 (성과급)' },
+          { name: 'deptno', type: 'INT', description: '부서 번호 (10, 20)' },
+        ],
+        ddl: `CREATE TABLE emp_sample (
+  empno INT PRIMARY KEY,
+  ename VARCHAR(20),
+  sal INT,
+  comm INT,
+  deptno INT
+);`,
+        initialData: [
+          { empno: 101, ename: '김철수', sal: 1000, comm: 100, deptno: 10 },
+          { empno: 102, ename: '이영희', sal: 2000, comm: null, deptno: 10 },
+          { empno: 103, ename: '박민수', sal: 3000, comm: 200, deptno: 20 },
+          { empno: 104, ename: '최유나', sal: 4000, comm: null, deptno: 20 },
+          { empno: 105, ename: '정동원', sal: 5000, comm: 0, deptno: 20 },
+        ],
+      },
+      {
         name: 'dept',
         description: '부서 정보 테이블 (DEPT)',
         columns: [

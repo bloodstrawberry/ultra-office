@@ -7,7 +7,7 @@ import { DocMasterView } from 'src/sections/doc-master';
 // ----------------------------------------------------------------------
 
 export const metadata: Metadata = {
-  title: `오피스 문서 마스터 (Word · PPT · MD) | Dashboard - ${CONFIG.appName}`,
+  title: `워드 (Word Processor) | Dashboard - ${CONFIG.appName}`,
 };
 
 export default function Page() {

@@ -11,9 +11,7 @@ import DescriptionRoundedIcon from '@mui/icons-material/DescriptionRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import { MarkdownStudio } from '../components/markdown-studio';
 import { BatchGenerator } from '../components/batch-generator';
-import { PptxSlideStudio } from '../components/pptx-slide-studio';
 import { DocSwitcherHeader } from '../components/doc-switcher-header';
 import { WordScratchEditor } from '../components/word-scratch-editor';
 import { WordTemplateEditor } from '../components/word-template-editor';
@@ -50,11 +48,11 @@ export function DocMasterView() {
           sx={{ fontWeight: 800, mb: 0.5, display: 'flex', alignItems: 'center', gap: 1 }}
         >
           <DescriptionRoundedIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-          오피스 문서 자동화 스튜디오 (Doc Master)
+          워드 (Word Processor)
         </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          Word(Docx) 작성·템플릿 치환, PowerPoint 슬라이드, 마크다운 노트, 대량 일괄 생성까지
-          브라우저 내에서 완결하는 오피스 문서 도구 모음입니다.
+          Word(Docx) 맞춤 작성, 공문/계약서 템플릿 데이터 치환, 무설치 문서 뷰어, 수백 건 대량 일괄
+          생성까지 브라우저 내에서 완결하는 워드 문서 도구입니다.
         </Typography>
       </Box>
 
@@ -63,13 +61,19 @@ export function DocMasterView() {
 
       {/* 3. Active Office Suite Module */}
       <Box
-        sx={{ flexGrow: 1, minHeight: 0, display: 'flex', flexDirection: 'column', mt: 2, pb: 4 }}
+        sx={{
+          flex: '1 1 auto',
+          minHeight: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          mt: 1.5,
+          pb: 1,
+          overflow: 'hidden',
+        }}
       >
         {currentTab === 'word-scratch' && <WordScratchEditor />}
         {currentTab === 'word-template' && <WordTemplateEditor />}
         {currentTab === 'word-viewer' && <WordDocumentViewer />}
-        {currentTab === 'pptx-studio' && <PptxSlideStudio />}
-        {currentTab === 'markdown-studio' && <MarkdownStudio />}
         {currentTab === 'batch-hub' && <BatchGenerator />}
       </Box>
     </DashboardContent>

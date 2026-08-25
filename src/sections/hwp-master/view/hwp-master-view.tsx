@@ -143,11 +143,11 @@ export function HwpMasterView() {
             sx={{ fontWeight: 800, mb: 0.5, display: 'flex', alignItems: 'center', gap: 1 }}
           >
             <ArticleRoundedIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-            한글 문서 마스터 (HWP · HWPX)
+            한글 파일 문서
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            설치 프로그램 없이 공무원, 공기업, 군대 실무 표준 서식을 브라우저에서 즉시 열람하고
-            텍스트와 표 데이터를 추출합니다.
+            설치 프로그램 없이 HWP/HWPX 문서를 브라우저에서 즉시 열람하고 텍스트와 표 데이터를
+            추출합니다.
           </Typography>
         </Box>
 

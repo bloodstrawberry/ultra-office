@@ -51,11 +51,9 @@ function formatTableOutput(rows: any[]): string {
     return 'Query returned 0 rows.\r\n';
   }
 
-  // 첫 번째 행에서 컬럼 키 추출
   const columns = Object.keys(rows[0]);
   if (columns.length === 0) return 'Query returned empty objects.\r\n';
 
-  // 컬럼별 최대 너비 계산
   const colWidths: Record<string, number> = {};
   columns.forEach((col) => {
     colWidths[col] = col.length;
@@ -70,7 +68,6 @@ function formatTableOutput(rows: any[]): string {
     });
   });
 
-  // 테두리 라인 생성
   const borderLine = `+${columns.map((c) => '-'.repeat(colWidths[c] + 2)).join('+')}+`;
   const headerLine = `| ${columns.map((c) => c.padEnd(colWidths[c])).join(' | ')} |`;
 
@@ -111,7 +108,6 @@ export function usePolyglotRunner(): PolyglotRunnerHookReturn {
           throw new Error('SQL 엔진(AlaSQL)을 초기화할 수 없습니다.');
         }
 
-        // 세미콜론 기준으로 쿼리 분리
         const statements = sql
           .split(';')
           .map((s) => s.trim())
@@ -164,7 +160,6 @@ export function usePolyglotRunner(): PolyglotRunnerHookReturn {
         await new Promise((r) => setTimeout(r, 400));
         onStdout('\x1b[32m[Lua 5.3] 런타임 준비 완료 (LuaJIT/Wasm)\x1b[0m\r\n\r\n');
 
-        // Lua print 및 함수 실행 시뮬레이션 / 파싱
         const printRegex = /print\s*\((.*?)\)/g;
         let match;
         let found = false;
@@ -172,19 +167,20 @@ export function usePolyglotRunner(): PolyglotRunnerHookReturn {
         while ((match = printRegex.exec(code)) !== null) {
           found = true;
           const args = match[1];
-          // 간단한 문자열 또는 변수 출력 추출
           const evaluated = args
             .split(',')
             .map((arg) => {
               const trimmed = arg.trim();
               if (trimmed.startsWith('"') || trimmed.startsWith("'")) {
-                return trimmed.slice(1, -1);
+                return trimmed.slice(1, -1).replace(/\\n/g, '\r\n').replace(/\\033/g, '\x1b');
               }
               if (trimmed.includes('..')) {
                 return trimmed
                   .split('..')
                   .map((p) => p.trim().replace(/^['"]|['"]$/g, ''))
-                  .join('');
+                  .join('')
+                  .replace(/\\n/g, '\r\n')
+                  .replace(/\\033/g, '\x1b');
               }
               return trimmed;
             })
@@ -221,17 +217,17 @@ export function usePolyglotRunner(): PolyglotRunnerHookReturn {
       onStdout('\x1b[36m[Ruby 3.3] ruby.wasm 런타임 구동 중...\x1b[0m\r\n');
 
       try {
-        await new Promise((r) => setTimeout(r, 500));
+        await new Promise((r) => setTimeout(r, 450));
         onStdout('\x1b[32m[Ruby 3.3.0] CRuby WebAssembly 초기화 완료\x1b[0m\r\n\r\n');
 
-        // puts / p 출력 파싱
         const putsRegex = /(?:puts|p)\s+(.*)/g;
         let match;
         let found = false;
 
         while ((match = putsRegex.exec(code)) !== null) {
           found = true;
-          const content = match[1].trim().replace(/^["']|["']$/g, '');
+          let content = match[1].trim().replace(/^["']|["']$/g, '');
+          content = content.replace(/\\n/g, '\r\n').replace(/\\033/g, '\x1b');
           onStdout(`${content}\r\n`);
         }
 
@@ -266,7 +262,6 @@ export function usePolyglotRunner(): PolyglotRunnerHookReturn {
         await new Promise((r) => setTimeout(r, 450));
         onStdout('\x1b[32m[PHP 8.3.4 (cli)] 엔진 준비 완료\x1b[0m\r\n\r\n');
 
-        // echo / print_r 파싱
         const echoRegex = /echo\s+([^;]+);/g;
         let match;
         let found = false;
@@ -274,7 +269,9 @@ export function usePolyglotRunner(): PolyglotRunnerHookReturn {
         while ((match = echoRegex.exec(code)) !== null) {
           found = true;
           let text = match[1].trim();
-          text = text.replace(/\\n/g, '\r\n').replace(/^["']|["']$/g, '');
+          text = text.replace(/\\n/g, '\r\n').replace(/\\033/g, '\x1b');
+          // simple quote trimming
+          text = text.replace(/^["']|["']$/g, '');
           onStdout(text);
         }
 
@@ -306,21 +303,28 @@ export function usePolyglotRunner(): PolyglotRunnerHookReturn {
       onStdout('\x1b[36m[Go 1.23] go build main.go (wasm32 architecture)...\x1b[0m\r\n');
 
       try {
-        await new Promise((r) => setTimeout(r, 600));
+        await new Promise((r) => setTimeout(r, 500));
         onStdout('\x1b[32m[Go 1.23] 컴파일 성공: main.wasm 생성 완료\x1b[0m\r\n\r\n');
 
-        const fmtPrintlnRegex = /fmt\.Print(?:ln|f)\s*\((.*?)\)/g;
+        const fmtPrintlnRegex = /fmt\.Print(?:ln|f)?\s*\((.*?)\)/g;
         let match;
         let found = false;
 
         while ((match = fmtPrintlnRegex.exec(code)) !== null) {
           found = true;
-          const content = match[1]
-            .split(',')
-            .map((c) => c.trim().replace(/^["']|["']$/g, ''))
-            .join(' ')
-            .replace(/\\n/g, '\r\n');
-          onStdout(`${content}\r\n`);
+          const parts = match[1].split(',');
+          let text = parts[0]
+            .trim()
+            .replace(/^["']|["']$/g, '')
+            .replace(/\\n/g, '\r\n')
+            .replace(/\\033/g, '\x1b');
+          if (parts.length > 1) {
+            parts.slice(1).forEach((p) => {
+              const cleanP = p.trim().replace(/^["']|["']$/g, '');
+              text = text.replace(/%[0-9.]*[dfvst%]/, cleanP);
+            });
+          }
+          onStdout(`${text}\r\n`);
         }
 
         if (!found) {
@@ -351,10 +355,10 @@ export function usePolyglotRunner(): PolyglotRunnerHookReturn {
       onStdout('\x1b[36m[Java 21 JVM] javac Main.java 컴파일 및 바이트코드 변환...\x1b[0m\r\n');
 
       try {
-        await new Promise((r) => setTimeout(r, 550));
+        await new Promise((r) => setTimeout(r, 500));
         onStdout('\x1b[32m[Java 21 OpenJDK] Main.class 빌드 완료 (Wasm JVM Boot)\x1b[0m\r\n\r\n');
 
-        const sysOutRegex = /System\.out\.print(?:ln)?\s*\((.*?)\);/g;
+        const sysOutRegex = /System\.out\.print(?:ln|f)?\s*\((.*?)\);/g;
         let match;
         let found = false;
 
@@ -363,7 +367,9 @@ export function usePolyglotRunner(): PolyglotRunnerHookReturn {
           const content = match[1]
             .replace(/\s*\+\s*/g, '')
             .replace(/^["']|["']$/g, '')
-            .replace(/\\n/g, '\r\n');
+            .replace(/\\n/g, '\r\n')
+            .replace(/\\033/g, '\x1b')
+            .replace(/%n/g, '\r\n');
           onStdout(`${content}\r\n`);
         }
 
@@ -415,7 +421,7 @@ export function usePolyglotRunner(): PolyglotRunnerHookReturn {
           } else {
             onStdout(`\x1b[90m$ ${line}\x1b[0m\r\n`);
           }
-          await new Promise((r) => setTimeout(r, 80));
+          await new Promise((r) => setTimeout(r, 60));
         }
 
         onStdout('\r\n\x1b[32m✨ [Shell script executed with exit code 0]\x1b[0m\r\n');

@@ -3,7 +3,7 @@
 import type { WordDocSection, WordDocumentMetadata } from '../types';
 
 import { toast } from 'sonner';
-import React, { useState } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -22,9 +22,13 @@ import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import FormatListBulletedRoundedIcon from '@mui/icons-material/FormatListBulletedRounded';
 
+import { DocSplitResizer } from './doc-split-resizer';
 import { downloadFile, generateDocxBlob } from '../utils/docx-generator';
 
 // ----------------------------------------------------------------------
+
+const SPLIT_X_STORAGE_KEY = 'uo_doc_scratch_split_x';
+const SPLIT_Y_STORAGE_KEY = 'uo_doc_scratch_split_y';
 
 const INITIAL_METADATA: WordDocumentMetadata = {
   title: '2026년 차세대 오피스 솔루션 사업 기획서',
@@ -102,6 +106,119 @@ export function WordScratchEditor() {
   const [sections, setSections] = useState<WordDocSection[]>(INITIAL_SECTIONS);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
 
+  // Split ratios for horizontal and vertical resizing
+  const [splitRatioX, setSplitRatioX] = useState<number>(48); // Width ratio: Left Form vs Right Preview
+  const [splitRatioY, setSplitRatioY] = useState<number>(45); // Height ratio: Metadata Form vs Sections
+  const [isDraggingX, setIsDraggingX] = useState<boolean>(false);
+  const [isDraggingY, setIsDraggingY] = useState<boolean>(false);
+  const [hasLoadedSplits, setHasLoadedSplits] = useState<boolean>(false);
+
+  const workspaceRef = useRef<HTMLDivElement | null>(null);
+  const leftPanelRef = useRef<HTMLDivElement | null>(null);
+
+  // Safe Hydration: Load saved split ratios
+  useEffect(() => {
+    try {
+      const savedX = localStorage.getItem(SPLIT_X_STORAGE_KEY);
+      if (savedX) {
+        const numX = Number(savedX);
+        if (!isNaN(numX) && numX >= 20 && numX <= 80) {
+          setSplitRatioX(numX);
+        }
+      }
+      const savedY = localStorage.getItem(SPLIT_Y_STORAGE_KEY);
+      if (savedY) {
+        const numY = Number(savedY);
+        if (!isNaN(numY) && numY >= 15 && numY <= 85) {
+          setSplitRatioY(numY);
+        }
+      }
+    } catch {
+      // ignore storage access error
+    }
+    setHasLoadedSplits(true);
+  }, []);
+
+  // Sync split ratios to localStorage
+  useEffect(() => {
+    if (hasLoadedSplits) {
+      try {
+        localStorage.setItem(SPLIT_X_STORAGE_KEY, String(Math.round(splitRatioX)));
+      } catch {
+        // ignore storage access error
+      }
+    }
+  }, [splitRatioX, hasLoadedSplits]);
+
+  useEffect(() => {
+    if (hasLoadedSplits) {
+      try {
+        localStorage.setItem(SPLIT_Y_STORAGE_KEY, String(Math.round(splitRatioY)));
+      } catch {
+        // ignore storage access error
+      }
+    }
+  }, [splitRatioY, hasLoadedSplits]);
+
+  // Drag handlers for resizing
+  const handleMouseDownX = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDraggingX(true);
+  }, []);
+
+  const handleMouseDownY = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDraggingY(true);
+  }, []);
+
+  const handleResetSplitX = useCallback(() => {
+    setSplitRatioX(48);
+  }, []);
+
+  const handleResetSplitY = useCallback(() => {
+    setSplitRatioY(45);
+  }, []);
+
+  useEffect(() => {
+    if (isDraggingX || isDraggingY) {
+      const handleMouseMove = (e: MouseEvent) => {
+        if (isDraggingX && workspaceRef.current) {
+          const rect = workspaceRef.current.getBoundingClientRect();
+          if (rect.width > 0) {
+            const offsetX = e.clientX - rect.left;
+            const ratio = (offsetX / rect.width) * 100;
+            const clamped = Math.min(Math.max(ratio, 25), 75);
+            setSplitRatioX(clamped);
+          }
+        }
+
+        if (isDraggingY && leftPanelRef.current) {
+          const rect = leftPanelRef.current.getBoundingClientRect();
+          if (rect.height > 0) {
+            const offsetY = e.clientY - rect.top;
+            const ratio = (offsetY / rect.height) * 100;
+            const clamped = Math.min(Math.max(ratio, 20), 80);
+            setSplitRatioY(clamped);
+          }
+        }
+      };
+
+      const handleMouseUp = () => {
+        setIsDraggingX(false);
+        setIsDraggingY(false);
+      };
+
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+    return undefined;
+  }, [isDraggingX, isDraggingY]);
+
   const handleUpdateSection = (id: string, updates: Partial<WordDocSection>) => {
     setSections((prev) => prev.map((s) => (s.id === id ? { ...s, ...updates } : s)));
   };
@@ -178,191 +295,326 @@ export function WordScratchEditor() {
 
   return (
     <Box
+      ref={workspaceRef}
       sx={{
-        display: 'grid',
-        gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr' },
-        gap: 2.5,
+        display: 'flex',
+        flexDirection: { xs: 'column', md: 'row' },
         height: '100%',
+        minHeight: 0,
+        width: '100%',
+        overflow: 'hidden',
+        position: 'relative',
+        userSelect: isDraggingX || isDraggingY ? 'none' : 'auto',
       }}
     >
-      {/* Left Column: Form & Section Editor */}
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, overflowY: 'auto' }}>
-        {/* Document Metadata Card */}
+      {/* 1. Left Column: Form & Section Editor */}
+      <Box
+        ref={leftPanelRef}
+        sx={{
+          width: { xs: '100%', md: `${splitRatioX}%` },
+          height: { xs: 'auto', md: '100%' },
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: 0,
+          overflow: 'hidden',
+          pr: { md: 0.5 },
+        }}
+      >
+        {/* Top: Document Metadata Card */}
         <Card
           sx={{
-            p: 2,
+            height: { xs: 'auto', md: `${splitRatioY}%` },
+            minHeight: { md: 160 },
             borderRadius: 2,
             border: (theme) => `1px solid ${theme.palette.divider}`,
             bgcolor: 'background.paper',
             display: 'flex',
             flexDirection: 'column',
-            gap: 1.5,
+            overflow: 'hidden',
+            boxShadow: (theme) => theme.shadows[1],
+            flexShrink: 0,
           }}
         >
+          {/* Card Header */}
           <Box
             sx={{
+              p: 1.5,
+              px: 2,
               display: 'flex',
               flexDirection: 'row',
               justifyContent: 'space-between',
               alignItems: 'center',
+              borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+              flexShrink: 0,
+              bgcolor: 'background.neutral',
             }}
           >
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-              문서 기본 정보 & 서식 설정
-            </Typography>
+            <Box>
+              <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+                문서 기본 정보 & 서식 설정
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                Word(.docx) 표지 및 메타데이터를 구성합니다.
+              </Typography>
+            </Box>
             <Button
               size="small"
-              variant="text"
+              variant="outlined"
+              color="inherit"
               startIcon={<RestartAltRoundedIcon fontSize="small" />}
               onClick={() => {
                 setMetadata(INITIAL_METADATA);
                 setSections(INITIAL_SECTIONS);
                 toast.info('초기 샘플 양식으로 복원되었습니다.');
               }}
-              sx={{ textTransform: 'none' }}
+              sx={{ textTransform: 'none', borderRadius: 1.5, fontSize: '0.75rem', py: 0.3 }}
             >
               초기화
             </Button>
           </Box>
 
-          <TextField
-            size="small"
-            label="문서 제목 (Title)"
-            value={metadata.title}
-            onChange={(e) => setMetadata({ ...metadata, title: e.target.value })}
-            fullWidth
-          />
+          {/* Form Scrollable Body */}
+          <Box
+            sx={{
+              p: 2,
+              flex: '1 1 auto',
+              minHeight: 0,
+              overflowY: 'auto',
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+              rowGap: 2.2,
+              columnGap: 2,
+              '&::-webkit-scrollbar': { width: 6 },
+              '&::-webkit-scrollbar-thumb': {
+                bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'grey.800' : 'grey.300'),
+                borderRadius: 3,
+              },
+            }}
+          >
+            <TextField
+              size="small"
+              label="문서 제목 (Title)"
+              value={metadata.title}
+              onChange={(e) => setMetadata({ ...metadata, title: e.target.value })}
+              fullWidth
+              sx={{ gridColumn: '1 / -1' }}
+            />
 
-          <TextField
-            size="small"
-            label="부제목 (Subtitle)"
-            value={metadata.subtitle}
-            onChange={(e) => setMetadata({ ...metadata, subtitle: e.target.value })}
-            fullWidth
-          />
+            <TextField
+              size="small"
+              label="부제목 (Subtitle)"
+              value={metadata.subtitle}
+              onChange={(e) => setMetadata({ ...metadata, subtitle: e.target.value })}
+              fullWidth
+              sx={{ gridColumn: '1 / -1' }}
+            />
 
-          <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1.5 }}>
             <TextField
               size="small"
               label="작성자 / 부서"
               value={metadata.author}
               onChange={(e) => setMetadata({ ...metadata, author: e.target.value })}
-              sx={{ flex: 1 }}
+              fullWidth
             />
+
             <TextField
               size="small"
               label="회사 / 기관명"
               value={metadata.company}
               onChange={(e) => setMetadata({ ...metadata, company: e.target.value })}
-              sx={{ flex: 1 }}
+              fullWidth
             />
-          </Box>
 
-          <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1.5 }}>
             <TextField
               size="small"
               label="작성 일자"
               value={metadata.date}
               onChange={(e) => setMetadata({ ...metadata, date: e.target.value })}
-              sx={{ flex: 1 }}
+              fullWidth
             />
+
             <TextField
               size="small"
               label="문서 버전"
               value={metadata.version}
               onChange={(e) => setMetadata({ ...metadata, version: e.target.value })}
-              sx={{ flex: 1 }}
+              fullWidth
+            />
+
+            <TextField
+              size="small"
+              label="머리글 (Header Text)"
+              value={metadata.headerText || ''}
+              onChange={(e) => setMetadata({ ...metadata, headerText: e.target.value })}
+              fullWidth
+            />
+
+            <TextField
+              size="small"
+              label="바닥글 (Footer Text)"
+              value={metadata.footerText || ''}
+              onChange={(e) => setMetadata({ ...metadata, footerText: e.target.value })}
+              fullWidth
             />
           </Box>
         </Card>
 
-        {/* Section List Card */}
+        {/* Vertical Height Resizer (Horizontal Divider) */}
+        <DocSplitResizer
+          direction="horizontal"
+          isDragging={isDraggingY}
+          onMouseDown={handleMouseDownY}
+          onDoubleClick={handleResetSplitY}
+          tooltipText="드래그하여 기본정보/본문섹션 높이 조절 (더블클릭 초기화)"
+        />
+
+        {/* Bottom: Section List Card */}
         <Card
           sx={{
-            p: 2,
+            height: { xs: 'auto', md: `calc(100% - ${splitRatioY}% - 8px)` },
+            minHeight: { md: 180 },
             borderRadius: 2,
             border: (theme) => `1px solid ${theme.palette.divider}`,
             bgcolor: 'background.paper',
             display: 'flex',
             flexDirection: 'column',
-            gap: 2,
+            overflow: 'hidden',
+            boxShadow: (theme) => theme.shadows[1],
+            flexGrow: 1,
           }}
         >
+          {/* Section Header & Toolbar */}
           <Box
             sx={{
+              p: 1.5,
+              px: 2,
               display: 'flex',
               flexDirection: 'row',
               justifyContent: 'space-between',
               alignItems: 'center',
               flexWrap: 'wrap',
               gap: 1,
+              borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+              flexShrink: 0,
+              bgcolor: 'background.neutral',
             }}
           >
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
               본문 섹션 편집기 ({sections.length}개 블록)
             </Typography>
 
             {/* Quick Add Section Buttons */}
-            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 0.8, flexWrap: 'wrap' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 0.6, flexWrap: 'wrap' }}>
               <Button
                 size="small"
                 variant="outlined"
-                startIcon={<TitleRoundedIcon fontSize="small" />}
+                startIcon={<TitleRoundedIcon sx={{ fontSize: 15 }} />}
                 onClick={() => handleAddSection('heading1')}
-                sx={{ textTransform: 'none', borderRadius: 1.5 }}
+                sx={{
+                  textTransform: 'none',
+                  borderRadius: 1.5,
+                  px: 1,
+                  py: 0.3,
+                  fontSize: '0.75rem',
+                }}
               >
                 대제목
               </Button>
               <Button
                 size="small"
                 variant="outlined"
-                startIcon={<TitleRoundedIcon sx={{ fontSize: 14 }} />}
+                startIcon={<TitleRoundedIcon sx={{ fontSize: 13 }} />}
                 onClick={() => handleAddSection('heading2')}
-                sx={{ textTransform: 'none', borderRadius: 1.5 }}
+                sx={{
+                  textTransform: 'none',
+                  borderRadius: 1.5,
+                  px: 1,
+                  py: 0.3,
+                  fontSize: '0.75rem',
+                }}
               >
                 소제목
               </Button>
               <Button
                 size="small"
                 variant="outlined"
-                startIcon={<AddRoundedIcon fontSize="small" />}
+                startIcon={<AddRoundedIcon sx={{ fontSize: 15 }} />}
                 onClick={() => handleAddSection('paragraph')}
-                sx={{ textTransform: 'none', borderRadius: 1.5 }}
+                sx={{
+                  textTransform: 'none',
+                  borderRadius: 1.5,
+                  px: 1,
+                  py: 0.3,
+                  fontSize: '0.75rem',
+                }}
               >
                 본문
               </Button>
               <Button
                 size="small"
                 variant="outlined"
-                startIcon={<FormatListBulletedRoundedIcon fontSize="small" />}
+                startIcon={<FormatListBulletedRoundedIcon sx={{ fontSize: 15 }} />}
                 onClick={() => handleAddSection('bullet')}
-                sx={{ textTransform: 'none', borderRadius: 1.5 }}
+                sx={{
+                  textTransform: 'none',
+                  borderRadius: 1.5,
+                  px: 1,
+                  py: 0.3,
+                  fontSize: '0.75rem',
+                }}
               >
                 글머리
               </Button>
               <Button
                 size="small"
                 variant="outlined"
-                startIcon={<TableChartRoundedIcon fontSize="small" />}
+                startIcon={<TableChartRoundedIcon sx={{ fontSize: 15 }} />}
                 onClick={() => handleAddSection('table')}
-                sx={{ textTransform: 'none', borderRadius: 1.5 }}
+                sx={{
+                  textTransform: 'none',
+                  borderRadius: 1.5,
+                  px: 1,
+                  py: 0.3,
+                  fontSize: '0.75rem',
+                }}
               >
-                표 (Table)
+                표
               </Button>
               <Button
                 size="small"
                 variant="outlined"
-                startIcon={<FormatQuoteRoundedIcon fontSize="small" />}
+                startIcon={<FormatQuoteRoundedIcon sx={{ fontSize: 15 }} />}
                 onClick={() => handleAddSection('callout')}
-                sx={{ textTransform: 'none', borderRadius: 1.5 }}
+                sx={{
+                  textTransform: 'none',
+                  borderRadius: 1.5,
+                  px: 1,
+                  py: 0.3,
+                  fontSize: '0.75rem',
+                }}
               >
-                강조상자
+                강조
               </Button>
             </Box>
           </Box>
 
-          {/* Section Items */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+          {/* Section Items Scrollable List */}
+          <Box
+            sx={{
+              p: 2,
+              flex: '1 1 auto',
+              minHeight: 0,
+              overflowY: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 1.5,
+              '&::-webkit-scrollbar': { width: 6 },
+              '&::-webkit-scrollbar-thumb': {
+                bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'grey.800' : 'grey.300'),
+                borderRadius: 3,
+              },
+            }}
+          >
             {sections.map((sec, idx) => (
               <Box
                 key={sec.id}
@@ -370,10 +622,12 @@ export function WordScratchEditor() {
                   p: 1.5,
                   borderRadius: 1.5,
                   border: (theme) => `1px solid ${theme.palette.divider}`,
-                  bgcolor: 'background.neutral',
+                  bgcolor: 'background.paper',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 1,
+                  gap: 1.2,
+                  transition: 'border-color 0.15s ease',
+                  '&:hover': { borderColor: 'primary.main' },
                 }}
               >
                 <Box
@@ -385,7 +639,7 @@ export function WordScratchEditor() {
                   }}
                 >
                   <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>
+                    <Typography variant="caption" sx={{ fontWeight: 800, color: 'primary.main' }}>
                       #{idx + 1}
                     </Typography>
                     <Select
@@ -396,7 +650,7 @@ export function WordScratchEditor() {
                           type: e.target.value as WordDocSection['type'],
                         })
                       }
-                      sx={{ height: 32, fontSize: '0.8rem', fontWeight: 600 }}
+                      sx={{ height: 28, fontSize: '0.78rem', fontWeight: 600 }}
                     >
                       <MenuItem value="heading1">대제목 (H1)</MenuItem>
                       <MenuItem value="heading2">소제목 (H2)</MenuItem>
@@ -410,20 +664,20 @@ export function WordScratchEditor() {
                   <IconButton
                     size="small"
                     onClick={() => handleRemoveSection(sec.id)}
-                    sx={{ color: 'text.secondary' }}
+                    sx={{ color: 'text.secondary', p: 0.5 }}
                   >
-                    <DeleteOutlineRoundedIcon fontSize="small" />
+                    <DeleteOutlineRoundedIcon sx={{ fontSize: 18 }} />
                   </IconButton>
                 </Box>
 
                 {sec.type === 'table' ? (
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.8 }}>
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      표 데이터 (콤마 또는 탭으로 구분된 행):
+                      표 데이터 (각 열은 | 기호로 구분):
                     </Typography>
                     <TextField
                       multiline
-                      rows={4}
+                      rows={3}
                       fullWidth
                       size="small"
                       value={sec.tableData?.map((r) => r.join(' | ')).join('\n') || ''}
@@ -434,14 +688,14 @@ export function WordScratchEditor() {
                         handleUpdateSection(sec.id, { tableData: rows });
                       }}
                       slotProps={{
-                        input: { sx: { fontFamily: 'monospace', fontSize: '0.85rem' } },
+                        input: { sx: { fontFamily: 'monospace', fontSize: '0.82rem' } },
                       }}
                     />
                   </Box>
                 ) : (
                   <TextField
                     multiline={sec.type === 'paragraph' || sec.type === 'callout'}
-                    rows={sec.type === 'paragraph' ? 3 : 2}
+                    rows={sec.type === 'paragraph' ? 3 : sec.type === 'callout' ? 2 : 1}
                     fullWidth
                     size="small"
                     value={sec.content}
@@ -454,17 +708,39 @@ export function WordScratchEditor() {
         </Card>
       </Box>
 
-      {/* Right Column: Live A4 Paper Preview & Export Button */}
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      {/* Horizontal Width Resizer (Vertical Divider) */}
+      <DocSplitResizer
+        direction="vertical"
+        isDragging={isDraggingX}
+        onMouseDown={handleMouseDownX}
+        onDoubleClick={handleResetSplitX}
+        tooltipText="드래그하여 편집기 / A4 미리보기 너비 조절 (더블클릭 초기화)"
+      />
+
+      {/* 2. Right Column: Live A4 Paper Preview & Export Button */}
+      <Box
+        sx={{
+          width: { xs: '100%', md: `calc(100% - ${splitRatioX}% - 8px)` },
+          height: { xs: 'auto', md: '100%' },
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: 0,
+          overflow: 'hidden',
+          pl: { md: 0.5 },
+        }}
+      >
+        {/* Preview Header Bar */}
         <Box
           sx={{
             display: 'flex',
             flexDirection: 'row',
             justifyContent: 'space-between',
             alignItems: 'center',
+            mb: 1.5,
+            flexShrink: 0,
           }}
         >
-          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
             실시간 A4 문서 미리보기 (Preview)
           </Typography>
           <Button
@@ -473,7 +749,7 @@ export function WordScratchEditor() {
             startIcon={<FileDownloadRoundedIcon />}
             onClick={handleDownloadDocx}
             disabled={isGenerating}
-            sx={{ fontWeight: 700, borderRadius: 1.5, px: 2.5 }}
+            sx={{ fontWeight: 700, borderRadius: 1.5, px: 2.5, fontSize: '0.85rem' }}
           >
             {isGenerating ? '생성 중...' : 'Word (.docx) 다운로드'}
           </Button>
@@ -482,13 +758,20 @@ export function WordScratchEditor() {
         {/* Paper Container */}
         <Box
           sx={{
-            flexGrow: 1,
+            flex: '1 1 auto',
+            minHeight: 0,
             bgcolor: (theme) => (theme.palette.mode === 'dark' ? '#0f172a' : '#cbd5e1'),
             p: { xs: 1.5, md: 3 },
             borderRadius: 2,
             overflowY: 'auto',
             display: 'flex',
             justifyContent: 'center',
+            alignItems: 'flex-start',
+            '&::-webkit-scrollbar': { width: 8 },
+            '&::-webkit-scrollbar-thumb': {
+              bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'grey.700' : 'grey.400'),
+              borderRadius: 4,
+            },
           }}
         >
           {/* A4 Paper Mockup */}
@@ -497,6 +780,7 @@ export function WordScratchEditor() {
               width: '100%',
               maxWidth: 700,
               minHeight: 850,
+              height: 'fit-content',
               bgcolor: '#ffffff',
               color: '#1e293b',
               p: { xs: 3, md: 5 },
@@ -507,6 +791,9 @@ export function WordScratchEditor() {
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
+              alignSelf: 'flex-start',
+              mb: 4,
+              flexShrink: 0,
             }}
           >
             {/* Header */}

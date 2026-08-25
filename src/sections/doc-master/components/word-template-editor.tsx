@@ -120,13 +120,14 @@ export function WordTemplateEditor() {
         {/* Dynamic Variable Input Form */}
         <Card
           sx={{
-            p: 2,
+            p: 2.5,
             borderRadius: 2,
             border: (theme) => `1px solid ${theme.palette.divider}`,
             bgcolor: 'background.paper',
             display: 'flex',
             flexDirection: 'column',
-            gap: 1.5,
+            gap: 2,
+            boxShadow: (theme) => theme.shadows[1],
           }}
         >
           <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 1 }}>
@@ -136,22 +137,24 @@ export function WordTemplateEditor() {
             </Typography>
           </Box>
 
-          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+          <Typography variant="caption" sx={{ color: 'text.secondary', mt: -1 }}>
             입력된 값이 문서 내 {`{태그}`}에 실시간으로 반영됩니다.
           </Typography>
 
-          {activeTemplate.fields.map((field) => (
-            <TextField
-              key={field.key}
-              size="small"
-              label={field.label}
-              multiline={field.type === 'textarea'}
-              rows={field.type === 'textarea' ? 3 : 1}
-              value={formData[field.key] || ''}
-              onChange={(e) => handleFieldChange(field.key, e.target.value)}
-              fullWidth
-            />
-          ))}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {activeTemplate.fields.map((field) => (
+              <TextField
+                key={field.key}
+                size="small"
+                label={field.label}
+                multiline={field.type === 'textarea'}
+                rows={field.type === 'textarea' ? 3 : 1}
+                value={formData[field.key] || ''}
+                onChange={(e) => handleFieldChange(field.key, e.target.value)}
+                fullWidth
+              />
+            ))}
+          </Box>
         </Card>
       </Box>
 
@@ -191,6 +194,12 @@ export function WordTemplateEditor() {
             overflowY: 'auto',
             display: 'flex',
             justifyContent: 'center',
+            alignItems: 'flex-start',
+            '&::-webkit-scrollbar': { width: 8 },
+            '&::-webkit-scrollbar-thumb': {
+              bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'grey.700' : 'grey.400'),
+              borderRadius: 4,
+            },
           }}
         >
           <Box
@@ -198,6 +207,7 @@ export function WordTemplateEditor() {
               width: '100%',
               maxWidth: 700,
               minHeight: 800,
+              height: 'fit-content',
               bgcolor: '#ffffff',
               color: '#1e293b',
               p: { xs: 3, md: 5 },
@@ -206,6 +216,9 @@ export function WordTemplateEditor() {
               fontFamily: '"Pretendard", -apple-system, sans-serif',
               lineHeight: 1.8,
               whiteSpace: 'pre-wrap',
+              alignSelf: 'flex-start',
+              mb: 4,
+              flexShrink: 0,
             }}
           >
             {renderedPreviewText}

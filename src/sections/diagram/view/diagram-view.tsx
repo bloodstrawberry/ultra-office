@@ -12,7 +12,6 @@ import Typography from '@mui/material/Typography';
 import StorageRoundedIcon from '@mui/icons-material/StorageRounded';
 import FunctionsRoundedIcon from '@mui/icons-material/FunctionsRounded';
 import ShowChartRoundedIcon from '@mui/icons-material/ShowChartRounded';
-import DescriptionRoundedIcon from '@mui/icons-material/DescriptionRounded';
 import AccountTreeRoundedIcon from '@mui/icons-material/AccountTreeRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
@@ -20,7 +19,6 @@ import { DashboardContent } from 'src/layouts/dashboard';
 import { ErdStudio } from '../components/erd-studio';
 import { MathStudio } from '../components/math-studio';
 import { ChartStudio } from '../components/chart-studio';
-import { MarkdownStudio } from '../components/markdown-studio';
 
 const OrgChartStudio = dynamic(
   () => import('../components/org-chart-studio').then((mod) => mod.OrgChartStudio),
@@ -48,10 +46,10 @@ export function DiagramView() {
       >
         <Box>
           <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.3 }}>
-            다이어그램 & 문서 스튜디오 (Diagram, Math & Doc Studio)
+            다이어그램 스튜디오 (Diagram, Math & ERD Studio)
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            수식(LaTeX), 그래프(차트), 마크다운, 데이터베이스 ERD를 손쉽게 작성하고 실전 예시를
+            수식(LaTeX), 그래프(차트), 데이터베이스 ERD, 조직도를 손쉽게 작성하고 실전 예시를
             활용합니다.
           </Typography>
         </Box>
@@ -102,12 +100,6 @@ export function DiagramView() {
               iconPosition="start"
             />
             <Tab
-              value="markdown"
-              label="마크다운"
-              icon={<DescriptionRoundedIcon sx={{ fontSize: 18 }} />}
-              iconPosition="start"
-            />
-            <Tab
               value="orgChart"
               label="조직도 & 마인드맵"
               icon={<AccountTreeRoundedIcon sx={{ fontSize: 18 }} />}
@@ -129,7 +121,6 @@ export function DiagramView() {
         {currentTab === 'erd' && <ErdStudio />}
         {currentTab === 'math' && <MathStudio />}
         {currentTab === 'chart' && <ChartStudio />}
-        {currentTab === 'markdown' && <MarkdownStudio />}
         {currentTab === 'orgChart' && <OrgChartStudio />}
       </Box>
     </DashboardContent>

@@ -20,7 +20,9 @@ import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded';
 import TableViewRoundedIcon from '@mui/icons-material/TableViewRounded';
 import FunctionsRoundedIcon from '@mui/icons-material/FunctionsRounded';
 import DataArrayRoundedIcon from '@mui/icons-material/DataArrayRounded';
+import SlideshowRoundedIcon from '@mui/icons-material/SlideshowRounded';
 import TextFieldsRoundedIcon from '@mui/icons-material/TextFieldsRounded';
+import WorkspacesRoundedIcon from '@mui/icons-material/WorkspacesRounded';
 import AccountTreeRoundedIcon from '@mui/icons-material/AccountTreeRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import PhotoFilterRoundedIcon from '@mui/icons-material/PhotoFilterRounded';
@@ -60,7 +62,10 @@ const ICONS = {
   barcode: <QrCodeScannerRoundedIcon fontSize="small" />,
   mathGraph: <FunctionsRoundedIcon fontSize="small" />,
   docMaster: <DescriptionRoundedIcon fontSize="small" />,
+  powerpoint: <SlideshowRoundedIcon fontSize="small" />,
   hwpMaster: <ArticleRoundedIcon fontSize="small" />,
+  markdown: <DescriptionRoundedIcon fontSize="small" />,
+  office365: <WorkspacesRoundedIcon fontSize="small" />,
   stampStudio: <ApprovalRoundedIcon fontSize="small" />,
   screenRecorder: <VideocamRoundedIcon fontSize="small" />,
   videoMaster: <MovieCreationRoundedIcon fontSize="small" />,
@@ -131,6 +136,18 @@ export const navData: NavSectionProps['data'] = [
         ],
       },
       {
+        title: '오피스 365',
+        path: paths.docMaster,
+        icon: ICONS.office365,
+        children: [
+          { title: '워드 (Word Processor)', path: paths.docMaster },
+          { title: '파워 포인트 (Power Point)', path: paths.powerpoint },
+          { title: '스프레드시트 (Excel)', path: paths.spreadsheet },
+          { title: '마크다운', path: paths.markdown },
+          { title: '한글 파일 문서', path: paths.hwpMaster },
+        ],
+      },
+      {
         title: '개발자 도구',
         path: paths.devTools,
         icon: ICONS.devTools,
@@ -165,11 +182,13 @@ export const navData: NavSectionProps['data'] = [
   {
     subheader: 'Document & Data',
     items: [
-      { title: '한글 문서 마스터 (HWP · HWPX)', path: paths.hwpMaster, icon: ICONS.hwpMaster },
-      { title: '문서 마스터 (Word · PPT)', path: paths.docMaster, icon: ICONS.docMaster },
+      { title: '한글 파일 문서', path: paths.hwpMaster, icon: ICONS.hwpMaster },
+      { title: '워드 (Word Processor)', path: paths.docMaster, icon: ICONS.docMaster },
+      { title: '파워 포인트 (Power Point)', path: paths.powerpoint, icon: ICONS.powerpoint },
+      { title: '마크다운 스튜디오', path: paths.markdown, icon: ICONS.markdown },
       { title: '대용량 로그 & CSV 뷰어', path: paths.gigaViewer, icon: ICONS.gigaViewer },
       { title: '수식 그래프 시각화', path: paths.mathGraph, icon: ICONS.mathGraph },
-      { title: '스프레드시트', path: paths.spreadsheet, icon: ICONS.spreadsheet },
+      { title: '스프레드시트 (Excel)', path: paths.spreadsheet, icon: ICONS.spreadsheet },
       { title: '데이터 & 코드 비교', path: paths.compare, icon: ICONS.compare },
       {
         title: '텍스트 도구',
@@ -226,7 +245,7 @@ export const navData: NavSectionProps['data'] = [
         path: paths.screenRecorder,
         icon: ICONS.screenRecorder,
       },
-      { title: '다이어그램 & 문서', path: paths.diagram, icon: ICONS.diagram },
+      { title: '다이어그램', path: paths.diagram, icon: ICONS.diagram },
       { title: '이미지 툴킷', path: paths.imageTool, icon: ICONS.imageTool },
     ],
   },

@@ -2,7 +2,7 @@
 // Types for Math, Chart, Markdown, ERD and Org Chart Studio
 // ----------------------------------------------------------------------
 
-export type StudioTab = 'erd' | 'math' | 'chart' | 'markdown' | 'orgChart';
+export type StudioTab = 'erd' | 'math' | 'chart' | 'orgChart';
 
 // ----------------------------------------------------------------------
 // 1. Math / LaTeX Types

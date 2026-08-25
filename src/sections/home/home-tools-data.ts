@@ -108,8 +108,29 @@ export const TOOLS_DATA: ToolItem[] = [
 
   // 2. Document & Data
   {
+    id: 'docMaster',
+    title: '워드 (Word Processor)',
+    subtitle: 'Word 맞춤 작성, 템플릿 치환 & 대량 일괄 생성',
+    description:
+      '설치 없이 브라우저에서 워드(.docx) 문서를 작성하고, 템플릿 데이터 치환 및 100% 호환 뷰어를 제공합니다.',
+    category: 'data',
+    path: paths.docMaster,
+    tag: '문서 필수',
+    tagColor: 'primary',
+    isFeatured: true,
+    featuredRank: 2,
+    accentColor: '#2563EB', // Blue
+    iconKey: 'docMaster',
+    features: [
+      'Word (.docx) 실시간 작성 및 다운로드',
+      '표준 계약서/재직증명서 템플릿 치환',
+      'Mammoth 기반 무설치 Word 뷰어',
+      '수백 건 대량 일괄 ZIP 생성',
+    ],
+  },
+  {
     id: 'spreadsheet',
-    title: '스프레드시트',
+    title: '스프레드시트 (Excel)',
     subtitle: '웹 기반 올인원 엑셀 & 데이터 시트',
     description:
       '설치 없이 브라우저에서 엑셀(XLSX, CSV) 파일을 열고 편집하며, 풍부한 수식과 필터를 지원합니다.',
@@ -118,7 +139,7 @@ export const TOOLS_DATA: ToolItem[] = [
     tag: '업무 필수',
     tagColor: 'success',
     isFeatured: true,
-    featuredRank: 2,
+    featuredRank: 3,
     accentColor: '#10B981', // Emerald
     iconKey: 'spreadsheet',
     features: [
@@ -220,11 +241,51 @@ export const TOOLS_DATA: ToolItem[] = [
 
   // 4. Media & Design
   {
-    id: 'diagram',
-    title: '다이어그램 & 문서 스튜디오',
-    subtitle: '수식, 그래프, 마크다운 & ERD 올인원 스튜디오',
+    id: 'markdown',
+    title: '마크다운 스튜디오',
+    subtitle: '실시간 마크다운 에디터 & GFM 뷰어',
     description:
-      'LaTeX 수식 렌더러, 비즈니스 차트, 실무 마크다운 문서 및 데이터베이스 ERD 관계도를 실시간으로 작성하고 시각화합니다.',
+      '기획서(PRD), API 명세, 회의록, README 등 실무 마크다운 문서를 작성하고 실시간 미리보기를 제공합니다.',
+    category: 'data',
+    path: paths.markdown,
+    tag: '문서 필수',
+    tagColor: 'info',
+    isFeatured: false,
+    accentColor: '#3B82F6', // Blue
+    iconKey: 'docMaster',
+    features: [
+      '실무 마크다운 템플릿 5종',
+      'GFM 표/체크리스트/코드 하이라이트',
+      '실시간 분할 뷰 미리보기',
+      '.md 파일 내보내기 & 클립보드 복사',
+    ],
+  },
+  {
+    id: 'powerpoint',
+    title: '파워 포인트 (Power Point)',
+    subtitle: '16:9 프레젠테이션 & 차트 슬라이드 생성',
+    description:
+      '브라우저에서 16:9 프레젠테이션 슬라이드를 기획하고, 네이티브 차트 및 마스터 서식이 적용된 PPTX 파일로 즉시 다운로드합니다.',
+    category: 'data',
+    path: paths.powerpoint,
+    tag: '발표 필수',
+    tagColor: 'error',
+    isFeatured: false,
+    accentColor: '#EF4444', // Red
+    iconKey: 'docMaster',
+    features: [
+      '16:9 슬라이드 캔버스 실시간 편집',
+      'KPI 카드, 막대/원형 차트, 타임라인 레이아웃',
+      '4가지 모던 프레젠테이션 테마',
+      'PowerPoint (.pptx) 네이티브 파일 다운로드',
+    ],
+  },
+  {
+    id: 'diagram',
+    title: '다이어그램 스튜디오',
+    subtitle: '수식, 그래프, ERD & 조직도 스튜디오',
+    description:
+      'LaTeX 수식 렌더러, 비즈니스 차트, 데이터베이스 ERD 관계도 및 인터랙티브 조직도를 실시간으로 작성하고 시각화합니다.',
     category: 'media',
     path: paths.diagram,
     tag: '올인원 스튜디오',
@@ -237,7 +298,7 @@ export const TOOLS_DATA: ToolItem[] = [
       '수식(LaTeX) 10종 공식 & 렌더링',
       '인터랙티브 비즈니스 그래프 & 차트',
       '데이터베이스 ERD & SQL DDL 생성',
-      '실무 마크다운 에디터 & 템플릿',
+      '조직도 & 마인드맵 인터랙티브 캔버스',
     ],
   },
   {
@@ -405,7 +466,7 @@ export const TOOLS_DATA: ToolItem[] = [
   },
   {
     id: 'hwpMaster',
-    title: '한글 문서 마스터 (HWP · HWPX)',
+    title: '한글 파일 문서',
     subtitle: '무설치 한글 공문서 뷰어 & 데이터 추출기',
     description:
       '설치 프로그램 없이 HWP/HWPX 공문서를 브라우저에서 즉시 열람하고 텍스트, 표(Excel), 이미지를 완벽 추출합니다.',

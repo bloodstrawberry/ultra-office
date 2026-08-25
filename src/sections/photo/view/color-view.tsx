@@ -608,9 +608,37 @@ export function ColorView() {
                 value={mode}
                 exclusive
                 onChange={(_, v) => v && setMode(v)}
-                fullWidth
                 size="small"
-                sx={{ mb: 2 }}
+                sx={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 1,
+                  p: 0,
+                  border: 'none',
+                  bgcolor: 'transparent',
+                  height: 'auto',
+                  minHeight: 'auto',
+                  mb: 2,
+                  '& .MuiToggleButtonGroup-grouped': {
+                    flex: '1 1 auto',
+                    whiteSpace: 'nowrap',
+                    borderRadius: '8px !important',
+                    border: '1px solid !important',
+                    borderColor: 'divider !important',
+                    px: 1.5,
+                    py: 1,
+                    minHeight: 38,
+                    fontSize: '0.8125rem',
+                    fontWeight: 600,
+                    m: '0 !important',
+                    '&.Mui-selected': {
+                      bgcolor: 'action.selected',
+                      borderColor: 'primary.main !important',
+                      color: 'primary.main',
+                      fontWeight: 700,
+                    },
+                  },
+                }}
               >
                 <ToggleButton value="erase">
                   <InvertColorsRoundedIcon sx={{ mr: 0.5, fontSize: 18 }} /> 투명화 지우개

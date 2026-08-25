@@ -7,8 +7,6 @@ import React from 'react';
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
-import EditNoteRoundedIcon from '@mui/icons-material/EditNoteRounded';
-import SlideshowRoundedIcon from '@mui/icons-material/SlideshowRounded';
 import FolderZipRoundedIcon from '@mui/icons-material/FolderZipRounded';
 import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
 import DescriptionRoundedIcon from '@mui/icons-material/DescriptionRounded';
@@ -72,18 +70,6 @@ export function DocSwitcherHeader({ currentTab, onChangeTab }: DocSwitcherHeader
           value="word-viewer"
           label="Word 뷰어 (Mammoth)"
           icon={<VisibilityRoundedIcon fontSize="small" />}
-          iconPosition="start"
-        />
-        <Tab
-          value="pptx-studio"
-          label="PowerPoint 슬라이드 (Pptx)"
-          icon={<SlideshowRoundedIcon fontSize="small" />}
-          iconPosition="start"
-        />
-        <Tab
-          value="markdown-studio"
-          label="마크다운 & 노트 (KaTeX)"
-          icon={<EditNoteRoundedIcon fontSize="small" />}
           iconPosition="start"
         />
         <Tab

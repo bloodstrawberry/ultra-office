@@ -204,7 +204,7 @@ export function SpreadsheetView() {
     <DashboardContent>
       <Box sx={{ mb: 2, flexShrink: 0 }}>
         <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
-          스마트 스프레드시트 (Enterprise Spreadsheet)
+          스프레드시트 (Excel)
         </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
           FortuneSheet 기반 초고속 캔버스 렌더링, 4대 실무 템플릿, 엑셀/CSV 양방향 가져오기 및
