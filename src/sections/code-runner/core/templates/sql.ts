@@ -3,6 +3,7 @@ import type { CodeTemplate } from '../../types';
 // ----------------------------------------------------------------------
 
 export const SQL_TEMPLATES: CodeTemplate[] = [
+  // --- [Part 1: SQL 기본 문법 및 조인 10선] ---
   {
     id: 'sql-01-create-table',
     title: '01. DDL 테이블 생성 & 제약조건',
@@ -38,298 +39,699 @@ SELECT * FROM employees;
     category: 'Database & SQL',
     language: 'sql',
     engine: 'sql',
-    description: '여러 행(Row)을 한 번에 삽입하고 전체 목록 확인',
+    description: 'INSERT INTO 다중 행 일괄 삽입 및 데이터 확인',
     mainFile: 'queries.sql',
-    tags: ['SQL', 'DML', 'INSERT INTO', 'Rows'],
+    tags: ['SQL', 'DML', 'INSERT'],
     files: {
       'queries.sql': `-- ==========================================
--- 🗄️ [02] SQL: 다중 행 INSERT
+-- 🗄️ [02] SQL: 다중 데이터 삽입
 -- ==========================================
 
 CREATE TABLE products (
-    code VARCHAR(10) PRIMARY KEY,
-    title VARCHAR(100),
+    id INT PRIMARY KEY,
+    name VARCHAR(50),
     price INT,
     stock INT
 );
 
-INSERT INTO products VALUES
-('KB-01', '기계식 키보드', 150000, 25),
-('MS-02', '무선 마우스', 65000, 50),
-('MN-03', '4K 모니터', 550000, 10),
-('HP-04', '노이즈캔슬링 헤드폰', 320000, 15);
+INSERT INTO products VALUES 
+(1, '노트북 Pro 16', 2400000, 15),
+(2, '무선 기계식 키보드', 159000, 42),
+(3, '4K 모니터 32인치', 580000, 8),
+(4, '인체공학 마우스', 89000, 30);
 
 SELECT * FROM products;
 `,
     },
   },
   {
-    id: 'sql-03-where-like',
-    title: '03. 조건 조회 (WHERE, LIKE, IN)',
+    id: 'sql-03-where-filtering',
+    title: '03. 조건절 필터링 (WHERE, LIKE, IN)',
     category: 'Database & SQL',
     language: 'sql',
     engine: 'sql',
-    description: '문자열 패턴 검색(LIKE) 및 다중 값 매칭(IN) 필터링',
+    description: 'WHERE 조건 연산자, BETWEEN, IN, LIKE 와일드카드 패턴 검색',
     mainFile: 'queries.sql',
-    tags: ['SQL', 'WHERE', 'LIKE', 'IN', 'Filter'],
+    tags: ['SQL', 'WHERE', 'LIKE', 'Filtering'],
     files: {
       'queries.sql': `-- ==========================================
--- 🗄️ [03] SQL: WHERE & LIKE 검색
+-- 🗄️ [03] SQL: WHERE 조건 필터링
 -- ==========================================
 
 CREATE TABLE users (
-    id INT,
-    name VARCHAR(50),
+    id INT PRIMARY KEY,
     email VARCHAR(100),
-    city VARCHAR(50)
+    city VARCHAR(50),
+    age INT
 );
 
 INSERT INTO users VALUES
-(1, '홍길동', 'gildong@gmail.com', 'Seoul'),
-(2, '김철수', 'chulsoo@naver.com', 'Busan'),
-(3, '이영희', 'younghee@gmail.com', 'Seoul'),
-(4, '박지훈', 'jihoon@daum.net', 'Incheon');
+(1, 'alice@google.com', 'Seoul', 28),
+(2, 'bob@kakao.com', 'Busan', 34),
+(3, 'charlie@google.com', 'Seoul', 22),
+(4, 'david@naver.com', 'Incheon', 41),
+(5, 'eve@google.com', 'Seoul', 31);
 
--- 1. 서울 거주자 조회
-SELECT * FROM users WHERE city = 'Seoul';
-
--- 2. gmail 사용자 검색 (LIKE)
-SELECT name, email FROM users WHERE email LIKE '%@gmail.com';
+-- 서울 거주 & google.com 이메일 사용자 조회
+SELECT * FROM users
+WHERE city = 'Seoul' AND email LIKE '%@google.com' AND age >= 25;
 `,
     },
   },
   {
     id: 'sql-04-order-limit',
-    title: '04. 정렬 & 페이징 (ORDER BY, LIMIT)',
+    title: '04. 정렬 및 페이징 (ORDER BY, LIMIT, OFFSET)',
     category: 'Database & SQL',
     language: 'sql',
     engine: 'sql',
-    description: '내림차순(DESC) 정렬 및 상위 N개 레코드 페이징',
+    description: '다중 컬럼 정렬(ASC/DESC) 및 LIMIT/OFFSET 페이징',
     mainFile: 'queries.sql',
-    tags: ['SQL', 'ORDER BY', 'LIMIT', 'OFFSET', 'Pagination'],
+    tags: ['SQL', 'ORDER BY', 'LIMIT', 'Pagination'],
     files: {
       'queries.sql': `-- ==========================================
--- 🗄️ [04] SQL: ORDER BY & LIMIT
+-- 🗄️ [04] SQL: 정렬과 페이징
 -- ==========================================
 
 CREATE TABLE scores (
-    player VARCHAR(50),
+    student VARCHAR(50),
+    subject VARCHAR(50),
     score INT
 );
 
 INSERT INTO scores VALUES
-('Alpha', 950), ('Bravo', 1200), ('Charlie', 880), ('Delta', 1450), ('Echo', 1100);
+('철수', '수학', 95), ('영희', '수학', 98), ('민수', '수학', 82),
+('지훈', '수학', 91), ('수진', '수학', 88), ('유진', '수학', 100);
 
--- 상위 3명 랭킹 조회
-SELECT player, score FROM scores ORDER BY score DESC LIMIT 3;
+-- 수학 점수 상위 3명 조회 (내림차순)
+SELECT * FROM scores
+ORDER BY score DESC
+LIMIT 3;
 `,
     },
   },
   {
-    id: 'sql-05-aggregate',
-    title: '05. 집계 함수 (COUNT, SUM, AVG, MAX)',
+    id: 'sql-05-aggregate-functions',
+    title: '05. 집계 함수 (COUNT, SUM, AVG, MIN, MAX)',
     category: 'Database & SQL',
     language: 'sql',
     engine: 'sql',
-    description: '수치 데이터의 총합, 평균, 최댓값, 최솟값 집계',
+    description: '전체 데이터 통계 요약 및 집계 함수 산출',
     mainFile: 'queries.sql',
-    tags: ['SQL', 'COUNT', 'SUM', 'AVG', 'MAX', 'Aggregate'],
+    tags: ['SQL', 'Aggregate', 'SUM', 'AVG', 'COUNT'],
     files: {
       'queries.sql': `-- ==========================================
 -- 🗄️ [05] SQL: 집계 함수
 -- ==========================================
 
 CREATE TABLE sales (
-    sale_id INT,
-    amount INT
+    id INT PRIMARY KEY,
+    item VARCHAR(50),
+    amount INT,
+    qty INT
 );
 
-INSERT INTO sales VALUES (1, 120000), (2, 450000), (3, 300000), (4, 850000), (5, 210000);
+INSERT INTO sales VALUES
+(1, '아메리카노', 4500, 120),
+(2, '카페라떼', 5000, 85),
+(3, '바닐라라떼', 5500, 60),
+(4, '크루아상', 3800, 45);
 
 SELECT 
-    COUNT(*) AS 총판매건수,
-    SUM(amount) AS 총매출액,
-    AVG(amount) AS 평균매출액,
-    MAX(amount) AS 최고매출,
-    MIN(amount) AS 최저매출
+    COUNT(*) AS total_items,
+    SUM(amount * qty) AS total_revenue,
+    AVG(amount) AS avg_item_price,
+    MAX(amount) AS max_price,
+    MIN(amount) AS min_price
 FROM sales;
 `,
     },
   },
   {
-    id: 'sql-06-groupby-having',
-    title: '06. 그룹화 & 필터링 (GROUP BY & HAVING)',
+    id: 'sql-06-group-by-having',
+    title: '06. 그룹화 및 조건 (GROUP BY & HAVING)',
     category: 'Database & SQL',
     language: 'sql',
     engine: 'sql',
-    description: '부서별 인원 및 평균 급여 계산, HAVING 조건부 필터',
+    description: 'GROUP BY 카테고리 집계 및 HAVING 조건절',
     mainFile: 'queries.sql',
-    tags: ['SQL', 'GROUP BY', 'HAVING', 'Analytics'],
+    tags: ['SQL', 'GROUP BY', 'HAVING'],
     files: {
       'queries.sql': `-- ==========================================
 -- 🗄️ [06] SQL: GROUP BY & HAVING
 -- ==========================================
 
-CREATE TABLE team (
-    name VARCHAR(50),
-    dept VARCHAR(50),
+CREATE TABLE employees (
+    id INT,
+    department VARCHAR(50),
     salary INT
 );
 
-INSERT INTO team VALUES
-('Alice', 'Dev', 6000), ('Bob', 'Dev', 8000), ('Charlie', 'Dev', 7000),
-('Diana', 'Design', 5000), ('Ethan', 'Design', 5500),
-('Fiona', 'Marketing', 4500);
+INSERT INTO employees VALUES
+(1, '개발팀', 7000), (2, '개발팀', 6500), (3, '개발팀', 8000),
+(4, '디자인팀', 5000), (5, '디자인팀', 5500),
+(6, '마케팅팀', 4500), (7, '마케팅팀', 4800), (8, '마케팅팀', 5200);
 
+-- 부서별 평균 연봉이 5500 이상인 부서만 조회
 SELECT 
-    dept AS 부서명,
-    COUNT(*) AS 인원수,
-    AVG(salary) AS 평균급여
-FROM team
-GROUP BY dept
-HAVING AVG(salary) >= 5000;
+    department,
+    COUNT(*) AS employee_count,
+    AVG(salary) AS avg_salary,
+    SUM(salary) AS total_salary
+FROM employees
+GROUP BY department
+HAVING AVG(salary) >= 5500
+ORDER BY avg_salary DESC;
 `,
     },
   },
   {
     id: 'sql-07-inner-join',
-    title: '07. 내부 조인 (INNER JOIN) 관계 결합',
+    title: '07. 내부 조인 (INNER JOIN 1:N 관계)',
     category: 'Database & SQL',
     language: 'sql',
     engine: 'sql',
-    description: '고객(Customers) 테이블과 주문(Orders) 테이블의 키 조인',
+    description: '주문 테이블과 고객 테이블 INNER JOIN 관계형 조회',
     mainFile: 'queries.sql',
-    tags: ['SQL', 'INNER JOIN', 'Relational', 'Foreign Key'],
+    tags: ['SQL', 'JOIN', 'INNER JOIN', 'Relational'],
     files: {
       'queries.sql': `-- ==========================================
 -- 🗄️ [07] SQL: INNER JOIN
 -- ==========================================
 
 CREATE TABLE customers (
+    cust_id INT PRIMARY KEY,
+    cust_name VARCHAR(50),
+    city VARCHAR(50)
+);
+
+CREATE TABLE orders (
+    order_id INT PRIMARY KEY,
+    cust_id INT,
+    order_date DATE,
+    total_amount INT
+);
+
+INSERT INTO customers VALUES (1, '홍길동', '서울'), (2, '이순신', '부산'), (3, '강감찬', '인천');
+INSERT INTO orders VALUES (101, 1, '2026-08-01', 150000), (102, 1, '2026-08-05', 80000), (103, 2, '2026-08-10', 320000);
+
+SELECT 
+    o.order_id,
+    c.cust_name,
+    c.city,
+    o.order_date,
+    o.total_amount
+FROM orders o
+INNER JOIN customers c ON o.cust_id = c.cust_id;
+`,
+    },
+  },
+  {
+    id: 'sql-08-left-join-null',
+    title: '08. 외부 조인 (LEFT JOIN & IS NULL 탐색)',
+    category: 'Database & SQL',
+    language: 'sql',
+    engine: 'sql',
+    description: 'LEFT OUTER JOIN을 활용한 주문 없는 고객(미구매 고객) 추출',
+    mainFile: 'queries.sql',
+    tags: ['SQL', 'LEFT JOIN', 'IS NULL', 'Outer Join'],
+    files: {
+      'queries.sql': `-- ==========================================
+-- 🗄️ [08] SQL: LEFT JOIN & IS NULL
+-- ==========================================
+
+CREATE TABLE members (
     id INT PRIMARY KEY,
     name VARCHAR(50)
 );
 
-CREATE TABLE orders (
-    order_id INT,
-    customer_id INT,
-    item VARCHAR(100),
-    price INT
-);
-
-INSERT INTO customers VALUES (1, '김철수'), (2, '이영희'), (3, '박민수');
-INSERT INTO orders VALUES (101, 1, 'MacBook', 2500000), (102, 1, 'Mouse', 65000), (103, 2, 'Monitor', 450000);
-
-SELECT 
-    o.order_id,
-    c.name AS 고객명,
-    o.item AS 주문상품,
-    o.price AS 결제금액
-FROM orders o
-INNER JOIN customers c ON o.customer_id = c.id;
-`,
-    },
-  },
-  {
-    id: 'sql-08-left-join',
-    title: '08. 외부 조인 (LEFT JOIN) 누락 분석',
-    category: 'Database & SQL',
-    language: 'sql',
-    engine: 'sql',
-    description: '주문 이력이 없는 고객을 포함한 전체 고객 현황 분석',
-    mainFile: 'queries.sql',
-    tags: ['SQL', 'LEFT JOIN', 'Outer Join', 'Null Analysis'],
-    files: {
-      'queries.sql': `-- ==========================================
--- 🗄️ [08] SQL: LEFT JOIN
--- ==========================================
-
-CREATE TABLE members (
-    id INT,
-    name VARCHAR(50)
-);
-
-CREATE TABLE purchases (
-    id INT,
+CREATE TABLE event_logs (
+    log_id INT PRIMARY KEY,
     member_id INT,
-    amount INT
+    action VARCHAR(50)
 );
 
-INSERT INTO members VALUES (1, '회원A'), (2, '회원B'), (3, '회원C');
-INSERT INTO purchases VALUES (101, 1, 50000), (102, 1, 30000);
+INSERT INTO members VALUES (1, '김회원'), (2, '이회원'), (3, '박회원'), (4, '최회원');
+INSERT INTO event_logs VALUES (101, 1, 'LOGIN'), (102, 1, 'PURCHASE'), (103, 3, 'LOGIN');
 
+-- 이벤트 참여 이력이 없는 미활동 회원 탐색
 SELECT 
-    m.name AS 회원명,
-    COUNT(p.id) AS 구매건수,
-    SUM(p.amount) AS 총구매액
+    m.id,
+    m.name,
+    e.action
 FROM members m
-LEFT JOIN purchases p ON m.id = p.member_id
-GROUP BY m.id, m.name;
+LEFT JOIN event_logs e ON m.id = e.member_id
+WHERE e.action IS NULL;
 `,
     },
   },
   {
-    id: 'sql-09-subquery',
-    title: '09. 서브쿼리 (Subquery & IN)',
+    id: 'sql-09-subquery-scalar',
+    title: '09. 서브쿼리 (Subquery & IN/EXISTS)',
     category: 'Database & SQL',
     language: 'sql',
     engine: 'sql',
-    description: '평균 급여보다 높은 급여를 받는 직원 추출 서브쿼리',
+    description: '중첩 서브쿼리를 이용한 평균 초과 급여 수령자 추출',
     mainFile: 'queries.sql',
-    tags: ['SQL', 'Subquery', 'Nested Query', 'IN'],
+    tags: ['SQL', 'Subquery', 'Nested Query'],
     files: {
       'queries.sql': `-- ==========================================
 -- 🗄️ [09] SQL: 서브쿼리 (Subquery)
 -- ==========================================
 
-CREATE TABLE staff (
-    id INT,
+CREATE TABLE developers (
+    id INT PRIMARY KEY,
     name VARCHAR(50),
     salary INT
 );
 
-INSERT INTO staff VALUES
-(1, '김민수', 4000), (2, '이지은', 7500), (3, '박지훈', 5000), (4, '최유진', 9000), (5, '정태양', 6000);
+INSERT INTO developers VALUES
+(1, 'Dev_A', 6000), (2, 'Dev_B', 7200), (3, 'Dev_C', 5400),
+(4, 'Dev_D', 8100), (5, 'Dev_E', 6300);
 
--- 전체 평균 급여보다 많이 받는 우수 직원 조회
-SELECT name, salary
-FROM staff
-WHERE salary > (SELECT AVG(salary) FROM staff);
+-- 전체 개발자 평균 급여보다 높은 개발자 목록
+SELECT 
+    name, 
+    salary,
+    (SELECT AVG(salary) FROM developers) AS company_avg
+FROM developers
+WHERE salary > (SELECT AVG(salary) FROM developers)
+ORDER BY salary DESC;
 `,
     },
   },
   {
-    id: 'sql-10-case-analytics',
-    title: '10. CASE 조건문 & 실무 매출 통계',
+    id: 'sql-10-case-when',
+    title: '10. 조건부 분기 (CASE WHEN & 파생 컬럼)',
     category: 'Database & SQL',
     language: 'sql',
     engine: 'sql',
-    description: 'CASE WHEN을 이용한 고객 등급 자동 분류 및 매출 통계',
+    description: 'CASE WHEN 구문을 이용한 고객 등급(VIP, GOLD, SILVER) 산정',
     mainFile: 'queries.sql',
-    tags: ['SQL', 'CASE WHEN', 'Analytics', 'Business Intelligence'],
+    tags: ['SQL', 'CASE WHEN', 'Conditional'],
     files: {
       'queries.sql': `-- ==========================================
--- 🗄️ [10] SQL: CASE WHEN 실무 분석 쿼리
+-- 🗄️ [10] SQL: CASE WHEN 조건문
 -- ==========================================
 
-CREATE TABLE clients (
+CREATE TABLE customer_purchases (
     name VARCHAR(50),
     total_spent INT
 );
 
-INSERT INTO clients VALUES
-('고객1', 2500000), ('고객2', 800000), ('고객3', 150000), ('고객4', 4500000), ('고객5', 45000);
+INSERT INTO customer_purchases VALUES
+('홍길동', 1500000),
+('김영희', 450000),
+('박철수', 850000),
+('이민호', 2200000),
+('최유진', 120000);
 
 SELECT 
     name,
-    total_spent AS 누적구매액,
+    total_spent,
     CASE 
-        WHEN total_spent >= 2000000 THEN 'VIP'
-        WHEN total_spent >= 500000  THEN 'GOLD'
-        ELSE 'SILVER'
-    END AS 고객등급
-FROM clients
+        WHEN total_spent >= 2000000 THEN '👑 DIAMOND'
+        WHEN total_spent >= 1000000 THEN '💎 VIP'
+        WHEN total_spent >= 500000  THEN '🥇 GOLD'
+        ELSE '🥈 SILVER'
+    END AS member_grade
+FROM customer_purchases
 ORDER BY total_spent DESC;
+`,
+    },
+  },
+
+  // --- [Part 2: 고급 분석 및 알고리즘 쿼리 10선] ---
+  {
+    id: 'sql-11-cte-recursive',
+    title: '11. [고급 SQL] CTE 재귀 쿼리 (Hierarchical CTE)',
+    category: 'Database & SQL',
+    language: 'sql',
+    engine: 'sql',
+    description: 'WITH RECURSIVE를 이용한 계층형 조직도 및 부모-자식 트리 순회',
+    mainFile: 'queries.sql',
+    tags: ['SQL', 'CTE', 'WITH RECURSIVE', 'Hierarchy'],
+    files: {
+      'queries.sql': `-- ==========================================
+-- 🧠 [11] SQL: 계층형 재귀 CTE 조직도 탐색
+-- ==========================================
+
+CREATE TABLE org_chart (
+    emp_id INT PRIMARY KEY,
+    name VARCHAR(50),
+    manager_id INT
+);
+
+INSERT INTO org_chart VALUES
+(1, '대표이사', NULL),
+(2, 'CTO', 1),
+(3, 'CFO', 1),
+(4, '백엔드팀장', 2),
+(5, '프론트팀장', 2),
+(6, '시니어개발자', 4),
+(7, '주니어개발자', 4);
+
+WITH RECURSIVE Hierarchy AS (
+    SELECT emp_id, name, manager_id, 1 AS level, CAST(name AS VARCHAR(255)) AS path
+    FROM org_chart
+    WHERE manager_id IS NULL
+    UNION ALL
+    SELECT o.emp_id, o.name, o.manager_id, h.level + 1, CAST(h.path || ' ➔ ' || o.name AS VARCHAR(255))
+    FROM org_chart o
+    INNER JOIN Hierarchy h ON o.manager_id = h.emp_id
+)
+SELECT level, name, path FROM Hierarchy ORDER BY path;
+`,
+    },
+  },
+  {
+    id: 'sql-12-window-rank',
+    title: '12. [고급 SQL] ROW_NUMBER, RANK & DENSE_RANK',
+    category: 'Database & SQL',
+    language: 'sql',
+    engine: 'sql',
+    description: '부서별 급여 순위 산출 및 동석차 처리 윈도우 함수',
+    mainFile: 'queries.sql',
+    tags: ['SQL', 'Window Functions', 'RANK', 'ROW_NUMBER'],
+    files: {
+      'queries.sql': `-- ==========================================
+-- 🧠 [12] SQL: 부서별 순위 분석 (윈도우 함수)
+-- ==========================================
+
+CREATE TABLE dept_salaries (
+    dept VARCHAR(30),
+    name VARCHAR(30),
+    salary INT
+);
+
+INSERT INTO dept_salaries VALUES
+('개발', 'A', 8000), ('개발', 'B', 7500), ('개발', 'C', 7500), ('개발', 'D', 6000),
+('영업', 'E', 9000), ('영업', 'F', 7000), ('영업', 'G', 7000);
+
+SELECT 
+    dept,
+    name,
+    salary,
+    ROW_NUMBER() OVER (PARTITION BY dept ORDER BY salary DESC) AS row_num,
+    RANK() OVER (PARTITION BY dept ORDER BY salary DESC) AS rank_num,
+    DENSE_RANK() OVER (PARTITION BY dept ORDER BY salary DESC) AS dense_rank_num
+FROM dept_salaries;
+`,
+    },
+  },
+  {
+    id: 'sql-13-running-total',
+    title: '13. [고급 SQL] 누적 합계 (Running Total & SUM OVER)',
+    category: 'Database & SQL',
+    language: 'sql',
+    engine: 'sql',
+    description: 'SUM() OVER (ORDER BY date) 일자별 누적 매출액 산출',
+    mainFile: 'queries.sql',
+    tags: ['SQL', 'Running Total', 'SUM OVER', 'Analytics'],
+    files: {
+      'queries.sql': `-- ==========================================
+-- 🧠 [13] SQL: 일자별 누적 매출액 분석
+-- ==========================================
+
+CREATE TABLE daily_revenue (
+    sale_date DATE,
+    daily_amount INT
+);
+
+INSERT INTO daily_revenue VALUES
+('2026-08-01', 1200000),
+('2026-08-02', 1850000),
+('2026-08-03', 950000),
+('2026-08-04', 2100000),
+('2026-08-05', 1600000);
+
+SELECT 
+    sale_date,
+    daily_amount,
+    SUM(daily_amount) OVER (ORDER BY sale_date) AS running_total,
+    AVG(daily_amount) OVER (ORDER BY sale_date ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS moving_avg_3days
+FROM daily_revenue;
+`,
+    },
+  },
+  {
+    id: 'sql-14-lag-lead-mom',
+    title: '14. [고급 SQL] 시계열 증감률 (LAG & LEAD MoM)',
+    category: 'Database & SQL',
+    language: 'sql',
+    engine: 'sql',
+    description: '이전 달 매출(LAG) 대비 성장률(Growth Rate %) 산출',
+    mainFile: 'queries.sql',
+    tags: ['SQL', 'LAG', 'LEAD', 'Time Series'],
+    files: {
+      'queries.sql': `-- ==========================================
+-- 🧠 [14] SQL: 전월 대비 성장률 (LAG 분석)
+-- ==========================================
+
+CREATE TABLE monthly_sales (
+    month VARCHAR(10),
+    sales INT
+);
+
+INSERT INTO monthly_sales VALUES
+('2026-01', 5000), ('2026-02', 5800), ('2026-03', 5400),
+('2026-04', 7000), ('2026-05', 8200), ('2026-06', 9500);
+
+SELECT 
+    month,
+    sales,
+    LAG(sales, 1) OVER (ORDER BY month) AS prev_month_sales,
+    sales - LAG(sales, 1) OVER (ORDER BY month) AS diff,
+    ROUND((CAST(sales - LAG(sales, 1) OVER (ORDER BY month) AS FLOAT) / LAG(sales, 1) OVER (ORDER BY month)) * 100, 2) AS growth_pct
+FROM monthly_sales;
+`,
+    },
+  },
+  {
+    id: 'sql-15-pivot-aggregation',
+    title: '15. [고급 SQL] 피벗 테이블 (Conditional Pivot)',
+    category: 'Database & SQL',
+    language: 'sql',
+    engine: 'sql',
+    description: 'CASE WHEN 기반 행-열 전치 피벗 테이블 구현',
+    mainFile: 'queries.sql',
+    tags: ['SQL', 'Pivot', 'Cross Tabulation'],
+    files: {
+      'queries.sql': `-- ==========================================
+-- 🧠 [15] SQL: 분기별 매출 피벗 테이블
+-- ==========================================
+
+CREATE TABLE product_sales_q (
+    product VARCHAR(50),
+    quarter VARCHAR(10),
+    amount INT
+);
+
+INSERT INTO product_sales_q VALUES
+('노트북', 'Q1', 1200), ('노트북', 'Q2', 1500), ('노트북', 'Q3', 1800), ('노트북', 'Q4', 2100),
+('모니터', 'Q1', 600), ('모니터', 'Q2', 750), ('모니터', 'Q3', 800), ('모니터', 'Q4', 950);
+
+SELECT 
+    product,
+    SUM(CASE WHEN quarter = 'Q1' THEN amount ELSE 0 END) AS Q1_Sales,
+    SUM(CASE WHEN quarter = 'Q2' THEN amount ELSE 0 END) AS Q2_Sales,
+    SUM(CASE WHEN quarter = 'Q3' THEN amount ELSE 0 END) AS Q3_Sales,
+    SUM(CASE WHEN quarter = 'Q4' THEN amount ELSE 0 END) AS Q4_Sales,
+    SUM(amount) AS Total_Year
+FROM product_sales_q
+GROUP BY product;
+`,
+    },
+  },
+  {
+    id: 'sql-16-self-join-pairs',
+    title: '16. [고급 SQL] 셀프 조인 (Self Join & 페어링)',
+    category: 'Database & SQL',
+    language: 'sql',
+    engine: 'sql',
+    description: '동일 테이블 내 중복 없는 2인 매칭 페어 생성',
+    mainFile: 'queries.sql',
+    tags: ['SQL', 'Self Join', 'Pairing'],
+    files: {
+      'queries.sql': `-- ==========================================
+-- 🧠 [16] SQL: 셀프 조인을 활용한 1:1 페어링
+-- ==========================================
+
+CREATE TABLE players (
+    id INT PRIMARY KEY,
+    name VARCHAR(50),
+    rating INT
+);
+
+INSERT INTO players VALUES
+(1, '알파', 1500), (2, '베타', 1520), (3, '감마', 1600), (4, '델타', 1480);
+
+-- 레이팅 차이가 50 이하인 대전 매칭 쌍 생성 (중복 제거 a.id < b.id)
+SELECT 
+    a.name AS player_1,
+    b.name AS player_2,
+    ABS(a.rating - b.rating) AS rating_diff
+FROM players a
+INNER JOIN players b ON a.id < b.id
+WHERE ABS(a.rating - b.rating) <= 50
+ORDER BY rating_diff ASC;
+`,
+    },
+  },
+  {
+    id: 'sql-17-ntile-segmentation',
+    title: '17. [고급 SQL] 고객 4분위수 세분화 (NTILE 분석)',
+    category: 'Database & SQL',
+    language: 'sql',
+    engine: 'sql',
+    description: 'NTILE(4)를 이용한 구매액 상위 25% VIP 그룹화',
+    mainFile: 'queries.sql',
+    tags: ['SQL', 'NTILE', 'Segmentation', 'Quartile'],
+    files: {
+      'queries.sql': `-- ==========================================
+-- 🧠 [17] SQL: NTILE(4) 분위수 고객 세분화
+-- ==========================================
+
+CREATE TABLE customer_metrics (
+    customer_name VARCHAR(50),
+    lifetime_spend INT
+);
+
+INSERT INTO customer_metrics VALUES
+('A', 15000000), ('B', 12000000), ('C', 9500000), ('D', 8000000),
+('E', 5500000), ('F', 4200000), ('G', 3100000), ('H', 1500000);
+
+SELECT 
+    customer_name,
+    lifetime_spend,
+    NTILE(4) OVER (ORDER BY lifetime_spend DESC) AS quartile_group,
+    CASE NTILE(4) OVER (ORDER BY lifetime_spend DESC)
+        WHEN 1 THEN '상위 25% (VVIP)'
+        WHEN 2 THEN '상위 50% (VIP)'
+        WHEN 3 THEN '일반 활성 고객'
+        ELSE '잠재 성장 고객'
+    END AS group_label
+FROM customer_metrics;
+`,
+    },
+  },
+  {
+    id: 'sql-18-anti-join-not-exists',
+    title: '18. [고급 SQL] 안티 조인 (Anti-Join & NOT EXISTS)',
+    category: 'Database & SQL',
+    language: 'sql',
+    engine: 'sql',
+    description: 'NOT EXISTS 상관 서브쿼리를 이용한 비이탈 고객 필터링',
+    mainFile: 'queries.sql',
+    tags: ['SQL', 'Anti Join', 'NOT EXISTS'],
+    files: {
+      'queries.sql': `-- ==========================================
+-- 🧠 [18] SQL: NOT EXISTS 안티 조인
+-- ==========================================
+
+CREATE TABLE all_users (
+    user_id INT PRIMARY KEY,
+    name VARCHAR(50)
+);
+
+CREATE TABLE churn_records (
+    user_id INT,
+    churn_date DATE
+);
+
+INSERT INTO all_users VALUES (1, 'Alice'), (2, 'Bob'), (3, 'Charlie'), (4, 'David');
+INSERT INTO churn_records VALUES (2, '2026-08-01'), (4, '2026-08-15');
+
+-- 이탈 이력이 없는 현재 활동 회원만 조회
+SELECT u.user_id, u.name
+FROM all_users u
+WHERE NOT EXISTS (
+    SELECT 1 FROM churn_records c WHERE c.user_id = u.user_id
+);
+`,
+    },
+  },
+  {
+    id: 'sql-19-funnel-conversion',
+    title: '19. [고급 SQL] 퍼널 전환율 분석 (Funnel Analysis)',
+    category: 'Database & SQL',
+    language: 'sql',
+    engine: 'sql',
+    description: '방문 ➔ 장바구니 ➔ 결제 단계별 이탈률 & 전환율 산출',
+    mainFile: 'queries.sql',
+    tags: ['SQL', 'Funnel', 'Conversion Rate', 'Product Analytics'],
+    files: {
+      'queries.sql': `-- ==========================================
+-- 🧠 [19] SQL: 이커머스 퍼널 전환율 분석
+-- ==========================================
+
+CREATE TABLE funnel_events (
+    user_id INT,
+    step VARCHAR(50)
+);
+
+INSERT INTO funnel_events VALUES
+(1, '1_VIEW'), (1, '2_CART'), (1, '3_PURCHASE'),
+(2, '1_VIEW'), (2, '2_CART'),
+(3, '1_VIEW'), (3, '2_CART'), (3, '3_PURCHASE'),
+(4, '1_VIEW'),
+(5, '1_VIEW'), (5, '2_CART');
+
+WITH FunnelSteps AS (
+    SELECT 
+        COUNT(DISTINCT CASE WHEN step = '1_VIEW' THEN user_id END) AS step1_views,
+        COUNT(DISTINCT CASE WHEN step = '2_CART' THEN user_id END) AS step2_carts,
+        COUNT(DISTINCT CASE WHEN step = '3_PURCHASE' THEN user_id END) AS step3_purchases
+    FROM funnel_events
+)
+SELECT 
+    step1_views,
+    step2_carts,
+    step3_purchases,
+    ROUND((CAST(step2_carts AS FLOAT) / step1_views) * 100, 1) AS cart_conversion_pct,
+    ROUND((CAST(step3_purchases AS FLOAT) / step2_carts) * 100, 1) AS purchase_conversion_pct,
+    ROUND((CAST(step3_purchases AS FLOAT) / step1_views) * 100, 1) AS total_funnel_pct
+FROM FunnelSteps;
+`,
+    },
+  },
+  {
+    id: 'sql-20-gaps-and-islands',
+    title: '20. [고급 SQL] 연속 접속일 분석 (Gaps and Islands)',
+    category: 'Database & SQL',
+    language: 'sql',
+    engine: 'sql',
+    description: '고전 Gaps & Islands 기법을 통한 최장 연속 출석일 산출',
+    mainFile: 'queries.sql',
+    tags: ['SQL', 'Gaps and Islands', 'Continuous Attendance'],
+    files: {
+      'queries.sql': `-- ==========================================
+-- 🧠 [20] SQL: 연속 출석/접속일 분석 (Gaps & Islands)
+-- ==========================================
+
+CREATE TABLE login_history (
+    user_name VARCHAR(50),
+    login_day INT
+);
+
+INSERT INTO login_history VALUES
+('철수', 1), ('철수', 2), ('철수', 3), ('철수', 5), ('철수', 6),
+('영희', 1), ('영희', 3), ('영희', 4), ('영희', 5), ('영희', 6);
+
+WITH GroupedLogins AS (
+    SELECT 
+        user_name,
+        login_day,
+        login_day - ROW_NUMBER() OVER (PARTITION BY user_name ORDER BY login_day) AS island_id
+    FROM login_history
+)
+SELECT 
+    user_name,
+    MIN(login_day) AS streak_start,
+    MAX(login_day) AS streak_end,
+    COUNT(*) AS continuous_streak_days
+FROM GroupedLogins
+GROUP BY user_name, island_id
+ORDER BY continuous_streak_days DESC;
 `,
     },
   },

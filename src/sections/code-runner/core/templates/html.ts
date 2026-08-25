@@ -3,76 +3,69 @@ import type { CodeTemplate } from '../../types';
 // ----------------------------------------------------------------------
 
 export const HTML_TEMPLATES: CodeTemplate[] = [
+  // --- [Part 1: HTML5 & CSS3 기초 10선] ---
   {
-    id: 'html-01-hello',
-    title: '01. HTML5 시맨틱 마크업',
-    category: 'Web & Server',
+    id: 'html-01-semantic-tags',
+    title: '01. 시맨틱 태그 & 모던 웹 레이아웃',
+    category: 'Frontend & UI',
     language: 'html',
     engine: 'html-sandbox',
-    description: 'header, main, section, footer 시맨틱 태그와 반응형 CSS 스타일',
+    description: '<header>, <nav>, <main>, <section>, <footer> 시맨틱 구조',
     mainFile: 'index.html',
-    tags: ['HTML5', 'Semantic', 'CSS', 'Hello World'],
+    tags: ['HTML5', 'Semantic', 'Layout'],
     files: {
       'index.html': `<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>HTML5 Semantic Demo</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: system-ui, sans-serif; background: #0f172a; color: #f8fafc; padding: 24px; }
-    header { border-bottom: 1px solid #334155; padding-bottom: 16px; margin-bottom: 20px; }
-    h1 { color: #38bdf8; font-size: 24px; }
-    main { display: grid; gap: 16px; }
-    .card { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid #334155; }
-    footer { margin-top: 30px; text-align: center; font-size: 12px; color: #64748b; }
+    body { font-family: system-ui, sans-serif; margin: 0; background: #f8fafc; color: #1e293b; }
+    header { background: #0284c7; color: white; padding: 16px; text-align: center; }
+    main { max-width: 600px; margin: 20px auto; padding: 16px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    footer { text-align: center; padding: 16px; color: #94a3b8; font-size: 12px; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>⚡ HTML5 시맨틱 웹 샌드박스</h1>
-    <p style="color: #94a3b8; font-size: 14px;">OmniRunner 라이브 브라우저 환경</p>
-  </header>
+  <header><h2>🌐 시맨틱 웹 레이아웃</h2></header>
   <main>
-    <section class="card">
-      <h2 style="font-size: 18px; color: #34d399; margin-bottom: 8px;">1. 웹 표준 시맨틱 구조</h2>
-      <p style="font-size: 14px; line-height: 1.6; color: #cbd5e1;">시맨틱 태그(header, main, section, footer)를 사용하면 검색 엔진 최적화(SEO)와 접근성이 향상됩니다.</p>
+    <section>
+      <h3>HTML5 표준 아키텍처</h3>
+      <p>웹 표준 시맨틱 태그를 사용하여 접근성과 SEO를 극대화합니다.</p>
     </section>
   </main>
-  <footer>© 2026 OmniRunner Polyglot Execution Engine</footer>
+  <footer>© 2026 OmniRunner Web Studio</footer>
 </body>
 </html>
 `,
     },
   },
   {
-    id: 'html-02-css-flexbox-grid',
+    id: 'html-02-flexbox-grid',
     title: '02. CSS Flexbox & Grid 레이아웃',
-    category: 'Web & Server',
+    category: 'Frontend & UI',
     language: 'html',
     engine: 'html-sandbox',
-    description: '모던 CSS Grid 카드 그리드와 Flexbox 정렬 시스템',
+    description: '반응형 그리드 시스템 및 Flexbox 정렬',
     mainFile: 'index.html',
-    tags: ['CSS', 'Grid', 'Flexbox', 'Layout'],
+    tags: ['CSS', 'Flexbox', 'Grid', 'Responsive'],
     files: {
       'index.html': `<!DOCTYPE html>
-<html lang="ko">
+<html>
 <head>
-  <meta charset="UTF-8">
   <style>
-    body { background: #0b0f19; color: #f8fafc; font-family: system-ui, sans-serif; padding: 24px; }
-    .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-top: 16px; }
-    .card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s; }
-    .card:hover { transform: translateY(-4px); border-color: #38bdf8; }
-    .badge { align-self: flex-start; font-size: 11px; font-weight: bold; padding: 4px 8px; border-radius: 9999px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
+    body { font-family: sans-serif; padding: 20px; background: #0f172a; color: white; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+    .card { background: #1e293b; padding: 16px; border-radius: 8px; border: 1px solid #334155; text-align: center; }
+    .card:hover { border-color: #38bdf8; }
   </style>
 </head>
 <body>
-  <h2 style="font-size: 20px; color: #38bdf8;">CSS Auto-Fit Grid & Flexbox</h2>
-  <div class="grid-container">
-    <div class="card"><span class="badge">PRO</span><h3 style="margin: 12px 0 6px;">컴포넌트 1</h3><p style="font-size: 12px; color: #94a3b8;">Flexbox 수직 정렬 카드</p></div>
-    <div class="card"><span class="badge">FAST</span><h3 style="margin: 12px 0 6px;">컴포넌트 2</h3><p style="font-size: 12px; color: #94a3b8;">CSS Grid 자동 반응형 폭</p></div>
-    <div class="card"><span class="badge">NEW</span><h3 style="margin: 12px 0 6px;">컴포넌트 3</h3><p style="font-size: 12px; color: #94a3b8;">호버 트랜지션 애니메이션</p></div>
+  <h3>⚡ CSS Grid 반응형 카드</h3>
+  <div class="grid">
+    <div class="card">🚀 Fast</div>
+    <div class="card">🛡️ Safe</div>
+    <div class="card">📦 Modular</div>
+    <div class="card">🎨 Styled</div>
   </div>
 </body>
 </html>
@@ -80,62 +73,31 @@ export const HTML_TEMPLATES: CodeTemplate[] = [
     },
   },
   {
-    id: 'html-03-canvas-basics',
-    title: '03. Canvas 2D 그래픽 렌더링',
-    category: 'Web & Server',
+    id: 'html-03-canvas-drawing',
+    title: '03. HTML5 Canvas 2D 그래픽',
+    category: 'Frontend & UI',
     language: 'html',
     engine: 'html-sandbox',
-    description: 'HTML5 Canvas API를 이용한 도형 그리기 및 동적 원형 차트',
+    description: 'Canvas API 도형 드로잉, 그라디언트, 아크 렌더링',
     mainFile: 'index.html',
-    tags: ['Canvas', '2D Graphics', 'Charts', 'Drawing'],
+    tags: ['Canvas', '2D Graphics', 'HTML5'],
     files: {
       'index.html': `<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <style>
-    body { background: #030712; color: #f9fafb; font-family: system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-    canvas { background: #111827; border-radius: 16px; border: 1px solid #1f2937; }
-  </style>
-</head>
-<body>
-  <canvas id="myCanvas" width="400" height="280"></canvas>
+<html>
+<body style="margin: 0; background: #0f172a; display: flex; justify-content: center; align-items: center; height: 100vh;">
+  <canvas id="cv" width="300" height="200"></canvas>
   <script>
-    const ctx = document.getElementById('myCanvas').getContext('2d');
+    const cv = document.getElementById('cv');
+    const ctx = cv.getContext('2d');
     
-    // 그라디언트 배경 사각형
-    const grad = ctx.createLinearGradient(0, 0, 400, 280);
-    grad.addColorStop(0, '#1e1b4b');
-    grad.addColorStop(1, '#0f172a');
+    const grad = ctx.createLinearGradient(0, 0, 300, 200);
+    grad.addColorStop(0, '#38bdf8');
+    grad.addColorStop(1, '#ec4899');
+
     ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 400, 280);
-
-    // 원형 파이 차트 그리기
-    const data = [{ val: 40, color: '#38bdf8' }, { val: 35, color: '#10b981' }, { val: 25, color: '#f59e0b' }];
-    let startAngle = 0;
-    const cx = 200, cy = 140, radius = 90;
-
-    data.forEach(d => {
-      const sliceAngle = (d.val / 100) * 2 * Math.PI;
-      ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.arc(cx, cy, radius, startAngle, startAngle + sliceAngle);
-      ctx.closePath();
-      ctx.fillStyle = d.color;
-      ctx.fill();
-      startAngle += sliceAngle;
-    });
-
-    // 내부 구멍 (도넛 차트)
     ctx.beginPath();
-    ctx.arc(cx, cy, 50, 0, 2 * Math.PI);
-    ctx.fillStyle = '#0f172a';
+    ctx.arc(150, 100, 60, 0, Math.PI * 2);
     ctx.fill();
-
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 16px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('Canvas 2D', cx, cy + 5);
   </script>
 </body>
 </html>
@@ -143,36 +105,27 @@ export const HTML_TEMPLATES: CodeTemplate[] = [
     },
   },
   {
-    id: 'html-04-svg-graphics',
-    title: '04. SVG 벡터 그래픽 & 애니메이션',
-    category: 'Web & Server',
+    id: 'html-04-svg-animations',
+    title: '04. SVG 그래픽 & CSS 키프레임 애니메이션',
+    category: 'Frontend & UI',
     language: 'html',
     engine: 'html-sandbox',
-    description: 'SVG 패스(Path), 그라디언트 및 회전 애니메이션',
+    description: '벡터 그래픽 및 무한 회전 로딩 스피너 애니메이션',
     mainFile: 'index.html',
-    tags: ['SVG', 'Vector', 'Animations', 'Graphics'],
+    tags: ['SVG', 'CSS Animation', 'Keyframes'],
     files: {
       'index.html': `<!DOCTYPE html>
-<html lang="ko">
+<html>
 <head>
-  <meta charset="UTF-8">
   <style>
-    body { background: #0b0f19; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
-    .rotator { animation: spin 8s linear infinite; transform-origin: center; }
+    body { background: #0f172a; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+    .spinner { animation: spin 2s linear infinite; }
     @keyframes spin { 100% { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
-  <svg width="240" height="240" viewBox="0 0 100 100">
-    <defs>
-      <linearGradient id="svgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#38bdf8" />
-        <stop offset="100%" stop-color="#818cf8" />
-      </linearGradient>
-    </defs>
-    <circle cx="50" cy="50" r="45" fill="none" stroke="#1e293b" stroke-width="6" />
-    <circle cx="50" cy="50" r="45" fill="none" stroke="url(#svgGrad)" stroke-width="6" stroke-dasharray="180" stroke-linecap="round" class="rotator" />
-    <text x="50" y="55" text-anchor="middle" fill="#38bdf8" font-size="12" font-weight="bold">SVG 100%</text>
+  <svg class="spinner" width="64" height="64" viewBox="0 0 50 50">
+    <circle cx="25" cy="25" r="20" fill="none" stroke="#38bdf8" stroke-width="4" stroke-dasharray="80" stroke-linecap="round" />
   </svg>
 </body>
 </html>
@@ -180,152 +133,27 @@ export const HTML_TEMPLATES: CodeTemplate[] = [
     },
   },
   {
-    id: 'html-05-dom-events',
-    title: '05. 바닐라 JS DOM 조작 & 이벤트',
-    category: 'Web & Server',
+    id: 'html-05-vanilla-js-dom',
+    title: '05. 바닐라 JS DOM 이벤트 바인딩',
+    category: 'Frontend & UI',
     language: 'html',
     engine: 'html-sandbox',
-    description: '순수 JavaScript로 DOM 노드 생성, 이벤트 위임, 스타일 조작',
+    description: 'querySelector, addEventListener를 이용한 동적 UI 제어',
     mainFile: 'index.html',
-    tags: ['DOM', 'Vanilla JS', 'Events', 'Interactive'],
+    tags: ['Vanilla JS', 'DOM', 'Events'],
     files: {
       'index.html': `<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <style>
-    body { background: #0f172a; color: #f8fafc; font-family: system-ui, sans-serif; padding: 24px; max-width: 480px; margin: 0 auto; }
-    input, button { padding: 10px 14px; border-radius: 8px; border: 1px solid #334155; font-size: 14px; }
-    input { background: #1e293b; color: white; flex: 1; }
-    button { background: #0284c7; color: white; font-weight: bold; cursor: pointer; border: none; }
-    button:hover { background: #0369a1; }
-    .item { background: #1e293b; padding: 12px; border-radius: 8px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #334155; }
-  </style>
-</head>
-<body>
-  <h2 style="margin-bottom: 12px; color: #38bdf8;">DOM 이벤트 목록 관리기</h2>
-  <div style="display: flex; gap: 8px;">
-    <input type="text" id="itemInput" placeholder="새 항목 입력..." />
-    <button id="addBtn">추가</button>
-  </div>
-  <div id="list" style="margin-top: 16px;"></div>
-
+<html>
+<body style="font-family: sans-serif; padding: 20px; text-align: center;">
+  <h3 id="txt">버튼을 클릭하세요</h3>
+  <button id="btn" style="padding: 8px 16px; background: #0284c7; color: white; border: none; border-radius: 6px; cursor: pointer;">
+    클릭 이벤트
+  </button>
   <script>
-    const input = document.getElementById('itemInput');
-    const addBtn = document.getElementById('addBtn');
-    const list = document.getElementById('list');
-
-    function addItem() {
-      const text = input.value.trim();
-      if (!text) return;
-
-      const div = document.createElement('div');
-      div.className = 'item';
-      div.innerHTML = \`<span>\${text}</span><button style="background: #ef4444; padding: 4px 8px; font-size: 12px;">삭제</button>\`;
-      div.querySelector('button').onclick = () => div.remove();
-
-      list.appendChild(div);
-      input.value = '';
-    }
-
-    addBtn.onclick = addItem;
-    input.onkeydown = (e) => e.key === 'Enter' && addItem();
-  </script>
-</body>
-</html>
-`,
-    },
-  },
-  {
-    id: 'html-06-css-animations',
-    title: '06. CSS3 3D 큐브 애니메이션',
-    category: 'Web & Server',
-    language: 'html',
-    engine: 'html-sandbox',
-    description: 'CSS 3D Transform(preserve-3d)과 Keyframes 회전 효과',
-    mainFile: 'index.html',
-    tags: ['CSS3', '3D', 'Keyframes', 'Transform'],
-    files: {
-      'index.html': `<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <style>
-    body { background: #030712; height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; perspective: 800px; }
-    .cube { width: 100px; height: 100px; position: relative; transform-style: preserve-3d; animation: rotateCube 10s infinite linear; }
-    .face { position: absolute; width: 100px; height: 100px; background: rgba(56, 189, 248, 0.2); border: 2px solid #38bdf8; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-family: sans-serif; backdrop-filter: blur(4px); }
-    .front  { transform: translateZ(50px); }
-    .back   { transform: rotateY(180deg) translateZ(50px); }
-    .right  { transform: rotateY(90deg) translateZ(50px); }
-    .left   { transform: rotateY(-90deg) translateZ(50px); }
-    .top    { transform: rotateX(90deg) translateZ(50px); }
-    .bottom { transform: rotateX(-90deg) translateZ(50px); }
-    @keyframes rotateCube { from { transform: rotateX(0deg) rotateY(0deg); } to { transform: rotateX(360deg) rotateY(360deg); } }
-  </style>
-</head>
-<body>
-  <div class="cube">
-    <div class="face front">FRONT</div>
-    <div class="face back">BACK</div>
-    <div class="face right">RIGHT</div>
-    <div class="face left">LEFT</div>
-    <div class="face top">TOP</div>
-    <div class="face bottom">BOT</div>
-  </div>
-</body>
-</html>
-`,
-    },
-  },
-  {
-    id: 'html-07-audio-api',
-    title: '07. Web Audio API 신시사이저',
-    category: 'Web & Server',
-    language: 'html',
-    engine: 'html-sandbox',
-    description: '오실레이터(OscillatorNode)를 이용한 실시간 피아노 건반 사운드 합성',
-    mainFile: 'index.html',
-    tags: ['Web Audio API', 'Oscillator', 'Sound', 'Interactive'],
-    files: {
-      'index.html': `<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <style>
-    body { background: #0f172a; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-    .piano { display: flex; gap: 8px; margin-top: 20px; }
-    .key { width: 50px; height: 140px; background: #e2e8f0; color: #0f172a; border-radius: 0 0 8px 8px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 12px; font-weight: bold; cursor: pointer; user-select: none; transition: transform 0.1s; }
-    .key:active { background: #38bdf8; transform: scale(0.96); }
-  </style>
-</head>
-<body>
-  <h2>🎵 Web Audio API 건반 신시사이저</h2>
-  <p style="color: #94a3b8; font-size: 13px; margin-top: 4px;">건반을 클릭하여 순수 주파수 톤을 생성하세요</p>
-  <div class="piano">
-    <div class="key" data-freq="261.63">도</div>
-    <div class="key" data-freq="293.66">레</div>
-    <div class="key" data-freq="329.63">미</div>
-    <div class="key" data-freq="349.23">파</div>
-    <div class="key" data-freq="392.00">솔</div>
-    <div class="key" data-freq="440.00">라</div>
-    <div class="key" data-freq="493.88">시</div>
-    <div class="key" data-freq="523.25">도</div>
-  </div>
-  <script>
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    document.querySelectorAll('.key').forEach(key => {
-      key.onclick = () => {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.frequency.value = parseFloat(key.dataset.freq);
-        osc.type = 'sine';
-        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.8);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.8);
-      };
+    let count = 0;
+    document.getElementById('btn').addEventListener('click', () => {
+      count++;
+      document.getElementById('txt').textContent = '클릭 횟수: ' + count + '회!';
     });
   </script>
 </body>
@@ -334,83 +162,58 @@ export const HTML_TEMPLATES: CodeTemplate[] = [
     },
   },
   {
-    id: 'html-08-local-storage',
-    title: '08. LocalStorage 기반 영구 메모장',
-    category: 'Web & Server',
+    id: 'html-06-glassmorphism',
+    title: '06. 글래스모피즘 (Glassmorphism UI)',
+    category: 'Frontend & UI',
     language: 'html',
     engine: 'html-sandbox',
-    description: '브라우저 LocalStorage에 자동 저장/불러오기되는 빠른 메모장',
+    description: 'backdrop-filter: blur(12px) 모던 유리 질감 카드 디자인',
     mainFile: 'index.html',
-    tags: ['LocalStorage', 'Web Storage', 'Persistence', 'App'],
+    tags: ['CSS', 'Glassmorphism', 'Design'],
     files: {
       'index.html': `<!DOCTYPE html>
-<html lang="ko">
+<html>
 <head>
-  <meta charset="UTF-8">
   <style>
-    body { background: #0b0f19; color: #f8fafc; font-family: system-ui, sans-serif; padding: 24px; max-width: 520px; margin: 0 auto; }
-    textarea { width: 100%; height: 200px; background: #1e293b; color: white; border: 1px solid #334155; border-radius: 12px; padding: 14px; font-size: 14px; font-family: monospace; box-sizing: border-box; resize: none; }
-    .status { font-size: 12px; color: #34d399; margin-top: 8px; text-align: right; }
+    body { margin: 0; height: 100vh; display: flex; justify-content: center; align-items: center; background: linear-gradient(45deg, #0ea5e9, #8b5cf6); font-family: sans-serif; }
+    .card { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 16px; padding: 24px; color: white; width: 260px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
   </style>
 </head>
 <body>
-  <h2 style="color: #38bdf8; margin-bottom: 8px;">📝 자동 저장 영구 메모장</h2>
-  <textarea id="memo" placeholder="메모를 작성하면 실시간으로 저장됩니다..."></textarea>
-  <div class="status" id="saveStatus">저장됨 (Ready)</div>
-  <script>
-    const memo = document.getElementById('memo');
-    const status = document.getElementById('saveStatus');
-    memo.value = localStorage.getItem('omni_quick_memo') || '';
-    memo.oninput = () => {
-      localStorage.setItem('omni_quick_memo', memo.value);
-      status.innerText = '저장 완료: ' + new Date().toLocaleTimeString();
-    };
-  </script>
+  <div class="card">
+    <h3 style="margin: 0 0 8px 0;">✨ Glass UI</h3>
+    <p style="font-size: 13px; opacity: 0.9;">모던 글래스모피즘 블러 효과 카드</p>
+  </div>
 </body>
 </html>
 `,
     },
   },
   {
-    id: 'html-09-drag-drop',
-    title: '09. HTML5 드래그 앤 드롭 칸반 보드',
-    category: 'Web & Server',
+    id: 'html-07-audio-synth',
+    title: '07. Web Audio API 신시사이저',
+    category: 'Frontend & UI',
     language: 'html',
     engine: 'html-sandbox',
-    description: 'HTML5 Drag and Drop API를 활용한 작업 이동 인터랙션',
+    description: '브라우저 오디오 컨텍스트(OscillatorNode) 주파수 사운드 생성',
     mainFile: 'index.html',
-    tags: ['Drag and Drop', 'DnD', 'Kanban', 'UI'],
+    tags: ['Web Audio API', 'Sound', 'Synth'],
     files: {
       'index.html': `<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <style>
-    body { background: #0f172a; color: white; font-family: system-ui, sans-serif; padding: 20px; }
-    .board { display: flex; gap: 16px; }
-    .column { flex: 1; background: #1e293b; border-radius: 12px; padding: 16px; min-height: 240px; border: 2px dashed #334155; }
-    .card { background: #0284c7; padding: 12px; border-radius: 8px; margin-bottom: 8px; cursor: grab; font-size: 13px; font-weight: bold; }
-  </style>
-</head>
-<body>
-  <h2 style="margin-bottom: 16px;">📋 드래그 앤 드롭 칸반 보드</h2>
-  <div class="board">
-    <div class="column" id="col1" ondragover="event.preventDefault()" ondrop="drop(event)">
-      <h3 style="font-size: 14px; margin-bottom: 12px; color: #94a3b8;">할 일 (TODO)</h3>
-      <div class="card" draggable="true" ondragstart="drag(event)" id="task1">API 명세서 작성</div>
-      <div class="card" draggable="true" ondragstart="drag(event)" id="task2">WebContainer 벤치마크</div>
-    </div>
-    <div class="column" id="col2" ondragover="event.preventDefault()" ondrop="drop(event)">
-      <h3 style="font-size: 14px; margin-bottom: 12px; color: #34d399;">완료 (DONE)</h3>
-    </div>
-  </div>
+<html>
+<body style="font-family: sans-serif; text-align: center; padding: 30px;">
+  <h3>🎵 Web Audio API 비프음</h3>
+  <button onclick="playTone(440)" style="padding: 8px 16px; margin: 4px;">A4 (440Hz)</button>
+  <button onclick="playTone(523.25)" style="padding: 8px 16px; margin: 4px;">C5 (523Hz)</button>
   <script>
-    function drag(e) { e.dataTransfer.setData('text', e.target.id); }
-    function drop(e) {
-      e.preventDefault();
-      const id = e.dataTransfer.getData('text');
-      const targetCol = e.target.closest('.column');
-      if (targetCol) targetCol.appendChild(document.getElementById(id));
+    function playTone(freq) {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      osc.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.3);
     }
   </script>
 </body>
@@ -419,63 +222,471 @@ export const HTML_TEMPLATES: CodeTemplate[] = [
     },
   },
   {
-    id: 'html-10-particle-vortex',
-    title: '10. Canvas 인터랙티브 파티클 보텍스',
-    category: 'Web & Server',
+    id: 'html-08-localstorage-notes',
+    title: '08. 로컬 스토리지 메모장',
+    category: 'Frontend & UI',
     language: 'html',
     engine: 'html-sandbox',
-    description: '마우스 커서를 따라 소용돌이치는 Canvas 60FPS 파티클 시뮬레이션',
+    description: 'localStorage를 활용한 자동 저장 메모장',
     mainFile: 'index.html',
-    tags: ['Canvas', 'Particles', '60FPS', 'Interactive'],
+    tags: ['LocalStorage', 'Web Storage', 'Notes'],
     files: {
       'index.html': `<!DOCTYPE html>
-<html lang="ko">
+<html>
+<body style="font-family: sans-serif; padding: 20px;">
+  <h3>📝 자동 저장 메모장</h3>
+  <textarea id="note" style="width: 100%; height: 100px; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1;" placeholder="메모 입력..."></textarea>
+  <script>
+    const el = document.getElementById('note');
+    el.value = localStorage.getItem('omni_note') || '';
+    el.addEventListener('input', () => localStorage.setItem('omni_note', el.value));
+  </script>
+</body>
+</html>
+`,
+    },
+  },
+  {
+    id: 'html-09-custom-range-slider',
+    title: '09. 커스텀 CSS 슬라이더 & 값 바인딩',
+    category: 'Frontend & UI',
+    language: 'html',
+    engine: 'html-sandbox',
+    description: '커스텀 스타일링된 <input type="range"> 슬라이더',
+    mainFile: 'index.html',
+    tags: ['CSS', 'Slider', 'Form Controls'],
+    files: {
+      'index.html': `<!DOCTYPE html>
+<html>
+<body style="font-family: sans-serif; padding: 20px; text-align: center;">
+  <h3>🎛️ 밝기 조절 슬라이더</h3>
+  <input type="range" id="rng" min="0" max="100" value="75" style="width: 200px;">
+  <p id="val">75%</p>
+  <script>
+    document.getElementById('rng').addEventListener('input', e => {
+      document.getElementById('val').textContent = e.target.value + '%';
+    });
+  </script>
+</body>
+</html>
+`,
+    },
+  },
+  {
+    id: 'html-10-drag-and-drop',
+    title: '10. HTML5 드래그 앤 드롭 (Drag & Drop)',
+    category: 'Frontend & UI',
+    language: 'html',
+    engine: 'html-sandbox',
+    description: 'draggable 속성과 ondragstart, ondrop 이벤트',
+    mainFile: 'index.html',
+    tags: ['HTML5', 'Drag and Drop', 'Events'],
+    files: {
+      'index.html': `<!DOCTYPE html>
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Canvas Particle Vortex</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #030712; color: #f9fafb; font-family: system-ui, sans-serif; overflow: hidden; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-    canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
-    .ui-overlay { position: relative; z-index: 10; text-align: center; pointer-events: none; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); padding: 20px 32px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.1); }
-    h1 { font-size: 24px; background: linear-gradient(135deg, #60a5fa, #c084fc, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 6px; }
+    body { font-family: sans-serif; display: flex; gap: 16px; padding: 20px; }
+    .box { width: 120px; height: 120px; border: 2px dashed #94a3b8; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+    .item { padding: 8px 12px; background: #0284c7; color: white; border-radius: 4px; cursor: grab; }
   </style>
 </head>
 <body>
-  <canvas id="canvas"></canvas>
-  <div class="ui-overlay">
-    <h1>Omni Particle Vortex</h1>
-    <p style="font-size: 13px; color: #94a3b8;">마우스를 움직여 파티클을 조작해보세요.</p>
+  <div class="box" ondragover="event.preventDefault()" ondrop="drop(event)">
+    <div id="dragItem" class="item" draggable="true" ondragstart="drag(event)">아이템 1</div>
   </div>
+  <div class="box" ondragover="event.preventDefault()" ondrop="drop(event)"></div>
   <script>
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    let width = canvas.width = window.innerWidth;
-    let height = canvas.height = window.innerHeight;
-    const particles = Array.from({ length: 90 }, () => ({
-      x: Math.random() * width,
-      y: Math.random() * height,
-      vx: (Math.random() - 0.5) * 2,
-      vy: (Math.random() - 0.5) * 2,
-      radius: Math.random() * 3 + 1,
-      color: \`hsl(\${Math.random() * 60 + 200}, 80%, 65%)\`
+    function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); }
+    function drop(ev) {
+      ev.preventDefault();
+      var data = ev.dataTransfer.getData("text");
+      ev.target.appendChild(document.getElementById(data));
+    }
+  </script>
+</body>
+</html>
+`,
+    },
+  },
+
+  // --- [Part 2: 캔버스 인터랙티브 & 알고리즘 애플리케이션 10선] ---
+  {
+    id: 'html-11-canvas-particle-galaxy',
+    title: '11. [애플리케이션] 파티클 은하수 (Particle Galaxy)',
+    category: 'Frontend & UI',
+    language: 'html',
+    engine: 'html-sandbox',
+    description: 'Canvas 60FPS 회전 은하수 파티클 애니메이션',
+    mainFile: 'index.html',
+    tags: ['Canvas', 'Particles', 'Animation'],
+    files: {
+      'index.html': `<!DOCTYPE html>
+<html>
+<body style="margin: 0; background: #030712; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh;">
+  <canvas id="c" width="360" height="240"></canvas>
+  <script>
+    const c = document.getElementById('c');
+    const ctx = c.getContext('2d');
+    let angle = 0;
+    const particles = Array.from({length: 120}, () => ({
+      r: Math.random() * 90 + 10,
+      theta: Math.random() * Math.PI * 2,
+      speed: Math.random() * 0.02 + 0.005,
+      size: Math.random() * 2 + 1,
+      hue: Math.random() * 60 + 190
     }));
 
-    function animate() {
+    function loop() {
       ctx.fillStyle = 'rgba(3, 7, 18, 0.2)';
-      ctx.fillRect(0, 0, width, height);
+      ctx.fillRect(0, 0, c.width, c.height);
+      const cx = c.width / 2, cy = c.height / 2;
+
       particles.forEach(p => {
-        p.x += p.vx; p.y += p.vy;
-        if (p.x < 0 || p.x > width) p.vx *= -1;
-        if (p.y < 0 || p.y > height) p.vy *= -1;
+        p.theta += p.speed;
+        const x = cx + Math.cos(p.theta) * p.r;
+        const y = cy + Math.sin(p.theta) * p.r * 0.6;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = p.color;
+        ctx.arc(x, y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = \`hsl(\${p.hue}, 80%, 60%)\`;
         ctx.fill();
       });
-      requestAnimationFrame(animate);
+      requestAnimationFrame(loop);
     }
-    animate();
+    loop();
+  </script>
+</body>
+</html>
+`,
+    },
+  },
+  {
+    id: 'html-12-canvas-drawing-pad',
+    title: '12. [애플리케이션] 실시간 캔버스 드로잉 그림판',
+    category: 'Frontend & UI',
+    language: 'html',
+    engine: 'html-sandbox',
+    description: '마우스 드래그 자유 곡선 그리기 및 지우개 기능',
+    mainFile: 'index.html',
+    tags: ['Canvas', 'Drawing', 'Interactive'],
+    files: {
+      'index.html': `<!DOCTYPE html>
+<html>
+<body style="margin: 0; padding: 12px; font-family: sans-serif; text-align: center; background: #f8fafc;">
+  <div style="margin-bottom: 8px;">
+    <button onclick="ctx.clearRect(0,0,320,180)" style="padding: 4px 12px; cursor: pointer;">지우기</button>
+  </div>
+  <canvas id="pad" width="320" height="180" style="background: white; border: 1px solid #cbd5e1; border-radius: 8px; cursor: crosshair;"></canvas>
+  <script>
+    const pad = document.getElementById('pad');
+    const ctx = pad.getContext('2d');
+    let isDrawing = false;
+
+    pad.addEventListener('mousedown', e => { isDrawing = true; ctx.beginPath(); ctx.moveTo(e.offsetX, e.offsetY); });
+    pad.addEventListener('mousemove', e => { if (isDrawing) { ctx.lineTo(e.offsetX, e.offsetY); ctx.stroke(); } });
+    window.addEventListener('mouseup', () => isDrawing = false);
+  </script>
+</body>
+</html>
+`,
+    },
+  },
+  {
+    id: 'html-13-3d-wireframe-cube',
+    title: '13. [애플리케이션] 3D 와이어프레임 큐브 회전기',
+    category: 'Frontend & UI',
+    language: 'html',
+    engine: 'html-sandbox',
+    description: '삼각함수 3D 회전 행렬을 적용한 Canvas 와이어프레임',
+    mainFile: 'index.html',
+    tags: ['3D', 'Canvas', 'Math', 'Matrix'],
+    files: {
+      'index.html': `<!DOCTYPE html>
+<html>
+<body style="margin: 0; background: #0f172a; display: flex; justify-content: center; align-items: center; height: 100vh;">
+  <canvas id="c3d" width="300" height="200"></canvas>
+  <script>
+    const cv = document.getElementById('c3d');
+    const ctx = cv.getContext('2d');
+    let angle = 0;
+
+    const vertices = [
+      [-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],
+      [-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]
+    ];
+    const edges = [
+      [0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]
+    ];
+
+    function draw() {
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, 0, cv.width, cv.height);
+      angle += 0.02;
+
+      const proj = vertices.map(([x, y, z]) => {
+        let x1 = x * Math.cos(angle) - z * Math.sin(angle);
+        let z1 = x * Math.sin(angle) + z * Math.cos(angle);
+        let y2 = y * Math.cos(angle) - z1 * Math.sin(angle);
+        let z2 = y * Math.sin(angle) + z1 * Math.cos(angle);
+        return [cv.width/2 + x1 * 45, cv.height/2 + y2 * 45];
+      });
+
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 2;
+      edges.forEach(([u, v]) => {
+        ctx.beginPath();
+        ctx.moveTo(proj[u][0], proj[u][1]);
+        ctx.lineTo(proj[v][0], proj[v][1]);
+        ctx.stroke();
+      });
+      requestAnimationFrame(draw);
+    }
+    draw();
+  </script>
+</body>
+</html>
+`,
+    },
+  },
+  {
+    id: 'html-14-breakout-game',
+    title: '14. [게임] 벽돌깨기 아케이드 게임 (Breakout)',
+    category: 'Frontend & UI',
+    language: 'html',
+    engine: 'html-sandbox',
+    description: '패들 조작 및 볼 충돌 판정 아케이드 게임',
+    mainFile: 'index.html',
+    tags: ['Game', 'Canvas', 'Arcade'],
+    files: {
+      'index.html': `<!DOCTYPE html>
+<html>
+<body style="margin: 0; background: #0f172a; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif;">
+  <canvas id="gc" width="320" height="200" style="border: 1px solid #334155; border-radius: 8px;"></canvas>
+  <script>
+    const c = document.getElementById('gc'), ctx = c.getContext('2d');
+    let x = 160, y = 160, dx = 2, dy = -2, px = 120;
+    c.addEventListener('mousemove', e => px = e.offsetX - 35);
+
+    function game() {
+      ctx.fillStyle = '#0f172a'; ctx.fillRect(0,0,c.width,c.height);
+      ctx.beginPath(); ctx.arc(x,y,5,0,Math.PI*2); ctx.fillStyle = '#38bdf8'; ctx.fill();
+      ctx.fillStyle = '#22c55e'; ctx.fillRect(px, 190, 70, 6);
+
+      if (x < 5 || x > c.width - 5) dx = -dx;
+      if (y < 5) dy = -dy;
+      else if (y > 185 && x > px && x < px + 70) dy = -dy;
+      else if (y > c.height) { x = 160; y = 100; dy = -2; }
+
+      x += dx; y += dy;
+      requestAnimationFrame(game);
+    }
+    game();
+  </script>
+</body>
+</html>
+`,
+    },
+  },
+  {
+    id: 'html-15-pendulum-physics',
+    title: '15. [애플리케이션] 단진자 운동 물리 시뮬레이터',
+    category: 'Frontend & UI',
+    language: 'html',
+    engine: 'html-sandbox',
+    description: '중력 가속도 및 감쇠 진자 물리 운동 방정식',
+    mainFile: 'index.html',
+    tags: ['Physics', 'Canvas', 'Simulation'],
+    files: {
+      'index.html': `<!DOCTYPE html>
+<html>
+<body style="margin: 0; background: #0f172a; display: flex; justify-content: center; align-items: center; height: 100vh;">
+  <canvas id="pc" width="300" height="200"></canvas>
+  <script>
+    const cv = document.getElementById('pc'), ctx = cv.getContext('2d');
+    let angle = Math.PI / 4, aVel = 0, aAcc = 0, len = 120, originX = 150, originY = 20;
+
+    function draw() {
+      ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, cv.width, cv.height);
+      aAcc = (-0.4 / len) * Math.sin(angle);
+      aVel += aAcc; aVel *= 0.995; angle += aVel;
+
+      const bobX = originX + len * Math.sin(angle);
+      const bobY = originY + len * Math.cos(angle);
+
+      ctx.strokeStyle = '#64748b'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(originX, originY); ctx.lineTo(bobX, bobY); ctx.stroke();
+
+      ctx.fillStyle = '#38bdf8'; ctx.beginPath(); ctx.arc(bobX, bobY, 12, 0, Math.PI * 2); ctx.fill();
+      requestAnimationFrame(draw);
+    }
+    draw();
+  </script>
+</body>
+</html>
+`,
+    },
+  },
+  {
+    id: 'html-16-raycaster-maze',
+    title: '16. [애플리케이션] 레이캐스팅 가상 3D 미로 시선',
+    category: 'Frontend & UI',
+    language: 'html',
+    engine: 'html-sandbox',
+    description: 'Wolfenstein 3D 스타일 가상 레이캐스터 뷰어',
+    mainFile: 'index.html',
+    tags: ['Raycasting', '3D', 'Canvas', 'Retro'],
+    files: {
+      'index.html': `<!DOCTYPE html>
+<html>
+<body style="margin: 0; background: #020617; display: flex; justify-content: center; align-items: center; height: 100vh;">
+  <canvas id="rc" width="320" height="180"></canvas>
+  <script>
+    const c = document.getElementById('rc'), ctx = c.getContext('2d');
+    let rot = 0;
+    function render() {
+      ctx.fillStyle = '#1e293b'; ctx.fillRect(0,0,320,90);
+      ctx.fillStyle = '#0f172a'; ctx.fillRect(0,90,320,90);
+      rot += 0.03;
+
+      for (let i = 0; i < 32; i++) {
+        let rayAngle = rot + (i - 16) * 0.03;
+        let dist = 80 + Math.sin(rayAngle * 3) * 30;
+        let h = Math.min(180, (180 / dist) * 40);
+        let shade = Math.floor(255 - dist * 1.5);
+        ctx.fillStyle = \`rgb(\${shade/2}, \${shade}, \${shade})\`;
+        ctx.fillRect(i * 10, (180 - h)/2, 10, h);
+      }
+      requestAnimationFrame(render);
+    }
+    render();
+  </script>
+</body>
+</html>
+`,
+    },
+  },
+  {
+    id: 'html-17-solar-orbit',
+    title: '17. [애플리케이션] 태양계 행성 공전 궤도',
+    category: 'Frontend & UI',
+    language: 'html',
+    engine: 'html-sandbox',
+    description: 'Canvas 다중 궤도 주기 행성 애니메이션',
+    mainFile: 'index.html',
+    tags: ['Canvas', 'Orbit', 'Simulation'],
+    files: {
+      'index.html': `<!DOCTYPE html>
+<html>
+<body style="margin: 0; background: #030712; display: flex; justify-content: center; align-items: center; height: 100vh;">
+  <canvas id="sc" width="300" height="200"></canvas>
+  <script>
+    const c = document.getElementById('sc'), ctx = c.getContext('2d');
+    let t = 0;
+    function orbit() {
+      ctx.fillStyle = '#030712'; ctx.fillRect(0,0,c.width,c.height);
+      const cx = 150, cy = 100;
+      t += 0.02;
+
+      ctx.fillStyle = '#fbbf24'; ctx.beginPath(); ctx.arc(cx, cy, 14, 0, Math.PI*2); ctx.fill();
+
+      [[35, 2, '#38bdf8', 4], [60, 1.2, '#f43f5e', 5], [90, 0.7, '#a855f7', 7]].forEach(([r, s, col, size]) => {
+        ctx.strokeStyle = '#1e293b'; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.stroke();
+        let px = cx + Math.cos(t * s) * r;
+        let py = cy + Math.sin(t * s) * r;
+        ctx.fillStyle = col; ctx.beginPath(); ctx.arc(px, py, size, 0, Math.PI*2); ctx.fill();
+      });
+      requestAnimationFrame(orbit);
+    }
+    orbit();
+  </script>
+</body>
+</html>
+`,
+    },
+  },
+  {
+    id: 'html-18-stopwatch-neumorphism',
+    title: '18. [디자인] 뉴모피즘 (Neumorphism) 타이머',
+    category: 'Frontend & UI',
+    language: 'html',
+    engine: 'html-sandbox',
+    description: '부드러운 입체 음영 뉴모피즘 다이얼 인터페이스',
+    mainFile: 'index.html',
+    tags: ['CSS', 'Neumorphism', 'UI Design'],
+    files: {
+      'index.html': `<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { margin: 0; height: 100vh; display: flex; justify-content: center; align-items: center; background: #e0e5ec; font-family: sans-serif; }
+    .neu-dial { width: 140px; height: 140px; border-radius: 50%; background: #e0e5ec; box-shadow: 9px 9px 16px #b8b9be, -9px -9px 16px #ffffff; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; color: #475569; }
+  </style>
+</head>
+<body>
+  <div class="neu-dial">12:30</div>
+</body>
+</html>
+`,
+    },
+  },
+  {
+    id: 'html-19-waveform-visualizer',
+    title: '19. [애플리케이션] 실시간 오디오 파형 (Waveform)',
+    category: 'Frontend & UI',
+    language: 'html',
+    engine: 'html-sandbox',
+    description: 'Sin 파동 합성을 이용한 가상 오디오 이퀄라이저',
+    mainFile: 'index.html',
+    tags: ['Audio', 'Waveform', 'Canvas'],
+    files: {
+      'index.html': `<!DOCTYPE html>
+<html>
+<body style="margin: 0; background: #0f172a; display: flex; justify-content: center; align-items: center; height: 100vh;">
+  <canvas id="wc" width="300" height="150"></canvas>
+  <script>
+    const cv = document.getElementById('wc'), ctx = cv.getContext('2d');
+    let phase = 0;
+    function wave() {
+      ctx.fillStyle = '#0f172a'; ctx.fillRect(0,0,cv.width,cv.height);
+      phase += 0.05;
+      ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 3; ctx.beginPath();
+      for (let x = 0; x < cv.width; x++) {
+        let y = 75 + Math.sin(x * 0.05 + phase) * 25 + Math.sin(x * 0.02 - phase) * 15;
+        if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      requestAnimationFrame(wave);
+    }
+    wave();
+  </script>
+</body>
+</html>
+`,
+    },
+  },
+  {
+    id: 'html-20-digital-clock-matrix',
+    title: '20. [애플리케이션] 매트릭스 디지털 시계',
+    category: 'Frontend & UI',
+    language: 'html',
+    engine: 'html-sandbox',
+    description: '그린 네온 매트릭스 폰트 실시간 디지털 시계',
+    mainFile: 'index.html',
+    tags: ['Clock', 'Matrix', 'Neon'],
+    files: {
+      'index.html': `<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { margin: 0; height: 100vh; display: flex; justify-content: center; align-items: center; background: #000; font-family: monospace; color: #22c55e; text-shadow: 0 0 10px #22c55e; }
+    #clk { font-size: 40px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div id="clk">00:00:00</div>
+  <script>
+    function tick() { document.getElementById('clk').textContent = new Date().toTimeString().split(' ')[0]; }
+    setInterval(tick, 1000); tick();
   </script>
 </body>
 </html>

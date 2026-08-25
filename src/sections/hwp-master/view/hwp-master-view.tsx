@@ -187,8 +187,10 @@ export function HwpMasterView() {
           alignItems: 'center',
           gap: 1,
           mb: 2,
+          flexShrink: 0,
           overflowX: 'auto',
-          pb: 0.5,
+          py: 0.5,
+          minHeight: 36,
           '&::-webkit-scrollbar': { height: 6 },
         }}
       >
@@ -202,6 +204,7 @@ export function HwpMasterView() {
             alignItems: 'center',
             gap: 0.5,
             mr: 0.5,
+            flexShrink: 0,
           }}
         >
           <FormatListBulletedRoundedIcon sx={{ fontSize: 16 }} />
@@ -241,6 +244,7 @@ export function HwpMasterView() {
           sx={{
             p: 1.5,
             mb: 2,
+            flexShrink: 0,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -303,6 +307,7 @@ export function HwpMasterView() {
           borderBottom: 1,
           borderColor: 'divider',
           mb: 2,
+          flexShrink: 0,
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -337,7 +342,16 @@ export function HwpMasterView() {
       </Box>
 
       {/* 5. Tab Content Area */}
-      <Box sx={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', pb: 4 }}>
+      <Box
+        sx={{
+          flex: '1 1 auto',
+          minHeight: 0,
+          overflowY: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+          pb: 2,
+        }}
+      >
         {isLoading ? (
           <Box
             sx={{

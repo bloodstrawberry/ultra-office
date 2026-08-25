@@ -3,8 +3,9 @@ import type { CodeTemplate } from '../../types';
 // ----------------------------------------------------------------------
 
 export const CPP_TEMPLATES: CodeTemplate[] = [
+  // --- [Part 1: 언어 문법 및 STL 10선] ---
   {
-    id: 'cpp-01-hello-io',
+    id: 'cpp-01-hello-world',
     title: '01. Hello World & std::cout 입출력',
     category: 'Systems & Native',
     language: 'cpp',
@@ -18,7 +19,6 @@ export const CPP_TEMPLATES: CodeTemplate[] = [
 // ==========================================
 #include <iostream>
 #include <string>
-#include <vector>
 
 int main() {
     std::cout << "\\033[96m✨ Hello, Modern C++20 Clang/Wasm!\\033[0m\\n";
@@ -35,8 +35,372 @@ int main() {
     },
   },
   {
-    id: 'cpp-02-dfs',
-    title: '02. 깊이 우선 탐색 (DFS & 연결 요소)',
+    id: 'cpp-02-auto-references',
+    title: '02. auto 타입 추론, 참조자(&) & R-value',
+    category: 'Systems & Native',
+    language: 'cpp',
+    engine: 'wasm',
+    description: 'auto 타입 추론, lvalue 참조(&), rvalue 이동 시맨틱(std::move)',
+    mainFile: 'main.cpp',
+    tags: ['C++', 'auto', 'References', 'std::move'],
+    files: {
+      'main.cpp': `// ==========================================
+// 🔵 [02] C++: auto & 참조자(&)
+// ==========================================
+#include <iostream>
+#include <vector>
+#include <string>
+
+void swapValues(int& a, int& b) {
+    int temp = a;
+    a = b;
+    b = temp;
+}
+
+int main() {
+    std::cout << "\\033[96m⚡ [auto & Reference 변수 조작]\\033[0m\\n";
+
+    int x = 10, y = 20;
+    std::cout << "교환 전: x=" << x << ", y=" << y << "\\n";
+    swapValues(x, y);
+    std::cout << "교환 후: x=" << x << ", y=" << y << "\\n";
+
+    auto msg = std::string("Modern C++20");
+    std::cout << "auto 추론 문자열: " << msg << "\\n";
+    return 0;
+}
+`,
+    },
+  },
+  {
+    id: 'cpp-03-stl-vector',
+    title: '03. std::vector & Range-based for',
+    category: 'Systems & Native',
+    language: 'cpp',
+    engine: 'wasm',
+    description: '동적 배열 std::vector 생성, 원소 추가(push_back) 및 범위 기반 for문',
+    mainFile: 'main.cpp',
+    tags: ['C++', 'STL', 'std::vector', 'Range-for'],
+    files: {
+      'main.cpp': `// ==========================================
+// 🔵 [03] C++: std::vector 동적 배열
+// ==========================================
+#include <iostream>
+#include <vector>
+#include <numeric>
+
+int main() {
+    std::vector<int> nums = {10, 20, 30, 40, 50};
+    nums.push_back(60);
+
+    std::cout << "벡터 원소 목록: ";
+    for (const auto& n : nums) {
+        std::cout << n << " ";
+    }
+    std::cout << "\\n";
+
+    int sum = std::accumulate(nums.begin(), nums.end(), 0);
+    std::cout << "원소 총합: " << sum << "\\n";
+    return 0;
+}
+`,
+    },
+  },
+  {
+    id: 'cpp-04-lambda-stl-algo',
+    title: '04. 람다 표현식 & STL 알고리즘',
+    category: 'Systems & Native',
+    language: 'cpp',
+    engine: 'wasm',
+    description: 'std::sort, std::transform, std::count_if와 람다 캡처',
+    mainFile: 'main.cpp',
+    tags: ['C++', 'Lambda', 'STL Algorithms', 'std::sort'],
+    files: {
+      'main.cpp': `// ==========================================
+// 🔵 [04] C++: 람다식 & STL 알고리즘
+// ==========================================
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+int main() {
+    std::vector<int> scores = {85, 42, 95, 73, 61, 100, 54};
+
+    // 내림차순 정렬
+    std::sort(scores.begin(), scores.end(), [](int a, int b) {
+        return a > b;
+    });
+
+    std::cout << "내림차순 정렬 점수: ";
+    for (int s : scores) std::cout << s << " ";
+    std::cout << "\\n";
+
+    int passCount = std::count_if(scores.begin(), scores.end(), [](int s) {
+        return s >= 70;
+    });
+    std::cout << "70점 이상 합격자 수: " << passCount << "명\\n";
+    return 0;
+}
+`,
+    },
+  },
+  {
+    id: 'cpp-05-oop-raii',
+    title: '05. 객체 지향 & RAII 자원 관리',
+    category: 'Systems & Native',
+    language: 'cpp',
+    engine: 'wasm',
+    description: '생성자, 소멸자, RAII(Resource Acquisition Is Initialization) 패턴',
+    mainFile: 'main.cpp',
+    tags: ['C++', 'OOP', 'RAII', 'Destructor'],
+    files: {
+      'main.cpp': `// ==========================================
+// 🔵 [05] C++: RAII 자원 관리 클래스
+// ==========================================
+#include <iostream>
+#include <string>
+
+class DatabaseConnection {
+    std::string dbName;
+public:
+    DatabaseConnection(const std::string& name) : dbName(name) {
+        std::cout << "🔌 [" << dbName << "] DB 연결 세션 수립 (생성자)\\n";
+    }
+    ~DatabaseConnection() {
+        std::cout << "🔒 [" << dbName << "] DB 연결 안전하게 해제 (소멸자)\\n";
+    }
+    void executeQuery(const std::string& sql) {
+        std::cout << "  ➜ 쿼리 실행: " << sql << "\\n";
+    }
+};
+
+int main() {
+    {
+        DatabaseConnection conn("MySQL_Production");
+        conn.executeQuery("SELECT * FROM users LIMIT 10;");
+    }
+    std::cout << "스코프 종료 후 자원 자동 반환 확인 완료\\n";
+    return 0;
+}
+`,
+    },
+  },
+  {
+    id: 'cpp-06-smart-pointers',
+    title: '06. 스마트 포인터 (std::unique_ptr / shared_ptr)',
+    category: 'Systems & Native',
+    language: 'cpp',
+    engine: 'wasm',
+    description: '메모리 누수를 방지하는 Modern C++ 스마트 포인터 소유권 모델',
+    mainFile: 'main.cpp',
+    tags: ['C++', 'Smart Pointer', 'unique_ptr', 'shared_ptr'],
+    files: {
+      'main.cpp': `// ==========================================
+// 🔵 [06] C++: 스마트 포인터
+// ==========================================
+#include <iostream>
+#include <memory>
+#include <string>
+
+struct Node {
+    int value;
+    Node(int val) : value(val) { std::cout << "Node(" << value << ") 할당\\n"; }
+    ~Node() { std::cout << "Node(" << value << ") 메모리 해제\\n"; }
+};
+
+int main() {
+    std::cout << "[1] std::unique_ptr 단일 소유권 테스트\\n";
+    {
+        auto uNode = std::make_unique<Node>(42);
+        std::cout << "  값: " << uNode->value << "\\n";
+    }
+
+    std::cout << "\\n[2] std::shared_ptr 참조 카운팅\\n";
+    {
+        auto s1 = std::make_shared<Node>(100);
+        std::cout << "  참조 카운트: " << s1.use_count() << "\\n";
+        {
+            auto s2 = s1;
+            std::cout << "  스코프 내부 카운트: " << s1.use_count() << "\\n";
+        }
+        std::cout << "  스코프 외부 카운트: " << s1.use_count() << "\\n";
+    }
+    return 0;
+}
+`,
+    },
+  },
+  {
+    id: 'cpp-07-exception-handling',
+    title: '07. 예외 처리 (try-catch & std::exception)',
+    category: 'Systems & Native',
+    language: 'cpp',
+    engine: 'wasm',
+    description: 'std::runtime_error, std::invalid_argument 예외 처리',
+    mainFile: 'main.cpp',
+    tags: ['C++', 'Exception', 'try-catch', 'Error'],
+    files: {
+      'main.cpp': `// ==========================================
+// 🔵 [07] C++: 예외 처리
+// ==========================================
+#include <iostream>
+#include <stdexcept>
+
+double divide(double a, double b) {
+    if (b == 0.0) {
+        throw std::invalid_argument("0으로 나눌 수 없습니다.");
+    }
+    return a / b;
+}
+
+int main() {
+    try {
+        std::cout << "10 / 2 = " << divide(10, 2) << "\\n";
+        std::cout << "10 / 0 = " << divide(10, 0) << "\\n";
+    } catch (const std::exception& e) {
+        std::cout << "\\033[91m예외 감지: " << e.what() << "\\033[0m\\n";
+    }
+    return 0;
+}
+`,
+    },
+  },
+  {
+    id: 'cpp-08-templates-generics',
+    title: '08. 템플릿 (Templates) 제네릭 스택',
+    category: 'Systems & Native',
+    language: 'cpp',
+    engine: 'wasm',
+    description: '클래스 템플릿과 함수 템플릿을 활용한 제네릭 Stack 자료구조',
+    mainFile: 'main.cpp',
+    tags: ['C++', 'Templates', 'Generics', 'Stack'],
+    files: {
+      'main.cpp': `// ==========================================
+// 🔵 [08] C++: 템플릿 제네릭 스택
+// ==========================================
+#include <iostream>
+#include <vector>
+#include <string>
+
+template <typename T>
+class Stack {
+    std::vector<T> elements;
+public:
+    void push(const T& val) { elements.push_back(val); }
+    T pop() {
+        if (elements.empty()) throw std::out_of_range("스택이 비어있습니다.");
+        T top = elements.back();
+        elements.pop_back();
+        return top;
+    }
+    bool empty() const { return elements.empty(); }
+};
+
+int main() {
+    Stack<std::string> strStack;
+    strStack.push("First");
+    strStack.push("Second");
+    strStack.push("Third");
+
+    std::cout << "스택 원소 꺼내기: ";
+    while (!strStack.empty()) {
+        std::cout << strStack.pop() << " ";
+    }
+    std::cout << "\\n";
+    return 0;
+}
+`,
+    },
+  },
+  {
+    id: 'cpp-09-unordered-map',
+    title: '09. 해시 테이블 (std::unordered_map 단어 빈도)',
+    category: 'Systems & Native',
+    language: 'cpp',
+    engine: 'wasm',
+    description: 'O(1) 해시 테이블 std::unordered_map을 활용한 단어 빈도 카운팅',
+    mainFile: 'main.cpp',
+    tags: ['C++', 'Hash Map', 'std::unordered_map', 'O(1)'],
+    files: {
+      'main.cpp': `// ==========================================
+// 🔵 [09] C++: std::unordered_map 빈도 분석
+// ==========================================
+#include <iostream>
+#include <unordered_map>
+#include <string>
+#include <vector>
+
+int main() {
+    std::vector<std::string> words = {
+        "apple", "banana", "apple", "cherry", "banana", "apple", "date"
+    };
+
+    std::unordered_map<std::string, int> freq;
+    for (const auto& w : words) freq[w]++;
+
+    std::cout << "[단어 빈도 분석 결과]\\n";
+    for (const auto& [word, count] : freq) {
+        std::cout << "  • " << word << ": " << count << "회\\n";
+    }
+    return 0;
+}
+`,
+    },
+  },
+  {
+    id: 'cpp-10-bst-tree',
+    title: '10. 이진 탐색 트리 (BST 자료구조)',
+    category: 'Systems & Native',
+    language: 'cpp',
+    engine: 'wasm',
+    description: '포인터 기반 이진 탐색 트리(Binary Search Tree) 삽입 및 중위 순회',
+    mainFile: 'main.cpp',
+    tags: ['C++', 'BST', 'Tree', 'Data Structures'],
+    files: {
+      'main.cpp': `// ==========================================
+// 🔵 [10] C++: 이진 탐색 트리 (BST)
+// ==========================================
+#include <iostream>
+
+struct TreeNode {
+    int val;
+    TreeNode* left;
+    TreeNode* right;
+    TreeNode(int v) : val(v), left(nullptr), right(nullptr) {}
+};
+
+TreeNode* insert(TreeNode* root, int val) {
+    if (!root) return new TreeNode(val);
+    if (val < root->val) root->left = insert(root->left, val);
+    else root->right = insert(root->right, val);
+    return root;
+}
+
+void inorder(TreeNode* root) {
+    if (!root) return;
+    inorder(root->left);
+    std::cout << root->val << " ";
+    inorder(root->right);
+}
+
+int main() {
+    TreeNode* root = nullptr;
+    int data[] = {50, 30, 70, 20, 40, 60, 80};
+    for (int x : data) root = insert(root, x);
+
+    std::cout << "BST 중위 순회 (정렬 출력): ";
+    inorder(root);
+    std::cout << "\\n";
+    return 0;
+}
+`,
+    },
+  },
+
+  // --- [Part 2: 핵심 알고리즘 10선] ---
+  {
+    id: 'cpp-11-algo-dfs',
+    title: '11. [알고리즘] 깊이 우선 탐색 (DFS & 연결 요소)',
     category: 'Systems & Native',
     language: 'cpp',
     engine: 'wasm',
@@ -45,7 +409,7 @@ int main() {
     tags: ['DFS', 'Graph', 'Recursion', 'STL'],
     files: {
       'main.cpp': `// ==========================================
-// 🔵 [02] C++: 깊이 우선 탐색 (DFS)
+// 🧠 [11] C++ Algorithm: 깊이 우선 탐색 (DFS)
 // ==========================================
 #include <iostream>
 #include <vector>
@@ -88,8 +452,8 @@ int main() {
     },
   },
   {
-    id: 'cpp-03-bfs',
-    title: '03. 너비 우선 탐색 (BFS & std::queue)',
+    id: 'cpp-12-algo-bfs',
+    title: '12. [알고리즘] 너비 우선 탐색 (BFS & std::queue)',
     category: 'Systems & Native',
     language: 'cpp',
     engine: 'wasm',
@@ -98,7 +462,7 @@ int main() {
     tags: ['BFS', 'std::queue', 'Shortest Path', 'Grid'],
     files: {
       'main.cpp': `// ==========================================
-// 🔵 [03] C++: 너비 우선 탐색 (BFS) 최단 경로
+// 🧠 [12] C++ Algorithm: 너비 우선 탐색 (BFS) 최단 경로
 // ==========================================
 #include <iostream>
 #include <vector>
@@ -159,8 +523,8 @@ int main() {
     },
   },
   {
-    id: 'cpp-04-dp',
-    title: '04. 다이나믹 프로그래밍 (DP & 0/1 Knapsack)',
+    id: 'cpp-13-algo-dp',
+    title: '13. [알고리즘] 다이나믹 프로그래밍 (0/1 Knapsack)',
     category: 'Systems & Native',
     language: 'cpp',
     engine: 'wasm',
@@ -169,7 +533,7 @@ int main() {
     tags: ['DP', 'Knapsack', 'Optimization'],
     files: {
       'main.cpp': `// ==========================================
-// 🔵 [04] C++: 다이나믹 프로그래밍 (0/1 배낭)
+// 🧠 [13] C++ Algorithm: 다이나믹 프로그래밍 (0/1 배낭)
 // ==========================================
 #include <iostream>
 #include <vector>
@@ -216,8 +580,8 @@ int main() {
     },
   },
   {
-    id: 'cpp-05-binary-search',
-    title: '05. 이진 탐색 & std::lower_bound',
+    id: 'cpp-14-algo-binary-search',
+    title: '14. [알고리즘] 이진 탐색 & std::lower_bound',
     category: 'Systems & Native',
     language: 'cpp',
     engine: 'wasm',
@@ -226,7 +590,7 @@ int main() {
     tags: ['Binary Search', 'lower_bound', 'Parametric Search'],
     files: {
       'main.cpp': `// ==========================================
-// 🔵 [05] C++: 이진 탐색 & 파라메트릭 서치
+// 🧠 [14] C++ Algorithm: 이진 탐색 & 파라메트릭 서치
 // ==========================================
 #include <iostream>
 #include <vector>
@@ -269,8 +633,8 @@ int main() {
     },
   },
   {
-    id: 'cpp-06-dijkstra',
-    title: '06. 다익스트라 최단 경로 (std::priority_queue)',
+    id: 'cpp-15-algo-dijkstra',
+    title: '15. [알고리즘] 다익스트라 최단 경로 (priority_queue)',
     category: 'Systems & Native',
     language: 'cpp',
     engine: 'wasm',
@@ -279,7 +643,7 @@ int main() {
     tags: ['Dijkstra', 'priority_queue', 'Graph'],
     files: {
       'main.cpp': `// ==========================================
-// 🔵 [06] C++: 다익스트라 최단 경로
+// 🧠 [15] C++ Algorithm: 다익스트라 최단 경로
 // ==========================================
 #include <iostream>
 #include <vector>
@@ -327,8 +691,8 @@ int main() {
     },
   },
   {
-    id: 'cpp-07-sorting',
-    title: '07. 퀵 정렬 & std::sort (Sorting Algorithms)',
+    id: 'cpp-16-algo-sorting',
+    title: '16. [알고리즘] 퀵 정렬 & std::sort (Sorting)',
     category: 'Systems & Native',
     language: 'cpp',
     engine: 'wasm',
@@ -337,7 +701,7 @@ int main() {
     tags: ['QuickSort', 'std::sort', 'Sorting'],
     files: {
       'main.cpp': `// ==========================================
-// 🔵 [07] C++: 퀵 정렬 & std::sort
+// 🧠 [16] C++ Algorithm: 퀵 정렬 & std::sort
 // ==========================================
 #include <iostream>
 #include <vector>
@@ -377,8 +741,8 @@ int main() {
     },
   },
   {
-    id: 'cpp-08-backtracking',
-    title: '08. 백트래킹 (N-Queens 체스 퍼즐)',
+    id: 'cpp-17-algo-backtracking',
+    title: '17. [알고리즘] 백트래킹 (N-Queens 체스)',
     category: 'Systems & Native',
     language: 'cpp',
     engine: 'wasm',
@@ -387,7 +751,7 @@ int main() {
     tags: ['Backtracking', 'N-Queens', 'Recursion'],
     files: {
       'main.cpp': `// ==========================================
-// 🔵 [08] C++: 백트래킹 (N-Queens)
+// 🧠 [17] C++ Algorithm: 백트래킹 (N-Queens)
 // ==========================================
 #include <iostream>
 #include <vector>
@@ -434,8 +798,8 @@ int main() {
     },
   },
   {
-    id: 'cpp-09-two-pointers',
-    title: '09. 투 포인터 & 슬라이딩 윈도우',
+    id: 'cpp-18-algo-two-pointers',
+    title: '18. [알고리즘] 투 포인터 & 슬라이딩 윈도우',
     category: 'Systems & Native',
     language: 'cpp',
     engine: 'wasm',
@@ -444,7 +808,7 @@ int main() {
     tags: ['Two Pointers', 'Sliding Window', 'O(N)'],
     files: {
       'main.cpp': `// ==========================================
-// 🔵 [09] C++: 투 포인터 & 슬라이딩 윈도우
+// 🧠 [18] C++ Algorithm: 투 포인터 & 슬라이딩 윈도우
 // ==========================================
 #include <iostream>
 #include <vector>
@@ -476,8 +840,8 @@ int main() {
     },
   },
   {
-    id: 'cpp-10-greedy',
-    title: '10. 그리디 알고리즘 (Greedy - 회의실 배정)',
+    id: 'cpp-19-algo-greedy',
+    title: '19. [알고리즘] 그리디 알고리즘 (회의실 배정)',
     category: 'Systems & Native',
     language: 'cpp',
     engine: 'wasm',
@@ -486,7 +850,7 @@ int main() {
     tags: ['Greedy', 'Activity Selection', 'Sorting'],
     files: {
       'main.cpp': `// ==========================================
-// 🔵 [10] C++: 그리디 (회의실 배정)
+// 🧠 [19] C++ Algorithm: 그리디 (회의실 배정)
 // ==========================================
 #include <iostream>
 #include <vector>
@@ -524,6 +888,81 @@ int main() {
     }
 
     std::cout << "✨ 배정 가능한 최대 회의 수: " << count << "개\\n";
+    return 0;
+}
+`,
+    },
+  },
+  {
+    id: 'cpp-20-algo-trie-topo',
+    title: '20. [알고리즘] 트라이 & 위상 정렬 (Trie & TopoSort)',
+    category: 'Systems & Native',
+    language: 'cpp',
+    engine: 'wasm',
+    description: '트라이 사전 검색 및 진입차수(In-degree) 기반 위상 정렬',
+    mainFile: 'main.cpp',
+    tags: ['Trie', 'Topological Sort', 'DAG'],
+    files: {
+      'main.cpp': `// ==========================================
+// 🧠 [20] C++ Algorithm: 트라이 & 위상 정렬
+// ==========================================
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <string>
+
+struct TrieNode {
+    TrieNode* children[26] = {nullptr};
+    bool isEnd = false;
+};
+
+void insertTrie(TrieNode* root, const std::string& word) {
+    TrieNode* curr = root;
+    for (char c : word) {
+        int idx = c - 'a';
+        if (!curr->children[idx]) curr->children[idx] = new TrieNode();
+        curr = curr->children[idx];
+    }
+    curr->isEnd = true;
+}
+
+int main() {
+    std::cout << "\\033[96m⚡ [1] C++ Trie 접두사 트리\\033[0m\\n";
+    TrieNode* root = new TrieNode();
+    insertTrie(root, "apple");
+    insertTrie(root, "app");
+    insertTrie(root, "banana");
+    std::cout << "  Trie 단어 사전 구축 완료 (apple, app, banana)\\n";
+
+    std::cout << "\\n\\033[96m⚡ [2] 위상 정렬 (Topological Sort)\\033[0m\\n";
+    int n = 5;
+    std::vector<std::vector<int>> adj(n + 1);
+    std::vector<int> inDegree(n + 1, 0);
+
+    auto addEdge = [&](int u, int v) {
+        adj[u].push_back(v);
+        inDegree[v]++;
+    };
+
+    addEdge(1, 2);
+    addEdge(2, 3);
+    addEdge(2, 4);
+    addEdge(3, 5);
+    addEdge(4, 5);
+
+    std::queue<int> q;
+    for (int i = 1; i <= n; i++) if (inDegree[i] == 0) q.push(i);
+
+    std::cout << "  ✨ 빌드 순서: ";
+    while (!q.empty()) {
+        int cur = q.front();
+        q.pop();
+        std::cout << cur << " ➔ ";
+        for (int nxt : adj[cur]) {
+            if (--inDegree[nxt] == 0) q.push(nxt);
+        }
+    }
+    std::cout << "Done\\n";
     return 0;
 }
 `,

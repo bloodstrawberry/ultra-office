@@ -3,9 +3,10 @@ import type { CodeTemplate } from '../../types';
 // ----------------------------------------------------------------------
 
 export const RUBY_TEMPLATES: CodeTemplate[] = [
+  // --- [Part 1: 언어 문법 및 블록 10선] ---
   {
-    id: 'ruby-01-hello-io',
-    title: '01. Hello World & 표준 입출력 (I/O)',
+    id: 'ruby-01-hello-world',
+    title: '01. Hello World & puts 입출력',
     category: 'Backend & Scripting',
     language: 'ruby',
     engine: 'ruby',
@@ -26,8 +27,285 @@ puts "객체 지향 & 알고리즘 스크립트 실행 환경 준비 완료"
     },
   },
   {
-    id: 'ruby-02-dfs',
-    title: '02. 깊이 우선 탐색 (DFS & 연결 요소)',
+    id: 'ruby-02-variables-symbols',
+    title: '02. 변수, 심볼(:symbol) & 문자열',
+    category: 'Backend & Scripting',
+    language: 'ruby',
+    engine: 'ruby',
+    description: '지역 변수, 불변 심볼(:name), 동적 문자열 메서드',
+    mainFile: 'main.rb',
+    tags: ['Ruby', 'Variables', 'Symbols', 'String'],
+    files: {
+      'main.rb': `# ==========================================
+# 💎 [02] Ruby: 심볼과 문자열
+# ==========================================
+
+user = {
+  name: "루비 개발자",
+  role: :fullstack,
+  skills: [:ruby, :rails, :wasm]
+}
+
+puts "이름: #{user[:name]}"
+puts "직무 심볼: #{user[:role]} (object_id: #{user[:role].object_id})"
+puts "기술 스택: #{user[:skills].map(&:to_s).join(', ')}"
+`,
+    },
+  },
+  {
+    id: 'ruby-03-blocks-iterators',
+    title: '03. 블록(Block), each & times 이터레이터',
+    category: 'Backend & Scripting',
+    language: 'ruby',
+    engine: 'ruby',
+    description: 'do..end / {...} 블록, yield 및 내장 이터레이터',
+    mainFile: 'main.rb',
+    tags: ['Ruby', 'Blocks', 'each', 'times', 'yield'],
+    files: {
+      'main.rb': `# ==========================================
+# 💎 [03] Ruby: 블록과 이터레이터
+# ==========================================
+
+puts "[1] times 이터레이터:"
+3.times { |i| puts "  반복 #{i + 1}회차" }
+
+puts "\\n[2] each 배열 순회:"
+["Apple", "Banana", "Cherry"].each_with_index do |fruit, idx|
+  puts "  #{idx + 1}. #{fruit}"
+end
+`,
+    },
+  },
+  {
+    id: 'ruby-04-enumerable-methods',
+    title: '04. Enumerable 파이프라인 (map, select, reduce)',
+    category: 'Backend & Scripting',
+    language: 'ruby',
+    engine: 'ruby',
+    description: '함수형 데이터 가공: select, map, inject(reduce), partition',
+    mainFile: 'main.rb',
+    tags: ['Ruby', 'Enumerable', 'map', 'select', 'reduce'],
+    files: {
+      'main.rb': `# ==========================================
+# 💎 [04] Ruby: Enumerable 파이프라인
+# ==========================================
+
+numbers = (1..10).to_a
+evens_squared = numbers.select(&:even?).map { |n| n ** 2 }
+sum = evens_squared.reduce(0, :+)
+
+puts "1~10 짝수 제곱: #{evens_squared.inspect}"
+puts "제곱수 총합: #{sum}"
+`,
+    },
+  },
+  {
+    id: 'ruby-05-oop-classes',
+    title: '05. 객체 지향 (Class & attr_accessor)',
+    category: 'Backend & Scripting',
+    language: 'ruby',
+    engine: 'ruby',
+    description: '인스턴스 변수(@), attr_accessor, 상속(<) 및 메서드 오버라이딩',
+    mainFile: 'main.rb',
+    tags: ['Ruby', 'OOP', 'Class', 'attr_accessor'],
+    files: {
+      'main.rb': `# ==========================================
+# 💎 [05] Ruby: 클래스와 객체 지향
+# ==========================================
+
+class BankAccount
+  attr_reader :owner, :balance
+
+  def initialize(owner, initial_deposit = 0)
+    @owner = owner
+    @balance = initial_deposit
+  end
+
+  def deposit(amount)
+    @balance += amount
+    @balance
+  end
+
+  def to_s
+    "#{@owner}님의 계좌 잔액: #{@balance}원"
+  end
+end
+
+account = BankAccount.new("홍길동", 50000)
+account.deposit(25000)
+puts account
+`,
+    },
+  },
+  {
+    id: 'ruby-06-modules-mixins',
+    title: '06. 모듈(Module) & 믹스인(Mixin)',
+    category: 'Backend & Scripting',
+    language: 'ruby',
+    engine: 'ruby',
+    description: 'include / extend 믹스인을 통한 다중 행동 합성',
+    mainFile: 'main.rb',
+    tags: ['Ruby', 'Module', 'Mixin', 'include'],
+    files: {
+      'main.rb': `# ==========================================
+# 💎 [06] Ruby: 모듈과 믹스인
+# ==========================================
+
+module Loggable
+  def log(msg)
+    puts "[LOG] #{Time.now.strftime('%H:%M:%S')} - #{msg}"
+  end
+end
+
+class PaymentGateway
+  include Loggable
+
+  def charge(amount)
+    log("#{amount}원 결제 요청 승인")
+  end
+end
+
+gw = PaymentGateway.new
+gw.charge(120000)
+`,
+    },
+  },
+  {
+    id: 'ruby-07-exception-handling',
+    title: '07. 예외 처리 (begin..rescue..ensure)',
+    category: 'Backend & Scripting',
+    language: 'ruby',
+    engine: 'ruby',
+    description: 'rescue StandardError => e, raise 및 ensure 정리',
+    mainFile: 'main.rb',
+    tags: ['Ruby', 'Exception', 'rescue', 'ensure'],
+    files: {
+      'main.rb': `# ==========================================
+# 💎 [07] Ruby: 예외 처리
+# ==========================================
+
+def divide(a, b)
+  raise ArgumentError, "0으로 나눌 수 없습니다." if b == 0
+  a / b
+end
+
+begin
+  puts "10 / 2 = #{divide(10, 2)}"
+  puts "10 / 0 = #{divide(10, 0)}"
+rescue ArgumentError => e
+  puts "\\033[91m예외 감지: #{e.message}\\033[0m"
+ensure
+  puts "작업 완료 (ensure)"
+end
+`,
+    },
+  },
+  {
+    id: 'ruby-08-procs-lambdas',
+    title: '08. Proc & Lambda 익명 함수',
+    category: 'Backend & Scripting',
+    language: 'ruby',
+    engine: 'ruby',
+    description: 'Proc vs Lambda 차이점(인자 검사, return 스코프)',
+    mainFile: 'main.rb',
+    tags: ['Ruby', 'Proc', 'Lambda', 'Closures'],
+    files: {
+      'main.rb': `# ==========================================
+# 💎 [08] Ruby: Proc vs Lambda
+# ==========================================
+
+my_lambda = ->(x, y) { x * y + 10 }
+puts "Lambda 호출 (5, 4): #{my_lambda.call(5, 4)}"
+
+multiplier = ->(factor) { ->(n) { n * factor } }
+triple = multiplier.call(3)
+puts "클로저 triple(7): #{triple.call(7)}"
+`,
+    },
+  },
+  {
+    id: 'ruby-09-regex-scan',
+    title: '09. 정규표현식(Regexp) & scan',
+    category: 'Backend & Scripting',
+    language: 'ruby',
+    engine: 'ruby',
+    description: '패턴 매칭, scan, gsub를 이용한 텍스트 파싱',
+    mainFile: 'main.rb',
+    tags: ['Ruby', 'Regexp', 'scan', 'gsub'],
+    files: {
+      'main.rb': `# ==========================================
+# 💎 [09] Ruby: 정규표현식
+# ==========================================
+
+log = "2026-08-25 [WARN] dev@test.co.kr (code: 404), admin@system.io (code: 200)"
+emails = log.scan(/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+/)
+codes = log.scan(/code:\\s*(\\d+)/).flatten
+
+puts "추출된 이메일: #{emails.inspect}"
+puts "추출된 상태코드: #{codes.inspect}"
+`,
+    },
+  },
+  {
+    id: 'ruby-10-bst-tree',
+    title: '10. 이진 탐색 트리 (BST 자료구조)',
+    category: 'Backend & Scripting',
+    language: 'ruby',
+    engine: 'ruby',
+    description: '루비 객체 지향 이진 탐색 트리 구현',
+    mainFile: 'main.rb',
+    tags: ['Ruby', 'BST', 'Tree', 'Data Structures'],
+    files: {
+      'main.rb': `# ==========================================
+# 💎 [10] Ruby: 이진 탐색 트리 (BST)
+# ==========================================
+
+class TreeNode
+  attr_accessor :val, :left, :right
+  def initialize(val)
+    @val = val
+    @left = nil
+    @right = nil
+  end
+end
+
+class BST
+  attr_accessor :root
+
+  def insert(val)
+    @root = insert_rec(@root, val)
+  end
+
+  def insert_rec(node, val)
+    return TreeNode.new(val) if node.nil?
+    if val < node.val
+      node.left = insert_rec(node.left, val)
+    else
+      node.right = insert_rec(node.right, val)
+    end
+    node
+  end
+
+  def inorder(node, res = [])
+    return res if node.nil?
+    inorder(node.left, res)
+    res << node.val
+    inorder(node.right, res)
+    res
+  end
+end
+
+tree = BST.new
+[50, 30, 70, 20, 40, 60, 80].each { |x| tree.insert(x) }
+puts "BST 중위 순회 (정렬 출력): #{tree.inorder(tree.root).inspect}"
+`,
+    },
+  },
+
+  // --- [Part 2: 핵심 알고리즘 10선] ---
+  {
+    id: 'ruby-11-algo-dfs',
+    title: '11. [알고리즘] 깊이 우선 탐색 (DFS & 연결 요소)',
     category: 'Backend & Scripting',
     language: 'ruby',
     engine: 'ruby',
@@ -36,7 +314,7 @@ puts "객체 지향 & 알고리즘 스크립트 실행 환경 준비 완료"
     tags: ['DFS', 'Graph', 'Recursion'],
     files: {
       'main.rb': `# ==========================================
-# 💎 [02] Ruby: 깊이 우선 탐색 (DFS)
+# 🧠 [11] Ruby Algorithm: 깊이 우선 탐색 (DFS)
 # ==========================================
 require 'set'
 
@@ -71,8 +349,8 @@ puts "노드 1 기준 DFS 순회: #{traversal.join(' ➔ ')}"
     },
   },
   {
-    id: 'ruby-03-bfs',
-    title: '03. 너비 우선 탐색 (BFS & 2D 최단 경로)',
+    id: 'ruby-12-algo-bfs',
+    title: '12. [알고리즘] 너비 우선 탐색 (BFS & 2D 최단 경로)',
     category: 'Backend & Scripting',
     language: 'ruby',
     engine: 'ruby',
@@ -81,7 +359,7 @@ puts "노드 1 기준 DFS 순회: #{traversal.join(' ➔ ')}"
     tags: ['BFS', 'Queue', 'Shortest Path'],
     files: {
       'main.rb': `# ==========================================
-# 💎 [03] Ruby: 너비 우선 탐색 (BFS) 최단 경로
+# 🧠 [12] Ruby Algorithm: 너비 우선 탐색 (BFS) 최단 경로
 # ==========================================
 
 puts "\\033[96m⚡ [BFS] 2D 미로 최단 거리 탐색\\033[0m"
@@ -129,8 +407,8 @@ puts "✨ 미로 탈출 최단 거리: #{ans}칸"
     },
   },
   {
-    id: 'ruby-04-dp',
-    title: '04. 다이나믹 프로그래밍 (DP & 0/1 배낭)',
+    id: 'ruby-13-algo-dp',
+    title: '13. [알고리즘] 다이나믹 프로그래밍 (DP & 0/1 배낭)',
     category: 'Backend & Scripting',
     language: 'ruby',
     engine: 'ruby',
@@ -139,7 +417,7 @@ puts "✨ 미로 탈출 최단 거리: #{ans}칸"
     tags: ['DP', 'Knapsack', 'Optimization'],
     files: {
       'main.rb': `# ==========================================
-# 💎 [04] Ruby: 다이나믹 프로그래밍 (0/1 배낭)
+# 🧠 [13] Ruby Algorithm: 다이나믹 프로그래밍 (0/1 배낭)
 # ==========================================
 
 puts "\\033[96m⚡ [DP] 0/1 Knapsack 배낭 문제 최적화\\033[0m"
@@ -174,8 +452,8 @@ puts "✨ 배낭에 담을 수 있는 최대 가치: #{dp[n][capacity]}만원"
     },
   },
   {
-    id: 'ruby-05-binary-search',
-    title: '05. 이진 탐색 & bsearch',
+    id: 'ruby-14-algo-binary-search',
+    title: '14. [알고리즘] 이진 탐색 & bsearch',
     category: 'Backend & Scripting',
     language: 'ruby',
     engine: 'ruby',
@@ -184,7 +462,7 @@ puts "✨ 배낭에 담을 수 있는 최대 가치: #{dp[n][capacity]}만원"
     tags: ['Binary Search', 'bsearch'],
     files: {
       'main.rb': `# ==========================================
-# 💎 [05] Ruby: 이진 탐색 & 파라메트릭 서치
+# 🧠 [14] Ruby Algorithm: 이진 탐색 & 파라메트릭 서치
 # ==========================================
 
 puts "\\033[96m⚡ [Binary Search] 이진 탐색 & 파라메트릭 서치\\033[0m"
@@ -218,8 +496,8 @@ puts "✨ 만들 수 있는 최대 랜선 길이: #{best}cm"
     },
   },
   {
-    id: 'ruby-06-dijkstra',
-    title: '06. 다익스트라 최단 경로 (Dijkstra Algorithm)',
+    id: 'ruby-15-algo-dijkstra',
+    title: '15. [알고리즘] 다익스트라 최단 경로 (Dijkstra Algorithm)',
     category: 'Backend & Scripting',
     language: 'ruby',
     engine: 'ruby',
@@ -228,7 +506,7 @@ puts "✨ 만들 수 있는 최대 랜선 길이: #{best}cm"
     tags: ['Dijkstra', 'Graph'],
     files: {
       'main.rb': `# ==========================================
-# 💎 [06] Ruby: 다익스트라 최단 경로
+# 🧠 [15] Ruby Algorithm: 다익스트라 최단 경로
 # ==========================================
 
 puts "\\033[96m⚡ [Dijkstra] 가중치 최단 경로\\033[0m"
@@ -264,8 +542,8 @@ puts "출발지 [A] 기준 최단 비용: Z ➔ #{dist['Z']}"
     },
   },
   {
-    id: 'ruby-07-sorting',
-    title: '07. 퀵 정렬 (QuickSort Algorithm)',
+    id: 'ruby-16-algo-sorting',
+    title: '16. [알고리즘] 퀵 정렬 (QuickSort Algorithm)',
     category: 'Backend & Scripting',
     language: 'ruby',
     engine: 'ruby',
@@ -274,7 +552,7 @@ puts "출발지 [A] 기준 최단 비용: Z ➔ #{dist['Z']}"
     tags: ['QuickSort', 'Sorting'],
     files: {
       'main.rb': `# ==========================================
-# 💎 [07] Ruby: 퀵 정렬
+# 🧠 [16] Ruby Algorithm: 퀵 정렬
 # ==========================================
 
 def quick_sort(arr)
@@ -295,8 +573,8 @@ puts "정렬 결과: #{quick_sort(numbers).inspect}"
     },
   },
   {
-    id: 'ruby-08-backtracking',
-    title: '08. 백트래킹 (N-Queens 체스)',
+    id: 'ruby-17-algo-backtracking',
+    title: '17. [알고리즘] 백트래킹 (N-Queens 체스)',
     category: 'Backend & Scripting',
     language: 'ruby',
     engine: 'ruby',
@@ -305,7 +583,7 @@ puts "정렬 결과: #{quick_sort(numbers).inspect}"
     tags: ['Backtracking', 'N-Queens'],
     files: {
       'main.rb': `# ==========================================
-# 💎 [08] Ruby: 백트래킹 (N-Queens)
+# 🧠 [17] Ruby Algorithm: 백트래킹 (N-Queens)
 # ==========================================
 
 solutions = 0
@@ -343,8 +621,8 @@ puts "#{n}x#{n} 체스판 유효한 퀸 배치 해답: #{solutions}가지"
     },
   },
   {
-    id: 'ruby-09-two-pointers',
-    title: '09. 투 포인터 & 슬라이딩 윈도우',
+    id: 'ruby-18-algo-two-pointers',
+    title: '18. [알고리즘] 투 포인터 & 슬라이딩 윈도우',
     category: 'Backend & Scripting',
     language: 'ruby',
     engine: 'ruby',
@@ -353,7 +631,7 @@ puts "#{n}x#{n} 체스판 유효한 퀸 배치 해답: #{solutions}가지"
     tags: ['Two Pointers', 'O(N)'],
     files: {
       'main.rb': `# ==========================================
-# 💎 [09] Ruby: 투 포인터 (Two Sum)
+# 🧠 [18] Ruby Algorithm: 투 포인터 (Two Sum)
 # ==========================================
 
 puts "\\033[96m⚡ [Two Pointers] O(N) 선형 탐색\\033[0m"
@@ -380,8 +658,8 @@ end
     },
   },
   {
-    id: 'ruby-10-greedy',
-    title: '10. 그리디 알고리즘 (Greedy - 회의실 배정)',
+    id: 'ruby-19-algo-greedy',
+    title: '19. [알고리즘] 그리디 알고리즘 (회의실 배정)',
     category: 'Backend & Scripting',
     language: 'ruby',
     engine: 'ruby',
@@ -390,7 +668,7 @@ end
     tags: ['Greedy', 'Activity Selection'],
     files: {
       'main.rb': `# ==========================================
-# 💎 [10] Ruby: 그리디 (회의실 배정)
+# 🧠 [19] Ruby Algorithm: 그리디 (회의실 배정)
 # ==========================================
 
 puts "\\033[96m⚡ [Greedy] 회의실 배정 (Activity Selection)\\033[0m"
@@ -417,6 +695,69 @@ sorted.each do |m|
 end
 
 puts "✨ 배정 가능한 최대 회의 수: #{count}개"
+`,
+    },
+  },
+  {
+    id: 'ruby-20-algo-trie-topo',
+    title: '20. [알고리즘] 트라이 & 위상 정렬 (Trie & TopoSort)',
+    category: 'Backend & Scripting',
+    language: 'ruby',
+    engine: 'ruby',
+    description: '트라이 사전 검색 및 진입차수(In-degree) 기반 위상 정렬',
+    mainFile: 'main.rb',
+    tags: ['Trie', 'Topological Sort', 'DAG'],
+    files: {
+      'main.rb': `# ==========================================
+# 🧠 [20] Ruby Algorithm: 트라이 & 위상 정렬
+# ==========================================
+
+puts "\\033[96m⚡ [1] Ruby Trie 접두사 트리\\033[0m"
+class TrieNode
+  attr_accessor :children, :is_end
+  def initialize
+    @children = {}
+    @is_end = false
+  end
+end
+
+root = TrieNode.new
+["apple", "app", "application", "banana"].each do |word|
+  cur = root
+  word.each_char do |ch|
+    cur.children[ch] ||= TrieNode.new
+    cur = cur.children[ch]
+  end
+  cur.is_end = true
+end
+puts "  단어 사전 삽입 완료 (apple, app, application, banana)"
+
+puts "\\n\\033[96m⚡ [2] 위상 정렬 (Topological Sort)\\033[0m"
+n = 5
+adj = Hash.new { |h, k| h[k] = [] }
+in_degree = Hash.new(0)
+(1..n).each { |i| in_degree[i] = 0 }
+
+add_edge = ->(u, v) {
+  adj[u] << v
+  in_degree[v] += 1
+}
+
+add_edge.call(1, 2); add_edge.call(2, 3); add_edge.call(2, 4); add_edge.call(3, 5); add_edge.call(4, 5)
+
+q = (1..n).select { |i| in_degree[i] == 0 }
+order = []
+
+while !q.empty?
+  cur = q.shift
+  order << cur
+  adj[cur].each do |nxt|
+    in_degree[nxt] -= 1
+    q << nxt if in_degree[nxt] == 0
+  end
+end
+
+puts "  ✨ 빌드 순서: #{order.join(' ➔ ')}"
 `,
     },
   },

@@ -30,6 +30,7 @@ import { usePolyglotRunner } from '../core/use-polyglot-runner';
 import { TEMPLATES, getTemplatesByLanguage } from '../core/templates';
 import { TerminalView, type TerminalRef } from '../components/terminal-view';
 import { IDE_THEMES, getThemeById, DEFAULT_THEME_ID } from '../core/editor-themes';
+import { buildHtmlPreview, buildReactPreviewHtml } from '../core/build-preview-html';
 
 // ----------------------------------------------------------------------
 
@@ -158,6 +159,16 @@ export function CodeRunnerView() {
     setFiles(selectedTemplate.files);
     setActiveFileName(selectedTemplate.mainFile);
     setCurrentLanguage(selectedTemplate.language);
+
+    const initialCode = selectedTemplate.files[selectedTemplate.mainFile] || '';
+    if (selectedTemplate.language === 'react' || selectedTemplate.engine === 'react-live') {
+      setHtmlPreviewContent(buildReactPreviewHtml(initialCode));
+    } else if (selectedTemplate.language === 'html' || selectedTemplate.engine === 'html-sandbox') {
+      setHtmlPreviewContent(buildHtmlPreview(initialCode));
+    } else {
+      setHtmlPreviewContent('');
+    }
+
     setRunnerState((prev) => ({
       ...prev,
       currentEngine: selectedTemplate.engine,
@@ -282,15 +293,30 @@ export function CodeRunnerView() {
       }
 
       // 3. React Live Component & HTML Sandbox
-      if (currentEngine === 'html-sandbox' || currentLang === 'react' || currentLang === 'html') {
-        setHtmlPreviewContent(mainCode);
+      if (currentEngine === 'react-live' || currentLang === 'react') {
+        const previewDoc = buildReactPreviewHtml(mainCode);
+        setHtmlPreviewContent(previewDoc);
         terminalRef.current?.writeln(
-          '\x1b[32m✅ 라이브 프리뷰 마운트가 완료되었습니다.\x1b[0m\r\n'
+          '\x1b[32m⚛️ [React Live] React 컴포넌트가 웹 미리보기에 성공적으로 마운트되었습니다.\x1b[0m\r\n'
         );
         setRunnerState((prev) => ({
           ...prev,
           status: 'success',
-          statusMessage: 'Live Rendered',
+          statusMessage: 'React Live Mounted',
+        }));
+        return;
+      }
+
+      if (currentEngine === 'html-sandbox' || currentLang === 'html') {
+        const previewDoc = buildHtmlPreview(mainCode);
+        setHtmlPreviewContent(previewDoc);
+        terminalRef.current?.writeln(
+          '\x1b[32m🌐 [HTML Sandbox] 웹 미리보기가 렌더링되었습니다.\x1b[0m\r\n'
+        );
+        setRunnerState((prev) => ({
+          ...prev,
+          status: 'success',
+          statusMessage: 'HTML Rendered',
         }));
         return;
       }
@@ -803,90 +829,137 @@ export function CodeRunnerView() {
         )}
 
         {/* Right Side: Split between Preview Panel (Top) and Terminal (Bottom) */}
-        {(layoutMode === 'split' || layoutMode === 'terminal-only') && (
-          <Box
-            ref={rightPanelRef}
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              flex: 1,
-              width:
-                layoutMode === 'terminal-only'
-                  ? '100%'
-                  : { xs: '100%', md: `calc(${100 - splitRatioX}% - 6px)` },
-              minWidth: 0,
-              height: { xs: 'auto', md: '100%' },
-              bgcolor: activeTheme.terminalTheme.background || '#0d1117',
-              overflow: { xs: 'visible', md: 'hidden' },
-            }}
-          >
-            {/* Top: Preview Panel (Live Server / Matplotlib Plots / System Info) */}
-            <Box
-              sx={{
-                height: { xs: 320, md: `${splitRatioY}%` },
-                minHeight: { xs: 280, md: 'auto' },
-                overflow: 'hidden',
-                flexShrink: 0,
-              }}
-            >
-              <PreviewPanel
-                themeId={currentThemeId}
-                previewUrl={runnerState.previewUrl}
-                htmlContent={
-                  selectedTemplate.engine === 'html-sandbox' ||
-                  selectedTemplate.language === 'react' ||
-                  selectedTemplate.language === 'html'
-                    ? htmlPreviewContent || files['index.html'] || files['App.jsx']
-                    : undefined
-                }
-                isServerRunning={
-                  runnerState.status === 'running' && Boolean(runnerState.previewUrl)
-                }
-                activePort={runnerState.activePort}
-                plots={plots}
-                onClearPlots={() => setPlots([])}
-                systemInfo={systemDiagnostic}
-              />
-            </Box>
+        {(layoutMode === 'split' || layoutMode === 'terminal-only') &&
+          (() => {
+            const hasWebPreview =
+              selectedTemplate.language === 'react' ||
+              selectedTemplate.language === 'html' ||
+              selectedTemplate.language === 'node-server' ||
+              selectedTemplate.engine === 'react-live' ||
+              selectedTemplate.engine === 'html-sandbox' ||
+              Boolean(runnerState.previewUrl) ||
+              plots.length > 0;
 
-            {/* Horizontal Split Resizer (between Preview Panel and Terminal) */}
-            <SplitResizer
-              direction="horizontal"
-              isDragging={isDraggingY}
-              theme={activeTheme}
-              onMouseDown={handleMouseDownY}
-              onDoubleClick={handleResetSplitY}
-              tooltipText="상하 높이 조절 (더블 클릭: 5:5 복원)"
-            />
+            return (
+              <Box
+                ref={rightPanelRef}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  flex: 1,
+                  width:
+                    layoutMode === 'terminal-only'
+                      ? '100%'
+                      : { xs: '100%', md: `calc(${100 - splitRatioX}% - 6px)` },
+                  minWidth: 0,
+                  height: { xs: 'auto', md: '100%' },
+                  bgcolor: activeTheme.terminalTheme.background || '#0d1117',
+                  overflow: { xs: 'visible', md: 'hidden' },
+                }}
+              >
+                {hasWebPreview ? (
+                  <>
+                    {/* Top: Preview Panel (Live Server / Matplotlib Plots / System Info) */}
+                    <Box
+                      sx={{
+                        height: { xs: 320, md: `${splitRatioY}%` },
+                        minHeight: { xs: 280, md: 'auto' },
+                        overflow: 'hidden',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <PreviewPanel
+                        themeId={currentThemeId}
+                        previewUrl={runnerState.previewUrl}
+                        htmlContent={
+                          selectedTemplate.engine === 'react-live' ||
+                          selectedTemplate.language === 'react'
+                            ? htmlPreviewContent ||
+                              buildReactPreviewHtml(files['App.jsx'] || files[activeFileName] || '')
+                            : selectedTemplate.engine === 'html-sandbox' ||
+                                selectedTemplate.language === 'html'
+                              ? htmlPreviewContent ||
+                                buildHtmlPreview(files['index.html'] || files[activeFileName] || '')
+                              : undefined
+                        }
+                        isServerRunning={
+                          runnerState.status === 'running' && Boolean(runnerState.previewUrl)
+                        }
+                        activePort={runnerState.activePort}
+                        plots={plots}
+                        onClearPlots={() => setPlots([])}
+                        systemInfo={systemDiagnostic}
+                      />
+                    </Box>
 
-            {/* Bottom: XTerm Terminal */}
-            <Box
-              sx={{
-                flex: 1,
-                minHeight: { xs: 240, md: 0 },
-                overflow: 'hidden',
-              }}
-            >
-              <TerminalView
-                ref={terminalRef}
-                themeId={currentThemeId}
-                title="콘솔 출력 & 터미널"
-                statusLabel={runnerState.statusMessage}
-                statusColor={
-                  runnerState.status === 'running'
-                    ? 'warning'
-                    : runnerState.status === 'success'
-                      ? 'success'
-                      : runnerState.status === 'error'
-                        ? 'error'
-                        : 'info'
-                }
-                onClear={() => terminalRef.current?.clear()}
-                onRestart={() => handleRun()}
-              />
-            </Box>
-          </Box>
-        )}
+                    {/* Horizontal Split Resizer (between Preview Panel and Terminal) */}
+                    <SplitResizer
+                      direction="horizontal"
+                      isDragging={isDraggingY}
+                      theme={activeTheme}
+                      onMouseDown={handleMouseDownY}
+                      onDoubleClick={handleResetSplitY}
+                      tooltipText="상하 높이 조절 (더블 클릭: 5:5 복원)"
+                    />
+
+                    {/* Bottom: XTerm Terminal */}
+                    <Box
+                      sx={{
+                        flex: 1,
+                        minHeight: { xs: 240, md: 0 },
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <TerminalView
+                        ref={terminalRef}
+                        themeId={currentThemeId}
+                        title="콘솔 출력 & 터미널"
+                        statusLabel={runnerState.statusMessage}
+                        statusColor={
+                          runnerState.status === 'running'
+                            ? 'warning'
+                            : runnerState.status === 'success'
+                              ? 'success'
+                              : runnerState.status === 'error'
+                                ? 'error'
+                                : 'default'
+                        }
+                        onClear={() => terminalRef.current?.clear()}
+                        onRestart={() => handleRun()}
+                      />
+                    </Box>
+                  </>
+                ) : (
+                  /* Full-height Terminal when no web preview is needed */
+                  <Box
+                    sx={{
+                      flex: 1,
+                      height: '100%',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <TerminalView
+                      ref={terminalRef}
+                      themeId={currentThemeId}
+                      title="콘솔 출력 & 터미널"
+                      statusLabel={runnerState.statusMessage}
+                      statusColor={
+                        runnerState.status === 'running'
+                          ? 'warning'
+                          : runnerState.status === 'success'
+                            ? 'success'
+                            : runnerState.status === 'error'
+                              ? 'error'
+                              : 'default'
+                      }
+                      onClear={() => terminalRef.current?.clear()}
+                      onRestart={() => handleRun()}
+                    />
+                  </Box>
+                )}
+              </Box>
+            );
+          })()}
       </Box>
     </Box>
   );

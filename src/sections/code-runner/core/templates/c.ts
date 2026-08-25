@@ -3,35 +3,387 @@ import type { CodeTemplate } from '../../types';
 // ----------------------------------------------------------------------
 
 export const C_TEMPLATES: CodeTemplate[] = [
+  // --- [Part 1: 언어 문법 및 메모리 10선] ---
   {
-    id: 'c-01-hello-io',
-    title: '01. Hello World & printf 표준 출력',
+    id: 'c-01-hello-world',
+    title: '01. Hello World & printf 입출력',
     category: 'Systems & Native',
     language: 'c',
     engine: 'wasm',
-    description: 'C 언어 표준 입출력 및 서식 지정자(%s, %d)',
+    description: 'C 표준 라이브러리 stdio.h 및 서식 지정자(%d, %s, %f)',
     mainFile: 'main.c',
-    tags: ['C', 'Hello World', 'printf', 'I/O'],
+    tags: ['C', 'Hello World', 'printf', 'stdio.h'],
     files: {
       'main.c': `// ==========================================
-// ⚡ [01] C Language: Hello World & 기본 입출력
+// 🔲 [01] C: Hello World & 표준 입출력
 // ==========================================
 #include <stdio.h>
 
 int main() {
-    printf("\\033[96m✨ Hello from C Language (Clang Wasm)!\\033[0m\\n");
+    printf("\\033[96m✨ Hello, C Programming (Clang Wasm)!\\033[0m\\n");
     printf("------------------------------------------\\n");
-    printf("표준 라이브러리: stdio.h, stdlib.h\\n");
-    printf("컴파일 타겟: WebAssembly (Wasm32-Wasi)\\n");
-    printf("C 언어 알고리즘 템플릿 환경 준비 완료\\n");
+
+    char author[] = "C Developer";
+    int year = 2026;
+    double pi = 3.141592;
+
+    printf("작성자: %s\\n", author);
+    printf("기준 연도: %d년 (원주율: %.4f)\\n", year, pi);
+    printf("C 표준: ISO/IEC 9899:2018 (C17)\\n");
+
     return 0;
 }
 `,
     },
   },
   {
-    id: 'c-02-dfs',
-    title: '02. 깊이 우선 탐색 (DFS & 연결 요소)',
+    id: 'c-02-pointers-memory',
+    title: '02. 포인터(Pointer) & 주소 연산자(&, *)',
+    category: 'Systems & Native',
+    language: 'c',
+    engine: 'wasm',
+    description: '변수 메모리 주소(&), 역참조(*), 포인터 스왑 함수',
+    mainFile: 'main.c',
+    tags: ['C', 'Pointers', 'Memory', 'Address'],
+    files: {
+      'main.c': `// ==========================================
+// 🔲 [02] C: 포인터와 메모리 주소
+// ==========================================
+#include <stdio.h>
+
+void swap(int *a, int *b) {
+    int temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+int main() {
+    int x = 10, y = 20;
+    printf("교환 전: x=%d, y=%d (주소: %p, %p)\\n", x, y, (void*)&x, (void*)&y);
+
+    swap(&x, &y);
+    printf("교환 후: x=%d, y=%d\\n", x, y);
+    return 0;
+}
+`,
+    },
+  },
+  {
+    id: 'c-03-arrays-strings',
+    title: '03. 배열 & 널 종료 문자열(char[])',
+    category: 'Systems & Native',
+    language: 'c',
+    engine: 'wasm',
+    description: '정수 배열 순회 및 string.h (strlen, strcpy, strcmp)',
+    mainFile: 'main.c',
+    tags: ['C', 'Arrays', 'Strings', 'string.h'],
+    files: {
+      'main.c': `// ==========================================
+// 🔲 [03] C: 배열과 문자열
+// ==========================================
+#include <stdio.h>
+#include <string.h>
+
+int main() {
+    int scores[] = {85, 92, 78, 96, 88};
+    int len = sizeof(scores) / sizeof(scores[0]);
+    int sum = 0;
+
+    for (int i = 0; i < len; i++) sum += scores[i];
+    printf("학생 %d명 총점: %d점 (평균: %.2f점)\\n", len, sum, (double)sum / len);
+
+    char str[50] = "Ultra Office";
+    strcat(str, " - Code Runner");
+    printf("문자열: %s (길이: %zu)\\n", str, strlen(str));
+
+    return 0;
+}
+`,
+    },
+  },
+  {
+    id: 'c-04-struct-typedef',
+    title: '04. 구조체(struct) & typedef',
+    category: 'Systems & Native',
+    language: 'c',
+    engine: 'wasm',
+    description: '구조체 정의, 화살표 연산자(->), 구조체 배열',
+    mainFile: 'main.c',
+    tags: ['C', 'struct', 'typedef'],
+    files: {
+      'main.c': `// ==========================================
+// 🔲 [04] C: 구조체와 typedef
+// ==========================================
+#include <stdio.h>
+
+typedef struct {
+    int id;
+    char name[32];
+    double salary;
+} Employee;
+
+void printEmployee(const Employee *e) {
+    printf("  • [%d] %-10s: $%.2f\\n", e->id, e->name, e->salary);
+}
+
+int main() {
+    Employee team[] = {
+        {101, "Alice", 7500.0},
+        {102, "Bob", 6800.0},
+        {103, "Charlie", 8200.0}
+    };
+
+    printf("[직원 목록]\\n");
+    for (int i = 0; i < 3; i++) {
+        printEmployee(&team[i]);
+    }
+    return 0;
+}
+`,
+    },
+  },
+  {
+    id: 'c-05-dynamic-memory',
+    title: '05. 동적 메모리 할당 (malloc, free)',
+    category: 'Systems & Native',
+    language: 'c',
+    engine: 'wasm',
+    description: 'stdlib.h 동적 힙 메모리 할당, 해제 및 누수 방지',
+    mainFile: 'main.c',
+    tags: ['C', 'malloc', 'free', 'stdlib.h'],
+    files: {
+      'main.c': `// ==========================================
+// 🔲 [05] C: 동적 메모리 할당 (malloc/free)
+// ==========================================
+#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    int n = 5;
+    int *arr = (int *)malloc(n * sizeof(int));
+    if (!arr) {
+        printf("메모리 할당 실패!\\n");
+        return 1;
+    }
+
+    for (int i = 0; i < n; i++) arr[i] = (i + 1) * 10;
+
+    printf("동적 할당 배열: ");
+    for (int i = 0; i < n; i++) printf("%d ", arr[i]);
+    printf("\\n");
+
+    free(arr);
+    printf("메모리 해제 완료\\n");
+    return 0;
+}
+`,
+    },
+  },
+  {
+    id: 'c-06-linked-list',
+    title: '06. 단일 연결 리스트 (Singly Linked List)',
+    category: 'Systems & Native',
+    language: 'c',
+    engine: 'wasm',
+    description: '동적 노드 생성, 리스트 순회 및 메모리 해제',
+    mainFile: 'main.c',
+    tags: ['C', 'Linked List', 'Data Structures'],
+    files: {
+      'main.c': `// ==========================================
+// 🔲 [06] C: 단일 연결 리스트
+// ==========================================
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct Node {
+    int data;
+    struct Node *next;
+} Node;
+
+Node* createNode(int data) {
+    Node *n = (Node *)malloc(sizeof(Node));
+    n->data = data;
+    n->next = NULL;
+    return n;
+}
+
+int main() {
+    Node *head = createNode(10);
+    head->next = createNode(20);
+    head->next->next = createNode(30);
+
+    printf("연결 리스트: ");
+    Node *curr = head;
+    while (curr) {
+        printf("%d ➔ ", curr->data);
+        curr = curr->next;
+    }
+    printf("NULL\\n");
+
+    while (head) {
+        Node *temp = head;
+        head = head->next;
+        free(temp);
+    }
+    return 0;
+}
+`,
+    },
+  },
+  {
+    id: 'c-07-function-pointers',
+    title: '07. 함수 포인터 (Function Pointer & qsort)',
+    category: 'Systems & Native',
+    language: 'c',
+    engine: 'wasm',
+    description: '함수 포인터 선언 및 stdlib.h qsort() 콜백',
+    mainFile: 'main.c',
+    tags: ['C', 'Function Pointers', 'qsort', 'Callbacks'],
+    files: {
+      'main.c': `// ==========================================
+// 🔲 [07] C: 함수 포인터와 qsort
+// ==========================================
+#include <stdio.h>
+#include <stdlib.h>
+
+int compareDesc(const void *a, const void *b) {
+    return (*(int *)b - *(int *)a);
+}
+
+int main() {
+    int arr[] = {42, 12, 88, 56, 23, 91, 5};
+    int n = sizeof(arr) / sizeof(arr[0]);
+
+    qsort(arr, n, sizeof(int), compareDesc);
+
+    printf("내림차순 정렬 결과: ");
+    for (int i = 0; i < n; i++) printf("%d ", arr[i]);
+    printf("\\n");
+    return 0;
+}
+`,
+    },
+  },
+  {
+    id: 'c-08-bitwise-operations',
+    title: '08. 비트 연산자 (Bitwise AND, OR, XOR, Shift)',
+    category: 'Systems & Native',
+    language: 'c',
+    engine: 'wasm',
+    description: '비트 플래그 설정, 마스킹, 비트 이동 연산',
+    mainFile: 'main.c',
+    tags: ['C', 'Bitwise', 'Bit Flags', 'Masking'],
+    files: {
+      'main.c': `// ==========================================
+// 🔲 [08] C: 비트 연산과 플래그
+// ==========================================
+#include <stdio.h>
+
+#define FLAG_READ    (1 << 0) // 0001
+#define FLAG_WRITE   (1 << 1) // 0010
+#define FLAG_EXECUTE (1 << 2) // 0100
+
+int main() {
+    unsigned char perm = FLAG_READ | FLAG_WRITE;
+
+    printf("권한 비트값: 0x%02X\\n", perm);
+    printf("READ 권한: %s\\n", (perm & FLAG_READ) ? "YES" : "NO");
+    printf("WRITE 권한: %s\\n", (perm & FLAG_WRITE) ? "YES" : "NO");
+    printf("EXECUTE 권한: %s\\n", (perm & FLAG_EXECUTE) ? "YES" : "NO");
+
+    return 0;
+}
+`,
+    },
+  },
+  {
+    id: 'c-09-file-simulation',
+    title: '09. 메모리 버퍼 스트림 (sscanf, sprintf)',
+    category: 'Systems & Native',
+    language: 'c',
+    engine: 'wasm',
+    description: '서식화된 문자열 파싱 sscanf 및 버퍼 조립 sprintf',
+    mainFile: 'main.c',
+    tags: ['C', 'sprintf', 'sscanf', 'String Formatting'],
+    files: {
+      'main.c': `// ==========================================
+// 🔲 [09] C: sscanf & sprintf 문자열 처리
+// ==========================================
+#include <stdio.h>
+
+int main() {
+    const char *log = "2026-08-25 ERROR 500 DB_TIMEOUT";
+    int year, month, day, code;
+    char level[16], msg[32];
+
+    sscanf(log, "%d-%d-%d %s %d %s", &year, &month, &day, level, &code, msg);
+
+    printf("[로그 파싱 결과]\\n");
+    printf("  날짜: %04d년 %02d월 %02d일\\n", year, month, day);
+    printf("  등급: %s (코드: %d, 사유: %s)\\n", level, code, msg);
+
+    return 0;
+}
+`,
+    },
+  },
+  {
+    id: 'c-10-bst-tree',
+    title: '10. 이진 탐색 트리 (BST 자료구조)',
+    category: 'Systems & Native',
+    language: 'c',
+    engine: 'wasm',
+    description: '포인터 기반 이진 탐색 트리(Binary Search Tree) 구현',
+    mainFile: 'main.c',
+    tags: ['C', 'BST', 'Tree', 'Data Structures'],
+    files: {
+      'main.c': `// ==========================================
+// 🔲 [10] C: 이진 탐색 트리 (BST)
+// ==========================================
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct TreeNode {
+    int val;
+    struct TreeNode *left, *right;
+} TreeNode;
+
+TreeNode* insert(TreeNode *root, int val) {
+    if (!root) {
+        TreeNode *n = (TreeNode *)malloc(sizeof(TreeNode));
+        n->val = val; n->left = n->right = NULL;
+        return n;
+    }
+    if (val < root->val) root->left = insert(root->left, val);
+    else root->right = insert(root->right, val);
+    return root;
+}
+
+void inorder(TreeNode *root) {
+    if (!root) return;
+    inorder(root->left);
+    printf("%d ", root->val);
+    inorder(root->right);
+}
+
+int main() {
+    TreeNode *root = NULL;
+    int data[] = {50, 30, 70, 20, 40, 60, 80};
+    for (int i = 0; i < 7; i++) root = insert(root, data[i]);
+
+    printf("BST 중위 순회 (정렬 출력): ");
+    inorder(root);
+    printf("\\n");
+    return 0;
+}
+`,
+    },
+  },
+
+  // --- [Part 2: 핵심 알고리즘 10선] ---
+  {
+    id: 'c-11-algo-dfs',
+    title: '11. [알고리즘] 깊이 우선 탐색 (DFS & 연결 요소)',
     category: 'Systems & Native',
     language: 'c',
     engine: 'wasm',
@@ -40,66 +392,68 @@ int main() {
     tags: ['DFS', 'Graph', 'Recursion'],
     files: {
       'main.c': `// ==========================================
-// ⚡ [02] C Language: 깊이 우선 탐색 (DFS)
+// 🧠 [11] C Algorithm: 깊이 우선 탐색 (DFS)
 // ==========================================
 #include <stdio.h>
 
-#define MAX 10
+#define MAX_NODES 10
+int graph[MAX_NODES][MAX_NODES];
+int visited[MAX_NODES];
 
-int graph[MAX][MAX];
-int visited[MAX];
-int n = 8;
-
-void dfs(int node) {
+void dfs(int node, int n) {
     visited[node] = 1;
     printf("%d ", node);
 
     for (int i = 1; i <= n; i++) {
         if (graph[node][i] && !visited[i]) {
-            dfs(i);
+            dfs(i, n);
         }
     }
 }
 
+void addEdge(int u, int v) {
+    graph[u][v] = 1;
+    graph[v][u] = 1;
+}
+
 int main() {
-    printf("\\033[96m⚡ [DFS] C 언어 인접 행렬 그래프 순회\\033[0m\\n");
+    printf("\\033[96m⚡ [DFS] C 인접 행렬 그래프 순회\\033[0m\\n");
     printf("------------------------------------------\\n");
 
-    graph[1][2] = graph[2][1] = 1;
-    graph[1][3] = graph[3][1] = 1;
-    graph[2][4] = graph[4][2] = 1;
-    graph[2][5] = graph[5][2] = 1;
-    graph[3][6] = graph[6][3] = 1;
-    graph[7][8] = graph[8][7] = 1;
+    int n = 8;
+    addEdge(1, 2); addEdge(1, 3);
+    addEdge(2, 4); addEdge(2, 5);
+    addEdge(3, 6);
+    addEdge(7, 8);
 
     printf("노드 1 기준 DFS 순회: ");
-    dfs(1);
+    dfs(1, n);
     printf("\\n");
-
     return 0;
 }
 `,
     },
   },
   {
-    id: 'c-03-bfs',
-    title: '03. 너비 우선 탐색 (BFS & 2D 미로 최단 경로)',
+    id: 'c-12-algo-bfs',
+    title: '12. [알고리즘] 너비 우선 탐색 (BFS & 2D 미로)',
     category: 'Systems & Native',
     language: 'c',
     engine: 'wasm',
-    description: '배열 큐를 활용한 2D 격자 미로 탈출 최단 거리 BFS',
+    description: '배열 큐를 활용한 2D 미로 탈출 최단 거리 BFS',
     mainFile: 'main.c',
-    tags: ['BFS', 'Queue', 'Shortest Path', 'Maze'],
+    tags: ['BFS', 'Queue', 'Shortest Path'],
     files: {
       'main.c': `// ==========================================
-// ⚡ [03] C Language: 너비 우선 탐색 (BFS) 최단 경로
+// 🧠 [12] C Algorithm: 너비 우선 탐색 (BFS) 최단 경로
 // ==========================================
 #include <stdio.h>
 
-#define H 5
-#define W 6
+typedef struct {
+    int x, y, dist;
+} Point;
 
-int maze[H][W] = {
+int maze[5][6] = {
     {0, 0, 1, 0, 0, 0},
     {1, 0, 1, 0, 1, 0},
     {0, 0, 0, 0, 1, 0},
@@ -107,28 +461,24 @@ int maze[H][W] = {
     {0, 0, 0, 1, 1, 0}
 };
 
-int visited[H][W];
-
-typedef struct {
-    int x, y, dist;
-} Point;
-
+int visited[5][6];
 Point queue[100];
-int front = 0, rear = 0;
+int head = 0, tail = 0;
 
 int main() {
     printf("\\033[96m⚡ [BFS] 2D 미로 최단 거리 탐색\\033[0m\\n");
     printf("------------------------------------------\\n");
 
-    queue[rear++] = (Point){0, 0, 1};
+    int H = 5, W = 6;
+    queue[tail++] = (Point){0, 0, 1};
     visited[0][0] = 1;
 
     int dx[] = {0, 0, 1, -1};
     int dy[] = {1, -1, 0, 0};
     int ans = -1;
 
-    while (front < rear) {
-        Point cur = queue[front++];
+    while (head < tail) {
+        Point cur = queue[head++];
 
         if (cur.x == W - 1 && cur.y == H - 1) {
             ans = cur.dist;
@@ -142,7 +492,7 @@ int main() {
             if (nx >= 0 && nx < W && ny >= 0 && ny < H) {
                 if (!visited[ny][nx] && maze[ny][nx] == 0) {
                     visited[ny][nx] = 1;
-                    queue[rear++] = (Point){nx, ny, cur.dist + 1};
+                    queue[tail++] = (Point){nx, ny, cur.dist + 1};
                 }
             }
         }
@@ -155,24 +505,21 @@ int main() {
     },
   },
   {
-    id: 'c-04-dp',
-    title: '04. 다이나믹 프로그래밍 (DP & 0/1 Knapsack)',
+    id: 'c-13-algo-dp',
+    title: '13. [알고리즘] 다이나믹 프로그래밍 (0/1 배낭)',
     category: 'Systems & Native',
     language: 'c',
     engine: 'wasm',
-    description: '0/1 Knapsack 배낭 DP 테이블 최적화',
+    description: '0/1 Knapsack 배낭 DP 테이블 2차원 최적화',
     mainFile: 'main.c',
     tags: ['DP', 'Knapsack', 'Optimization'],
     files: {
       'main.c': `// ==========================================
-// ⚡ [04] C Language: 다이나믹 프로그래밍 (0/1 배낭)
+// 🧠 [13] C Algorithm: 다이나믹 프로그래밍 (0/1 배낭)
 // ==========================================
 #include <stdio.h>
 
-#define MAX_ITEMS 5
-#define MAX_CAP 5
-
-int max(int a, int b) { return a > b ? a : b; }
+int max(int a, int b) { return (a > b) ? a : b; }
 
 int main() {
     printf("\\033[96m⚡ [DP] 0/1 Knapsack 배낭 문제 최적화\\033[0m\\n");
@@ -180,10 +527,9 @@ int main() {
 
     int weights[] = {3, 1, 1, 2, 2};
     int values[] = {50, 40, 30, 20, 35};
-    int n = 5;
     int capacity = 5;
-
-    int dp[MAX_ITEMS + 1][MAX_CAP + 1] = {0};
+    int n = 5;
+    int dp[6][6] = {0};
 
     for (int i = 1; i <= n; i++) {
         int w = weights[i - 1];
@@ -204,27 +550,27 @@ int main() {
     },
   },
   {
-    id: 'c-05-binary-search',
-    title: '05. 이진 탐색 & 파라메트릭 서치',
+    id: 'c-14-algo-binary-search',
+    title: '14. [알고리즘] 이진 탐색 & 파라메트릭 서치',
     category: 'Systems & Native',
     language: 'c',
     engine: 'wasm',
-    description: 'O(log N) 이진 탐색 및 파라메트릭 서치(랜선 자르기)',
+    description: '이진 탐색 및 파라메트릭 서치(랜선 자르기)',
     mainFile: 'main.c',
     tags: ['Binary Search', 'Parametric Search'],
     files: {
       'main.c': `// ==========================================
-// ⚡ [05] C Language: 이진 탐색 & 파라메트릭 서치
+// 🧠 [14] C Algorithm: 이진 탐색 & 파라메트릭 서치
 // ==========================================
 #include <stdio.h>
 
 int binarySearch(int arr[], int n, int target) {
-    int l = 0, r = n - 1;
-    while (l <= r) {
-        int mid = (l + r) / 2;
+    int left = 0, right = n - 1;
+    while (left <= right) {
+        int mid = (left + right) / 2;
         if (arr[mid] == target) return mid;
-        if (arr[mid] < target) l = mid + 1;
-        else r = mid - 1;
+        if (arr[mid] < target) left = mid + 1;
+        else right = mid - 1;
     }
     return -1;
 }
@@ -234,12 +580,12 @@ int main() {
     printf("------------------------------------------\\n");
 
     int arr[] = {3, 7, 12, 19, 24, 38, 45, 56, 72, 88, 91};
+    int n = sizeof(arr) / sizeof(arr[0]);
     int target = 56;
-    printf("타겟 %d 인덱스: %d\\n", target, binarySearch(arr, 11, target));
+    printf("타겟 %d 위치 인덱스: %d\\n", target, binarySearch(arr, n, target));
 
-    // 파라메트릭 서치
-    int cables[] = {802, 743, 457, 539};
-    int needed = 11;
+    long long cables[] = {802, 743, 457, 539};
+    long long needed = 11;
     long long left = 1, right = 802, best = 0;
 
     while (left <= right) {
@@ -262,74 +608,71 @@ int main() {
     },
   },
   {
-    id: 'c-06-dijkstra',
-    title: '06. 다익스트라 최단 경로 (Dijkstra Algorithm)',
+    id: 'c-15-algo-dijkstra',
+    title: '15. [알고리즘] 다익스트라 최단 경로 (Dijkstra Algorithm)',
     category: 'Systems & Native',
     language: 'c',
     engine: 'wasm',
-    description: '가중치 인접 행렬 기반 단일 출발점 다익스트라 최단 경로',
+    description: '가중치 인접 행렬 기반 다익스트라 최단 경로',
     mainFile: 'main.c',
     tags: ['Dijkstra', 'Graph'],
     files: {
       'main.c': `// ==========================================
-// ⚡ [06] C Language: 다익스트라 최단 경로
+// 🧠 [15] C Algorithm: 다익스트라 최단 경로
 // ==========================================
 #include <stdio.h>
 
 #define INF 1000000
-#define N 5
+#define V 6
 
-int cost[N + 1][N + 1];
-int dist[N + 1];
-int visited[N + 1];
+int minDistance(int dist[], int sptSet[]) {
+    int min = INF, min_index = -1;
+    for (int v = 1; v <= 5; v++) {
+        if (!sptSet[v] && dist[v] <= min) {
+            min = dist[v];
+            min_index = v;
+        }
+    }
+    return min_index;
+}
 
 int main() {
-    printf("\\033[96m⚡ [Dijkstra] 가중치 그래프 최단 경로\\033[0m\\n");
+    printf("\\033[96m⚡ [Dijkstra] 가중치 인접 행렬 최단 경로\\033[0m\\n");
     printf("------------------------------------------\\n");
 
-    for (int i = 1; i <= N; i++) {
-        for (int j = 1; j <= N; j++) {
-            cost[i][j] = (i == j) ? 0 : INF;
-        }
-    }
+    int graph[V][V] = {0};
+    graph[1][2] = 4; graph[1][3] = 2;
+    graph[2][3] = 1; graph[2][4] = 5;
+    graph[3][4] = 8;
+    graph[4][5] = 2;
 
-    cost[1][2] = 4; cost[1][3] = 2;
-    cost[2][3] = 1; cost[2][4] = 5;
-    cost[3][4] = 8; cost[4][5] = 2;
+    int dist[V];
+    int sptSet[V] = {0};
 
-    for (int i = 1; i <= N; i++) dist[i] = INF;
+    for (int i = 1; i <= 5; i++) dist[i] = INF;
     dist[1] = 0;
 
-    for (int i = 1; i <= N; i++) {
-        int u = -1, minD = INF;
-        for (int j = 1; j <= N; j++) {
-            if (!visited[j] && dist[j] < minD) {
-                minD = dist[j];
-                u = j;
-            }
-        }
+    for (int count = 1; count < 5; count++) {
+        int u = minDistance(dist, sptSet);
+        if (u == -1) break;
+        sptSet[u] = 1;
 
-        if (u == -1 || minD == INF) break;
-        visited[u] = 1;
-
-        for (int v = 1; v <= N; v++) {
-            if (!visited[v] && cost[u][v] != INF) {
-                if (dist[u] + cost[u][v] < dist[v]) {
-                    dist[v] = dist[u] + cost[u][v];
-                }
+        for (int v = 1; v <= 5; v++) {
+            if (!sptSet[v] && graph[u][v] && dist[u] != INF && dist[u] + graph[u][v] < dist[v]) {
+                dist[v] = dist[u] + graph[u][v];
             }
         }
     }
 
-    printf("노드 1에서 노드 5까지 최단 비용: %d\\n", dist[5]);
+    printf("노드 1에서 노드 5까지의 최단 비용: %d\\n", dist[5]);
     return 0;
 }
 `,
     },
   },
   {
-    id: 'c-07-sorting',
-    title: '07. 퀵 정렬 (QuickSort Algorithm)',
+    id: 'c-16-algo-sorting',
+    title: '16. [알고리즘] 퀵 정렬 (QuickSort Algorithm)',
     category: 'Systems & Native',
     language: 'c',
     engine: 'wasm',
@@ -338,11 +681,13 @@ int main() {
     tags: ['QuickSort', 'Sorting'],
     files: {
       'main.c': `// ==========================================
-// ⚡ [07] C Language: 퀵 정렬 (QuickSort)
+// 🧠 [16] C Algorithm: 퀵 정렬
 // ==========================================
 #include <stdio.h>
 
-void swap(int *a, int *b) { int t = *a; *a = *b; *b = t; }
+void swap(int *a, int *b) {
+    int t = *a; *a = *b; *b = t;
+}
 
 void quickSort(int arr[], int low, int high) {
     if (low >= high) return;
@@ -366,21 +711,21 @@ int main() {
     printf("------------------------------------------\\n");
 
     int numbers[] = {64, 34, 25, 12, 22, 11, 90, 88, 45, 50, 7};
-    int len = sizeof(numbers) / sizeof(numbers[0]);
+    int n = sizeof(numbers) / sizeof(numbers[0]);
 
-    quickSort(numbers, 0, len - 1);
+    quickSort(numbers, 0, n - 1);
+
     printf("정렬 결과: ");
-    for (int i = 0; i < len; i++) printf("%d ", numbers[i]);
+    for (int i = 0; i < n; i++) printf("%d ", numbers[i]);
     printf("\\n");
-
     return 0;
 }
 `,
     },
   },
   {
-    id: 'c-08-backtracking',
-    title: '08. 백트래킹 (N-Queens 체스)',
+    id: 'c-17-algo-backtracking',
+    title: '17. [알고리즘] 백트래킹 (N-Queens 체스)',
     category: 'Systems & Native',
     language: 'c',
     engine: 'wasm',
@@ -389,15 +734,14 @@ int main() {
     tags: ['Backtracking', 'N-Queens'],
     files: {
       'main.c': `// ==========================================
-// ⚡ [08] C Language: 백트래킹 (N-Queens)
+// 🧠 [17] C Algorithm: 백트래킹 (N-Queens)
 // ==========================================
 #include <stdio.h>
 #include <stdlib.h>
 
 int solutions = 0;
-int board[10];
 
-int isSafe(int row, int col) {
+int isSafe(int row, int col, int board[]) {
     for (int r = 0; r < row; r++) {
         int c = board[r];
         if (c == col || abs(row - r) == abs(col - c)) {
@@ -407,15 +751,15 @@ int isSafe(int row, int col) {
     return 1;
 }
 
-void backtrack(int row, int N) {
+void backtrack(int row, int N, int board[]) {
     if (row == N) {
         solutions++;
         return;
     }
     for (int col = 0; col < N; col++) {
-        if (isSafe(row, col)) {
+        if (isSafe(row, col, board)) {
             board[row] = col;
-            backtrack(row + 1, N);
+            backtrack(row + 1, N, board);
             board[row] = -1;
         }
     }
@@ -426,27 +770,28 @@ int main() {
     printf("------------------------------------------\\n");
 
     int N = 8;
+    int board[8];
     for (int i = 0; i < N; i++) board[i] = -1;
-    backtrack(0, N);
+    backtrack(0, N, board);
 
-    printf("%dx%d 체스판 퀸 배치 해답 수: %d가지\\n", N, N, solutions);
+    printf("%dx%d 체스판 해답 수: %d가지\\n", N, N, solutions);
     return 0;
 }
 `,
     },
   },
   {
-    id: 'c-09-two-pointers',
-    title: '09. 투 포인터 & 슬라이딩 윈도우',
+    id: 'c-18-algo-two-pointers',
+    title: '18. [알고리즘] 투 포인터 & 슬라이딩 윈도우',
     category: 'Systems & Native',
     language: 'c',
     engine: 'wasm',
-    description: 'Two Sum 투 포인터 탐색 O(N)',
+    description: 'Two Sum 투 포인터 선형 시간 탐색 O(N)',
     mainFile: 'main.c',
     tags: ['Two Pointers', 'O(N)'],
     files: {
       'main.c': `// ==========================================
-// ⚡ [09] C Language: 투 포인터 (Two Sum)
+// 🧠 [18] C Algorithm: 투 포인터 (Two Sum)
 // ==========================================
 #include <stdio.h>
 
@@ -460,7 +805,6 @@ int main() {
 
     int left = 0, right = n - 1;
     printf("합이 %d인 쌍:\\n", target);
-
     while (left < right) {
         int sum = arr[left] + arr[right];
         if (sum == target) {
@@ -479,8 +823,8 @@ int main() {
     },
   },
   {
-    id: 'c-10-greedy',
-    title: '10. 그리디 알고리즘 (Greedy - 회의실 배정)',
+    id: 'c-19-algo-greedy',
+    title: '19. [알고리즘] 그리디 알고리즘 (회의실 배정)',
     category: 'Systems & Native',
     language: 'c',
     engine: 'wasm',
@@ -489,20 +833,19 @@ int main() {
     tags: ['Greedy', 'Activity Selection'],
     files: {
       'main.c': `// ==========================================
-// ⚡ [10] C Language: 그리디 (회의실 배정)
+// 🧠 [19] C Algorithm: 그리디 (회의실 배정)
 // ==========================================
 #include <stdio.h>
 #include <stdlib.h>
 
 typedef struct {
-    const char *id;
-    int start, end;
+    char id[4];
+    int start;
+    int end;
 } Meeting;
 
 int cmp(const void *a, const void *b) {
-    Meeting *m1 = (Meeting *)a;
-    Meeting *m2 = (Meeting *)b;
-    return m1->end - m2->end;
+    return ((Meeting *)a)->end - ((Meeting *)b)->end;
 }
 
 int main() {
@@ -514,7 +857,7 @@ int main() {
         {"M5", 3, 8}, {"M6", 5, 9}, {"M7", 6, 10}, {"M8", 8, 11},
         {"M9", 8, 12}, {"M10", 12, 14}
     };
-    int n = sizeof(meetings) / sizeof(meetings[0]);
+    int n = 10;
 
     qsort(meetings, n, sizeof(Meeting), cmp);
 
@@ -530,6 +873,83 @@ int main() {
     }
 
     printf("✨ 배정 가능한 최대 회의 수: %d개\\n", count);
+    return 0;
+}
+`,
+    },
+  },
+  {
+    id: 'c-20-algo-trie-topo',
+    title: '20. [알고리즘] 트라이 & 위상 정렬 (Trie & TopoSort)',
+    category: 'Systems & Native',
+    language: 'c',
+    engine: 'wasm',
+    description: '트라이 사전 검색 및 진입차수(In-degree) 기반 위상 정렬',
+    mainFile: 'main.c',
+    tags: ['Trie', 'Topological Sort', 'DAG'],
+    files: {
+      'main.c': `// ==========================================
+// 🧠 [20] C Algorithm: 트라이 & 위상 정렬
+// ==========================================
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct TrieNode {
+    struct TrieNode *children[26];
+    int isEnd;
+} TrieNode;
+
+TrieNode* createTrieNode() {
+    TrieNode *node = (TrieNode *)calloc(1, sizeof(TrieNode));
+    return node;
+}
+
+void insertTrie(TrieNode *root, const char *word) {
+    TrieNode *cur = root;
+    while (*word) {
+        int idx = *word - 'a';
+        if (!cur->children[idx]) cur->children[idx] = createTrieNode();
+        cur = cur->children[idx];
+        word++;
+    }
+    cur->isEnd = 1;
+}
+
+int main() {
+    printf("\\033[96m⚡ [1] C Trie 접두사 트리\\033[0m\\n");
+    TrieNode *root = createTrieNode();
+    insertTrie(root, "apple");
+    insertTrie(root, "app");
+    insertTrie(root, "banana");
+    printf("  단어 사전 삽입 완료 (apple, app, banana)\\n");
+
+    printf("\\n\\033[96m⚡ [2] 위상 정렬 (Topological Sort)\\033[0m\\n");
+    int n = 5;
+    int adj[6][6] = {0};
+    int inDegree[6] = {0};
+
+    auto void addEdge(int u, int v) {
+        adj[u][v] = 1;
+        inDegree[v]++;
+    };
+
+    addEdge(1, 2); addEdge(2, 3); addEdge(2, 4); addEdge(3, 5); addEdge(4, 5);
+
+    int q[10], head = 0, tail = 0;
+    for (int i = 1; i <= n; i++) if (inDegree[i] == 0) q[tail++] = i;
+
+    printf("  ✨ 빌드 순서: ");
+    while (head < tail) {
+        int cur = q[head++];
+        printf("%d ➔ ", cur);
+        for (int v = 1; v <= n; v++) {
+            if (adj[cur][v]) {
+                if (--inDegree[v] == 0) q[tail++] = v;
+            }
+        }
+    }
+    printf("Done\\n");
     return 0;
 }
 `,

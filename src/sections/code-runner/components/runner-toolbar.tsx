@@ -248,13 +248,13 @@ export function RunnerToolbar({
       {/* Left Area: Language & Sub-Category Template & Theme Selectors */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
         {/* 1. 언어 선택 드롭다운 (17개 언어) */}
-        <FormControl size="small" sx={{ minWidth: 200 }}>
+        <FormControl size="small" sx={{ minWidth: 210 }}>
           <Select
             value={currentLanguage}
             onChange={(e) => onLanguageChange(e.target.value as SupportedLanguage)}
             displayEmpty
             sx={{
-              height: 36,
+              height: 40,
               fontSize: '13px',
               fontWeight: 600,
               bgcolor: activeTheme.uiColors.card,
@@ -262,7 +262,7 @@ export function RunnerToolbar({
               border: `1px solid ${activeTheme.uiColors.border}`,
               borderRadius: '8px',
               '& .MuiSelect-select': {
-                py: 0.5,
+                py: 0.8,
                 display: 'flex',
                 alignItems: 'center',
                 gap: 1,
@@ -271,12 +271,28 @@ export function RunnerToolbar({
                 color: activeTheme.uiColors.textMuted,
               },
             }}
+            MenuProps={{
+              sx: {
+                '& .MuiPaper-root': {
+                  maxHeight: { xs: 480, md: 580 },
+                  bgcolor: activeTheme.uiColors.card,
+                  border: `1px solid ${activeTheme.uiColors.border}`,
+                  borderRadius: '12px',
+                  boxShadow: '0 12px 36px rgba(0,0,0,0.35)',
+                  '&::-webkit-scrollbar': { width: '6px' },
+                  '&::-webkit-scrollbar-thumb': {
+                    bgcolor: activeTheme.uiColors.border,
+                    borderRadius: '4px',
+                  },
+                },
+              },
+            }}
           >
             {LANGUAGE_OPTIONS.map((opt) => (
-              <MenuItem key={opt.value} value={opt.value} sx={{ fontSize: '13px', py: 0.8 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
-                  <span>{opt.icon}</span>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+              <MenuItem key={opt.value} value={opt.value} sx={{ fontSize: '13px', py: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, width: '100%' }}>
+                  <span style={{ fontSize: '16px' }}>{opt.icon}</span>
+                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '13px' }}>
                     {opt.label}
                   </Typography>
                 </Box>
@@ -285,8 +301,8 @@ export function RunnerToolbar({
           </Select>
         </FormControl>
 
-        {/* 2. 해당 언어의 10대 하위 예시 (서브 카테고리) 드롭다운 */}
-        <FormControl size="small" sx={{ minWidth: { xs: 220, sm: 270 } }}>
+        {/* 2. 해당 언어의 20대 하위 예시 (서브 카테고리) 드롭다운 */}
+        <FormControl size="small" sx={{ minWidth: { xs: 240, sm: 300, md: 320 } }}>
           <Select
             value={
               availableTemplates.some((t) => t.id === currentTemplateId)
@@ -299,14 +315,14 @@ export function RunnerToolbar({
             }}
             displayEmpty
             sx={{
-              height: 36,
+              height: 40,
               fontSize: '13px',
               bgcolor: activeTheme.uiColors.card,
               color: activeTheme.uiColors.text,
               border: `1px solid ${activeTheme.uiColors.border}`,
               borderRadius: '8px',
               '& .MuiSelect-select': {
-                py: 0.5,
+                py: 0.8,
                 display: 'flex',
                 alignItems: 'center',
                 gap: 1,
@@ -315,19 +331,35 @@ export function RunnerToolbar({
                 color: activeTheme.uiColors.textMuted,
               },
             }}
+            MenuProps={{
+              sx: {
+                '& .MuiPaper-root': {
+                  maxHeight: { xs: 480, md: 580 },
+                  bgcolor: activeTheme.uiColors.card,
+                  border: `1px solid ${activeTheme.uiColors.border}`,
+                  borderRadius: '12px',
+                  boxShadow: '0 12px 36px rgba(0,0,0,0.35)',
+                  '&::-webkit-scrollbar': { width: '6px' },
+                  '&::-webkit-scrollbar-thumb': {
+                    bgcolor: activeTheme.uiColors.border,
+                    borderRadius: '4px',
+                  },
+                },
+              },
+            }}
           >
             {availableTemplates.map((tmpl) => (
-              <MenuItem key={tmpl.id} value={tmpl.id} sx={{ fontSize: '13px', py: 0.8 }}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+              <MenuItem key={tmpl.id} value={tmpl.id} sx={{ fontSize: '13px', py: 1 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', gap: 0.3 }}>
                   <Typography
                     variant="caption"
-                    sx={{ fontWeight: 600, color: activeTheme.uiColors.text, fontSize: '12px' }}
+                    sx={{ fontWeight: 600, color: activeTheme.uiColors.text, fontSize: '12.5px' }}
                   >
                     {tmpl.title}
                   </Typography>
                   <Typography
                     variant="caption"
-                    sx={{ color: activeTheme.uiColors.textMuted, fontSize: '10px' }}
+                    sx={{ color: activeTheme.uiColors.textMuted, fontSize: '10.5px' }}
                   >
                     {tmpl.tags.slice(0, 3).join(' • ')}
                   </Typography>
@@ -338,20 +370,20 @@ export function RunnerToolbar({
         </FormControl>
 
         {/* 3. 에디터 테마 선택 드롭다운 */}
-        <FormControl size="small" sx={{ minWidth: 160 }}>
+        <FormControl size="small" sx={{ minWidth: 170 }}>
           <Select
             value={currentThemeId}
             onChange={(e) => onThemeChange(e.target.value as string)}
             displayEmpty
             sx={{
-              height: 36,
+              height: 40,
               fontSize: '13px',
               bgcolor: activeTheme.uiColors.card,
               color: activeTheme.uiColors.text,
               border: `1px solid ${activeTheme.uiColors.border}`,
               borderRadius: '8px',
               '& .MuiSelect-select': {
-                py: 0.5,
+                py: 0.8,
                 display: 'flex',
                 alignItems: 'center',
                 gap: 1,
@@ -360,10 +392,26 @@ export function RunnerToolbar({
                 color: activeTheme.uiColors.textMuted,
               },
             }}
+            MenuProps={{
+              sx: {
+                '& .MuiPaper-root': {
+                  maxHeight: { xs: 450, md: 540 },
+                  bgcolor: activeTheme.uiColors.card,
+                  border: `1px solid ${activeTheme.uiColors.border}`,
+                  borderRadius: '12px',
+                  boxShadow: '0 12px 36px rgba(0,0,0,0.35)',
+                  '&::-webkit-scrollbar': { width: '6px' },
+                  '&::-webkit-scrollbar-thumb': {
+                    bgcolor: activeTheme.uiColors.border,
+                    borderRadius: '4px',
+                  },
+                },
+              },
+            }}
           >
             {IDE_THEMES.map((th) => (
-              <MenuItem key={th.id} value={th.id} sx={{ fontSize: '13px', py: 0.8 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <MenuItem key={th.id} value={th.id} sx={{ fontSize: '13px', py: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
                   <Box
                     sx={{
                       width: 14,
@@ -374,7 +422,7 @@ export function RunnerToolbar({
                       flexShrink: 0,
                     }}
                   />
-                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '13px' }}>
                     {th.name}
                   </Typography>
                 </Box>

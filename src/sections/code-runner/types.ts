@@ -17,8 +17,7 @@ export type SupportedLanguage =
   | 'php'
   | 'lua'
   | 'bash'
-  | 'rust'
-  | 'algorithm';
+  | 'rust';
 
 export type RunnerEngine =
   | 'webcontainer'
@@ -56,8 +55,11 @@ export interface CodeTemplate {
     | 'Database & SQL'
     | 'Web & Server'
     | 'Backend & Scripting'
+    | 'Backend & Server'
+    | 'Frontend & UI'
     | 'Systems & Native'
-    | 'Algorithms & CS';
+    | 'Algorithms & CS'
+    | string;
   language: SupportedLanguage;
   engine: RunnerEngine;
   description: string;
