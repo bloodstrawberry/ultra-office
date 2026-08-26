@@ -15,11 +15,23 @@ import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import ViewModuleRoundedIcon from '@mui/icons-material/ViewModuleRounded';
+import CompareArrowsRoundedIcon from '@mui/icons-material/CompareArrowsRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import { downloadDataUrl, shareToKakaoTalk } from '../utils/image-processor';
-import { PhotoUploadWorkspace, PhotoCompareViewport, type SampleImageItem } from '../components';
+import {
+  downloadDataUrl,
+  shareToKakaoTalk,
+  renderGenericSplitComparisonImage,
+} from '../utils/image-processor';
+import {
+  PhotoUploadWorkspace,
+  PhotoCompareViewport,
+  type SplitMode,
+  type SplitOrientation,
+  type ComparePreviewMode,
+  type SampleImageItem,
+} from '../components';
 
 const PIXEL_SAMPLE_IMAGES: SampleImageItem[] = [
   {
@@ -131,6 +143,14 @@ export function PixelView() {
   const [palette, setPalette] = useState<PaletteType>('full');
   const [showGrid, setShowGrid] = useState<boolean>(false);
   const [contrast, setContrast] = useState<number>(100);
+  const [dithering, setDithering] = useState<boolean>(true);
+  const [outline, setOutline] = useState<boolean>(false);
+
+  const [previewMode, setPreviewMode] = useState<ComparePreviewMode>('split');
+  const [splitOrientation, setSplitOrientation] = useState<SplitOrientation>('horizontal');
+  const [splitMode, setSplitMode] = useState<SplitMode>('inside');
+  const [splitStart, setSplitStart] = useState<number>(25);
+  const [splitEnd, setSplitEnd] = useState<number>(75);
 
   const [resultDataUrl, setResultDataUrl] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
@@ -301,14 +321,41 @@ export function PixelView() {
     };
   }, [renderPixelArt]);
 
-  const handleSave = async () => {
+  const handleSaveResult = async () => {
     if (!resultDataUrl) return;
     setIsProcessing(true);
     try {
-      const res = await downloadDataUrl(resultDataUrl, `pixel_art_${palette}_${Date.now()}.png`);
+      const res = await downloadDataUrl(
+        resultDataUrl,
+        `pixel_art_${palette}_result_${Date.now()}.png`
+      );
       toast.success(res.message);
     } catch {
-      toast.error('저장 중 오류가 발생했습니다.');
+      toast.error('결과물 저장 중 오류가 발생했습니다.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleSaveSplit = async () => {
+    if (!imageSrc || !resultDataUrl) return;
+    setIsProcessing(true);
+    try {
+      const splitUrl = await renderGenericSplitComparisonImage({
+        originalSrc: imageSrc,
+        resultSrc: resultDataUrl,
+        splitStart,
+        splitEnd,
+        splitOrientation,
+        splitMode,
+      });
+      const res = await downloadDataUrl(
+        splitUrl,
+        `pixel_art_${palette}_split_comparison_${Date.now()}.png`
+      );
+      toast.success('슬라이더 비교 상태 그대로 저장되었습니다.');
+    } catch {
+      toast.error('비교 상태 저장 중 오류가 발생했습니다.');
     } finally {
       setIsProcessing(false);
     }
@@ -393,6 +440,16 @@ export function PixelView() {
               originalSrc={imageSrc}
               resultSrc={resultDataUrl}
               isLoading={isProcessing}
+              previewMode={previewMode}
+              onPreviewModeChange={setPreviewMode}
+              splitOrientation={splitOrientation}
+              onSplitOrientationChange={setSplitOrientation}
+              splitMode={splitMode}
+              onSplitModeChange={setSplitMode}
+              splitStart={splitStart}
+              onSplitStartChange={setSplitStart}
+              splitEnd={splitEnd}
+              onSplitEndChange={setSplitEnd}
               bgStyle="neutral"
               extraTopActions={
                 <Button
@@ -625,11 +682,13 @@ export function PixelView() {
               >
                 다른 사진
               </Button>
+
+              {/* Main: Clean Result Save */}
               <Button
                 fullWidth
                 variant="contained"
                 color="primary"
-                onClick={handleSave}
+                onClick={handleSaveResult}
                 disabled={isProcessing || !resultDataUrl}
                 startIcon={
                   isProcessing ? (
@@ -638,10 +697,24 @@ export function PixelView() {
                     <DownloadRoundedIcon />
                   )
                 }
-                sx={{ py: 1.4, borderRadius: 2, fontWeight: 700, fontSize: '0.95rem' }}
+                sx={{ py: 1.3, borderRadius: 2, fontWeight: 700, fontSize: '0.95rem' }}
               >
-                저장
+                결과물 저장
               </Button>
+
+              {/* Secondary: Split Slider Comparison State Save */}
+              <Button
+                fullWidth
+                variant="outlined"
+                color="primary"
+                onClick={handleSaveSplit}
+                disabled={isProcessing || !resultDataUrl}
+                startIcon={<CompareArrowsRoundedIcon />}
+                sx={{ py: 1.1, borderRadius: 2, fontWeight: 700, fontSize: '0.85rem' }}
+              >
+                비교 상태 저장 (Split View)
+              </Button>
+
               <Button
                 fullWidth
                 variant="contained"

@@ -13,6 +13,7 @@ import { Scrollbar } from 'src/components/scrollbar';
 import { NavSectionVertical } from 'src/components/nav-section';
 
 import { layoutClasses } from '../core';
+import { NavTime } from '../components/nav-time';
 
 // ----------------------------------------------------------------------
 
@@ -63,8 +64,19 @@ export function NavMobile({
       }}
     >
       {slots?.topArea ?? (
-        <Box sx={{ pl: 3.5, pt: 2.5, pb: 1 }}>
+        <Box
+          sx={{
+            pl: 3.5,
+            pt: 2.5,
+            pb: 1,
+            pr: 2.5,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
           <Logo />
+          <NavTime />
         </Box>
       )}
 

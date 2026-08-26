@@ -577,33 +577,35 @@ export function SeroView() {
                 </Button>
               </Box>
 
-              <Box
-                sx={{
-                  display: 'grid',
-                  gridTemplateColumns: {
-                    xs: 'repeat(auto-fill, minmax(140px, 1fr))',
-                    sm: 'repeat(auto-fill, minmax(170px, 1fr))',
-                  },
-                  gap: 2,
-                  flex: '1 1 auto',
-                  minHeight: 0,
-                  overflowY: 'auto',
-                  pr: 0.5,
-                  alignContent: 'start',
-                }}
-              >
-                {files.map((file, idx) => (
+              {files.length === 1 ? (
+                <Box
+                  sx={{
+                    flex: '1 1 auto',
+                    minHeight: 0,
+                    height: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    overflow: 'hidden',
+                    p: { xs: 0.5, sm: 1 },
+                  }}
+                >
                   <Card
-                    key={file.id}
+                    key={files[0].id}
                     variant="outlined"
                     sx={{
-                      p: 1.5,
-                      borderRadius: 2.5,
+                      p: { xs: 1.5, sm: 2 },
+                      borderRadius: 3,
                       bgcolor: 'background.paper',
                       borderColor: 'divider',
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: 1.25,
+                      gap: 1.5,
+                      height: '100%',
+                      maxHeight: '100%',
+                      width: 'auto',
+                      maxWidth: { xs: '100%', sm: '440px', md: '520px', lg: '600px' },
+                      mx: 'auto',
                       transition: (theme) =>
                         theme.transitions.create(['box-shadow', 'border-color', 'transform']),
                       '&:hover': {
@@ -616,6 +618,8 @@ export function SeroView() {
                     <Box
                       sx={{
                         width: '100%',
+                        flex: '1 1 0px',
+                        minHeight: 0,
                         aspectRatio: '636/1048',
                         borderRadius: 2,
                         overflow: 'hidden',
@@ -627,10 +631,10 @@ export function SeroView() {
                         boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)',
                       }}
                     >
-                      {file.resultUrl ? (
+                      {files[0].resultUrl ? (
                         <img
-                          src={file.resultUrl}
-                          alt={file.name}
+                          src={files[0].resultUrl}
+                          alt={files[0].name}
                           style={{
                             width: '100%',
                             height: '100%',
@@ -639,23 +643,23 @@ export function SeroView() {
                           }}
                         />
                       ) : (
-                        <CircularProgress size={24} />
+                        <CircularProgress size={36} />
                       )}
 
                       {/* Index Badge */}
                       <Chip
                         size="small"
-                        label={`#${idx + 1}`}
+                        label="#1"
                         sx={{
                           position: 'absolute',
-                          top: 8,
-                          left: 8,
+                          top: 10,
+                          left: 10,
                           fontWeight: 800,
                           bgcolor: 'rgba(0,0,0,0.65)',
                           color: '#fff',
                           backdropFilter: 'blur(4px)',
-                          fontSize: '0.75rem',
-                          height: 22,
+                          fontSize: '0.8rem',
+                          height: 24,
                         }}
                       />
                     </Box>
@@ -667,53 +671,208 @@ export function SeroView() {
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         gap: 0.5,
+                        flexShrink: 0,
                       }}
                     >
                       <Typography
-                        variant="caption"
+                        variant="subtitle2"
                         sx={{ fontWeight: 700, flexGrow: 1, minWidth: 0 }}
                         noWrap
-                        title={file.name}
+                        title={files[0].name}
                       >
-                        {file.name}
+                        {files[0].name}
                       </Typography>
 
-                      <Box sx={{ display: 'flex', gap: 0.25, flexShrink: 0 }}>
+                      <Box sx={{ display: 'flex', gap: 0.5, flexShrink: 0 }}>
                         <Tooltip title="다운로드">
                           <IconButton
-                            size="small"
+                            size="medium"
                             color="primary"
-                            onClick={() => handleSingleDownload(file)}
-                            sx={{ p: 0.5 }}
+                            onClick={() => handleSingleDownload(files[0])}
+                            sx={{ p: 0.75 }}
                           >
-                            <DownloadRoundedIcon sx={{ fontSize: 18 }} />
+                            <DownloadRoundedIcon sx={{ fontSize: 20 }} />
                           </IconButton>
                         </Tooltip>
                         <Tooltip title="카카오톡 공유">
                           <IconButton
-                            size="small"
+                            size="medium"
                             color="secondary"
-                            onClick={() => handleShare(file)}
-                            sx={{ p: 0.5 }}
+                            onClick={() => handleShare(files[0])}
+                            sx={{ p: 0.75 }}
                           >
-                            <ShareRoundedIcon sx={{ fontSize: 18 }} />
+                            <ShareRoundedIcon sx={{ fontSize: 20 }} />
                           </IconButton>
                         </Tooltip>
                         <Tooltip title="삭제">
                           <IconButton
-                            size="small"
+                            size="medium"
                             color="error"
-                            onClick={() => handleRemoveFile(file.id)}
-                            sx={{ p: 0.5 }}
+                            onClick={() => handleRemoveFile(files[0].id)}
+                            sx={{ p: 0.75 }}
                           >
-                            <DeleteRoundedIcon sx={{ fontSize: 18 }} />
+                            <DeleteRoundedIcon sx={{ fontSize: 20 }} />
                           </IconButton>
                         </Tooltip>
                       </Box>
                     </Box>
                   </Card>
-                ))}
-              </Box>
+                </Box>
+              ) : (
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns:
+                      files.length === 2
+                        ? {
+                            xs: '1fr',
+                            sm: 'repeat(2, minmax(0, 1fr))',
+                          }
+                        : files.length <= 4
+                          ? {
+                              xs: 'repeat(auto-fit, minmax(180px, 1fr))',
+                              sm: 'repeat(auto-fit, minmax(220px, 1fr))',
+                              md: 'repeat(auto-fit, minmax(240px, 1fr))',
+                            }
+                          : {
+                              xs: 'repeat(auto-fill, minmax(140px, 1fr))',
+                              sm: 'repeat(auto-fill, minmax(170px, 1fr))',
+                              md: 'repeat(auto-fill, minmax(190px, 1fr))',
+                            },
+                    gap: 2,
+                    flex: '1 1 auto',
+                    minHeight: 0,
+                    overflowY: 'auto',
+                    pr: 0.5,
+                    alignContent: 'start',
+                    maxWidth: files.length === 2 ? '840px' : 'none',
+                    mx: files.length === 2 ? 'auto' : 0,
+                    width: '100%',
+                  }}
+                >
+                  {files.map((file, idx) => (
+                    <Card
+                      key={file.id}
+                      variant="outlined"
+                      sx={{
+                        p: 1.5,
+                        borderRadius: 2.5,
+                        bgcolor: 'background.paper',
+                        borderColor: 'divider',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 1.25,
+                        transition: (theme) =>
+                          theme.transitions.create(['box-shadow', 'border-color', 'transform']),
+                        '&:hover': {
+                          boxShadow: (theme) => theme.customShadows?.z8 || 4,
+                          borderColor: 'primary.main',
+                        },
+                      }}
+                    >
+                      {/* Image Preview */}
+                      <Box
+                        sx={{
+                          width: '100%',
+                          aspectRatio: '636/1048',
+                          borderRadius: 2,
+                          overflow: 'hidden',
+                          bgcolor: '#0f172a',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          position: 'relative',
+                          boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)',
+                        }}
+                      >
+                        {file.resultUrl ? (
+                          <img
+                            src={file.resultUrl}
+                            alt={file.name}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'contain',
+                              display: 'block',
+                            }}
+                          />
+                        ) : (
+                          <CircularProgress size={24} />
+                        )}
+
+                        {/* Index Badge */}
+                        <Chip
+                          size="small"
+                          label={`#${idx + 1}`}
+                          sx={{
+                            position: 'absolute',
+                            top: 8,
+                            left: 8,
+                            fontWeight: 800,
+                            bgcolor: 'rgba(0,0,0,0.65)',
+                            color: '#fff',
+                            backdropFilter: 'blur(4px)',
+                            fontSize: '0.75rem',
+                            height: 22,
+                          }}
+                        />
+                      </Box>
+
+                      {/* File name & Actions */}
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: 0.5,
+                        }}
+                      >
+                        <Typography
+                          variant="caption"
+                          sx={{ fontWeight: 700, flexGrow: 1, minWidth: 0 }}
+                          noWrap
+                          title={file.name}
+                        >
+                          {file.name}
+                        </Typography>
+
+                        <Box sx={{ display: 'flex', gap: 0.25, flexShrink: 0 }}>
+                          <Tooltip title="다운로드">
+                            <IconButton
+                              size="small"
+                              color="primary"
+                              onClick={() => handleSingleDownload(file)}
+                              sx={{ p: 0.5 }}
+                            >
+                              <DownloadRoundedIcon sx={{ fontSize: 18 }} />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="카카오톡 공유">
+                            <IconButton
+                              size="small"
+                              color="secondary"
+                              onClick={() => handleShare(file)}
+                              sx={{ p: 0.5 }}
+                            >
+                              <ShareRoundedIcon sx={{ fontSize: 18 }} />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="삭제">
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => handleRemoveFile(file.id)}
+                              sx={{ p: 0.5 }}
+                            >
+                              <DeleteRoundedIcon sx={{ fontSize: 18 }} />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      </Box>
+                    </Card>
+                  ))}
+                </Box>
+              )}
             </Card>
           </Box>
         </Box>

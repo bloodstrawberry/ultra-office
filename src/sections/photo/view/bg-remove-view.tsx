@@ -561,28 +561,14 @@ export function BgRemoveView() {
   }, [result, bgStyle, solidColor, gradientPreset, blurAmount, touchupVersion]);
 
   // Download Handler
-  const handleDownload = (format: 'png' | 'jpeg' | 'webp' = 'png') => {
+  // Download Handlers: 1) Clean Result, 2) Split Comparison State
+  const handleDownloadResult = (format: 'png' | 'jpeg' | 'webp' = 'png') => {
     if (!result) return;
     const mimeType =
       format === 'jpeg' ? 'image/jpeg' : format === 'webp' ? 'image/webp' : 'image/png';
     let exportUrl = '';
 
-    if (previewMode === 'split') {
-      exportUrl = renderSplitCompositeImage(
-        result,
-        splitStart,
-        splitEnd,
-        {
-          style: bgStyle,
-          solidColor,
-          gradientPreset,
-          blurAmount,
-        },
-        splitMode,
-        splitOrientation,
-        mimeType
-      );
-    } else if (previewMode === 'mask') {
+    if (previewMode === 'mask') {
       exportUrl = result.maskDataUrl;
     } else if (bgStyle === 'transparent' && format === 'png') {
       exportUrl = result.foregroundCanvas.toDataURL('image/png');
@@ -602,15 +588,40 @@ export function BgRemoveView() {
 
     const link = document.createElement('a');
     link.href = exportUrl;
-    link.download = `ai_bg_${previewMode === 'split' ? 'split_' : ''}${Date.now()}.${format}`;
+    link.download = `ai_bg_result_${Date.now()}.${format}`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success(
-      previewMode === 'split'
-        ? '슬라이더 비교 상태(투명 영역 반영)로 이미지가 다운로드되었습니다.'
-        : '이미지가 다운로드되었습니다.'
+    toast.success('완성된 결과물 이미지가 저장되었습니다.');
+  };
+
+  const handleDownloadSplit = (format: 'png' | 'jpeg' | 'webp' = 'png') => {
+    if (!result) return;
+    const mimeType =
+      format === 'jpeg' ? 'image/jpeg' : format === 'webp' ? 'image/webp' : 'image/png';
+
+    const exportUrl = renderSplitCompositeImage(
+      result,
+      splitStart,
+      splitEnd,
+      {
+        style: bgStyle,
+        solidColor,
+        gradientPreset,
+        blurAmount,
+      },
+      splitMode,
+      splitOrientation,
+      mimeType
     );
+
+    const link = document.createElement('a');
+    link.href = exportUrl;
+    link.download = `ai_bg_split_comparison_${Date.now()}.${format}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('슬라이더 비교 상태 그대로 이미지가 저장되었습니다.');
   };
 
   const handleReset = useCallback(() => {
@@ -1860,16 +1871,30 @@ export function BgRemoveView() {
                   다른 사진
                 </Button>
 
+                {/* Main: Clean Result Save */}
                 <Button
                   fullWidth
                   variant="contained"
                   color="primary"
-                  onClick={() => handleDownload('png')}
+                  onClick={() => handleDownloadResult('png')}
                   disabled={!result || isLoading}
                   startIcon={<DownloadRoundedIcon />}
-                  sx={{ py: 1.4, borderRadius: 2, fontWeight: 700, fontSize: '0.95rem' }}
+                  sx={{ py: 1.3, borderRadius: 2, fontWeight: 700, fontSize: '0.95rem' }}
                 >
-                  저장
+                  결과물 저장
+                </Button>
+
+                {/* Secondary: Split Slider Comparison State Save */}
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  color="primary"
+                  onClick={() => handleDownloadSplit('png')}
+                  disabled={!result || isLoading}
+                  startIcon={<CompareArrowsRoundedIcon />}
+                  sx={{ py: 1.1, borderRadius: 2, fontWeight: 700, fontSize: '0.85rem' }}
+                >
+                  비교 상태 저장 (Split View)
                 </Button>
 
                 <Button

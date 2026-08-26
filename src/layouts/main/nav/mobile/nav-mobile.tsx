@@ -12,6 +12,7 @@ import { Scrollbar } from 'src/components/scrollbar';
 
 import { Nav, NavUl } from '../components';
 import { NavList } from './nav-mobile-list';
+import { NavTime } from '../../../components/nav-time';
 
 // ----------------------------------------------------------------------
 
@@ -57,10 +58,14 @@ export function NavMobile({ data, open, onClose, slots, sx }: NavMobileProps) {
             pt: 3,
             pb: 2,
             pl: 2.5,
+            pr: 2.5,
             display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
           }}
         >
           <Logo />
+          <NavTime />
         </Box>
       )}
 

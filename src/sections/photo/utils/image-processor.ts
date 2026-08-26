@@ -978,3 +978,164 @@ export function applyPaddingToCanvas(
 
   return { newWidth, newHeight };
 }
+
+/**
+ * Renders a side-by-side or split comparison image between original and result image
+ * exactly matching the viewport view without slider lines.
+ */
+export async function renderGenericSplitComparisonImage({
+  originalSrc,
+  resultSrc,
+  splitStart = 25,
+  splitEnd = 75,
+  splitOrientation = 'horizontal',
+  splitMode = 'inside',
+  drawDividerLine = false,
+}: {
+  originalSrc: string;
+  resultSrc: string;
+  splitStart?: number;
+  splitEnd?: number;
+  splitOrientation?: 'horizontal' | 'vertical';
+  splitMode?: 'inside' | 'outside';
+  drawDividerLine?: boolean;
+}): Promise<string> {
+  const [origImg, resImg] = await Promise.all([loadImage(originalSrc), loadImage(resultSrc)]);
+  const w = Math.max(origImg.naturalWidth || origImg.width, resImg.naturalWidth || resImg.width);
+  const h = Math.max(
+    origImg.naturalHeight || origImg.height,
+    resImg.naturalHeight || resImg.height
+  );
+
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas context not available');
+
+  ctx.clearRect(0, 0, w, h);
+
+  const minSplit = Math.min(splitStart, splitEnd);
+  const maxSplit = Math.max(splitStart, splitEnd);
+
+  // 1. Draw result image (Processed layer with transparency) on base
+  ctx.drawImage(resImg, 0, 0, w, h);
+
+  // 2. Draw original image onto the non-result areas matching PhotoCompareViewport
+  if (splitOrientation === 'horizontal') {
+    const x1 = (w * minSplit) / 100;
+    const x2 = (w * maxSplit) / 100;
+
+    if (splitMode === 'inside') {
+      // Result is in the center [x1, x2].
+      // Original is on Left [0, x1] and Right [x2, w].
+      // Left slice
+      if (x1 > 0) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, 0, x1, h);
+        ctx.clip();
+        ctx.clearRect(0, 0, x1, h);
+        ctx.drawImage(origImg, 0, 0, w, h);
+        ctx.restore();
+      }
+      // Right slice
+      if (x2 < w) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(x2, 0, w - x2, h);
+        ctx.clip();
+        ctx.clearRect(x2, 0, w - x2, h);
+        ctx.drawImage(origImg, 0, 0, w, h);
+        ctx.restore();
+      }
+    } else {
+      // Result is on Left [0, x1] and Right [x2, w].
+      // Original is in the Center [x1, x2].
+      const wCenter = x2 - x1;
+      if (wCenter > 0) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(x1, 0, wCenter, h);
+        ctx.clip();
+        ctx.clearRect(x1, 0, wCenter, h);
+        ctx.drawImage(origImg, 0, 0, w, h);
+        ctx.restore();
+      }
+    }
+  } else {
+    // Vertical split
+    const y1 = (h * minSplit) / 100;
+    const y2 = (h * maxSplit) / 100;
+
+    if (splitMode === 'inside') {
+      // Result is in the middle [y1, y2].
+      // Original is on Top [0, y1] and Bottom [y2, h].
+      // Top slice
+      if (y1 > 0) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, 0, w, y1);
+        ctx.clip();
+        ctx.clearRect(0, 0, w, y1);
+        ctx.drawImage(origImg, 0, 0, w, h);
+        ctx.restore();
+      }
+      // Bottom slice
+      if (y2 < h) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, y2, w, h - y2);
+        ctx.clip();
+        ctx.clearRect(0, y2, w, h - y2);
+        ctx.drawImage(origImg, 0, 0, w, h);
+        ctx.restore();
+      }
+    } else {
+      // Result is on Top [0, y1] and Bottom [y2, h].
+      // Original is in the Middle [y1, y2].
+      const hMiddle = y2 - y1;
+      if (hMiddle > 0) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, y1, w, hMiddle);
+        ctx.clip();
+        ctx.clearRect(0, y1, w, hMiddle);
+        ctx.drawImage(origImg, 0, 0, w, h);
+        ctx.restore();
+      }
+    }
+  }
+
+  // Draw division line ONLY if explicitly requested (default: false)
+  if (drawDividerLine) {
+    ctx.save();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = Math.max(2, Math.round(w / 350));
+    ctx.shadowColor = 'rgba(0,0,0,0.6)';
+    ctx.shadowBlur = 4;
+
+    if (splitOrientation === 'horizontal') {
+      const x1 = (w * minSplit) / 100;
+      const x2 = (w * maxSplit) / 100;
+      ctx.beginPath();
+      ctx.moveTo(x1, 0);
+      ctx.lineTo(x1, h);
+      ctx.moveTo(x2, 0);
+      ctx.lineTo(x2, h);
+      ctx.stroke();
+    } else {
+      const y1 = (h * minSplit) / 100;
+      const y2 = (h * maxSplit) / 100;
+      ctx.beginPath();
+      ctx.moveTo(0, y1);
+      ctx.lineTo(w, y1);
+      ctx.moveTo(0, y2);
+      ctx.lineTo(w, y2);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  return canvas.toDataURL('image/png');
+}

@@ -16,6 +16,7 @@ import { Logo } from 'src/components/logo';
 
 import { NavMobile } from './nav/mobile';
 import { Footer, HomeFooter } from './footer';
+import { NavTime } from '../components/nav-time';
 import { mainNavData } from '../nav-config-dashboard';
 import { MenuButton } from '../components/menu-button';
 import { MainSection, LayoutSection, HeaderSection } from '../core';
@@ -65,7 +66,12 @@ export function MainLayout({
           <NavMobile data={navData} open={open} onClose={onClose} />
 
           {/** @slot Logo */}
-          {!isHomePage && <Logo />}
+          {!isHomePage && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
+              <Logo />
+              <NavTime />
+            </Box>
+          )}
         </>
       ),
       rightArea: (

@@ -20,11 +20,22 @@ import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
+import CompareArrowsRoundedIcon from '@mui/icons-material/CompareArrowsRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import { PhotoUploadWorkspace, PhotoCompareViewport } from '../components';
-import { downloadDataUrl, shareToKakaoTalk } from '../utils/image-processor';
+import {
+  PhotoUploadWorkspace,
+  PhotoCompareViewport,
+  type SplitMode,
+  type SplitOrientation,
+  type ComparePreviewMode,
+} from '../components';
+import {
+  downloadDataUrl,
+  shareToKakaoTalk,
+  renderGenericSplitComparisonImage,
+} from '../utils/image-processor';
 import {
   WEATHERING_PRESETS,
   WEATHERING_SAMPLES,
@@ -47,6 +58,13 @@ export function WeatheringView() {
   const [screenshotUiLevel, setScreenshotUiLevel] = useState<number>(2);
   const [watermarkCount, setWatermarkCount] = useState<number>(2);
   const [noiseIntensity, setNoiseIntensity] = useState<number>(30);
+
+  const [previewMode, setPreviewMode] = useState<ComparePreviewMode>('split');
+  const [splitOrientation, setSplitOrientation] = useState<SplitOrientation>('horizontal');
+  const [splitMode, setSplitMode] = useState<SplitMode>('inside');
+  const [splitStart, setSplitStart] = useState<number>(25);
+  const [splitEnd, setSplitEnd] = useState<number>(75);
+
   const [resultDataUrl, setResultDataUrl] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [rightPanelWidth, setRightPanelWidth] = useState<number>(380);
@@ -167,17 +185,43 @@ export function WeatheringView() {
     };
   }, [imageSrc, renderWeathering]);
 
-  // Download
-  const handleDownload = async () => {
+  // Download Result
+  const handleDownloadResult = async () => {
     if (!resultDataUrl) return;
     const res = await downloadDataUrl(
       resultDataUrl,
-      `weathered_meme_${activePresetId}_${Date.now()}.jpg`
+      `weathered_meme_${activePresetId}_result_${Date.now()}.jpg`
     );
     if (res.success) {
-      toast.success(res.message);
+      toast.success('완성된 결과물 이미지가 저장되었습니다.');
     } else {
       toast.error(res.message);
+    }
+  };
+
+  // Download Split Comparison
+  const handleDownloadSplit = async () => {
+    if (!imageSrc || !resultDataUrl) return;
+    try {
+      const splitUrl = await renderGenericSplitComparisonImage({
+        originalSrc: imageSrc,
+        resultSrc: resultDataUrl,
+        splitStart,
+        splitEnd,
+        splitOrientation,
+        splitMode,
+      });
+      const res = await downloadDataUrl(
+        splitUrl,
+        `weathered_meme_${activePresetId}_split_comparison_${Date.now()}.png`
+      );
+      if (res.success) {
+        toast.success('슬라이더 비교 상태 그대로 이미지가 저장되었습니다.');
+      } else {
+        toast.error(res.message);
+      }
+    } catch {
+      toast.error('비교 상태 저장 중 오류가 발생했습니다.');
     }
   };
 
@@ -275,6 +319,16 @@ export function WeatheringView() {
               resultSrc={resultDataUrl}
               isLoading={isProcessing}
               loadingProgress={{ progress: 0, text: '디지털 풍화 연산 중...' }}
+              previewMode={previewMode}
+              onPreviewModeChange={setPreviewMode}
+              splitOrientation={splitOrientation}
+              onSplitOrientationChange={setSplitOrientation}
+              splitMode={splitMode}
+              onSplitModeChange={setSplitMode}
+              splitStart={splitStart}
+              onSplitStartChange={setSplitStart}
+              splitEnd={splitEnd}
+              onSplitEndChange={setSplitEnd}
               bgStyle="neutral"
               extraTopActions={
                 <Button
@@ -668,22 +722,40 @@ export function WeatheringView() {
               >
                 다른 사진
               </Button>
+
+              {/* Main: Clean Result Save */}
               <Button
                 fullWidth
                 variant="contained"
                 color="primary"
                 startIcon={<DownloadRoundedIcon />}
-                onClick={handleDownload}
-                sx={{ py: 1.4, fontWeight: 700, borderRadius: 2, fontSize: '0.95rem' }}
+                onClick={handleDownloadResult}
+                disabled={isProcessing || !resultDataUrl}
+                sx={{ py: 1.3, fontWeight: 700, borderRadius: 2, fontSize: '0.95rem' }}
               >
-                저장
+                결과물 저장
               </Button>
+
+              {/* Secondary: Split Slider Comparison State Save */}
+              <Button
+                fullWidth
+                variant="outlined"
+                color="primary"
+                startIcon={<CompareArrowsRoundedIcon />}
+                onClick={handleDownloadSplit}
+                disabled={isProcessing || !resultDataUrl}
+                sx={{ py: 1.1, fontWeight: 700, borderRadius: 2, fontSize: '0.85rem' }}
+              >
+                비교 상태 저장 (Split View)
+              </Button>
+
               <Button
                 fullWidth
                 variant="contained"
                 color="secondary"
                 startIcon={<ShareRoundedIcon />}
                 onClick={handleShare}
+                disabled={isProcessing || !resultDataUrl}
                 sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
               >
                 공유
