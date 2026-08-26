@@ -519,12 +519,18 @@ export function GifStudioView({ initialTab = 'create' }: GifStudioViewProps) {
   const [activeSpeedPreviewTab, setActiveSpeedPreviewTab] = useState<'live' | 'encoded'>('live');
   const [isSpeedProcessing, setIsSpeedProcessing] = useState<boolean>(false);
   const [speedProgress, setSpeedProgress] = useState<number>(0);
+  const [speedMp4Url, setSpeedMp4Url] = useState<string>('');
+  const [speedMp4Size, setSpeedMp4Size] = useState<number>(0);
+  const [isSpeedMp4Converting, setIsSpeedMp4Converting] = useState<boolean>(false);
+  const [speedMp4Progress, setSpeedMp4Progress] = useState<number>(0);
   const speedInputRef = useRef<HTMLInputElement>(null);
   const boomerangForwardRef = useRef<boolean>(true);
 
   const processSpeedFile = useCallback(async (file: File) => {
     setSpeedFile(file);
     setSpeedResultUrl('');
+    setSpeedMp4Url('');
+    setSpeedMp4Size(0);
     setActiveSpeedPreviewTab('live');
     const url = URL.createObjectURL(file);
     setSpeedFilePreview(url);
@@ -623,16 +629,22 @@ export function GifStudioView({ initialTab = 'create' }: GifStudioViewProps) {
 
   const handleSpeedMultiplierChange = (newSpeed: number) => {
     setSpeedMultiplier(newSpeed);
+    setSpeedMp4Url('');
+    setSpeedMp4Size(0);
     if (speedResultUrl) setActiveSpeedPreviewTab('live');
   };
 
   const handleSpeedLoopModeChange = (newMode: 'normal' | 'reverse' | 'boomerang') => {
     setSpeedLoopMode(newMode);
+    setSpeedMp4Url('');
+    setSpeedMp4Size(0);
     if (speedResultUrl) setActiveSpeedPreviewTab('live');
   };
 
   const handleSpeedSkipFramesChange = (checked: boolean) => {
     setSkipFrames(checked);
+    setSpeedMp4Url('');
+    setSpeedMp4Size(0);
     if (speedResultUrl) setActiveSpeedPreviewTab('live');
   };
 
@@ -643,6 +655,8 @@ export function GifStudioView({ initialTab = 'create' }: GifStudioViewProps) {
     }
     setIsSpeedProcessing(true);
     setSpeedProgress(0);
+    setSpeedMp4Url('');
+    setSpeedMp4Size(0);
     toast.info('GIF 속도 및 재생 옵션을 새 GIF 파일로 재인코딩 중입니다...');
 
     try {
@@ -660,6 +674,51 @@ export function GifStudioView({ initialTab = 'create' }: GifStudioViewProps) {
       toast.error('GIF 속도 조절 중 오류가 발생했습니다.');
     } finally {
       setIsSpeedProcessing(false);
+    }
+  };
+
+  const handleDownloadSpeedMp4 = async () => {
+    if (!speedResultUrl) {
+      toast.error('먼저 속도/역재생 적용 인코딩을 완료해주세요.');
+      return;
+    }
+
+    if (speedMp4Url) {
+      const link = document.createElement('a');
+      link.href = speedMp4Url;
+      link.download = `speed_${speedMultiplier}x_${speedLoopMode}_${Date.now()}.mp4`;
+      link.click();
+      toast.success('MP4 동영상이 다운로드되었습니다.');
+      return;
+    }
+
+    setIsSpeedMp4Converting(true);
+    setSpeedMp4Progress(0);
+    toast.info('속도/역재생이 적용된 MP4 동영상으로 변환하고 있습니다...');
+
+    try {
+      const resBlob = await fetch(speedResultUrl).then((r) => r.blob());
+      const videoRes = await convertGifToVideo(resBlob, {
+        targetFormat: 'mp4',
+        fps: 30,
+        scale: 1.0,
+        speedMultiplier: 1.0,
+        progressCallback: (p) => setSpeedMp4Progress(p),
+      });
+
+      setSpeedMp4Url(videoRes.videoUrl);
+      setSpeedMp4Size(videoRes.size);
+
+      const link = document.createElement('a');
+      link.href = videoRes.videoUrl;
+      link.download = `speed_${speedMultiplier}x_${speedLoopMode}_${Date.now()}.mp4`;
+      link.click();
+
+      toast.success('MP4 동영상 다운로드가 완료되었습니다!');
+    } catch {
+      toast.error('MP4 동영상 변환 중 오류가 발생했습니다.');
+    } finally {
+      setIsSpeedMp4Converting(false);
     }
   };
 
@@ -3311,21 +3370,45 @@ export function GifStudioView({ initialTab = 'create' }: GifStudioViewProps) {
                   </Button>
 
                   {speedResultUrl && (
-                    <Button
-                      fullWidth
-                      variant="contained"
-                      color="secondary"
-                      onClick={() =>
-                        downloadDataUrl(
-                          speedResultUrl,
-                          `speed_${speedMultiplier}x_${speedLoopMode}_${Date.now()}.gif`
-                        )
-                      }
-                      startIcon={<DownloadRoundedIcon />}
-                      sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
-                    >
-                      GIF 다운로드 ({formatBytes(getDataUrlByteSize(speedResultUrl))})
-                    </Button>
+                    <>
+                      <Button
+                        fullWidth
+                        variant="contained"
+                        color="secondary"
+                        onClick={() =>
+                          downloadDataUrl(
+                            speedResultUrl,
+                            `speed_${speedMultiplier}x_${speedLoopMode}_${Date.now()}.gif`
+                          )
+                        }
+                        startIcon={<DownloadRoundedIcon />}
+                        sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+                      >
+                        GIF 다운로드 ({formatBytes(getDataUrlByteSize(speedResultUrl))})
+                      </Button>
+
+                      <Button
+                        fullWidth
+                        variant="contained"
+                        color="info"
+                        onClick={handleDownloadSpeedMp4}
+                        disabled={isSpeedMp4Converting}
+                        startIcon={
+                          isSpeedMp4Converting ? (
+                            <CircularProgress size={18} color="inherit" />
+                          ) : (
+                            <MovieCreationRoundedIcon />
+                          )
+                        }
+                        sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+                      >
+                        {isSpeedMp4Converting
+                          ? `MP4 동영상 변환 중 (${speedMp4Progress}%)`
+                          : speedMp4Size > 0
+                            ? `MP4 다운로드 (${formatBytes(speedMp4Size)})`
+                            : 'MP4 동영상 다운로드'}
+                      </Button>
+                    </>
                   )}
 
                   <Button
