@@ -4,13 +4,13 @@ import { toast } from 'sonner';
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
-import Tab from '@mui/material/Tab';
 import Card from '@mui/material/Card';
-import Tabs from '@mui/material/Tabs';
+import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
 import Select from '@mui/material/Select';
 import Slider from '@mui/material/Slider';
 import Switch from '@mui/material/Switch';
+import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import InputLabel from '@mui/material/InputLabel';
@@ -24,13 +24,17 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
 import SpeedRoundedIcon from '@mui/icons-material/SpeedRounded';
+import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
+import SkipNextRoundedIcon from '@mui/icons-material/SkipNextRounded';
 import CallSplitRoundedIcon from '@mui/icons-material/CallSplitRounded';
 import ColorLensRoundedIcon from '@mui/icons-material/ColorLensRounded';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
+import SkipPreviousRoundedIcon from '@mui/icons-material/SkipPreviousRounded';
 import VideoLibraryRoundedIcon from '@mui/icons-material/VideoLibraryRounded';
 import MovieCreationRoundedIcon from '@mui/icons-material/MovieCreationRounded';
 
@@ -300,7 +304,6 @@ export function GifStudioView({ initialTab = 'create' }: GifStudioViewProps) {
   const [toVideoFile, setToVideoFile] = useState<File | null>(null);
   const [toVideoFilePreview, setToVideoFilePreview] = useState<string>('');
   const [toVideoFormat, setToVideoFormat] = useState<SupportedVideoFormat>('mp4');
-  const [toVideoLoopCount, setToVideoLoopCount] = useState<number>(1);
   const [toVideoFps, setToVideoFps] = useState<number>(30);
   const [toVideoScale, setToVideoScale] = useState<number>(1.0);
   const [toVideoBgColor, setToVideoBgColor] = useState<string>('#ffffff');
@@ -319,10 +322,12 @@ export function GifStudioView({ initialTab = 'create' }: GifStudioViewProps) {
     setToVideoFilePreview(url);
   }, []);
 
-  const handleConvertGifToVideo = async (overrideSpeed?: number) => {
+  const handleConvertGifToVideo = async (
+    overrideSpeed?: number
+  ): Promise<GifToVideoResult | null> => {
     if (!toVideoFile) {
       toast.error('변환할 GIF 파일을 먼저 업로드해주세요.');
-      return;
+      return null;
     }
     const speed = overrideSpeed ?? toVideoSpeedMultiplier;
     setIsToVideoConverting(true);
@@ -334,7 +339,6 @@ export function GifStudioView({ initialTab = 'create' }: GifStudioViewProps) {
     try {
       const res = await convertGifToVideo(toVideoFile, {
         targetFormat: toVideoFormat,
-        loopCount: toVideoLoopCount,
         fps: toVideoFps,
         scale: toVideoScale,
         bgColor: toVideoBgColor,
@@ -343,11 +347,45 @@ export function GifStudioView({ initialTab = 'create' }: GifStudioViewProps) {
       });
 
       setToVideoResult(res);
+      setToVideoSpeedMultiplier(speed);
+      if (toVideoPlayerRef.current) {
+        try {
+          toVideoPlayerRef.current.playbackRate = 1.0;
+        } catch {
+          // ignore
+        }
+      }
       toast.success(`GIF → ${res.format.toUpperCase()} 동영상 (${speed}x 배속) 변환 완료!`);
+      return res;
     } catch {
       toast.error('동영상 변환 중 오류가 발생했습니다.');
+      return null;
     } finally {
       setIsToVideoConverting(false);
+    }
+  };
+
+  const handleDownloadToVideo = async () => {
+    if (!toVideoFile) return;
+
+    let targetResult = toVideoResult;
+
+    // 만약 현재 선택된 배속과 이미 인코딩된 배속이 다르면 자동 인코딩 후 다운로드
+    if (!targetResult || targetResult.speedMultiplier !== toVideoSpeedMultiplier) {
+      toast.info(
+        `선택된 ${toVideoSpeedMultiplier}x 배속을 동영상 파일에 인코딩 후 다운로드합니다...`
+      );
+      targetResult = await handleConvertGifToVideo(toVideoSpeedMultiplier);
+    }
+
+    if (targetResult) {
+      const link = document.createElement('a');
+      link.href = targetResult.videoUrl;
+      link.download = targetResult.filename;
+      link.click();
+      toast.success(
+        `${targetResult.format.toUpperCase()} 동영상 (${targetResult.speedMultiplier}x 배속)이 다운로드되었습니다.`
+      );
     }
   };
 
@@ -465,21 +503,138 @@ export function GifStudioView({ initialTab = 'create' }: GifStudioViewProps) {
   // ==========================================
   const [speedFile, setSpeedFile] = useState<File | null>(null);
   const [speedFilePreview, setSpeedFilePreview] = useState<string>('');
+  const [speedFrames, setSpeedFrames] = useState<GifFrameItem[]>([]);
+  const [speedDimensions, setSpeedDimensions] = useState<{ width: number; height: number }>({
+    width: 0,
+    height: 0,
+  });
+  const [isSpeedExtracting, setIsSpeedExtracting] = useState<boolean>(false);
+  const [speedPlayerIndex, setSpeedPlayerIndex] = useState<number>(0);
+  const [isPlayingSpeed, setIsPlayingSpeed] = useState<boolean>(true);
   const [speedMultiplier, setSpeedMultiplier] = useState<number>(1.0);
   const [speedLoopMode, setSpeedLoopMode] = useState<'normal' | 'reverse' | 'boomerang'>('normal');
   const [skipFrames, setSkipFrames] = useState<boolean>(false);
   const [resizeScale, setResizeScale] = useState<number>(1.0);
   const [speedResultUrl, setSpeedResultUrl] = useState<string>('');
+  const [activeSpeedPreviewTab, setActiveSpeedPreviewTab] = useState<'live' | 'encoded'>('live');
   const [isSpeedProcessing, setIsSpeedProcessing] = useState<boolean>(false);
   const [speedProgress, setSpeedProgress] = useState<number>(0);
   const speedInputRef = useRef<HTMLInputElement>(null);
+  const boomerangForwardRef = useRef<boolean>(true);
 
-  const processSpeedFile = useCallback((file: File) => {
+  const processSpeedFile = useCallback(async (file: File) => {
     setSpeedFile(file);
     setSpeedResultUrl('');
+    setActiveSpeedPreviewTab('live');
     const url = URL.createObjectURL(file);
     setSpeedFilePreview(url);
+    setIsSpeedExtracting(true);
+    setSpeedPlayerIndex(0);
+    setIsPlayingSpeed(true);
+    boomerangForwardRef.current = true;
+    toast.info('GIF 프레임을 분석하여 실시간 미리보기를 준비하는 중...');
+
+    try {
+      const res = await extractGifFrames(file);
+      setSpeedFrames(res.frames);
+      setSpeedDimensions({ width: res.width, height: res.height });
+      toast.success(`총 ${res.frames.length}개 프레임 로드 완료! 속도와 방향을 즉시 조절해보세요.`);
+    } catch {
+      toast.error('GIF 프레임 분석에 실패했습니다.');
+      setSpeedFrames([]);
+    } finally {
+      setIsSpeedExtracting(false);
+    }
   }, []);
+
+  // Filtered active frames based on skipFrames
+  const activeSpeedFrames = React.useMemo(() => {
+    if (!speedFrames || speedFrames.length === 0) return [];
+    if (skipFrames && speedFrames.length > 4) {
+      return speedFrames.filter((_, idx) => idx % 2 === 0);
+    }
+    return speedFrames;
+  }, [speedFrames, skipFrames]);
+
+  useEffect(() => {
+    if (activeSpeedFrames.length > 0 && speedPlayerIndex >= activeSpeedFrames.length) {
+      setSpeedPlayerIndex(0);
+    }
+  }, [activeSpeedFrames.length, speedPlayerIndex]);
+
+  useEffect(() => {
+    if (speedLoopMode === 'reverse') {
+      boomerangForwardRef.current = false;
+    } else {
+      boomerangForwardRef.current = true;
+    }
+  }, [speedLoopMode]);
+
+  // Live Playback Engine
+  useEffect(() => {
+    if (!isPlayingSpeed || activeSpeedFrames.length <= 1) return undefined;
+
+    const currentFrame = activeSpeedFrames[speedPlayerIndex] || activeSpeedFrames[0];
+    const baseDelay = currentFrame?.delay || 100;
+    const effectiveDelay = skipFrames ? baseDelay * 2 : baseDelay;
+    const targetDelay = Math.max(5, Math.round(effectiveDelay / Math.max(0.1, speedMultiplier)));
+
+    const timer = setTimeout(() => {
+      setSpeedPlayerIndex((prev) => {
+        const total = activeSpeedFrames.length;
+        if (total <= 1) return 0;
+
+        if (speedLoopMode === 'normal') {
+          return (prev + 1) % total;
+        }
+
+        if (speedLoopMode === 'reverse') {
+          return prev <= 0 ? total - 1 : prev - 1;
+        }
+
+        if (speedLoopMode === 'boomerang') {
+          if (boomerangForwardRef.current) {
+            if (prev >= total - 1) {
+              boomerangForwardRef.current = false;
+              return Math.max(0, total - 2);
+            }
+            return prev + 1;
+          }
+          if (prev <= 0) {
+            boomerangForwardRef.current = true;
+            return Math.min(total - 1, 1);
+          }
+          return prev - 1;
+        }
+
+        return (prev + 1) % total;
+      });
+    }, targetDelay);
+
+    return () => clearTimeout(timer);
+  }, [
+    isPlayingSpeed,
+    activeSpeedFrames,
+    speedPlayerIndex,
+    speedMultiplier,
+    speedLoopMode,
+    skipFrames,
+  ]);
+
+  const handleSpeedMultiplierChange = (newSpeed: number) => {
+    setSpeedMultiplier(newSpeed);
+    if (speedResultUrl) setActiveSpeedPreviewTab('live');
+  };
+
+  const handleSpeedLoopModeChange = (newMode: 'normal' | 'reverse' | 'boomerang') => {
+    setSpeedLoopMode(newMode);
+    if (speedResultUrl) setActiveSpeedPreviewTab('live');
+  };
+
+  const handleSpeedSkipFramesChange = (checked: boolean) => {
+    setSkipFrames(checked);
+    if (speedResultUrl) setActiveSpeedPreviewTab('live');
+  };
 
   const handleApplySpeedAndReverse = async () => {
     if (!speedFile) {
@@ -488,7 +643,7 @@ export function GifStudioView({ initialTab = 'create' }: GifStudioViewProps) {
     }
     setIsSpeedProcessing(true);
     setSpeedProgress(0);
-    toast.info('GIF 속도 및 재생 옵션을 재인코딩 중입니다...');
+    toast.info('GIF 속도 및 재생 옵션을 새 GIF 파일로 재인코딩 중입니다...');
 
     try {
       const res = await adjustGifSpeedAndReverse(speedFile, {
@@ -499,7 +654,8 @@ export function GifStudioView({ initialTab = 'create' }: GifStudioViewProps) {
         progressCallback: (p) => setSpeedProgress(p),
       });
       setSpeedResultUrl(res);
-      toast.success('GIF 속도/역재생 편집이 완료되었습니다!');
+      setActiveSpeedPreviewTab('encoded');
+      toast.success('GIF 속도/역재생 인코딩이 완료되었습니다!');
     } catch {
       toast.error('GIF 속도 조절 중 오류가 발생했습니다.');
     } finally {
@@ -587,63 +743,39 @@ export function GifStudioView({ initialTab = 'create' }: GifStudioViewProps) {
               justifyContent: 'center',
             }}
           >
-            <GifRoundedIcon sx={{ fontSize: 30 }} />
+            {currentTab === 'create' && <GifRoundedIcon sx={{ fontSize: 30 }} />}
+            {currentTab === 'video' && <VideoLibraryRoundedIcon sx={{ fontSize: 28 }} />}
+            {currentTab === 'to-video' && <MovieCreationRoundedIcon sx={{ fontSize: 28 }} />}
+            {currentTab === 'split' && <CallSplitRoundedIcon sx={{ fontSize: 28 }} />}
+            {currentTab === 'bg' && <ColorLensRoundedIcon sx={{ fontSize: 28 }} />}
+            {currentTab === 'speed' && <SpeedRoundedIcon sx={{ fontSize: 28 }} />}
           </Box>
           <Box>
             <Typography variant="h4" sx={{ fontWeight: 800 }}>
-              GIF 편집 스튜디오 (GIF Studio)
+              {currentTab === 'create' && '움짤 (GIF) 만들기'}
+              {currentTab === 'video' && '동영상 → GIF 변환'}
+              {currentTab === 'to-video' && 'GIF → 동영상 (MP4/AVI) 변환'}
+              {currentTab === 'split' && 'GIF 프레임 분할 · 추출'}
+              {currentTab === 'bg' && 'GIF 배경색 변경 · 투명화'}
+              {currentTab === 'speed' && 'GIF 속도 조절 & 역재생'}
             </Typography>
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              움짤 제작, 동영상 ↔ GIF 상호 변환, 프레임 분할/추출, 배경색/크로마키 변경,
-              속도/역재생 올인원 도구 모음
+              {currentTab === 'create' &&
+                '여러 장의 이미지로 고화질 애니메이션 움짤(GIF)을 제작합니다.'}
+              {currentTab === 'video' &&
+                'MP4, WebM, MOV 동영상의 원하는 구간을 정밀하게 추출하여 GIF로 변환합니다.'}
+              {currentTab === 'to-video' &&
+                '움짤 GIF 파일을 인스타그램, 유튜브, 틱톡 등에 업로드 가능한 MP4/AVI 동영상으로 변환합니다.'}
+              {currentTab === 'split' &&
+                'GIF 애니메이션의 모든 프레임을 개별 PNG 이미지로 추출하고 일괄 다운로드(ZIP)합니다.'}
+              {currentTab === 'bg' &&
+                'GIF의 특정 배경색을 다른 색으로 변경하거나 투명화(크로마키 제거) 처리합니다.'}
+              {currentTab === 'speed' &&
+                'GIF 재생 속도를 빠르게/느리게 조절하거나 거꾸로 재생(역재생/부메랑)하도록 편집합니다.'}
             </Typography>
           </Box>
         </Box>
       </Box>
-
-      {/* Tabs */}
-      <Tabs
-        value={currentTab}
-        onChange={(_, v: GifStudioTabType) => setCurrentTab(v)}
-        sx={{ mb: 2, borderBottom: 1, borderColor: 'divider', flexShrink: 0 }}
-      >
-        <Tab
-          label="움짤 (GIF) 만들기"
-          value="create"
-          icon={<GifRoundedIcon />}
-          iconPosition="start"
-        />
-        <Tab
-          label="동영상 → GIF 변환"
-          value="video"
-          icon={<VideoLibraryRoundedIcon />}
-          iconPosition="start"
-        />
-        <Tab
-          label="GIF → 동영상 (MP4/AVI) 변환"
-          value="to-video"
-          icon={<MovieCreationRoundedIcon />}
-          iconPosition="start"
-        />
-        <Tab
-          label="GIF 프레임 분할 · 추출"
-          value="split"
-          icon={<CallSplitRoundedIcon />}
-          iconPosition="start"
-        />
-        <Tab
-          label="GIF 배경색 변경 · 투명화"
-          value="bg"
-          icon={<ColorLensRoundedIcon />}
-          iconPosition="start"
-        />
-        <Tab
-          label="GIF 속도 조절 & 역재생"
-          value="speed"
-          icon={<SpeedRoundedIcon />}
-          iconPosition="start"
-        />
-      </Tabs>
 
       {/* ============================================================== */}
       {/* TAB 1: CREATE GIF (사진으로 움짤 만들기)                         */}
@@ -1610,21 +1742,20 @@ export function GifStudioView({ initialTab = 'create' }: GifStudioViewProps) {
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <SpeedRoundedIcon sx={{ color: 'primary.main', fontSize: 20 }} />
                         <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                          동영상 재생 속도 조절 & 실시간 배속 적용
+                          동영상 재생 속도 조절 & 배속 적용
                         </Typography>
                       </Box>
                       <Typography variant="caption" sx={{ fontWeight: 800, color: 'primary.main' }}>
-                        현재: {toVideoSpeedMultiplier}x 배속 (
-                        {toVideoResult.duration
-                          ? (toVideoResult.duration / toVideoSpeedMultiplier).toFixed(1)
-                          : 0}
-                        초)
+                        설정 배속: {toVideoSpeedMultiplier}x
+                        {toVideoResult.speedMultiplier !== toVideoSpeedMultiplier
+                          ? ` (다운로드 시 자동 ${toVideoSpeedMultiplier}x 인코딩)`
+                          : ` (인코딩 완료: ${toVideoResult.duration.toFixed(1)}초)`}
                       </Typography>
                     </Box>
 
                     {/* Speed presets */}
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mb: 1.5 }}>
-                      {[0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0, 4.0].map((sp) => (
+                      {[0.25, 0.5, 1.0, 1.5, 2.0, 3.0, 5.0, 10.0, 15.0, 20.0].map((sp) => (
                         <Button
                           key={sp}
                           size="small"
@@ -1632,11 +1763,15 @@ export function GifStudioView({ initialTab = 'create' }: GifStudioViewProps) {
                           onClick={() => {
                             setToVideoSpeedMultiplier(sp);
                             if (toVideoPlayerRef.current) {
-                              toVideoPlayerRef.current.playbackRate = sp;
+                              try {
+                                toVideoPlayerRef.current.playbackRate = Math.min(16, sp);
+                              } catch {
+                                // ignore
+                              }
                             }
                           }}
                           sx={{
-                            minWidth: 50,
+                            minWidth: 46,
                             py: 0.3,
                             px: 1,
                             fontSize: '0.75rem',
@@ -1651,39 +1786,58 @@ export function GifStudioView({ initialTab = 'create' }: GifStudioViewProps) {
                     <Slider
                       size="small"
                       min={0.25}
-                      max={4.0}
-                      step={0.05}
+                      max={20.0}
+                      step={0.25}
                       value={toVideoSpeedMultiplier}
                       onChange={(_, v) => {
                         const val = v as number;
                         setToVideoSpeedMultiplier(val);
                         if (toVideoPlayerRef.current) {
-                          toVideoPlayerRef.current.playbackRate = val;
+                          try {
+                            toVideoPlayerRef.current.playbackRate = Math.min(16, val);
+                          } catch {
+                            // ignore
+                          }
                         }
                       }}
                       sx={{ mb: 1.5 }}
                     />
 
-                    {/* Re-encode with new speed button */}
-                    <Button
-                      fullWidth
-                      variant="contained"
-                      color="secondary"
-                      onClick={() => handleConvertGifToVideo(toVideoSpeedMultiplier)}
-                      disabled={isToVideoConverting}
-                      startIcon={
-                        isToVideoConverting ? (
-                          <CircularProgress size={16} color="inherit" />
-                        ) : (
-                          <AutoAwesomeRoundedIcon />
-                        )
-                      }
-                      sx={{ py: 1, borderRadius: 2, fontWeight: 700 }}
-                    >
-                      {isToVideoConverting
-                        ? `인코딩 중 (${toVideoProgress}%)`
-                        : `⚡ ${toVideoSpeedMultiplier}x 배속으로 동영상 파일 다시 인코딩 (적용)`}
-                    </Button>
+                    {/* Re-encode with new speed button & Download button */}
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Button
+                        fullWidth
+                        variant="outlined"
+                        color="secondary"
+                        onClick={() => handleConvertGifToVideo(toVideoSpeedMultiplier)}
+                        disabled={isToVideoConverting}
+                        startIcon={
+                          isToVideoConverting ? (
+                            <CircularProgress size={16} color="inherit" />
+                          ) : (
+                            <AutoAwesomeRoundedIcon />
+                          )
+                        }
+                        sx={{ py: 1, borderRadius: 2, fontWeight: 700 }}
+                      >
+                        {isToVideoConverting
+                          ? `인코딩 중 (${toVideoProgress}%)`
+                          : `⚡ ${toVideoSpeedMultiplier}x 배속으로 다시 인코딩`}
+                      </Button>
+                      <Button
+                        fullWidth
+                        variant="contained"
+                        color="primary"
+                        onClick={handleDownloadToVideo}
+                        disabled={isToVideoConverting}
+                        startIcon={<DownloadRoundedIcon />}
+                        sx={{ py: 1, borderRadius: 2, fontWeight: 700 }}
+                      >
+                        {toVideoResult.speedMultiplier === toVideoSpeedMultiplier
+                          ? `${toVideoSpeedMultiplier}x 영상 다운로드`
+                          : `⚡ ${toVideoSpeedMultiplier}x 적용 후 다운로드`}
+                      </Button>
+                    </Box>
                   </Card>
                 )}
               </Box>
@@ -1744,28 +1898,6 @@ export function GifStudioView({ initialTab = 'create' }: GifStudioViewProps) {
                   </FormControl>
 
                   <Box>
-                    <Typography
-                      variant="caption"
-                      sx={{ fontWeight: 600, mb: 0.5, display: 'block' }}
-                    >
-                      반복 재생 횟수 (루프)
-                    </Typography>
-                    <ToggleButtonGroup
-                      value={toVideoLoopCount}
-                      exclusive
-                      onChange={(_, v) => v && setToVideoLoopCount(v)}
-                      fullWidth
-                      size="small"
-                    >
-                      <ToggleButton value={1}>1회</ToggleButton>
-                      <ToggleButton value={2}>2회</ToggleButton>
-                      <ToggleButton value={3}>3회</ToggleButton>
-                      <ToggleButton value={5}>5회</ToggleButton>
-                      <ToggleButton value={10}>10회 (쇼츠용)</ToggleButton>
-                    </ToggleButtonGroup>
-                  </Box>
-
-                  <Box>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                       <Typography variant="caption" sx={{ fontWeight: 600 }}>
                         동영상 재생 속도 (배속)
@@ -1774,17 +1906,52 @@ export function GifStudioView({ initialTab = 'create' }: GifStudioViewProps) {
                         {toVideoSpeedMultiplier}x 배속
                       </Typography>
                     </Box>
+
+                    {/* Speed presets in right control panel */}
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
+                      {[0.5, 1.0, 2.0, 3.0, 5.0, 10.0, 15.0, 20.0].map((sp) => (
+                        <Button
+                          key={sp}
+                          size="small"
+                          variant={toVideoSpeedMultiplier === sp ? 'contained' : 'outlined'}
+                          onClick={() => {
+                            setToVideoSpeedMultiplier(sp);
+                            if (toVideoPlayerRef.current) {
+                              try {
+                                toVideoPlayerRef.current.playbackRate = Math.min(16, sp);
+                              } catch {
+                                // ignore
+                              }
+                            }
+                          }}
+                          sx={{
+                            minWidth: 38,
+                            py: 0.2,
+                            px: 0.75,
+                            fontSize: '0.7rem',
+                            fontWeight: 700,
+                          }}
+                        >
+                          {sp}x
+                        </Button>
+                      ))}
+                    </Box>
+
                     <Slider
                       size="small"
                       min={0.25}
-                      max={4.0}
-                      step={0.05}
+                      max={20.0}
+                      step={0.25}
                       value={toVideoSpeedMultiplier}
                       onChange={(_, v) => {
                         const val = v as number;
                         setToVideoSpeedMultiplier(val);
                         if (toVideoPlayerRef.current) {
-                          toVideoPlayerRef.current.playbackRate = val;
+                          try {
+                            toVideoPlayerRef.current.playbackRate = Math.min(16, val);
+                          } catch {
+                            // ignore
+                          }
                         }
                       }}
                     />
@@ -1873,27 +2040,29 @@ export function GifStudioView({ initialTab = 'create' }: GifStudioViewProps) {
                   >
                     {isToVideoConverting
                       ? `인코딩 중 (${toVideoProgress}%)`
-                      : `GIF → ${toVideoFormat.toUpperCase()} 동영상 변환`}
+                      : `GIF → ${toVideoSpeedMultiplier}x 배속 ${toVideoFormat.toUpperCase()} 동영상 변환`}
                   </Button>
                   {toVideoResult && (
                     <Button
                       fullWidth
                       variant="contained"
                       color="secondary"
-                      onClick={() => {
-                        const link = document.createElement('a');
-                        link.href = toVideoResult.videoUrl;
-                        link.download = toVideoResult.filename;
-                        link.click();
-                        toast.success(
-                          `${toVideoResult.format.toUpperCase()} 동영상이 다운로드되었습니다.`
-                        );
-                      }}
-                      startIcon={<DownloadRoundedIcon />}
+                      onClick={handleDownloadToVideo}
+                      disabled={isToVideoConverting}
+                      startIcon={
+                        isToVideoConverting ? (
+                          <CircularProgress size={18} color="inherit" />
+                        ) : (
+                          <DownloadRoundedIcon />
+                        )
+                      }
                       sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
                     >
-                      동영상 다운로드 ({toVideoResult.format.toUpperCase()} ·{' '}
-                      {formatBytes(toVideoResult.size)})
+                      {isToVideoConverting
+                        ? `인코딩 중 (${toVideoProgress}%)`
+                        : toVideoResult.speedMultiplier === toVideoSpeedMultiplier
+                          ? `동영상 다운로드 (${toVideoResult.format.toUpperCase()} · ${toVideoResult.speedMultiplier}x · ${formatBytes(toVideoResult.size)})`
+                          : `⚡ ${toVideoSpeedMultiplier}x 배속 적용 후 다운로드`}
                     </Button>
                   )}
                   <Button
@@ -2562,7 +2731,8 @@ export function GifStudioView({ initialTab = 'create' }: GifStudioViewProps) {
                 속도/역재생을 편집할 GIF 파일 업로드
               </Typography>
               <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-                재생 배속 변경(0.25x~4x), 거꾸로 역재생, 부메랑 루프 및 용량 최적화를 적용합니다
+                재생 배속 변경(0.25x~20x), 거꾸로 역재생, 부메랑 루프를 실시간으로 즉시 확인하고
+                인코딩합니다
               </Typography>
               <Button variant="contained" color="primary" startIcon={<CloudUploadRoundedIcon />}>
                 GIF 파일 선택
@@ -2603,10 +2773,92 @@ export function GifStudioView({ initialTab = 'create' }: GifStudioViewProps) {
                     minHeight: 0,
                   }}
                 >
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
-                    {speedResultUrl ? '속도/역재생 적용 결과' : '원본 GIF'}
-                  </Typography>
+                  {/* Header with Mode Toggle / Badges */}
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: 1,
+                      mb: 1.5,
+                    }}
+                  >
+                    {speedResultUrl ? (
+                      <ToggleButtonGroup
+                        value={activeSpeedPreviewTab}
+                        exclusive
+                        onChange={(_, v) => v && setActiveSpeedPreviewTab(v)}
+                        size="small"
+                      >
+                        <ToggleButton
+                          value="live"
+                          sx={{ px: 1.5, py: 0.5, fontWeight: 600, fontSize: '0.8rem' }}
+                        >
+                          ⚡ 실시간 조절 미리보기
+                        </ToggleButton>
+                        <ToggleButton
+                          value="encoded"
+                          sx={{ px: 1.5, py: 0.5, fontWeight: 600, fontSize: '0.8rem' }}
+                        >
+                          💾 인코딩 결과 GIF
+                        </ToggleButton>
+                      </ToggleButtonGroup>
+                    ) : (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <SpeedRoundedIcon color="primary" fontSize="small" />
+                        <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                          실시간 속도 & 역재생 미리보기
+                        </Typography>
+                      </Box>
+                    )}
 
+                    <Box
+                      sx={{ display: 'flex', gap: 0.75, alignItems: 'center', flexWrap: 'wrap' }}
+                    >
+                      {activeSpeedPreviewTab === 'live' ? (
+                        <>
+                          <Chip
+                            size="small"
+                            color="primary"
+                            label={`${speedMultiplier}x 속도`}
+                            sx={{ fontWeight: 700 }}
+                          />
+                          <Chip
+                            size="small"
+                            variant="outlined"
+                            label={
+                              speedLoopMode === 'reverse'
+                                ? '역방향 (거꾸로)'
+                                : speedLoopMode === 'boomerang'
+                                  ? '부메랑 루프'
+                                  : '정방향'
+                            }
+                            sx={{ fontWeight: 600 }}
+                          />
+                          {skipFrames && (
+                            <Chip
+                              size="small"
+                              color="warning"
+                              variant="outlined"
+                              label="50% 프레임 감량"
+                              sx={{ fontWeight: 600 }}
+                            />
+                          )}
+                        </>
+                      ) : (
+                        <Chip
+                          size="small"
+                          color="success"
+                          icon={<CheckCircleRoundedIcon />}
+                          label={`인코딩 완료 (${formatBytes(getDataUrlByteSize(speedResultUrl))})`}
+                          sx={{ fontWeight: 700 }}
+                        />
+                      )}
+                    </Box>
+                  </Box>
+
+                  {/* Main Preview Box */}
                   <Box
                     sx={{
                       position: 'relative',
@@ -2622,12 +2874,216 @@ export function GifStudioView({ initialTab = 'create' }: GifStudioViewProps) {
                       justifyContent: 'center',
                     }}
                   >
-                    <img
-                      src={speedResultUrl || speedFilePreview}
-                      alt="GIF Speed Preview"
-                      style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                    />
+                    {isSpeedExtracting ? (
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: 1.5,
+                          color: '#94a3b8',
+                        }}
+                      >
+                        <CircularProgress size={36} color="inherit" />
+                        <Typography variant="body2">GIF 프레임을 분석하는 중입니다...</Typography>
+                      </Box>
+                    ) : activeSpeedPreviewTab === 'encoded' && speedResultUrl ? (
+                      <img
+                        src={speedResultUrl}
+                        alt="GIF Speed Encoded Result"
+                        style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                      />
+                    ) : (
+                      <>
+                        <img
+                          src={
+                            activeSpeedFrames[speedPlayerIndex]?.dataUrl || speedFilePreview || ''
+                          }
+                          alt="GIF Speed Live Preview"
+                          style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                        />
+
+                        {/* Top-Left Mode & Speed Badge */}
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: 12,
+                            left: 12,
+                            bgcolor: 'rgba(15, 23, 42, 0.8)',
+                            backdropFilter: 'blur(6px)',
+                            color: '#fff',
+                            px: 1.25,
+                            py: 0.5,
+                            borderRadius: 1.5,
+                            fontSize: '0.75rem',
+                            fontWeight: 700,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 0.75,
+                            border: '1px solid rgba(255, 255, 255, 0.15)',
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              width: 8,
+                              height: 8,
+                              borderRadius: '50%',
+                              bgcolor: isPlayingSpeed ? '#22c55e' : '#eab308',
+                            }}
+                          />
+                          {speedMultiplier}x |{' '}
+                          {speedLoopMode === 'reverse'
+                            ? '역재생'
+                            : speedLoopMode === 'boomerang'
+                              ? '부메랑'
+                              : '정방향'}
+                        </Box>
+
+                        {/* Top-Right Frame Badge */}
+                        {activeSpeedFrames.length > 0 && (
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              top: 12,
+                              right: 12,
+                              bgcolor: 'rgba(15, 23, 42, 0.8)',
+                              backdropFilter: 'blur(6px)',
+                              color: '#fff',
+                              px: 1.25,
+                              py: 0.5,
+                              borderRadius: 1.5,
+                              fontSize: '0.75rem',
+                              fontWeight: 600,
+                              border: '1px solid rgba(255, 255, 255, 0.15)',
+                            }}
+                          >
+                            프레임 {speedPlayerIndex + 1} / {activeSpeedFrames.length}
+                          </Box>
+                        )}
+                      </>
+                    )}
                   </Box>
+
+                  {/* Playback Control Bar (Live Preview Mode) */}
+                  {activeSpeedPreviewTab === 'live' && activeSpeedFrames.length > 0 && (
+                    <Box
+                      sx={{
+                        mt: 1.5,
+                        p: 1.25,
+                        bgcolor: 'background.neutral',
+                        borderRadius: 2,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 0.75,
+                      }}
+                    >
+                      {/* Scrubber Slider */}
+                      <Box sx={{ px: 1, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Slider
+                          size="small"
+                          value={speedPlayerIndex}
+                          min={0}
+                          max={Math.max(0, activeSpeedFrames.length - 1)}
+                          onChange={(_, val) => {
+                            setSpeedPlayerIndex(Number(val));
+                            setIsPlayingSpeed(false);
+                          }}
+                          sx={{ flex: '1 1 auto' }}
+                        />
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            fontFamily: 'monospace',
+                            fontWeight: 700,
+                            minWidth: 50,
+                            textAlign: 'right',
+                            color: 'text.secondary',
+                          }}
+                        >
+                          {speedPlayerIndex + 1} / {activeSpeedFrames.length}
+                        </Typography>
+                      </Box>
+
+                      {/* Control Buttons */}
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <Tooltip title={isPlayingSpeed ? '일시정지' : '실시간 재생'}>
+                            <IconButton
+                              size="small"
+                              color="primary"
+                              onClick={() => setIsPlayingSpeed(!isPlayingSpeed)}
+                              sx={{
+                                bgcolor: 'primary.main',
+                                color: 'primary.contrastText',
+                                '&:hover': { bgcolor: 'primary.dark' },
+                              }}
+                            >
+                              {isPlayingSpeed ? (
+                                <PauseRoundedIcon fontSize="small" />
+                              ) : (
+                                <PlayArrowRoundedIcon fontSize="small" />
+                              )}
+                            </IconButton>
+                          </Tooltip>
+
+                          <Tooltip title="처음부터 재생">
+                            <IconButton
+                              size="small"
+                              onClick={() => {
+                                setSpeedPlayerIndex(0);
+                                boomerangForwardRef.current = true;
+                              }}
+                            >
+                              <ReplayRoundedIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+
+                          <Tooltip title="이전 프레임">
+                            <IconButton
+                              size="small"
+                              onClick={() => {
+                                setIsPlayingSpeed(false);
+                                setSpeedPlayerIndex((prev) =>
+                                  prev <= 0 ? activeSpeedFrames.length - 1 : prev - 1
+                                );
+                              }}
+                            >
+                              <SkipPreviousRoundedIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+
+                          <Tooltip title="다음 프레임">
+                            <IconButton
+                              size="small"
+                              onClick={() => {
+                                setIsPlayingSpeed(false);
+                                setSpeedPlayerIndex(
+                                  (prev) => (prev + 1) % activeSpeedFrames.length
+                                );
+                              }}
+                            >
+                              <SkipNextRoundedIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography
+                            variant="caption"
+                            sx={{ color: 'text.secondary', fontWeight: 500 }}
+                          >
+                            해상도: {speedDimensions.width} × {speedDimensions.height}px
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Box>
+                  )}
                 </Card>
               </Box>
 
@@ -2666,47 +3122,138 @@ export function GifStudioView({ initialTab = 'create' }: GifStudioViewProps) {
                   pl: { lg: 1 },
                 }}
               >
+                {/* Speed Multiplier Card */}
                 <Card
                   sx={{ p: 2.5, borderRadius: 3, display: 'flex', flexDirection: 'column', gap: 2 }}
                 >
-                  <FormControl size="small" fullWidth>
-                    <InputLabel>재생 배속 설정</InputLabel>
-                    <Select
-                      value={speedMultiplier}
-                      label="재생 배속 설정"
-                      onChange={(e) => setSpeedMultiplier(Number(e.target.value))}
-                    >
-                      <MenuItem value={0.25}>0.25x (초슬로우 모션)</MenuItem>
-                      <MenuItem value={0.5}>0.5x (느리게)</MenuItem>
-                      <MenuItem value={0.75}>0.75x (약간 느리게)</MenuItem>
-                      <MenuItem value={1.0}>1.0x (원본 속도)</MenuItem>
-                      <MenuItem value={1.25}>1.25x (약간 빠르게)</MenuItem>
-                      <MenuItem value={1.5}>1.5x (빠르게)</MenuItem>
-                      <MenuItem value={2.0}>2.0x (2배속)</MenuItem>
-                      <MenuItem value={3.0}>3.0x (3배속)</MenuItem>
-                      <MenuItem value={4.0}>4.0x (4배속 초고속)</MenuItem>
-                    </Select>
-                  </FormControl>
-
-                  <Box>
-                    <Typography
-                      variant="caption"
-                      sx={{ fontWeight: 600, mb: 0.5, display: 'block' }}
-                    >
-                      재생 방향 (루프 모드)
-                    </Typography>
-                    <ToggleButtonGroup
-                      value={speedLoopMode}
-                      exclusive
-                      onChange={(_, v) => v && setSpeedLoopMode(v)}
-                      fullWidth
-                      size="small"
-                    >
-                      <ToggleButton value="normal">정방향</ToggleButton>
-                      <ToggleButton value="reverse">역방향 (거꾸로)</ToggleButton>
-                      <ToggleButton value="boomerang">부메랑</ToggleButton>
-                    </ToggleButtonGroup>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <SpeedRoundedIcon color="primary" fontSize="small" />
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                        재생 배속 설정
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <TextField
+                        type="number"
+                        size="small"
+                        value={speedMultiplier}
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value);
+                          if (!isNaN(val)) {
+                            handleSpeedMultiplierChange(
+                              Math.max(0.1, Math.min(20, Math.round(val * 100) / 100))
+                            );
+                          }
+                        }}
+                        inputProps={{
+                          min: 0.1,
+                          max: 20,
+                          step: 0.25,
+                          style: {
+                            padding: '4px 8px',
+                            width: 58,
+                            textAlign: 'center',
+                            fontWeight: 700,
+                            fontSize: '0.85rem',
+                          },
+                        }}
+                      />
+                      <Chip
+                        size="small"
+                        color="primary"
+                        label={`${speedMultiplier}x`}
+                        sx={{ fontWeight: 700, fontSize: '0.85rem' }}
+                      />
+                    </Box>
                   </Box>
+
+                  {/* Speed Slider */}
+                  <Box sx={{ px: 1 }}>
+                    <Slider
+                      value={speedMultiplier}
+                      min={0.25}
+                      max={20.0}
+                      step={0.25}
+                      onChange={(_, v) => handleSpeedMultiplierChange(Number(v))}
+                      marks={[
+                        { value: 0.25, label: '0.25x' },
+                        { value: 1.0, label: '1x' },
+                        { value: 5.0, label: '5x' },
+                        { value: 10.0, label: '10x' },
+                        { value: 15.0, label: '15x' },
+                        { value: 20.0, label: '20x' },
+                      ]}
+                      valueLabelDisplay="auto"
+                      valueLabelFormat={(v) => `${v}x`}
+                    />
+                  </Box>
+
+                  {/* Preset Quick Chips */}
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
+                    {[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 5.0, 8.0, 10.0, 15.0, 20.0].map(
+                      (preset) => (
+                        <Chip
+                          key={preset}
+                          label={`${preset}x`}
+                          size="small"
+                          clickable
+                          onClick={() => handleSpeedMultiplierChange(preset)}
+                          color={speedMultiplier === preset ? 'primary' : 'default'}
+                          variant={speedMultiplier === preset ? 'filled' : 'outlined'}
+                          sx={{ fontWeight: 600, fontSize: '0.75rem' }}
+                        />
+                      )
+                    )}
+                  </Box>
+                </Card>
+
+                {/* Loop Mode Card */}
+                <Card
+                  sx={{ p: 2.5, borderRadius: 3, display: 'flex', flexDirection: 'column', gap: 2 }}
+                >
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                    재생 방향 (루프 모드)
+                  </Typography>
+                  <ToggleButtonGroup
+                    value={speedLoopMode}
+                    exclusive
+                    onChange={(_, v) => v && handleSpeedLoopModeChange(v)}
+                    fullWidth
+                    size="small"
+                  >
+                    <ToggleButton value="normal" sx={{ fontWeight: 600, py: 1 }}>
+                      정방향
+                    </ToggleButton>
+                    <ToggleButton value="reverse" sx={{ fontWeight: 600, py: 1 }}>
+                      역방향 (거꾸로)
+                    </ToggleButton>
+                    <ToggleButton value="boomerang" sx={{ fontWeight: 600, py: 1 }}>
+                      부메랑 (왕복)
+                    </ToggleButton>
+                  </ToggleButtonGroup>
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    {speedLoopMode === 'normal' &&
+                      '처음부터 끝까지 정상 방향으로 무한 반복 재생합니다.'}
+                    {speedLoopMode === 'reverse' && '마지막 프레임부터 거꾸로 역재생합니다.'}
+                    {speedLoopMode === 'boomerang' &&
+                      '정방향으로 재생 후 다시 거꾸로 재생되어 자연스러운 왕복 루프를 만듭니다.'}
+                  </Typography>
+                </Card>
+
+                {/* Resize & Skip Frames Card */}
+                <Card
+                  sx={{ p: 2.5, borderRadius: 3, display: 'flex', flexDirection: 'column', gap: 2 }}
+                >
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                    해상도 및 용량 최적화
+                  </Typography>
 
                   <FormControl size="small" fullWidth>
                     <InputLabel>해상도 리사이즈</InputLabel>
@@ -2725,10 +3272,19 @@ export function GifStudioView({ initialTab = 'create' }: GifStudioViewProps) {
                     control={
                       <Switch
                         checked={skipFrames}
-                        onChange={(e) => setSkipFrames(e.target.checked)}
+                        onChange={(e) => handleSpeedSkipFramesChange(e.target.checked)}
                       />
                     }
-                    label="프레임 50% 감량 (용량 대폭 압축)"
+                    label={
+                      <Box>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          프레임 50% 감량
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                          홀수 프레임을 건너뛰어 GIF 용량을 대폭 압축합니다
+                        </Typography>
+                      </Box>
+                    }
                   />
                 </Card>
 
@@ -2749,15 +3305,21 @@ export function GifStudioView({ initialTab = 'create' }: GifStudioViewProps) {
                     }
                     sx={{ py: 1.4, borderRadius: 2, fontWeight: 700 }}
                   >
-                    {isSpeedProcessing ? `인코딩 중 (${speedProgress}%)` : '속도/역재생 적용하기'}
+                    {isSpeedProcessing
+                      ? `새 GIF 인코딩 중 (${speedProgress}%)`
+                      : '속도/역재생 적용하기 (새 GIF 인코딩)'}
                   </Button>
+
                   {speedResultUrl && (
                     <Button
                       fullWidth
                       variant="contained"
                       color="secondary"
                       onClick={() =>
-                        downloadDataUrl(speedResultUrl, `speed_modified_${Date.now()}.gif`)
+                        downloadDataUrl(
+                          speedResultUrl,
+                          `speed_${speedMultiplier}x_${speedLoopMode}_${Date.now()}.gif`
+                        )
                       }
                       startIcon={<DownloadRoundedIcon />}
                       sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
@@ -2765,6 +3327,7 @@ export function GifStudioView({ initialTab = 'create' }: GifStudioViewProps) {
                       GIF 다운로드 ({formatBytes(getDataUrlByteSize(speedResultUrl))})
                     </Button>
                   )}
+
                   <Button
                     fullWidth
                     variant="outlined"

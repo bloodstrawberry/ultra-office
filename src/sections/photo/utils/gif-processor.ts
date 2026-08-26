@@ -133,7 +133,7 @@ export async function extractGifFrames(file: File): Promise<{
 
     // Extract current frame as data URL
     const frameDataUrl = masterCanvas.toDataURL('image/png');
-    const frameDelay = delay > 0 ? delay * 10 : 100; // default to 100ms if 0
+    const frameDelay = typeof delay === 'number' && delay > 0 ? delay : 100; // default to 100ms if 0
     totalDuration += frameDelay;
 
     resultFrames.push({

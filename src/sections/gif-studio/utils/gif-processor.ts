@@ -63,7 +63,7 @@ export interface VideoGifOptions {
 }
 
 export interface GifSpeedOptions {
-  speedMultiplier: number; // 0.25 to 4.0
+  speedMultiplier: number; // 0.25 to 20.0
   loopMode?: 'normal' | 'reverse' | 'boomerang';
   skipFrames?: boolean; // cut 50% frames to reduce size
   resizeScale?: number; // 0.5, 0.75, 1.0
@@ -201,7 +201,7 @@ export async function extractGifFrames(file: File | Blob): Promise<{
     masterCtx.drawImage(patchCanvas, dims.left, dims.top);
 
     const frameDataUrl = masterCanvas.toDataURL('image/png');
-    const frameDelay = delay > 0 ? delay * 10 : 100;
+    const frameDelay = typeof delay === 'number' && delay > 0 ? delay : 100;
     totalDuration += frameDelay;
 
     resultFrames.push({
@@ -692,28 +692,66 @@ export async function adjustGifSpeedAndReverse(
     throw new Error('프레임이 존재하지 않습니다.');
   }
 
-  // 1. Frame skipping for compression
+  // 1. Frame skipping for compression (if requested manually)
   if (skipFrames && frames.length > 4) {
     frames = frames.filter((_, idx) => idx % 2 === 0);
   }
 
-  // 2. Loop mode direction
-  let frameList = [...frames];
+  // 2. Loop mode direction (base frame sequence)
+  let baseSequence = [...frames];
   if (loopMode === 'reverse') {
-    frameList.reverse();
+    baseSequence.reverse();
   } else if (loopMode === 'boomerang') {
-    const reversedCopy = [...frameList].reverse().slice(1, -1);
-    frameList = [...frameList, ...reversedCopy];
+    const reversedCopy = [...baseSequence].reverse().slice(1, -1);
+    baseSequence = [...baseSequence, ...reversedCopy];
   }
 
-  // 3. Rescaling
-  const outWidth = Math.round(width * resizeScale);
-  const outHeight = Math.round(height * resizeScale);
+  // 3. Calculate total timeline duration of the sequence in milliseconds
+  const totalSeqDurationMs = baseSequence.reduce((acc, f) => acc + (f.delay || 100), 0);
+
+  // Target total playback duration for the speed-adjusted GIF
+  const targetDurationMs = totalSeqDurationMs / Math.max(0.1, speedMultiplier);
+
+  // Safe minimum frame interval for GIF format across all browsers: 30ms (0.03s, ~33.3 fps)
+  // Note: All browsers (Chrome, Edge, Safari, Firefox) clamp frame delay <= 10ms to 100ms (10fps).
+  // 30ms (0.03s) is universally supported and never clamped by browsers.
+  const safeMinIntervalMs = 30;
+
+  let framesToEncode: GifFrameItem[] = [];
+  let finalIntervalSec = 0.03;
+
+  const rawFrameIntervalMs = targetDurationMs / baseSequence.length;
+
+  if (rawFrameIntervalMs >= safeMinIntervalMs) {
+    // Normal / Slow / Moderate speed: keep all frames and scale the interval
+    framesToEncode = baseSequence;
+    const centiseconds = Math.max(3, Math.round(rawFrameIntervalMs / 10));
+    finalIntervalSec = centiseconds / 100;
+  } else {
+    // High speed (e.g. 3x, 5x, 10x, 20x):
+    // Subsample frames evenly so every output frame maintains a safe 30ms interval
+    const targetFrameCount = Math.max(2, Math.round(targetDurationMs / safeMinIntervalMs));
+
+    const sampled: GifFrameItem[] = [];
+    for (let k = 0; k < targetFrameCount; k += 1) {
+      const srcIdx = Math.min(
+        baseSequence.length - 1,
+        Math.floor((k / targetFrameCount) * baseSequence.length)
+      );
+      sampled.push(baseSequence[srcIdx]);
+    }
+    framesToEncode = sampled;
+    finalIntervalSec = 0.03; // 30ms (33.3fps)
+  }
+
+  // 4. Rescaling & Canvas Preparation
+  const outWidth = Math.max(16, Math.round(width * resizeScale));
+  const outHeight = Math.max(16, Math.round(height * resizeScale));
 
   const processedImages: string[] = [];
 
-  for (let i = 0; i < frameList.length; i += 1) {
-    const f = frameList[i];
+  for (let i = 0; i < framesToEncode.length; i += 1) {
+    const f = framesToEncode[i];
     if (resizeScale !== 1.0) {
       const img = await loadImage(f.dataUrl);
       const canvas = document.createElement('canvas');
@@ -731,13 +769,9 @@ export async function adjustGifSpeedAndReverse(
     }
 
     if (progressCallback) {
-      progressCallback(Math.round(((i + 1) / frameList.length) * 40));
+      progressCallback(Math.round(((i + 1) / framesToEncode.length) * 40));
     }
   }
-
-  // 4. Calculate adjusted interval
-  const baseAvgInterval = frames.reduce((acc, f) => acc + f.delay, 0) / frames.length / 1000;
-  const newInterval = Math.max(0.02, Math.min(2.0, baseAvgInterval / speedMultiplier));
 
   return new Promise((resolve, reject) => {
     gifshot.createGIF(
@@ -745,7 +779,7 @@ export async function adjustGifSpeedAndReverse(
         images: processedImages,
         gifWidth: outWidth,
         gifHeight: outHeight,
-        interval: newInterval,
+        interval: finalIntervalSec,
         sampleInterval,
         numWorkers: 2,
         progressCallback: (prog: number) => {
@@ -772,14 +806,12 @@ export async function adjustGifSpeedAndReverse(
 export type SupportedVideoFormat = 'mp4' | 'avi' | 'webm' | 'mov' | 'mkv';
 
 export interface GifToVideoOptions {
-  targetFormat?: SupportedVideoFormat;
-  loopCount?: number; // 1, 2, 3, 5, 10
-  targetDuration?: number; // in seconds
-  fps?: number; // 15, 24, 30, 60
-  bgColor?: string; // default '#ffffff'
-  speedMultiplier?: number; // 0.5 to 2.0
-  scale?: number; // 0.5 to 2.0
-  bitrate?: number; // in bps
+  targetFormat: SupportedVideoFormat;
+  fps?: number; // default 30
+  scale?: number; // default 1.0 (0.1 ~ 5.0)
+  bgColor?: string; // e.g. '#ffffff' or 'transparent'
+  speedMultiplier?: number; // 0.1x to 10.0x
+  bitrate?: number; // bits per second, default 2500000 (2.5Mbps)
   progressCallback?: (progress: number) => void;
 }
 
@@ -793,6 +825,7 @@ export interface GifToVideoResult {
   height: number;
   duration: number;
   size: number;
+  speedMultiplier: number;
 }
 
 /**
@@ -968,12 +1001,10 @@ export function buildAviFileFromJpegChunks(
  */
 export async function convertGifToVideo(
   file: File | Blob,
-  options: GifToVideoOptions = {}
+  options: GifToVideoOptions = { targetFormat: 'mp4' }
 ): Promise<GifToVideoResult> {
   const {
     targetFormat = 'mp4',
-    loopCount = 1,
-    targetDuration,
     fps = 30,
     bgColor = '#ffffff',
     speedMultiplier = 1.0,
@@ -1001,15 +1032,42 @@ export async function convertGifToVideo(
     const img = await loadImage(frames[i].dataUrl);
     loadedImages.push(img);
     if (progressCallback) {
-      progressCallback(Math.round(((i + 1) / frames.length) * 20)); // 0~20%
+      progressCallback(Math.round(((i + 1) / frames.length) * 15)); // 0~15%
     }
   }
 
-  const singleLoopDuration = frames.reduce((acc, f) => acc + f.delay / speedMultiplier, 0); // in ms
-  let calculatedLoops = loopCount;
-  if (targetDuration && targetDuration > 0) {
-    calculatedLoops = Math.max(1, Math.ceil((targetDuration * 1000) / singleLoopDuration));
+  // Build cumulative timeline for original GIF frames
+  const frameCumulativeTimes: number[] = [];
+  let cumMs = 0;
+  for (let i = 0; i < frames.length; i += 1) {
+    frameCumulativeTimes.push(cumMs);
+    cumMs += Math.max(10, frames[i].delay || 100);
   }
+  const totalGifDurationMs = cumMs; // Total duration of 1 loop in ms
+
+  // Calculate speed-adjusted durations
+  const singleLoopDurationMs = totalGifDurationMs / Math.max(0.01, speedMultiplier);
+  let calculatedLoops = 1;
+
+  // Prevent codec failure on impossibly short videos (under 0.5s) at high speed
+  if (singleLoopDurationMs < 500 && speedMultiplier > 1.5) {
+    calculatedLoops = Math.max(1, Math.ceil(500 / singleLoopDurationMs));
+  }
+
+  const totalVideoDurationMs = singleLoopDurationMs * calculatedLoops;
+  const totalVideoDurationSec = totalVideoDurationMs / 1000;
+
+  // Helper to find frame index at a given elapsed video time (in ms)
+  const getFrameIndexAtVideoTime = (videoTimeMs: number): number => {
+    const loopTimeMs = videoTimeMs % singleLoopDurationMs;
+    const origTimeMs = loopTimeMs * speedMultiplier;
+    for (let i = frames.length - 1; i >= 0; i -= 1) {
+      if (origTimeMs >= frameCumulativeTimes[i]) {
+        return i;
+      }
+    }
+    return 0;
+  };
 
   const canvas = document.createElement('canvas');
   canvas.width = outWidth;
@@ -1017,46 +1075,48 @@ export async function convertGifToVideo(
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Canvas Context 생성 실패');
 
+  const drawFrame = (frameIdx: number) => {
+    if (bgColor && bgColor !== 'transparent') {
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, outWidth, outHeight);
+    } else {
+      ctx.clearRect(0, 0, outWidth, outHeight);
+    }
+    ctx.drawImage(loadedImages[frameIdx], 0, 0, outWidth, outHeight);
+  };
+
+  // Video frame settings
+  const targetFps = Math.max(15, Math.min(60, fps));
+  const totalVideoFrames = Math.max(1, Math.round((totalVideoDurationMs / 1000) * targetFps));
+
   // ========================================================
   // SPECIAL CASE: AVI (Motion-JPEG RIFF Video Builder)
   // ========================================================
   if (targetFormat === 'avi') {
     const jpegBuffers: Uint8Array[] = [];
-    const totalFrames = calculatedLoops * frames.length;
-    let stepCount = 0;
 
-    for (let l = 0; l < calculatedLoops; l += 1) {
-      for (let f = 0; f < frames.length; f += 1) {
-        if (bgColor && bgColor !== 'transparent') {
-          ctx.fillStyle = bgColor;
-          ctx.fillRect(0, 0, outWidth, outHeight);
-        } else {
-          ctx.clearRect(0, 0, outWidth, outHeight);
-        }
+    for (let f = 0; f < totalVideoFrames; f += 1) {
+      const videoTimeMs = (f / targetFps) * 1000;
+      const frameIdx = getFrameIndexAtVideoTime(videoTimeMs);
+      drawFrame(frameIdx);
 
-        ctx.drawImage(loadedImages[f], 0, 0, outWidth, outHeight);
+      // Convert canvas to JPEG Data
+      const jpegDataUrl = canvas.toDataURL('image/jpeg', 0.92);
+      const base64 = jpegDataUrl.split(',')[1];
+      const binaryStr = atob(base64);
+      const bytes = new Uint8Array(binaryStr.length);
+      for (let b = 0; b < binaryStr.length; b += 1) {
+        bytes[b] = binaryStr.charCodeAt(b);
+      }
+      jpegBuffers.push(bytes);
 
-        // Convert canvas to JPEG Data
-        const jpegDataUrl = canvas.toDataURL('image/jpeg', 0.92);
-        const base64 = jpegDataUrl.split(',')[1];
-        const binaryStr = atob(base64);
-        const bytes = new Uint8Array(binaryStr.length);
-        for (let b = 0; b < binaryStr.length; b += 1) {
-          bytes[b] = binaryStr.charCodeAt(b);
-        }
-        jpegBuffers.push(bytes);
-
-        stepCount += 1;
-        if (progressCallback) {
-          progressCallback(20 + Math.round((stepCount / totalFrames) * 75)); // 20~95%
-        }
+      if (progressCallback) {
+        progressCallback(15 + Math.round(((f + 1) / totalVideoFrames) * 80)); // 15~95%
       }
     }
 
-    const aviFps = Math.max(1, Math.min(120, Math.round(fps * speedMultiplier)));
-    const aviBlob = buildAviFileFromJpegChunks(jpegBuffers, outWidth, outHeight, aviFps);
+    const aviBlob = buildAviFileFromJpegChunks(jpegBuffers, outWidth, outHeight, targetFps);
     const videoUrl = URL.createObjectURL(aviBlob);
-    const totalDurationSec = (calculatedLoops * singleLoopDuration) / 1000;
 
     if (progressCallback) progressCallback(100);
 
@@ -1068,8 +1128,9 @@ export async function convertGifToVideo(
       filename: `gif_converted_${Date.now()}.avi`,
       width: outWidth,
       height: outHeight,
-      duration: totalDurationSec,
+      duration: totalVideoDurationSec,
       size: aviBlob.size,
+      speedMultiplier,
     };
   }
 
@@ -1105,7 +1166,7 @@ export async function convertGifToVideo(
     }
   }
 
-  const stream = canvas.captureStream(fps);
+  const stream = canvas.captureStream(targetFps);
   const recorderOptions: MediaRecorderOptions = {
     videoBitsPerSecond: bitrate,
   };
@@ -1123,11 +1184,7 @@ export async function convertGifToVideo(
   };
 
   // Initial draw
-  if (bgColor && bgColor !== 'transparent') {
-    ctx.fillStyle = bgColor;
-    ctx.fillRect(0, 0, outWidth, outHeight);
-  }
-  ctx.drawImage(loadedImages[0], 0, 0, outWidth, outHeight);
+  drawFrame(0);
 
   return new Promise((resolve, reject) => {
     recorder.onstop = () => {
@@ -1136,7 +1193,6 @@ export async function convertGifToVideo(
           type: chosenMime || (targetFormat === 'mp4' ? 'video/mp4' : 'video/webm'),
         });
         const videoUrl = URL.createObjectURL(finalBlob);
-        const totalDurationSec = (calculatedLoops * singleLoopDuration) / 1000;
 
         resolve({
           videoUrl,
@@ -1146,48 +1202,52 @@ export async function convertGifToVideo(
           filename: `gif_converted_${Date.now()}.${actualExt}`,
           width: outWidth,
           height: outHeight,
-          duration: totalDurationSec,
+          duration: totalVideoDurationSec,
           size: finalBlob.size,
+          speedMultiplier,
         });
       } catch (err) {
         reject(err);
       }
     };
 
-    recorder.start(50);
-
-    const totalSteps = calculatedLoops * frames.length;
-    let currentStep = 0;
+    recorder.start(); // Start without small chunks to minimize encoder overhead
 
     const playLoop = async () => {
       try {
-        for (let l = 0; l < calculatedLoops; l += 1) {
-          for (let f = 0; f < frames.length; f += 1) {
-            const frameDelay = Math.max(20, frames[f].delay / speedMultiplier);
+        // Let encoder initialize
+        await new Promise((res) => setTimeout(res, 100));
 
-            if (bgColor && bgColor !== 'transparent') {
-              ctx.fillStyle = bgColor;
-              ctx.fillRect(0, 0, outWidth, outHeight);
-            } else {
-              ctx.clearRect(0, 0, outWidth, outHeight);
-            }
+        const startTime = performance.now();
+        let frameCount = 0;
 
-            ctx.drawImage(loadedImages[f], 0, 0, outWidth, outHeight);
+        const drawNextFrame = () => {
+          const actualElapsed = performance.now() - startTime;
+          const videoTimeMs = actualElapsed;
 
-            await new Promise((res) => setTimeout(res, frameDelay));
-
-            currentStep += 1;
-            if (progressCallback) {
-              progressCallback(20 + Math.round((currentStep / totalSteps) * 80)); // 20~100%
-            }
+          // STRICT DEADLINE: Absolute prevention of timeline stretching (slow-mo bug)
+          if (videoTimeMs >= totalVideoDurationMs) {
+            setTimeout(() => {
+              if (recorder.state !== 'inactive') {
+                recorder.stop();
+              }
+            }, 50);
+            return;
           }
-        }
 
-        setTimeout(() => {
-          if (recorder.state !== 'inactive') {
-            recorder.stop();
+          const frameIdx = getFrameIndexAtVideoTime(videoTimeMs);
+          drawFrame(frameIdx);
+
+          if (progressCallback && frameCount % 3 === 0) {
+            const pct = Math.min(100, (videoTimeMs / totalVideoDurationMs) * 100);
+            progressCallback(15 + Math.round(pct * 0.8)); // 15~95%
           }
-        }, 100);
+
+          frameCount += 1;
+          requestAnimationFrame(drawNextFrame);
+        };
+
+        requestAnimationFrame(drawNextFrame);
       } catch (err) {
         if (recorder.state !== 'inactive') {
           recorder.stop();
