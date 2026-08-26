@@ -25,14 +25,14 @@ import LinkOffRoundedIcon from '@mui/icons-material/LinkOffRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import ColorizeRoundedIcon from '@mui/icons-material/ColorizeRounded';
-import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 import AspectRatioRoundedIcon from '@mui/icons-material/AspectRatioRounded';
+import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import InvertColorsRoundedIcon from '@mui/icons-material/InvertColorsRounded';
 import FormatColorFillRoundedIcon from '@mui/icons-material/FormatColorFillRounded';
-import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
-import { DashboardContent } from 'src/layouts/dashboard';
-import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
 
+import { DashboardContent } from 'src/layouts/dashboard';
+
+import { PhotoUploadWorkspace, type SampleImageItem } from '../components';
 import {
   downloadDataUrl,
   floodFillCanvas,
@@ -43,7 +43,6 @@ import {
   PADDING_GRADIENT_PRESETS,
   toggleBackgroundWhiteTransparent,
 } from '../utils/image-processor';
-import { PhotoUploadWorkspace, type SampleImageItem } from '../components';
 
 const COLOR_SAMPLE_IMAGES: SampleImageItem[] = [
   {

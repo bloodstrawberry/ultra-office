@@ -15,18 +15,16 @@ import Typography from '@mui/material/Typography';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
 import FormControlLabel from '@mui/material/FormControlLabel';
-import CircularProgress from '@mui/material/CircularProgress';
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
 import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
-import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
-import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
+
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import { downloadDataUrl, shareToKakaoTalk } from '../utils/image-processor';
 import { PhotoUploadWorkspace, PhotoCompareViewport } from '../components';
+import { downloadDataUrl, shareToKakaoTalk } from '../utils/image-processor';
 import {
   WEATHERING_PRESETS,
   WEATHERING_SAMPLES,

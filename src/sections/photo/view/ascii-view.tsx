@@ -21,8 +21,8 @@ import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import { downloadDataUrl, shareToKakaoTalk } from '../utils/image-processor';
 import { PhotoUploadWorkspace, type SampleImageItem } from '../components';
+import { downloadDataUrl, shareToKakaoTalk } from '../utils/image-processor';
 
 const ASCII_SAMPLE_IMAGES: SampleImageItem[] = [
   {

@@ -1,4 +1,4 @@
-import type { PhysicsBody, DoublePendulumState } from '../types';
+import type { PhysicsBody, CelestialBody, DoublePendulumState } from '../types';
 
 // ----------------------------------------------------------------------
 
@@ -94,4 +94,59 @@ export function stepDoublePendulum(
     omega2: nextOmega2,
     trace: nextTrace,
   };
+}
+
+/**
+ * Step N-Body Celestial Gravitational Simulation (Velocity Verlet / RK4)
+ */
+export function stepCelestialBodies(
+  bodies: CelestialBody[],
+  G: number = 1.2,
+  softening: number = 15,
+  dt: number = 0.5
+): CelestialBody[] {
+  const n = bodies.length;
+  const nextBodies = bodies.map((b) => ({
+    ...b,
+    trail: [...b.trail],
+  }));
+
+  // Calculate gravitational accelerations
+  const ax = new Float64Array(n);
+  const ay = new Float64Array(n);
+
+  for (let i = 0; i < n; i += 1) {
+    for (let j = i + 1; j < n; j += 1) {
+      const dx = bodies[j].x - bodies[i].x;
+      const dy = bodies[j].y - bodies[i].y;
+      const distSq = dx * dx + dy * dy + softening * softening;
+      const dist = Math.sqrt(distSq);
+      const force = (G * bodies[i].mass * bodies[j].mass) / distSq;
+
+      const fx = (force * dx) / dist;
+      const fy = (force * dy) / dist;
+
+      ax[i] += fx / bodies[i].mass;
+      ay[i] += fy / bodies[i].mass;
+
+      ax[j] -= fx / bodies[j].mass;
+      ay[j] -= fy / bodies[j].mass;
+    }
+  }
+
+  // Update positions and velocities
+  for (let i = 0; i < n; i += 1) {
+    const b = nextBodies[i];
+    b.vx += ax[i] * dt;
+    b.vy += ay[i] * dt;
+    b.x += b.vx * dt;
+    b.y += b.vy * dt;
+
+    b.trail.push({ x: b.x, y: b.y });
+    if (b.trail.length > 180) {
+      b.trail.shift();
+    }
+  }
+
+  return nextBodies;
 }

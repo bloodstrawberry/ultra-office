@@ -8,36 +8,36 @@ import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Card from '@mui/material/Card';
 import Alert from '@mui/material/Alert';
+import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
+import Select from '@mui/material/Select';
 import Tooltip from '@mui/material/Tooltip';
 import Collapse from '@mui/material/Collapse';
-import Typography from '@mui/material/Typography';
-import AlertTitle from '@mui/material/AlertTitle';
-import LinearProgress from '@mui/material/LinearProgress';
-import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
-import IconButton from '@mui/material/IconButton';
-import LightbulbRoundedIcon from '@mui/icons-material/LightbulbRounded';
-import ExpandLessRoundedIcon from '@mui/icons-material/ExpandLessRounded';
-import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
-import HelpOutlineRoundedIcon from '@mui/icons-material/HelpOutlineRounded';
-import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
-import ContentPasteRoundedIcon from '@mui/icons-material/ContentPasteRounded';
-import AssignmentLateRoundedIcon from '@mui/icons-material/AssignmentLateRounded';
-import RadioButtonUncheckedRoundedIcon from '@mui/icons-material/RadioButtonUncheckedRounded';
-import NavigateBeforeRoundedIcon from '@mui/icons-material/NavigateBeforeRounded';
-import NavigateNextRoundedIcon from '@mui/icons-material/NavigateNextRounded';
-import Table from '@mui/material/Table';
 import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
+import Typography from '@mui/material/Typography';
+import AlertTitle from '@mui/material/AlertTitle';
+import InputLabel from '@mui/material/InputLabel';
+import IconButton from '@mui/material/IconButton';
+import FormControl from '@mui/material/FormControl';
+import LinearProgress from '@mui/material/LinearProgress';
+import LightbulbRoundedIcon from '@mui/icons-material/LightbulbRounded';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
+import ExpandLessRoundedIcon from '@mui/icons-material/ExpandLessRounded';
+import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import TableChartRoundedIcon from '@mui/icons-material/TableChartRounded';
-import AutoFixHighRoundedIcon from '@mui/icons-material/AutoFixHighRounded';
 import DataObjectRoundedIcon from '@mui/icons-material/DataObjectRounded';
+import HelpOutlineRoundedIcon from '@mui/icons-material/HelpOutlineRounded';
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
+import AutoFixHighRoundedIcon from '@mui/icons-material/AutoFixHighRounded';
+import ContentPasteRoundedIcon from '@mui/icons-material/ContentPasteRounded';
+import NavigateNextRoundedIcon from '@mui/icons-material/NavigateNextRounded';
+import AssignmentLateRoundedIcon from '@mui/icons-material/AssignmentLateRounded';
+import NavigateBeforeRoundedIcon from '@mui/icons-material/NavigateBeforeRounded';
+import RadioButtonUncheckedRoundedIcon from '@mui/icons-material/RadioButtonUncheckedRounded';
 
 import { Scrollbar } from 'src/components/scrollbar';
 
@@ -114,13 +114,15 @@ export function SqlProblemPanel({
   }, [problems, selectedCategory]);
 
   // Filter problems by main category and optional subcategory
-  const filteredProblems = React.useMemo(() => {
-    return problems.filter((p) => {
-      const matchCat = selectedCategory === 'all' || p.category === selectedCategory;
-      const matchSub = selectedSubCategory === 'all' || p.subCategory === selectedSubCategory;
-      return matchCat && matchSub;
-    });
-  }, [problems, selectedCategory, selectedSubCategory]);
+  const filteredProblems = React.useMemo(
+    () =>
+      problems.filter((p) => {
+        const matchCat = selectedCategory === 'all' || p.category === selectedCategory;
+        const matchSub = selectedSubCategory === 'all' || p.subCategory === selectedSubCategory;
+        return matchCat && matchSub;
+      }),
+    [problems, selectedCategory, selectedSubCategory]
+  );
 
   // Current problem index in filtered list for Next/Previous navigation
   const currentProblemIndex = React.useMemo(() => {

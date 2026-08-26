@@ -1,5 +1,6 @@
 import type { SvgIconProps } from '@mui/material/SvgIcon';
 
+import GifRoundedIcon from '@mui/icons-material/GifRounded';
 import CodeRoundedIcon from '@mui/icons-material/CodeRounded';
 import BrushRoundedIcon from '@mui/icons-material/BrushRounded';
 import FolderRoundedIcon from '@mui/icons-material/FolderRounded';
@@ -53,6 +54,8 @@ export function renderHomeIcon(iconKey: string, props?: SvgIconProps) {
       return <PhotoFilterRoundedIcon {...props} />;
     case 'photo':
       return <PhotoLibraryRoundedIcon {...props} />;
+    case 'gif':
+      return <GifRoundedIcon {...props} />;
     case 'schedule':
       return <CalendarMonthRoundedIcon {...props} />;
     case 'devTools':

@@ -215,7 +215,52 @@ export function useSqlEngine() {
         }
         alasql(`USE ${dbName}`);
 
-        const rawResult: unknown = alasql(trimmedQuery);
+        // Normalize Oracle MINUS set operator to standard EXCEPT for AlaSQL execution
+        let normalizedQuery = trimmedQuery.replace(/\bMINUS\b/gi, 'EXCEPT');
+
+        // Normalize Oracle RATIO_TO_REPORT(col) OVER (...) to (col / SUM(col) OVER (...))
+        normalizedQuery = normalizedQuery.replace(
+          /RATIO_TO_REPORT\s*\(\s*([a-zA-Z0-9_]+)\s*\)\s*OVER\s*\(([^)]*)\)/gi,
+          '($1 / SUM($1) OVER ($2))'
+        );
+
+        // Normalize Oracle 12c+ OFFSET m ROWS FETCH NEXT n ROWS ONLY
+        normalizedQuery = normalizedQuery.replace(
+          /OFFSET\s+(\d+)\s+ROWS?\s+FETCH\s+(?:FIRST|NEXT)\s+(\d+)\s+ROWS?\s+(?:ONLY|WITH\s+TIES)/gi,
+          'LIMIT $2 OFFSET $1'
+        );
+
+        // Normalize Oracle 12c+ FETCH FIRST n ROWS ONLY
+        normalizedQuery = normalizedQuery.replace(
+          /FETCH\s+(?:FIRST|NEXT)\s+(\d+)\s+ROWS?\s+(?:ONLY|WITH\s+TIES)/gi,
+          'LIMIT $1'
+        );
+
+        // Normalize SELECT ROWNUM in projection
+        normalizedQuery = normalizedQuery.replace(
+          /\bROWNUM\s+AS\s+([a-zA-Z0-9_]+)/gi,
+          'ROW_NUMBER() OVER () AS $1'
+        );
+        normalizedQuery = normalizedQuery.replace(
+          /\bROWNUM\b(?!\s*<=|\s*<|\s*=|\s*>|\s*>=)/gi,
+          'ROW_NUMBER() OVER () AS rownum'
+        );
+
+        // Normalize WHERE ROWNUM <= n / WHERE ROWNUM = 1 at top level
+        normalizedQuery = normalizedQuery.replace(/WHERE\s+ROWNUM\s*<=\s*(\d+)/gi, 'LIMIT $1');
+        normalizedQuery = normalizedQuery.replace(/WHERE\s+ROWNUM\s*=\s*1\b/gi, 'LIMIT 1');
+        normalizedQuery = normalizedQuery.replace(
+          /WHERE\s+ROWNUM\s*<\s*(\d+)/gi,
+          (match, p1) => `LIMIT ${Math.max(0, Number(p1) - 1)}`
+        );
+
+        // Normalize Oracle REGEXP_LIKE in WHERE/AND clauses for boolean evaluation in AlaSQL
+        normalizedQuery = normalizedQuery.replace(
+          /\bREGEXP_LIKE\s*\(([^)]+)\)(?!\s*=\s*|\s*>\s*|\s*<\s*|\s*IS\b)/gi,
+          'REGEXP_LIKE($1) = 1'
+        );
+
+        const rawResult: unknown = alasql(normalizedQuery);
         const endTime = performance.now();
         const executionTimeMs = Math.round((endTime - startTime) * 10) / 10;
 
@@ -226,6 +271,8 @@ export function useSqlEngine() {
         const upperQuery = trimmedQuery.toUpperCase().trim();
         const isDdl = /^(CREATE|ALTER|DROP|TRUNCATE|RENAME)\b/i.test(upperQuery);
         const isDml = /^(INSERT|UPDATE|DELETE|MERGE)\b/i.test(upperQuery);
+        const isTcl = /^(COMMIT|ROLLBACK|SAVEPOINT)\b/i.test(upperQuery);
+        const isDcl = /^(GRANT|REVOKE|CREATE\s+USER|DROP\s+USER|ALTER\s+USER)\b/i.test(upperQuery);
 
         if (Array.isArray(rawResult)) {
           const lastItem =
@@ -296,6 +343,16 @@ export function useSqlEngine() {
             executionMessage = 'DML 데이터 조작 명령어가 오류 없이 실행되었습니다.';
             rows = [{ status: 'SUCCESS', message: 'DML 데이터 조작이 완료되었습니다.' }];
             columns = ['status', 'message'];
+          } else if (isTcl) {
+            executionMessage = 'TCL 트랜잭션 제어 명령어가 성공적으로 반영되었습니다.';
+            rows = [{ status: 'SUCCESS', message: '트랜잭션이 성공적으로 처리되었습니다.' }];
+            columns = ['status', 'message'];
+          } else if (isDcl) {
+            executionMessage = 'DCL 권한 제어 명령어가 성공적으로 적용되었습니다.';
+            rows = [
+              { status: 'SUCCESS', message: '사용자 및 권한 설정이 성공적으로 완료되었습니다.' },
+            ];
+            columns = ['status', 'message'];
           }
         }
 
@@ -322,6 +379,39 @@ export function useSqlEngine() {
         const endTime = performance.now();
         const executionTimeMs = Math.round((endTime - startTime) * 10) / 10;
         const errorMessage = err instanceof Error ? err.message : String(err);
+        const upperQuery = trimmedQuery.toUpperCase().trim();
+
+        // Safe fallback simulation for TCL / DCL commands in browser environment
+        if (/^(COMMIT|ROLLBACK|SAVEPOINT)\b/i.test(upperQuery)) {
+          return {
+            columns: ['status', 'command', 'message'],
+            rows: [
+              {
+                status: 'SUCCESS',
+                command: upperQuery.split(';')[0],
+                message: '트랜잭션 제어(TCL) 명령어가 정상 처리되었습니다.',
+              },
+            ],
+            executionTimeMs,
+            rowCount: 1,
+            executionMessage: 'TCL 트랜잭션 명령어가 성공적으로 실행되었습니다.',
+          };
+        }
+        if (/^(GRANT|REVOKE|CREATE\s+USER|DROP\s+USER|ALTER\s+USER)\b/i.test(upperQuery)) {
+          return {
+            columns: ['status', 'command', 'message'],
+            rows: [
+              {
+                status: 'SUCCESS',
+                command: upperQuery.split(';')[0],
+                message: '사용자 및 권한 제어(DCL) 명령어가 정상 처리되었습니다.',
+              },
+            ],
+            executionTimeMs,
+            rowCount: 1,
+            executionMessage: 'DCL 권한 제어 명령어가 성공적으로 적용되었습니다.',
+          };
+        }
 
         const newHistoryItem: QueryHistoryItem = {
           id: `${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,

@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import type { Theme, SxProps } from '@mui/material/styles';
+
+import React, { useRef, useState, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -10,7 +12,6 @@ import ToggleButton from '@mui/material/ToggleButton';
 import LinearProgress from '@mui/material/LinearProgress';
 import CircularProgress from '@mui/material/CircularProgress';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import type { SxProps, Theme } from '@mui/material/styles';
 import BlurOnRoundedIcon from '@mui/icons-material/BlurOnRounded';
 import SwapVertRoundedIcon from '@mui/icons-material/SwapVertRounded';
 import SwapHorizRoundedIcon from '@mui/icons-material/SwapHorizRounded';

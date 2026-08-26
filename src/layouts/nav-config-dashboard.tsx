@@ -1,6 +1,7 @@
 import type { NavMainProps } from './main/nav/types';
 import type { NavSectionProps } from 'src/components/nav-section';
 
+import GifRoundedIcon from '@mui/icons-material/GifRounded';
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
 import CodeRoundedIcon from '@mui/icons-material/CodeRounded';
 import AppsRoundedIcon from '@mui/icons-material/AppsRounded';
@@ -46,6 +47,7 @@ const ICONS = {
   search: <SearchRoundedIcon fontSize="small" />,
   text: <TextFieldsRoundedIcon fontSize="small" />,
   photo: <PhotoLibraryRoundedIcon fontSize="small" />,
+  gif: <GifRoundedIcon fontSize="small" />,
   drawing: <CasinoRoundedIcon fontSize="small" />,
   compare: <CompareArrowsRoundedIcon fontSize="small" />,
   imageTool: <PhotoFilterRoundedIcon fontSize="small" />,
@@ -131,8 +133,20 @@ export const navData: NavSectionProps['data'] = [
           { title: '모자이크 & 블러', path: paths.photo.mosaic },
           { title: '워터마크 각인', path: paths.photo.watermark },
           { title: '스캔 효과 · 문서 스캐너', path: paths.photo.scan },
-          { title: 'GIF 스튜디오', path: paths.photo.gif },
           { title: 'PDF 스튜디오', path: paths.photo.pdf },
+        ],
+      },
+      {
+        title: 'GIF 편집 스튜디오',
+        path: paths.gifStudio.root,
+        icon: ICONS.gif,
+        children: [
+          { title: '움짤 (GIF) 만들기', path: paths.gifStudio.create },
+          { title: '동영상 → GIF 변환', path: paths.gifStudio.video },
+          { title: 'GIF → 동영상 (MP4/AVI) 변환', path: paths.gifStudio.toVideo },
+          { title: 'GIF 프레임 분할 · 추출', path: paths.gifStudio.split },
+          { title: 'GIF 배경색 변경 · 투명화', path: paths.gifStudio.bg },
+          { title: 'GIF 속도 조절 & 역재생', path: paths.gifStudio.speed },
         ],
       },
       {
@@ -239,6 +253,11 @@ export const navData: NavSectionProps['data'] = [
         title: '동영상 편집 스튜디오',
         path: paths.videoMaster,
         icon: ICONS.videoMaster,
+      },
+      {
+        title: 'GIF 편집 스튜디오',
+        path: paths.gifStudio.root,
+        icon: ICONS.gif,
       },
       {
         title: '화면 & 웹캠 녹화 스튜디오',

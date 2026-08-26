@@ -20,14 +20,12 @@ import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import LockOpenRoundedIcon from '@mui/icons-material/LockOpenRounded';
 import CropSquareRoundedIcon from '@mui/icons-material/CropSquareRounded';
 import AspectRatioRoundedIcon from '@mui/icons-material/AspectRatioRounded';
-import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
-import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
 
+import { PhotoUploadWorkspace, type SampleImageItem } from '../components';
 import { type CropRect, InteractiveCropBox } from '../components/interactive-crop-box';
 import { downloadDataUrl, shareToKakaoTalk, cropAndResizeLogo } from '../utils/image-processor';
-import { PhotoUploadWorkspace, type SampleImageItem } from '../components';
 
 const LOGO_SAMPLE_IMAGES: SampleImageItem[] = [
   {

@@ -26,6 +26,19 @@ export interface DoublePendulumState {
   trace: Array<{ x: number; y: number }>;
 }
 
+export interface CelestialBody {
+  id: string;
+  name: string;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  mass: number;
+  radius: number;
+  color: string;
+  trail: Array<{ x: number; y: number }>;
+}
+
 export interface PeriodicElement {
   number: number;
   symbol: string;

@@ -58,6 +58,21 @@ export async function loadAlaSql(): Promise<any> {
       instance.fn.LNNVL = (cond: any) => (cond ? 0 : 1);
       instance.fn.lnnvl = instance.fn.LNNVL;
 
+      // GROUPING: Returns 1 if column is null due to rollup/cube/grouping sets aggregation, 0 if normal row
+      instance.fn.GROUPING = (colVal: any) => (colVal === null || colVal === undefined ? 1 : 0);
+      instance.fn.grouping = instance.fn.GROUPING;
+
+      // GROUPING_ID: Bitmask integer of grouping columns
+      instance.fn.GROUPING_ID = (...args: any[]) => {
+        let bitmask = 0;
+        for (let i = 0; i < args.length; i++) {
+          const isNull = args[i] === null || args[i] === undefined ? 1 : 0;
+          bitmask = (bitmask << 1) | isNull;
+        }
+        return bitmask;
+      };
+      instance.fn.grouping_id = instance.fn.GROUPING_ID;
+
       // CHR: ASCII code to character
       instance.fn.CHR = (n: any) =>
         n !== null && n !== undefined ? String.fromCharCode(Number(n)) : null;
@@ -234,6 +249,188 @@ export async function loadAlaSql(): Promise<any> {
         return Math.log(Number(n)) / Math.log(Number(base));
       };
       instance.fn.log = instance.fn.LOG;
+      // =========================================================================
+      // REGULAR EXPRESSION FUNCTIONS (Oracle Compatible)
+      // =========================================================================
+
+      const parseFlags = (matchParam?: any, extra = '') => {
+        let flags = extra;
+        if (matchParam) {
+          const p = String(matchParam).toLowerCase();
+          if (p.includes('i') && !flags.includes('i')) flags += 'i';
+          if (p.includes('m') && !flags.includes('m')) flags += 'm';
+          if (p.includes('n') && !flags.includes('s')) flags += 's';
+        }
+        return flags;
+      };
+
+      // REGEXP_LIKE: Returns 1 (true) if pattern matches, 0 (false) otherwise
+      instance.fn.REGEXP_LIKE = (src: any, pattern: any, matchParam?: any) => {
+        if (src === null || src === undefined || pattern === null || pattern === undefined)
+          return null;
+        try {
+          const flags = parseFlags(matchParam);
+          const regex = new RegExp(String(pattern), flags);
+          return regex.test(String(src)) ? 1 : 0;
+        } catch {
+          return 0;
+        }
+      };
+      instance.fn.regexp_like = instance.fn.REGEXP_LIKE;
+
+      // REGEXP_SUBSTR: Extract substring matching regex pattern
+      instance.fn.REGEXP_SUBSTR = (
+        src: any,
+        pattern: any,
+        position = 1,
+        occurrence = 1,
+        matchParam?: any,
+        subexpr = 0
+      ) => {
+        if (src === null || src === undefined || pattern === null || pattern === undefined)
+          return null;
+        try {
+          const s = String(src);
+          const pos = Math.max(1, Number(position) || 1);
+          const occ = Math.max(1, Number(occurrence) || 1);
+          const targetStr = pos > 1 ? s.slice(pos - 1) : s;
+
+          const flags = parseFlags(matchParam, 'g');
+          const regex = new RegExp(String(pattern), flags);
+
+          let match: RegExpExecArray | null = null;
+          let count = 0;
+          while ((match = regex.exec(targetStr)) !== null) {
+            count++;
+            if (count === occ) {
+              const grp = Number(subexpr) || 0;
+              if (grp > 0 && match[grp] !== undefined) {
+                return match[grp];
+              }
+              return match[0];
+            }
+            if (regex.lastIndex === match.index) {
+              regex.lastIndex++;
+            }
+          }
+          return null;
+        } catch {
+          return null;
+        }
+      };
+      instance.fn.regexp_substr = instance.fn.REGEXP_SUBSTR;
+
+      // REGEXP_REPLACE: Replace substring matching regex pattern
+      instance.fn.REGEXP_REPLACE = (
+        src: any,
+        pattern: any,
+        replaceStr = '',
+        position = 1,
+        occurrence = 0,
+        matchParam?: any
+      ) => {
+        if (src === null || src === undefined || pattern === null || pattern === undefined)
+          return null;
+        try {
+          const s = String(src);
+          const rep = String(replaceStr ?? '').replace(/\\(\d)/g, '$$$1');
+          const pos = Math.max(1, Number(position) || 1);
+          const occ = Number(occurrence) || 0;
+
+          const flags = parseFlags(matchParam, occ === 0 ? 'g' : '');
+          const prefix = pos > 1 ? s.slice(0, pos - 1) : '';
+          const targetStr = pos > 1 ? s.slice(pos - 1) : s;
+
+          if (occ === 0) {
+            const regex = new RegExp(String(pattern), flags);
+            return prefix + targetStr.replace(regex, rep);
+          } else {
+            const regex = new RegExp(String(pattern), parseFlags(matchParam, 'g'));
+            let match: RegExpExecArray | null = null;
+            let count = 0;
+            let replacedStr = targetStr;
+            while ((match = regex.exec(targetStr)) !== null) {
+              count++;
+              if (count === occ) {
+                const startIdx = match.index;
+                const matchLen = match[0].length;
+                const replacement = match[0].replace(
+                  new RegExp(String(pattern), parseFlags(matchParam)),
+                  rep
+                );
+                replacedStr =
+                  targetStr.slice(0, startIdx) + replacement + targetStr.slice(startIdx + matchLen);
+                break;
+              }
+              if (regex.lastIndex === match.index) {
+                regex.lastIndex++;
+              }
+            }
+            return prefix + replacedStr;
+          }
+        } catch {
+          return String(src);
+        }
+      };
+      instance.fn.regexp_replace = instance.fn.REGEXP_REPLACE;
+
+      // REGEXP_INSTR: Return 1-based index position of regex pattern
+      instance.fn.REGEXP_INSTR = (
+        src: any,
+        pattern: any,
+        position = 1,
+        occurrence = 1,
+        returnOpt = 0,
+        matchParam?: any
+      ) => {
+        if (src === null || src === undefined || pattern === null || pattern === undefined)
+          return 0;
+        try {
+          const s = String(src);
+          const pos = Math.max(1, Number(position) || 1);
+          const occ = Math.max(1, Number(occurrence) || 1);
+          const targetStr = pos > 1 ? s.slice(pos - 1) : s;
+
+          const flags = parseFlags(matchParam, 'g');
+          const regex = new RegExp(String(pattern), flags);
+
+          let match: RegExpExecArray | null = null;
+          let count = 0;
+          while ((match = regex.exec(targetStr)) !== null) {
+            count++;
+            if (count === occ) {
+              const baseIdx = pos - 1 + match.index;
+              return Number(returnOpt) === 1 ? baseIdx + match[0].length + 1 : baseIdx + 1;
+            }
+            if (regex.lastIndex === match.index) {
+              regex.lastIndex++;
+            }
+          }
+          return 0;
+        } catch {
+          return 0;
+        }
+      };
+      instance.fn.regexp_instr = instance.fn.REGEXP_INSTR;
+
+      // REGEXP_COUNT: Count occurrences of regex pattern
+      instance.fn.REGEXP_COUNT = (src: any, pattern: any, position = 1, matchParam?: any) => {
+        if (src === null || src === undefined || pattern === null || pattern === undefined)
+          return 0;
+        try {
+          const s = String(src);
+          const pos = Math.max(1, Number(position) || 1);
+          const targetStr = pos > 1 ? s.slice(pos - 1) : s;
+
+          const flags = parseFlags(matchParam, 'g');
+          const regex = new RegExp(String(pattern), flags);
+          const matches = targetStr.match(regex);
+          return matches ? matches.length : 0;
+        } catch {
+          return 0;
+        }
+      };
+      instance.fn.regexp_count = instance.fn.REGEXP_COUNT;
 
       // =========================================================================
       // DATE FUNCTIONS (Oracle Compatible)

@@ -1,6 +1,6 @@
 'use client';
 
-import type { PhysicsBody, DoublePendulumState } from '../types';
+import type { PhysicsBody, CelestialBody, DoublePendulumState } from '../types';
 
 import React, { useRef, useState, useEffect } from 'react';
 
@@ -19,7 +19,11 @@ import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import DeleteSweepRoundedIcon from '@mui/icons-material/DeleteSweepRounded';
 
-import { stepDoublePendulum, updatePhysicsBodies } from '../utils/physics-engine';
+import {
+  stepDoublePendulum,
+  stepCelestialBodies,
+  updatePhysicsBodies,
+} from '../utils/physics-engine';
 
 // ----------------------------------------------------------------------
 
@@ -35,12 +39,142 @@ const INITIAL_PENDULUM: DoublePendulumState = {
   trace: [],
 };
 
+const ORBITAL_PRESETS: Record<string, CelestialBody[]> = {
+  sunEarthMoon: [
+    {
+      id: 'sun',
+      name: '태양 (Sun)',
+      x: 360,
+      y: 230,
+      vx: 0,
+      vy: 0,
+      mass: 800,
+      radius: 20,
+      color: '#facc15',
+      trail: [],
+    },
+    {
+      id: 'earth',
+      name: '지구 (Earth)',
+      x: 360,
+      y: 90,
+      vx: 2.6,
+      vy: 0,
+      mass: 25,
+      radius: 8,
+      color: '#38bdf8',
+      trail: [],
+    },
+    {
+      id: 'moon',
+      name: '달 (Moon)',
+      x: 360,
+      y: 68,
+      vx: 3.4,
+      vy: 0,
+      mass: 1.5,
+      radius: 4,
+      color: '#e2e8f0',
+      trail: [],
+    },
+  ],
+  figure8: [
+    {
+      id: 'body1',
+      name: '항성 1',
+      x: 360 - 120,
+      y: 230,
+      vx: 0.46,
+      vy: 0.43,
+      mass: 300,
+      radius: 12,
+      color: '#ef4444',
+      trail: [],
+    },
+    {
+      id: 'body2',
+      name: '항성 2',
+      x: 360 + 120,
+      y: 230,
+      vx: 0.46,
+      vy: 0.43,
+      mass: 300,
+      radius: 12,
+      color: '#3b82f6',
+      trail: [],
+    },
+    {
+      id: 'body3',
+      name: '항성 3',
+      x: 360,
+      y: 230,
+      vx: -0.92,
+      vy: -0.86,
+      mass: 300,
+      radius: 12,
+      color: '#22c55e',
+      trail: [],
+    },
+  ],
+  trisolaris: [
+    {
+      id: 'star1',
+      name: '주성 Alpha',
+      x: 280,
+      y: 200,
+      vx: 0,
+      vy: 1.2,
+      mass: 450,
+      radius: 15,
+      color: '#f97316',
+      trail: [],
+    },
+    {
+      id: 'star2',
+      name: '주성 Beta',
+      x: 440,
+      y: 200,
+      vx: 0,
+      vy: -1.2,
+      mass: 450,
+      radius: 15,
+      color: '#a855f7',
+      trail: [],
+    },
+    {
+      id: 'star3',
+      name: '주성 Gamma',
+      x: 360,
+      y: 330,
+      vx: -1.0,
+      vy: 0,
+      mass: 380,
+      radius: 13,
+      color: '#ec4899',
+      trail: [],
+    },
+    {
+      id: 'trisolaris_planet',
+      name: '삼체 행성 (Trisolaris)',
+      x: 360,
+      y: 130,
+      vx: 2.1,
+      vy: 0,
+      mass: 1,
+      radius: 5,
+      color: '#22d3ee',
+      trail: [],
+    },
+  ],
+};
+
 export function PhysicsCanvas() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [mode, setMode] = useState<'rigid' | 'pendulum'>('rigid');
+  const [mode, setMode] = useState<'rigid' | 'pendulum' | 'orbital'>('rigid');
   const [gravity, setGravity] = useState<number>(0.4);
-  const [restitution, setRestitution] = useState<number>(0.75); // Bounciness
+  const [restitution] = useState<number>(0.75);
   const [isRunning, setIsRunning] = useState<boolean>(true);
+  const [orbitalPreset, setOrbitalPreset] = useState<string>('sunEarthMoon');
 
   // Rigid bodies
   const [bodies, setBodies] = useState<PhysicsBody[]>([
@@ -85,6 +219,14 @@ export function PhysicsCanvas() {
   // Double pendulum
   const pendulumRef = useRef<DoublePendulumState>(INITIAL_PENDULUM);
 
+  // Celestial N-body
+  const celestialRef = useRef<CelestialBody[]>(
+    ORBITAL_PRESETS.sunEarthMoon.map((b) => ({
+      ...b,
+      trail: [],
+    }))
+  );
+
   const handleAddBall = () => {
     const colors = ['#38bdf8', '#ec4899', '#eab308', '#22c55e', '#a855f7', '#f97316'];
     const newBody: PhysicsBody = {
@@ -102,6 +244,15 @@ export function PhysicsCanvas() {
     setBodies((prev) => [...prev, newBody]);
   };
 
+  const handleSelectOrbitalPreset = (presetKey: string) => {
+    setOrbitalPreset(presetKey);
+    const selected = ORBITAL_PRESETS[presetKey] || ORBITAL_PRESETS.sunEarthMoon;
+    celestialRef.current = selected.map((b) => ({
+      ...b,
+      trail: [],
+    }));
+  };
+
   // Main 60fps animation loop
   useEffect(() => {
     let animId: number;
@@ -112,9 +263,7 @@ export function PhysicsCanvas() {
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
-      const width = canvas.width;
-      const height = canvas.height;
-
+      const { width, height } = canvas;
       ctx.clearRect(0, 0, width, height);
 
       if (mode === 'rigid') {
@@ -146,7 +295,7 @@ export function PhysicsCanvas() {
           ctx.fill();
           ctx.restore();
         });
-      } else {
+      } else if (mode === 'pendulum') {
         // Double Pendulum Mode
         if (isRunning) {
           pendulumRef.current = stepDoublePendulum(pendulumRef.current);
@@ -164,9 +313,9 @@ export function PhysicsCanvas() {
         // 1. Draw glowing chaos trace
         if (p.trace.length > 1) {
           ctx.beginPath();
-          ctx.moveTo(originX + p.trace[0]!.x, originY + p.trace[0]!.y);
-          for (let i = 1; i < p.trace.length; i++) {
-            ctx.lineTo(originX + p.trace[i]!.x, originY + p.trace[i]!.y);
+          ctx.moveTo(originX + p.trace[0].x, originY + p.trace[0].y);
+          for (let i = 1; i < p.trace.length; i += 1) {
+            ctx.lineTo(originX + p.trace[i].x, originY + p.trace[i].y);
           }
           ctx.strokeStyle = '#ec4899';
           ctx.lineWidth = 2;
@@ -192,6 +341,61 @@ export function PhysicsCanvas() {
         ctx.beginPath();
         ctx.arc(x2, y2, p.m2, 0, Math.PI * 2);
         ctx.fill();
+      } else if (mode === 'orbital') {
+        // N-Body Celestial Orbital Gravitational Simulation
+        if (isRunning) {
+          celestialRef.current = stepCelestialBodies(celestialRef.current);
+        }
+
+        const celestialBodies = celestialRef.current;
+
+        // Draw Trails
+        celestialBodies.forEach((b) => {
+          if (b.trail.length > 1) {
+            ctx.beginPath();
+            ctx.moveTo(b.trail[0].x, b.trail[0].y);
+            for (let i = 1; i < b.trail.length; i += 1) {
+              ctx.lineTo(b.trail[i].x, b.trail[i].y);
+            }
+            ctx.strokeStyle = `${b.color}77`;
+            ctx.lineWidth = 1.8;
+            ctx.stroke();
+          }
+        });
+
+        // Draw Celestial Bodies
+        celestialBodies.forEach((b) => {
+          ctx.save();
+
+          // Outer Glow
+          ctx.beginPath();
+          ctx.arc(b.x, b.y, b.radius * 1.5, 0, Math.PI * 2);
+          ctx.fillStyle = `${b.color}33`;
+          ctx.fill();
+
+          // Body Sphere
+          ctx.beginPath();
+          ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+          ctx.fillStyle = b.color;
+          ctx.fill();
+          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = '#ffffff';
+          ctx.stroke();
+
+          // Shiny 3D highlight
+          ctx.beginPath();
+          ctx.arc(b.x - b.radius * 0.3, b.y - b.radius * 0.3, b.radius * 0.3, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+          ctx.fill();
+
+          // Name label
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 11px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(b.name, b.x, b.y - b.radius - 6);
+
+          ctx.restore();
+        });
       }
 
       animId = requestAnimationFrame(render);
@@ -214,17 +418,33 @@ export function PhysicsCanvas() {
         }}
       >
         <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
-          <FormControl size="small" sx={{ minWidth: 180 }}>
+          <FormControl size="small" sx={{ minWidth: 200 }}>
             <InputLabel>물리 시뮬레이션 모드</InputLabel>
             <Select
               value={mode}
               label="물리 시뮬레이션 모드"
-              onChange={(e) => setMode(e.target.value as 'rigid' | 'pendulum')}
+              onChange={(e) => setMode(e.target.value as 'rigid' | 'pendulum' | 'orbital')}
             >
               <MenuItem value="rigid">2D 강체 탄성 충돌 샌드박스</MenuItem>
               <MenuItem value="pendulum">이중 진자(Double Pendulum) 카오스</MenuItem>
+              <MenuItem value="orbital">N체 천체 중력 & 궤도 시뮬레이션</MenuItem>
             </Select>
           </FormControl>
+
+          {mode === 'orbital' && (
+            <FormControl size="small" sx={{ minWidth: 180 }}>
+              <InputLabel>천체 궤도 프리셋</InputLabel>
+              <Select
+                value={orbitalPreset}
+                label="천체 궤도 프리셋"
+                onChange={(e) => handleSelectOrbitalPreset(e.target.value)}
+              >
+                <MenuItem value="sunEarthMoon">태양-지구-달 (계층 궤도)</MenuItem>
+                <MenuItem value="figure8">8자 궤도 삼체 안무 (Figure-8)</MenuItem>
+                <MenuItem value="trisolaris">삼체 카오스 (Trisolaris)</MenuItem>
+              </Select>
+            </FormControl>
+          )}
 
           <Button
             variant="contained"
@@ -236,11 +456,13 @@ export function PhysicsCanvas() {
             {isRunning ? '일시 정지' : '시뮬레이션 재생'}
           </Button>
 
-          {mode === 'rigid' ? (
+          {mode === 'rigid' && (
             <Button variant="outlined" startIcon={<AddRoundedIcon />} onClick={handleAddBall}>
               공 추가 (Drop Ball)
             </Button>
-          ) : (
+          )}
+
+          {mode === 'pendulum' && (
             <Button
               variant="outlined"
               startIcon={<RefreshRoundedIcon />}
@@ -254,6 +476,16 @@ export function PhysicsCanvas() {
               }}
             >
               새로운 초기 각도로 리셋
+            </Button>
+          )}
+
+          {mode === 'orbital' && (
+            <Button
+              variant="outlined"
+              startIcon={<RefreshRoundedIcon />}
+              onClick={() => handleSelectOrbitalPreset(orbitalPreset)}
+            >
+              궤도 초기화
             </Button>
           )}
 
@@ -290,7 +522,7 @@ export function PhysicsCanvas() {
       {/* 2. Interactive Canvas */}
       <Box
         sx={{
-          bgcolor: '#0f172a',
+          bgcolor: '#070b14',
           borderRadius: 2,
           border: '1.5px solid #1e293b',
           overflow: 'hidden',
@@ -300,9 +532,9 @@ export function PhysicsCanvas() {
       >
         <canvas
           ref={canvasRef}
-          width={720}
+          width={760}
           height={460}
-          style={{ width: '100%', maxWidth: 720, height: 'auto' }}
+          style={{ width: '100%', maxWidth: 760, height: 'auto' }}
         />
       </Box>
     </Card>

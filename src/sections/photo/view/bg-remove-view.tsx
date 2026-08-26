@@ -21,6 +21,7 @@ import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import UndoRoundedIcon from '@mui/icons-material/UndoRounded';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
+import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
 import BlurOnRoundedIcon from '@mui/icons-material/BlurOnRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
@@ -30,14 +31,13 @@ import ColorLensRoundedIcon from '@mui/icons-material/ColorLensRounded';
 import SwapHorizRoundedIcon from '@mui/icons-material/SwapHorizRounded';
 import ViewStreamRoundedIcon from '@mui/icons-material/ViewStreamRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
-import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
-import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
 import InvertColorsRoundedIcon from '@mui/icons-material/InvertColorsRounded';
 import CompareArrowsRoundedIcon from '@mui/icons-material/CompareArrowsRounded';
+
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import { shareToKakaoTalk } from '../utils/image-processor';
 import { PhotoUploadWorkspace } from '../components';
+import { shareToKakaoTalk } from '../utils/image-processor';
 import {
   BG_REMOVE_MODELS,
   applyBrushStroke,

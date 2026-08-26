@@ -11,16 +11,14 @@ import Switch from '@mui/material/Switch';
 import Typography from '@mui/material/Typography';
 import ToggleButton from '@mui/material/ToggleButton';
 import FormControlLabel from '@mui/material/FormControlLabel';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import CircularProgress from '@mui/material/CircularProgress';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import CropRotateRoundedIcon from '@mui/icons-material/CropRotateRounded';
-import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
-import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
 
 import { downloadDataUrl, shareToKakaoTalk } from '../utils/image-processor';
 import { PhotoUploadWorkspace, PhotoCompareViewport, type SampleImageItem } from '../components';

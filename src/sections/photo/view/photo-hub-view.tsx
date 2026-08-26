@@ -192,10 +192,12 @@ const TOOL_SECTIONS: { category: string; desc: string; tools: PhotoToolItem[] }[
       },
       {
         id: 'gif',
-        title: 'GIF 스튜디오',
-        desc: '움짤 GIF 생성(자막/루프/역재생), GIF 프레임 분할, 배경색 수정',
-        href: paths.photo.gif,
-        icon: <GifRoundedIcon sx={{ fontSize: 28, color: '#a855f7' }} />,
+        title: 'GIF 편집 스튜디오',
+        desc: '움짤 제작, 동영상 GIF 변환, 프레임 분할, 배경색 변경 & 속도/역재생',
+        href: paths.gifStudio.root,
+        icon: <GifRoundedIcon sx={{ fontSize: 28, color: '#8b5cf6' }} />,
+        tag: '추천',
+        badgeColor: 'primary',
       },
       {
         id: 'pdf',

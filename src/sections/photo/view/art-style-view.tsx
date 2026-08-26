@@ -17,7 +17,6 @@ import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import AutoFixHighRoundedIcon from '@mui/icons-material/AutoFixHighRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
-import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
 
 import { downloadDataUrl, shareToKakaoTalk } from '../utils/image-processor';
 import { PhotoUploadWorkspace, PhotoCompareViewport, type SampleImageItem } from '../components';

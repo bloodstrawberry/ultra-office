@@ -14,18 +14,16 @@ import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import ColorLensRoundedIcon from '@mui/icons-material/ColorLensRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
-import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
-import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
 
+import { PhotoUploadWorkspace, type SampleImageItem } from '../components';
 import { downloadDataUrl, shareToKakaoTalk } from '../utils/image-processor';
 import {
   formatAllColors,
   generateColorCardPng,
   type FormattedColorData,
 } from '../utils/color-utils';
-import { PhotoUploadWorkspace, type SampleImageItem } from '../components';
 
 const COLOR_PICKER_SAMPLE_IMAGES: SampleImageItem[] = [
   {

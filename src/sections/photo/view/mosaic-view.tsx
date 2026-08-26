@@ -23,15 +23,14 @@ import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import CropSquareRoundedIcon from '@mui/icons-material/CropSquareRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
-import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
-import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded';
 import DocumentScannerRoundedIcon from '@mui/icons-material/DocumentScannerRounded';
 import SentimentSatisfiedAltRoundedIcon from '@mui/icons-material/SentimentSatisfiedAltRounded';
+
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import { downloadDataUrl, shareToKakaoTalk } from '../utils/image-processor';
 import { PhotoUploadWorkspace } from '../components';
+import { downloadDataUrl, shareToKakaoTalk } from '../utils/image-processor';
 import {
   runOcrOnImage,
   type MosaicMode,

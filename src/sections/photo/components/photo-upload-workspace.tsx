@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useRef, useCallback } from 'react';
+import type { Theme, SxProps } from '@mui/material/styles';
+
+import React, { useRef } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-import type { SxProps, Theme } from '@mui/material/styles';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 import AddPhotoAlternateRoundedIcon from '@mui/icons-material/AddPhotoAlternateRounded';
 

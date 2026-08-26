@@ -20,14 +20,13 @@ import GifBoxRoundedIcon from '@mui/icons-material/GifBoxRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
-import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
-import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import CompareArrowsRoundedIcon from '@mui/icons-material/CompareArrowsRounded';
+
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import { downloadDataUrl, shareToKakaoTalk } from '../utils/image-processor';
 import { PhotoUploadWorkspace } from '../components';
+import { downloadDataUrl, shareToKakaoTalk } from '../utils/image-processor';
 import {
   MEME_EFFECTS,
   MEME_SAMPLES,

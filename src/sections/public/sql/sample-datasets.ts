@@ -901,6 +901,27 @@ export const SAMPLE_DATASETS: SqlDataset[] = [
         ],
       },
       {
+        name: 'salgrade',
+        description: '급여 등급 테이블 (SALGRADE - Non-EQUI JOIN용)',
+        columns: [
+          { name: 'grade', type: 'INT', isPrimary: true, description: '급여 등급 (1~5)' },
+          { name: 'losal', type: 'INT', description: '해당 등급 최저 급여' },
+          { name: 'hisal', type: 'INT', description: '해당 등급 최고 급여' },
+        ],
+        ddl: `CREATE TABLE salgrade (
+  grade INT PRIMARY KEY,
+  losal INT,
+  hisal INT
+);`,
+        initialData: [
+          { grade: 1, losal: 700, hisal: 1200 },
+          { grade: 2, losal: 1201, hisal: 1400 },
+          { grade: 3, losal: 1401, hisal: 2000 },
+          { grade: 4, losal: 2001, hisal: 3000 },
+          { grade: 5, losal: 3001, hisal: 9999 },
+        ],
+      },
+      {
         name: 'target_table',
         description: 'MERGE 테스트용 타깃 테이블',
         columns: [
