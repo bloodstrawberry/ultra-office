@@ -143,10 +143,10 @@ export const navData: NavSectionProps['data'] = [
         children: [
           { title: '움짤 (GIF) 만들기', path: paths.gifStudio.create },
           { title: '동영상 → GIF 변환', path: paths.gifStudio.video },
-          { title: 'GIF → 동영상 (MP4/AVI) 변환', path: paths.gifStudio.toVideo },
           { title: 'GIF 프레임 분할 · 추출', path: paths.gifStudio.split },
           { title: 'GIF 배경색 변경 · 투명화', path: paths.gifStudio.bg },
           { title: 'GIF 속도 조절 & 역재생', path: paths.gifStudio.speed },
+          { title: 'GIF 합치기 · 이어붙이기', path: paths.gifStudio.merge },
         ],
       },
       {

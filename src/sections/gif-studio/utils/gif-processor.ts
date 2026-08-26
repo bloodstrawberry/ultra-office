@@ -71,6 +71,32 @@ export interface GifSpeedOptions {
   progressCallback?: (progress: number) => void;
 }
 
+export interface GifMergeClipItem {
+  id: string;
+  filename: string;
+  originalWidth: number;
+  originalHeight: number;
+  frames: GifFrameItem[];
+  // Per-clip controls
+  trimStart: number; // 0-indexed start frame
+  trimEnd: number; // 0-indexed end frame (inclusive)
+  speedMultiplier: number; // 0.25 to 20.0
+  loopMode: 'normal' | 'reverse' | 'boomerang';
+  repeatCount: number; // 1, 2, 3, etc.
+  skipFrames: boolean; // 50% compression
+}
+
+export interface GifMergeOptions {
+  clips: GifMergeClipItem[];
+  resolutionMode?: 'first' | 'max' | 'min' | 'custom';
+  customWidth?: number;
+  customHeight?: number;
+  fitMode?: 'contain' | 'cover' | 'fill';
+  bgColor?: string;
+  sampleInterval?: number;
+  progressCallback?: (progress: number) => void;
+}
+
 // ----------------------------------------------------------------------
 
 /**
@@ -1257,5 +1283,214 @@ export async function convertGifToVideo(
     };
 
     playLoop();
+  });
+}
+
+/**
+ * 7. Merge Multiple Animated GIFs with per-clip Trimming, Speed, Reverse & Looping
+ */
+export async function mergeGifs(options: GifMergeOptions): Promise<string> {
+  const {
+    clips,
+    resolutionMode = 'first',
+    customWidth,
+    customHeight,
+    fitMode = 'contain',
+    bgColor = '#ffffff',
+    sampleInterval = 10,
+    progressCallback,
+  } = options;
+
+  if (!clips || clips.length === 0) {
+    throw new Error('합칠 GIF 클립이 최소 1개 이상 필요합니다.');
+  }
+
+  // 1. Calculate target canvas output dimensions
+  let outWidth = 320;
+  let outHeight = 240;
+
+  if (resolutionMode === 'first' && clips[0]) {
+    outWidth = clips[0].originalWidth || 320;
+    outHeight = clips[0].originalHeight || 240;
+  } else if (resolutionMode === 'max') {
+    outWidth = Math.max(...clips.map((c) => c.originalWidth || 320));
+    outHeight = Math.max(...clips.map((c) => c.originalHeight || 240));
+  } else if (resolutionMode === 'min') {
+    outWidth = Math.min(...clips.map((c) => c.originalWidth || 320));
+    outHeight = Math.min(...clips.map((c) => c.originalHeight || 240));
+  } else if (resolutionMode === 'custom' && customWidth && customHeight) {
+    outWidth = customWidth;
+    outHeight = customHeight;
+  }
+
+  // Ensure even dimensions
+  if (outWidth % 2 !== 0) outWidth += 1;
+  if (outHeight % 2 !== 0) outHeight += 1;
+  outWidth = Math.max(16, outWidth);
+  outHeight = Math.max(16, outHeight);
+
+  // 2. Prepare processed sequence of frames for each clip
+  interface OutputFrameSpec {
+    dataUrl: string;
+    delay: number;
+  }
+
+  const allOutputFrames: OutputFrameSpec[] = [];
+  const safeMinIntervalMs = 30; // 30ms (~33.3 fps)
+
+  for (let cIdx = 0; cIdx < clips.length; cIdx += 1) {
+    const clip = clips[cIdx];
+    if (!clip.frames || clip.frames.length === 0) continue;
+
+    // A. Trimming
+    const start = Math.max(0, Math.min(clip.trimStart ?? 0, clip.frames.length - 1));
+    const end = Math.max(
+      start,
+      Math.min(clip.trimEnd ?? clip.frames.length - 1, clip.frames.length - 1)
+    );
+    let clipFrames = clip.frames.slice(start, end + 1);
+    if (clipFrames.length === 0) clipFrames = [clip.frames[0]];
+
+    // B. Frame Skipping (50% compression)
+    if (clip.skipFrames && clipFrames.length > 4) {
+      clipFrames = clipFrames.filter((_, idx) => idx % 2 === 0);
+    }
+
+    // C. Loop Mode Direction
+    let sequence = [...clipFrames];
+    if (clip.loopMode === 'reverse') {
+      sequence.reverse();
+    } else if (clip.loopMode === 'boomerang') {
+      const rev = [...sequence].reverse().slice(1, -1);
+      sequence = [...sequence, ...rev];
+    }
+
+    // D. Repeat Count
+    const repeats = Math.max(1, Math.min(10, clip.repeatCount || 1));
+    let repeatedSequence: GifFrameItem[] = [];
+    for (let r = 0; r < repeats; r += 1) {
+      repeatedSequence = repeatedSequence.concat(sequence);
+    }
+
+    // E. Speed adjustment with safe intervals
+    const totalClipDurationMs = repeatedSequence.reduce((acc, f) => acc + (f.delay || 100), 0);
+    const speed = Math.max(0.1, clip.speedMultiplier || 1.0);
+    const targetClipDurationMs = totalClipDurationMs / speed;
+    const rawIntervalMs = targetClipDurationMs / repeatedSequence.length;
+
+    if (rawIntervalMs >= safeMinIntervalMs) {
+      const centisec = Math.max(3, Math.round(rawIntervalMs / 10));
+      for (const f of repeatedSequence) {
+        allOutputFrames.push({ dataUrl: f.dataUrl, delay: centisec * 10 });
+      }
+    } else {
+      const targetCount = Math.max(2, Math.round(targetClipDurationMs / safeMinIntervalMs));
+      for (let k = 0; k < targetCount; k += 1) {
+        const srcIdx = Math.min(
+          repeatedSequence.length - 1,
+          Math.floor((k / targetCount) * repeatedSequence.length)
+        );
+        allOutputFrames.push({
+          dataUrl: repeatedSequence[srcIdx].dataUrl,
+          delay: safeMinIntervalMs,
+        });
+      }
+    }
+
+    if (progressCallback) {
+      progressCallback(Math.round(((cIdx + 1) / clips.length) * 20)); // 0~20%
+    }
+  }
+
+  if (allOutputFrames.length === 0) {
+    throw new Error('합칠 프레임이 없습니다.');
+  }
+
+  // 3. Render all frames to target canvas with fitMode
+  const canvas = document.createElement('canvas');
+  canvas.width = outWidth;
+  canvas.height = outHeight;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas 2D Context를 생성할 수 없습니다.');
+
+  const renderedImageUrls: string[] = [];
+
+  for (let i = 0; i < allOutputFrames.length; i += 1) {
+    const frameSpec = allOutputFrames[i];
+    const img = await loadImage(frameSpec.dataUrl);
+
+    // Background fill
+    if (bgColor && bgColor !== 'transparent') {
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, outWidth, outHeight);
+    } else {
+      ctx.clearRect(0, 0, outWidth, outHeight);
+    }
+
+    // Draw with fit mode
+    if (fitMode === 'fill') {
+      ctx.drawImage(img, 0, 0, outWidth, outHeight);
+    } else if (fitMode === 'cover') {
+      const imgRatio = img.width / img.height;
+      const targetRatio = outWidth / outHeight;
+      let sWidth = img.width;
+      let sHeight = img.height;
+      let sx = 0;
+      let sy = 0;
+
+      if (imgRatio > targetRatio) {
+        sWidth = img.height * targetRatio;
+        sx = (img.width - sWidth) / 2;
+      } else {
+        sHeight = img.width / targetRatio;
+        sy = (img.height - sHeight) / 2;
+      }
+      ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, outWidth, outHeight);
+    } else {
+      // contain (default)
+      const scale = Math.min(outWidth / img.width, outHeight / img.height);
+      const dw = img.width * scale;
+      const dh = img.height * scale;
+      const dx = (outWidth - dw) / 2;
+      const dy = (outHeight - dh) / 2;
+      ctx.drawImage(img, dx, dy, dw, dh);
+    }
+
+    renderedImageUrls.push(canvas.toDataURL('image/png'));
+
+    if (progressCallback) {
+      progressCallback(20 + Math.round(((i + 1) / allOutputFrames.length) * 40)); // 20~60%
+    }
+  }
+
+  // 4. Calculate average interval in seconds
+  const avgDelayMs = allOutputFrames.reduce((acc, f) => acc + f.delay, 0) / allOutputFrames.length;
+  const finalIntervalSec = Math.max(0.03, Math.round(avgDelayMs / 10) / 100);
+
+  return new Promise((resolve, reject) => {
+    gifshot.createGIF(
+      {
+        images: renderedImageUrls,
+        gifWidth: outWidth,
+        gifHeight: outHeight,
+        interval: finalIntervalSec,
+        sampleInterval,
+        numWorkers: 2,
+        progressCallback: (prog: number) => {
+          if (progressCallback) {
+            progressCallback(60 + Math.round(prog * 40)); // 60~100%
+          }
+        },
+      },
+      (obj: { error: boolean; errorCode?: string; errorMsg?: string; image: string }) => {
+        if (obj.error) {
+          reject(
+            new Error(obj.errorMsg || obj.errorCode || 'GIF 합치기 인코딩 중 오류가 발생했습니다.')
+          );
+        } else {
+          resolve(obj.image);
+        }
+      }
+    );
   });
 }

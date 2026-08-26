@@ -54,10 +54,10 @@ export const paths = {
     root: `/gif-studio`,
     create: `/gif-studio/create`,
     video: `/gif-studio/video`,
-    toVideo: `/gif-studio/to-video`,
     split: `/gif-studio/split`,
     bg: `/gif-studio/bg`,
     speed: `/gif-studio/speed`,
+    merge: `/gif-studio/merge`,
   },
   photo: {
     root: `/photo`,
