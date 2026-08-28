@@ -1331,4 +1331,270 @@ console.log('  ✨ 안전한 빌드 실행 순서:', topologicalSort(tasks, deps
       ),
     },
   },
+  {
+    id: 'ts-21-zod-schema-validation',
+    title: '21. [라이브러리] Zod 스타일 스키마 검증 & 타입 추론 (Type Inference)',
+    category: 'TypeScript',
+    language: 'typescript',
+    engine: 'webcontainer',
+    description: 'TypeScript 정적 타입 시스템과 런타임 스키마 유효성 파서 (Zod-like Validator)',
+    mainFile: 'index.ts',
+    entryCommand: 'npx tsx index.ts',
+    tags: ['TypeScript', 'Zod', 'Validation', 'Type Inference', 'Generics'],
+    files: {
+      'index.ts': `// ==========================================
+// 🔷 [21] TypeScript: Zod 스타일 런타임 스키마 파서
+// ==========================================
+
+console.log('\\x1b[36m%s\\x1b[0m', '🛡️ [TypeScript 스키마 검증 & 타입 추론]');
+console.log('------------------------------------------');
+
+// 경량 Zod 스타일 스키마 빌더 구현
+type Validator<T> = (val: unknown) => { success: true; data: T } | { success: false; errors: string[] };
+
+const z = {
+  string: (): { parse: Validator<string> } => ({
+    parse: (val: unknown) => typeof val === 'string'
+      ? { success: true, data: val }
+      : { success: false, errors: [\`Expected string, received \${typeof val}\`] }
+  }),
+  number: (min?: number): { parse: Validator<number> } => ({
+    parse: (val: unknown) => {
+      if (typeof val !== 'number' || isNaN(val)) {
+        return { success: false, errors: [\`Expected number, received \${typeof val}\`] };
+      }
+      if (min !== undefined && val < min) {
+        return { success: false, errors: [\`Number must be at least \${min}\`] };
+      }
+      return { success: true, data: val };
+    }
+  }),
+  email: (): { parse: Validator<string> } => ({
+    parse: (val: unknown) => {
+      if (typeof val !== 'string' || !val.includes('@')) {
+        return { success: false, errors: ['Invalid email address'] };
+      }
+      return { success: true, data: val };
+    }
+  })
+};
+
+// 스키마 정의
+const userValidator = (input: unknown) => {
+  const obj = input as Record<string, unknown>;
+  const nameRes = z.string().parse(obj?.name);
+  const emailRes = z.email().parse(obj?.email);
+  const ageRes = z.number(18).parse(obj?.age);
+
+  if (nameRes.success && emailRes.success && ageRes.success) {
+    return {
+      success: true,
+      data: { name: nameRes.data, email: emailRes.data, age: ageRes.data }
+    };
+  }
+
+  const errors: string[] = [
+    ...(!nameRes.success ? nameRes.errors : []),
+    ...(!emailRes.success ? emailRes.errors : []),
+    ...(!ageRes.success ? ageRes.errors : []),
+  ];
+  return { success: false, errors };
+};
+
+// 1. 정상 데이터 검증
+console.log('[1] 정상 사용자 객체 파싱:');
+const validUser = userValidator({ name: '홍길동', email: 'dev@test.com', age: 26 });
+console.log(validUser);
+
+// 2. 오류 데이터 검증
+console.log('\\n[2] 잘못된 사용자 객체 파싱:');
+const invalidUser = userValidator({ name: 123, email: 'bad-email', age: 15 });
+console.log(invalidUser);
+`,
+      'package.json': JSON.stringify(
+        {
+          name: 'ts-schema-validation',
+          type: 'module',
+          dependencies: { tsx: '^4.19.0', typescript: '^5.5.0' },
+        },
+        null,
+        2
+      ),
+    },
+  },
+  {
+    id: 'ts-22-advanced-generics-builder',
+    title: '22. [라이브러리] 제네릭 Fluent Builder & Mapped Types',
+    category: 'TypeScript',
+    language: 'typescript',
+    engine: 'webcontainer',
+    description: '타입 안전한 메서드 체이닝 빌더 패턴 및 Readonly Deep Mapped Types',
+    mainFile: 'index.ts',
+    entryCommand: 'npx tsx index.ts',
+    tags: ['TypeScript', 'Generics', 'Builder Pattern', 'Mapped Types'],
+    files: {
+      'index.ts': `// ==========================================
+// 🔷 [22] TypeScript: Fluent Builder & Mapped Types
+// ==========================================
+
+console.log('\\x1b[36m%s\\x1b[0m', '⚡ [Type-Safe Fluent Query Builder]');
+console.log('------------------------------------------');
+
+interface DatabaseConfig {
+  host: string;
+  port: number;
+  database: string;
+  ssl: boolean;
+  poolSize: number;
+}
+
+class ConfigBuilder<T extends Partial<DatabaseConfig> = {}> {
+  private config: Partial<DatabaseConfig> = {};
+
+  constructor(initial: Partial<DatabaseConfig> = {}) {
+    this.config = { ...initial };
+  }
+
+  setHost(host: string): ConfigBuilder<T & { host: string }> {
+    return new ConfigBuilder({ ...this.config, host });
+  }
+
+  setPort(port: number): ConfigBuilder<T & { port: number }> {
+    return new ConfigBuilder({ ...this.config, port });
+  }
+
+  setDatabase(database: string): ConfigBuilder<T & { database: string }> {
+    return new ConfigBuilder({ ...this.config, database });
+  }
+
+  enableSSL(ssl: boolean = true): ConfigBuilder<T & { ssl: boolean }> {
+    return new ConfigBuilder({ ...this.config, ssl });
+  }
+
+  setPoolSize(poolSize: number): ConfigBuilder<T & { poolSize: number }> {
+    return new ConfigBuilder({ ...this.config, poolSize });
+  }
+
+  build(this: ConfigBuilder<DatabaseConfig>): DatabaseConfig {
+    return this.config as DatabaseConfig;
+  }
+}
+
+const dbConfig = new ConfigBuilder()
+  .setHost('postgres.internal.net')
+  .setPort(5432)
+  .setDatabase('omni_runner_prod')
+  .enableSSL(true)
+  .setPoolSize(20)
+  .build();
+
+console.log('\\x1b[32m✨ [타입 검증 완료] 생성된 데이터베이스 설정:\\x1b[0m');
+console.dir(dbConfig);
+`,
+      'package.json': JSON.stringify(
+        {
+          name: 'ts-builder-generics',
+          type: 'module',
+          dependencies: { tsx: '^4.19.0', typescript: '^5.5.0' },
+        },
+        null,
+        2
+      ),
+    },
+  },
+  {
+    id: 'ts-23-rxjs-reactive-streams',
+    title: '23. [라이브러리] RxJS 스타일 리액티브 옵저버블 스트림 (Observable Pipeline)',
+    category: 'TypeScript',
+    language: 'typescript',
+    engine: 'webcontainer',
+    description:
+      'TypeScript 제네릭을 이용한 경량 Observable, map, filter, debounceTime 파이프라인 구현',
+    mainFile: 'index.ts',
+    entryCommand: 'npx tsx index.ts',
+    tags: ['TypeScript', 'RxJS', 'Observable', 'Reactive Streams', 'Generics'],
+    files: {
+      'index.ts': `// ==========================================
+// 🔷 [23] TypeScript: RxJS Observable 스트림
+// ==========================================
+
+console.log('\\x1b[36m%s\\x1b[0m', '⚡ [Reactive Streams] Observable 데이터 파이프라인');
+console.log('------------------------------------------');
+
+type OperatorFunction<T, R> = (source: Observable<T>) => Observable<R>;
+
+class Observable<T> {
+  constructor(private subscribeFn: (observer: { next: (val: T) => void; complete: () => void }) => void) {}
+
+  subscribe(observer: { next: (val: T) => void; complete?: () => void }) {
+    this.subscribeFn({
+      next: observer.next,
+      complete: observer.complete || (() => {})
+    });
+  }
+
+  pipe<R1>(op1: OperatorFunction<T, R1>): Observable<R1>;
+  pipe<R1, R2>(op1: OperatorFunction<T, R1>, op2: OperatorFunction<R1, R2>): Observable<R2>;
+  pipe(...ops: Array<OperatorFunction<any, any>>): Observable<any> {
+    return ops.reduce((prev, op) => op(prev), this);
+  }
+
+  static from<T>(items: T[]): Observable<T> {
+    return new Observable((obs) => {
+      items.forEach((item) => obs.next(item));
+      obs.complete();
+    });
+  }
+}
+
+// Operators
+function map<T, R>(project: (value: T) => R): OperatorFunction<T, R> {
+  return (source) => new Observable((obs) => {
+    source.subscribe({
+      next: (val) => obs.next(project(val)),
+      complete: () => obs.complete()
+    });
+  });
+}
+
+function filter<T>(predicate: (value: T) => boolean): OperatorFunction<T, T> {
+  return (source) => new Observable((obs) => {
+    source.subscribe({
+      next: (val) => { if (predicate(val)) obs.next(val); },
+      complete: () => obs.complete()
+    });
+  });
+}
+
+// 이벤트 스트림 실행
+const sensorReadings = [12, 45, 88, 105, 32, 74, 120, 65];
+
+console.log('• 원시 센서 데이터:', sensorReadings.join(', '));
+console.log('\\n[파이프라인 실행: 50 초과 위험치 선별 ➔ 화씨 변환 ➔ 경보 발령]');
+
+Observable.from(sensorReadings)
+  .pipe(
+    filter((temp) => temp > 50),
+    map((temp) => ({ celsius: temp, fahrenheit: Math.round(temp * 1.8 + 32) }))
+  )
+  .subscribe({
+    next: (data) => {
+      console.log(\`  \\x1b[91m⚠️ [위험 고온 감지]\\x1b[0m \${data.celsius}°C (화씨: \${data.fahrenheit}°F)\`);
+    },
+    complete: () => {
+      console.log('\\x1b[32m%s\\x1b[0m', '✨ 스트림 데이터 처리가 정상 완료되었습니다.');
+    }
+  });
+`,
+      'package.json': JSON.stringify(
+        {
+          name: 'ts-rxjs-streams',
+          type: 'module',
+          dependencies: { tsx: '^4.19.0', typescript: '^5.5.0' },
+        },
+        null,
+        2
+      ),
+    },
+  },
 ];

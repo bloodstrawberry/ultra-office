@@ -735,4 +735,248 @@ ORDER BY continuous_streak_days DESC;
 `,
     },
   },
+  {
+    id: 'sql-21-json-querying',
+    title: '21. [라이브러리] SQL JSON 데이터 추출 & 프로젝션',
+    category: 'Database & SQL',
+    language: 'sql',
+    engine: 'sql',
+    description: 'JSON 객체 필드 접근, 중첩 속성 파싱 및 동적 페이로드 집계',
+    mainFile: 'queries.sql',
+    tags: ['SQL', 'JSON', 'Payload', 'NoSQL in SQL'],
+    files: {
+      'queries.sql': `-- ==========================================
+-- 🗄️ [21] SQL: JSON 데이터 쿼리 및 분석
+-- ==========================================
+
+CREATE TABLE api_event_payloads (
+    event_id INT PRIMARY KEY,
+    service_name VARCHAR(50),
+    payload JSON
+);
+
+INSERT INTO api_event_payloads VALUES
+(1, 'payment-gateway', {"user": "alice", "amount": 45000, "status": "APPROVED", "meta": {"ip": "1.1.1.1", "device": "mobile"}}),
+(2, 'auth-service',    {"user": "bob", "status": "FAILED", "reason": "WRONG_PASSWORD"}),
+(3, 'payment-gateway', {"user": "charlie", "amount": 128000, "status": "APPROVED", "meta": {"ip": "2.2.2.2", "device": "desktop"}}),
+(4, 'payment-gateway', {"user": "david", "amount": 15000, "status": "REJECTED", "meta": {"ip": "3.3.3.3", "device": "mobile"}});
+
+-- 결제 승인 건만 필터링하고 JSON 필드 추출
+SELECT 
+    event_id,
+    service_name,
+    payload->user AS customer_name,
+    payload->amount AS pay_amount,
+    payload->status AS pay_status,
+    payload->meta->device AS client_device
+FROM api_event_payloads
+WHERE service_name = 'payment-gateway' AND payload->status = 'APPROVED'
+ORDER BY pay_amount DESC;
+`,
+    },
+  },
+  {
+    id: 'sql-22-regexp-functions',
+    title: '22. [라이브러리] REGEXP 정규식 패턴 분석 (LIKE, SUBSTR, REPLACE)',
+    category: 'Database & SQL',
+    language: 'sql',
+    engine: 'sql',
+    description: 'REGEXP_LIKE, REGEXP_SUBSTR, REGEXP_REPLACE를 활용한 텍스트 데이터 정제',
+    mainFile: 'queries.sql',
+    tags: ['SQL', 'REGEXP_LIKE', 'REGEXP_SUBSTR', 'REGEXP_REPLACE', 'Regex'],
+    files: {
+      'queries.sql': `-- ==========================================
+-- 🗄️ [22] SQL: 정규표현식 내장 함수
+-- ==========================================
+
+CREATE TABLE contact_directory (
+    id INT PRIMARY KEY,
+    name VARCHAR(50),
+    raw_contact VARCHAR(100)
+);
+
+INSERT INTO contact_directory VALUES
+(1, '김철수', '010-1234-5678 (chulsoo@google.com)'),
+(2, '이영희', 'Tel: 02-9876-5432, Email: younghee@daum.net'),
+(3, '박민수', '연락처: 010-5555-8888 minsu@naver.com');
+
+-- 1. REGEXP_SUBSTR로 이메일 추출
+-- 2. REGEXP_REPLACE로 전화번호 마스킹
+SELECT 
+    name,
+    REGEXP_SUBSTR(raw_contact, '[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+') AS extracted_email,
+    REGEXP_SUBSTR(raw_contact, '(010|02)-\\d{3,4}-\\d{4}') AS phone_number,
+    REGEXP_REPLACE(raw_contact, '(\\d{2,3})-(\\d{3,4})-(\\d{4})', '$1-****-$3') AS masked_raw_text
+FROM contact_directory
+WHERE REGEXP_LIKE(raw_contact, '@') = 1;
+`,
+    },
+  },
+  {
+    id: 'sql-23-date-accounting-math',
+    title: '23. [라이브러리] 고급 날짜/회계 연산 (ADD_MONTHS & LAST_DAY)',
+    category: 'Database & SQL',
+    language: 'sql',
+    engine: 'sql',
+    description: 'ADD_MONTHS, LAST_DAY, MONTHS_BETWEEN, TO_CHAR를 활용한 금융 만기일 계산',
+    mainFile: 'queries.sql',
+    tags: ['SQL', 'ADD_MONTHS', 'LAST_DAY', 'MONTHS_BETWEEN', 'Financial Date'],
+    files: {
+      'queries.sql': `-- ==========================================
+-- 🗄️ [23] SQL: 고급 날짜 및 금융 회계 계산
+-- ==========================================
+
+CREATE TABLE loan_contracts (
+    contract_id INT PRIMARY KEY,
+    client_name VARCHAR(50),
+    start_date DATE,
+    duration_months INT,
+    principal_amount INT
+);
+
+INSERT INTO loan_contracts VALUES
+(101, '홍길동', '2026-01-15', 12, 50000000),
+(102, '김영희', '2026-03-31', 6,  20000000),
+(103, '박지훈', '2026-05-10', 24, 80000000);
+
+SELECT 
+    contract_id,
+    client_name,
+    start_date,
+    duration_months,
+    ADD_MONTHS(start_date, duration_months) AS maturity_date,
+    LAST_DAY(ADD_MONTHS(start_date, duration_months)) AS month_end_settlement_date,
+    TO_CHAR(principal_amount, 'L999,999,999') AS formatted_principal
+FROM loan_contracts;
+`,
+    },
+  },
+  {
+    id: 'sql-24-custom-js-udf-functions',
+    title: '24. [라이브러리] SQL 내부 JavaScript 사용자 정의 함수 (Custom UDF)',
+    category: 'Database & SQL',
+    language: 'sql',
+    engine: 'sql',
+    description: 'CREATE FUNCTION 구문으로 SQL 내에서 임의의 JavaScript 로직 및 비즈니스 연산 실행',
+    mainFile: 'queries.sql',
+    tags: ['SQL', 'Custom UDF', 'JavaScript in SQL', 'Functions'],
+    files: {
+      'queries.sql': `-- ==========================================
+-- 🗄️ [24] SQL: JavaScript 사용자 정의 함수 (UDF)
+-- ==========================================
+
+-- 1. 자바스크립트 커스텀 복리 이자 계산 함수 정의
+CREATE FUNCTION compound_interest AS function(principal, rate, years) {
+    return Math.round(principal * Math.pow(1 + rate / 100, years));
+};
+
+-- 2. 등급 판정 자바스크립트 함수 정의
+CREATE FUNCTION score_grade AS function(score) {
+    if (score >= 90) return 'A+ (최우수)';
+    if (score >= 80) return 'B+ (우수)';
+    if (score >= 70) return 'C+ (보통)';
+    return 'D (재시험)';
+};
+
+CREATE TABLE students (
+    id INT,
+    name VARCHAR(50),
+    exam_score INT,
+    tuition_deposit INT
+);
+
+INSERT INTO students VALUES
+(1, '김철수', 95, 1000000),
+(2, '이영희', 84, 1500000),
+(3, '박지훈', 68, 800000),
+(4, '최유진', 91, 2000000);
+
+-- SQL SELECT 절에서 커스텀 JS 함수 직접 호출
+SELECT 
+    name,
+    exam_score,
+    score_grade(exam_score) AS evaluation,
+    tuition_deposit AS original_deposit,
+    compound_interest(tuition_deposit, 5, 3) AS deposit_after_3yrs
+FROM students;
+`,
+    },
+  },
+  {
+    id: 'sql-25-window-time-series-lead-lag',
+    title: '25. [라이브러리] 시계열 윈도우 함수 (LEAD & LAG 전후 비교)',
+    category: 'Database & SQL',
+    language: 'sql',
+    engine: 'sql',
+    description: 'LEAD, LAG, FIRST_VALUE 윈도우 함수를 활용한 일별 매출 증감률(MoM/DoD) 분석',
+    mainFile: 'queries.sql',
+    tags: ['SQL', 'LEAD', 'LAG', 'Window Functions', 'Time-Series'],
+    files: {
+      'queries.sql': `-- ==========================================
+-- 🗄️ [25] SQL: LEAD & LAG 시계열 윈도우 분석
+-- ==========================================
+
+CREATE TABLE daily_metrics (
+    metric_date DATE,
+    dau_count INT
+);
+
+INSERT INTO daily_metrics VALUES
+('2026-08-20', 12000),
+('2026-08-21', 13500),
+('2026-08-22', 15200),
+('2026-08-23', 14800),
+('2026-08-24', 18900),
+('2026-08-25', 21000);
+
+SELECT 
+    metric_date,
+    dau_count,
+    LAG(dau_count, 1) OVER (ORDER BY metric_date) AS prev_day_dau,
+    dau_count - LAG(dau_count, 1) OVER (ORDER BY metric_date) AS net_growth,
+    ROUND(((dau_count - LAG(dau_count, 1) OVER (ORDER BY metric_date)) / LAG(dau_count, 1) OVER (ORDER BY metric_date)) * 100, 2) AS growth_rate_pct,
+    FIRST_VALUE(dau_count) OVER (ORDER BY metric_date) AS initial_baseline_dau
+FROM daily_metrics;
+`,
+    },
+  },
+  {
+    id: 'sql-26-pivot-cross-matrix',
+    title: '26. [라이브러리] PIVOT 2차원 교차 분석 행렬 (Cross Matrix)',
+    category: 'Database & SQL',
+    language: 'sql',
+    engine: 'sql',
+    description: '행 데이터를 열로 변환하는 PIVOT 교차 집계를 통한 분기별 매출 매트릭스',
+    mainFile: 'queries.sql',
+    tags: ['SQL', 'PIVOT', 'Matrix', 'Aggregation'],
+    files: {
+      'queries.sql': `-- ==========================================
+-- 🗄️ [26] SQL: PIVOT 2차원 매트릭스 집계
+-- ==========================================
+
+CREATE TABLE quarterly_sales (
+    region VARCHAR(50),
+    quarter VARCHAR(10),
+    revenue INT
+);
+
+INSERT INTO quarterly_sales VALUES
+('서울', 'Q1', 4500), ('서울', 'Q2', 5200), ('서울', 'Q3', 6100), ('서울', 'Q4', 7800),
+('부산', 'Q1', 2800), ('부산', 'Q2', 3100), ('부산', 'Q3', 3400), ('부산', 'Q4', 4200),
+('대구', 'Q1', 1900), ('대구', 'Q2', 2200), ('대구', 'Q3', 2500), ('대구', 'Q4', 3100);
+
+-- 조건부 집계를 통한 피벗 매트릭스 생성
+SELECT 
+    region,
+    SUM(CASE WHEN quarter = 'Q1' THEN revenue ELSE 0 END) AS Q1_Rev,
+    SUM(CASE WHEN quarter = 'Q2' THEN revenue ELSE 0 END) AS Q2_Rev,
+    SUM(CASE WHEN quarter = 'Q3' THEN revenue ELSE 0 END) AS Q3_Rev,
+    SUM(CASE WHEN quarter = 'Q4' THEN revenue ELSE 0 END) AS Q4_Rev,
+    SUM(revenue) AS Total_Annual_Rev
+FROM quarterly_sales
+GROUP BY region
+ORDER BY Total_Annual_Rev DESC;
+`,
+    },
+  },
 ];

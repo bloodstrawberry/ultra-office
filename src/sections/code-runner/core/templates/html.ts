@@ -693,4 +693,564 @@ export const HTML_TEMPLATES: CodeTemplate[] = [
 `,
     },
   },
+  {
+    id: 'html-21-tailwind-lucide-chartjs',
+    title: '21. [라이브러리] Tailwind + Lucide + Chart.js SaaS 대시보드',
+    category: 'Frontend & UI',
+    language: 'html',
+    engine: 'html-sandbox',
+    description: 'Tailwind CSS 다크모드 그리드, Lucide 아이콘, Chart.js 복합 도넛 및 라인 차트',
+    mainFile: 'index.html',
+    tags: ['TailwindCSS', 'LucideIcons', 'Chart.js', 'Dashboard'],
+    files: {
+      'index.html': `<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-6 font-sans">
+  <div class="max-w-4xl mx-auto space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+      <div class="flex items-center gap-3">
+        <div class="p-2.5 bg-blue-600/20 text-blue-400 rounded-xl">
+          <i data-lucide="layout-dashboard" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold">CloudFlow 분석 대시보드</h1>
+          <p class="text-xs text-slate-400">실시간 서비스 트래픽 & 리소스 사용량</p>
+        </div>
+      </div>
+      <button class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-xs font-semibold rounded-lg flex items-center gap-2 transition-all">
+        <i data-lucide="refresh-cw" class="w-4 h-4"></i> 새로고침
+      </button>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between">
+        <div>
+          <div class="text-xs text-slate-400">총 API 호출 수</div>
+          <div class="text-2xl font-bold mt-1 text-white">4,281,902</div>
+          <div class="text-xs text-emerald-400 mt-1 flex items-center gap-1">
+            <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> +14.2% 이번 주
+          </div>
+        </div>
+        <div class="p-3 bg-sky-500/10 text-sky-400 rounded-lg">
+          <i data-lucide="activity" class="w-6 h-6"></i>
+        </div>
+      </div>
+
+      <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between">
+        <div>
+          <div class="text-xs text-slate-400">서버 응답 속도</div>
+          <div class="text-2xl font-bold mt-1 text-white">24.5 ms</div>
+          <div class="text-xs text-emerald-400 mt-1 flex items-center gap-1">
+            <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> 99.99% 정상 가동
+          </div>
+        </div>
+        <div class="p-3 bg-emerald-500/10 text-emerald-400 rounded-lg">
+          <i data-lucide="zap" class="w-6 h-6"></i>
+        </div>
+      </div>
+
+      <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between">
+        <div>
+          <div class="text-xs text-slate-400">활성 컨테이너</div>
+          <div class="text-2xl font-bold mt-1 text-white">48개 노드</div>
+          <div class="text-xs text-indigo-400 mt-1 flex items-center gap-1">
+            <i data-lucide="server" class="w-3.5 h-3.5"></i> 오토스케일링 동작 중
+          </div>
+        </div>
+        <div class="p-3 bg-indigo-500/10 text-indigo-400 rounded-lg">
+          <i data-lucide="cpu" class="w-6 h-6"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart Canvas -->
+    <div class="p-5 bg-slate-900 rounded-2xl border border-slate-800">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-bold text-sm text-slate-200">주간 트래픽 추이</h3>
+        <span class="text-xs text-slate-400">단위: Req/Sec</span>
+      </div>
+      <div class="h-64">
+        <canvas id="saasChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    const ctx = document.getElementById('saasChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
+        datasets: [{
+          label: 'Inbound Requests',
+          data: [12000, 8500, 24000, 48000, 52000, 39000, 18000],
+          borderColor: '#38bdf8',
+          backgroundColor: 'rgba(56, 189, 248, 0.12)',
+          fill: true,
+          tension: 0.4,
+          borderWidth: 2,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          x: { grid: { color: 'rgba(51, 65, 85, 0.4)' }, ticks: { color: '#94a3b8' } },
+          y: { grid: { color: 'rgba(51, 65, 85, 0.4)' }, ticks: { color: '#94a3b8' } }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
+`,
+    },
+  },
+  {
+    id: 'html-22-threejs-3d-particles',
+    title: '22. [라이브러리] Three.js 인터랙티브 3D 기하체 & 파티클 궤도',
+    category: 'Frontend & UI',
+    language: 'html',
+    engine: 'html-sandbox',
+    description: 'WebGL Three.js 3D icosahedron 와이어프레임 및 궤도 회전 파티클 시스템',
+    mainFile: 'index.html',
+    tags: ['Three.js', 'WebGL', '3D Graphics', 'Particles'],
+    files: {
+      'index.html': `<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    body { margin: 0; overflow: hidden; background: #020617; }
+    #info {
+      position: absolute; top: 16px; left: 16px;
+      color: #38bdf8; font-family: monospace; font-size: 13px;
+      background: rgba(15, 23, 42, 0.8); padding: 8px 14px;
+      border-radius: 8px; border: 1px solid rgba(56, 189, 248, 0.3);
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="info">✨ Three.js WebGL 3D Geometry (Drag to Rotate)</div>
+  <script>
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // 1. Central Icosahedron Wireframe
+    const geometry = new THREE.IcosahedronGeometry(2, 1);
+    const material = new THREE.MeshStandardMaterial({
+      color: 0x38bdf8,
+      wireframe: true,
+      roughness: 0.2,
+      metalness: 0.8,
+    });
+    const icosa = new THREE.Mesh(geometry, material);
+    scene.add(icosa);
+
+    // 2. Surrounding Particle Field
+    const particleGeo = new THREE.BufferGeometry();
+    const particleCount = 400;
+    const posArray = new Float32Array(particleCount * 3);
+
+    for (let i = 0; i < particleCount * 3; i++) {
+      posArray[i] = (Math.random() - 0.5) * 12;
+    }
+    particleGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+
+    const particleMat = new THREE.PointsMaterial({
+      size: 0.04,
+      color: 0x818cf8,
+    });
+    const particles = new THREE.Points(particleGeo, particleMat);
+    scene.add(particles);
+
+    // Lighting
+    const pointLight = new THREE.PointLight(0xffffff, 1.5);
+    pointLight.position.set(5, 5, 5);
+    scene.add(pointLight);
+
+    const ambLight = new THREE.AmbientLight(0x334155);
+    scene.add(ambLight);
+
+    camera.position.z = 5;
+
+    // Mouse Interaction
+    let mouseX = 0, mouseY = 0;
+    window.addEventListener('mousemove', (e) => {
+      mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+      mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+    });
+
+    function animate() {
+      requestAnimationFrame(animate);
+      icosa.rotation.x += 0.008;
+      icosa.rotation.y += 0.012;
+      particles.rotation.y -= 0.003;
+
+      camera.position.x += (mouseX * 2 - camera.position.x) * 0.05;
+      camera.position.y += (-mouseY * 2 - camera.position.y) * 0.05;
+      camera.lookAt(scene.position);
+
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
+`,
+    },
+  },
+  {
+    id: 'html-23-canvas-confetti-celebration',
+    title: '23. [라이브러리] Canvas Confetti 다채로운 축하 이벤트',
+    category: 'Frontend & UI',
+    language: 'html',
+    engine: 'html-sandbox',
+    description: 'Canvas Confetti 폭죽 발사, 캐논 폭죽 및 커스텀 색상 앵커 이펙트',
+    mainFile: 'index.html',
+    tags: ['CanvasConfetti', 'Animation', 'Celebration', 'Interactive'],
+    files: {
+      'index.html': `<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 min-h-screen flex items-center justify-center p-4 font-sans text-white">
+  <div class="bg-white/10 backdrop-blur-md p-8 rounded-3xl border border-white/20 shadow-2xl max-w-sm w-full text-center space-y-6">
+    <div class="w-16 h-16 bg-gradient-to-tr from-amber-400 to-rose-500 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-rose-500/30">
+      <i data-lucide="sparkles" class="w-8 h-8 text-white"></i>
+    </div>
+
+    <div>
+      <h2 class="text-2xl font-extrabold tracking-tight">프로젝트 성공 축하!</h2>
+      <p class="text-xs text-slate-300 mt-1.5">버튼을 눌러 다양한 Confetti 이펙트를 실행해보세요</p>
+    </div>
+
+    <div class="space-y-2.5">
+      <button onclick="fireStandard()" class="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 rounded-xl font-bold text-sm shadow-md transition-all active:scale-95 flex items-center justify-center gap-2">
+        <i data-lucide="party-popper" class="w-4 h-4"></i> 기본 폭죽 발사
+      </button>
+
+      <button onclick="fireCannons()" class="w-full py-3 px-4 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-400 hover:to-orange-400 rounded-xl font-bold text-sm shadow-md transition-all active:scale-95 flex items-center justify-center gap-2">
+        <i data-lucide="flame" class="w-4 h-4"></i> 양방향 캐논 폭죽
+      </button>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    function fireStandard() {
+      confetti({
+        particleCount: 120,
+        spread: 80,
+        origin: { y: 0.6 }
+      });
+    }
+
+    function fireCannons() {
+      // Left Cannon
+      confetti({
+        particleCount: 80,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 }
+      });
+      // Right Cannon
+      confetti({
+        particleCount: 80,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 }
+      });
+    }
+  </script>
+</body>
+</html>
+`,
+    },
+  },
+  {
+    id: 'html-24-roughjs-canvas-diagram',
+    title: '24. [라이브러리] Rough.js 손그림 시스템 아키텍처 다이어그램',
+    category: 'Frontend & UI',
+    language: 'html',
+    engine: 'html-sandbox',
+    description: 'Rough.js를 이용한 감성적인 핸드 드로잉 클라우드 인프라 아키텍처 다이어그램',
+    mainFile: 'index.html',
+    tags: ['Rough.js', 'Canvas', 'Hand-drawn', 'Architecture'],
+    files: {
+      'index.html': `<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/roughjs@4.5.2/bundled/rough.js"></script>
+</head>
+<body class="bg-amber-50/40 min-h-screen p-6 font-sans flex flex-col items-center justify-center">
+  <div class="bg-white p-6 rounded-3xl shadow-xl border border-amber-200/80 max-w-xl w-full text-center">
+    <div class="flex items-center justify-between mb-3 border-b border-amber-100 pb-3">
+      <h2 class="font-bold text-slate-800 text-lg">✏️ Cloud Architecture (Rough.js)</h2>
+      <span class="text-xs bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full font-medium">Hand-drawn UI</span>
+    </div>
+
+    <div class="relative bg-amber-50/30 rounded-2xl p-2 border border-amber-200/50 flex justify-center">
+      <canvas id="roughCanvas" width="480" height="260"></canvas>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('roughCanvas');
+    const rc = rough.canvas(canvas);
+
+    // 1. Client Browser Box
+    rc.rectangle(20, 90, 100, 80, {
+      roughness: 1.6, fill: 'rgba(56, 189, 248, 0.25)',
+      fillStyle: 'cross-hatch', stroke: '#0284c7', strokeWidth: 2
+    });
+
+    // 2. API Gateway Circle
+    rc.circle(240, 130, 90, {
+      roughness: 1.8, fill: 'rgba(244, 114, 182, 0.25)',
+      fillStyle: 'dots', stroke: '#db2777', strokeWidth: 2
+    });
+
+    // 3. Database Cylindrical-like box
+    rc.rectangle(360, 90, 100, 80, {
+      roughness: 1.5, fill: 'rgba(52, 211, 153, 0.25)',
+      fillStyle: 'zigzag', stroke: '#059669', strokeWidth: 2
+    });
+
+    // Connecting arrows/lines
+    rc.line(125, 130, 190, 130, { roughness: 2, stroke: '#64748b', strokeWidth: 2 });
+    rc.line(290, 130, 355, 130, { roughness: 2, stroke: '#64748b', strokeWidth: 2 });
+
+    const ctx = canvas.getContext('2d');
+    ctx.font = 'bold 12px sans-serif';
+    ctx.fillStyle = '#0f172a';
+    ctx.textAlign = 'center';
+    ctx.fillText('Client App', 70, 135);
+    ctx.fillText('API Gateway', 240, 135);
+    ctx.fillText('Postgres DB', 410, 135);
+  </script>
+</body>
+</html>
+`,
+    },
+  },
+  {
+    id: 'html-25-tonejs-synth-piano',
+    title: '25. [라이브러리] Tone.js 8비트 신디사이저 키보드 피아노',
+    category: 'Frontend & UI',
+    language: 'html',
+    engine: 'html-sandbox',
+    description: 'Tone.js PolySynth 화음 연주 및 8-bit 사운드 이펙트 생성기',
+    mainFile: 'index.html',
+    tags: ['Tone.js', 'Web Audio', 'Synthesizer', 'Piano'],
+    files: {
+      'index.html': `<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-950 text-white min-h-screen flex items-center justify-center p-4 font-sans">
+  <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-2xl max-w-md w-full text-center">
+    <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
+      <div class="flex items-center gap-2">
+        <i data-lucide="music" class="w-5 h-5 text-indigo-400"></i>
+        <h2 class="font-bold text-base">Tone.js 8-Bit 신디 피아노</h2>
+      </div>
+      <span class="text-xs text-indigo-400 bg-indigo-950 px-2 py-0.5 rounded-full border border-indigo-800">PolySynth</span>
+    </div>
+
+    <div class="grid grid-cols-7 gap-1.5 h-36 mb-4">
+      <button onclick="play('C4')" class="bg-white text-slate-900 rounded-xl font-bold flex items-end justify-center pb-2 hover:bg-indigo-100 active:scale-95 transition-all text-xs">C</button>
+      <button onclick="play('D4')" class="bg-white text-slate-900 rounded-xl font-bold flex items-end justify-center pb-2 hover:bg-indigo-100 active:scale-95 transition-all text-xs">D</button>
+      <button onclick="play('E4')" class="bg-white text-slate-900 rounded-xl font-bold flex items-end justify-center pb-2 hover:bg-indigo-100 active:scale-95 transition-all text-xs">E</button>
+      <button onclick="play('F4')" class="bg-white text-slate-900 rounded-xl font-bold flex items-end justify-center pb-2 hover:bg-indigo-100 active:scale-95 transition-all text-xs">F</button>
+      <button onclick="play('G4')" class="bg-white text-slate-900 rounded-xl font-bold flex items-end justify-center pb-2 hover:bg-indigo-100 active:scale-95 transition-all text-xs">G</button>
+      <button onclick="play('A4')" class="bg-white text-slate-900 rounded-xl font-bold flex items-end justify-center pb-2 hover:bg-indigo-100 active:scale-95 transition-all text-xs">A</button>
+      <button onclick="play('B4')" class="bg-white text-slate-900 rounded-xl font-bold flex items-end justify-center pb-2 hover:bg-indigo-100 active:scale-95 transition-all text-xs">B</button>
+    </div>
+
+    <button onclick="playChord()" class="w-full py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 rounded-xl font-bold text-xs shadow-lg transition-all active:scale-95">
+      ✨ C Major 7th 화음 연주 (C-E-G-B)
+    </button>
+  </div>
+
+  <script>
+    lucide.createIcons();
+    let polySynth = null;
+
+    async function init() {
+      if (!polySynth) {
+        await Tone.start();
+        polySynth = new Tone.PolySynth(Tone.Synth).toDestination();
+      }
+    }
+
+    async function play(note) {
+      await init();
+      polySynth.triggerAttackRelease(note, '8n');
+    }
+
+    async function playChord() {
+      await init();
+      polySynth.triggerAttackRelease(['C4', 'E4', 'G4', 'B4'], '4n');
+    }
+  </script>
+</body>
+</html>
+`,
+    },
+  },
+  {
+    id: 'html-26-fusejs-autocomplete-search',
+    title: '26. [라이브러리] Fuse.js 고속 자동완성 & 오타 교정 검색바',
+    category: 'Frontend & UI',
+    language: 'html',
+    engine: 'html-sandbox',
+    description: 'Fuse.js를 이용한 클라이언트 오타 보정 검색 및 실시간 드롭다운 리스트',
+    mainFile: 'index.html',
+    tags: ['Fuse.js', 'Autocomplete', 'Fuzzy Search'],
+    files: {
+      'index.html': `<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-900 min-h-screen p-6 font-sans flex items-center justify-center">
+  <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-2xl max-w-sm w-full">
+    <h2 class="font-bold text-white text-base mb-3 flex items-center gap-2">
+      <i data-lucide="search" class="w-4 h-4 text-sky-400"></i> Fuse.js 실시간 오타 검색
+    </h2>
+
+    <input
+      type="text"
+      id="searchBox"
+      placeholder="검색어 입력 (예: react, pyton, postgre)..."
+      class="w-full bg-slate-950 text-white placeholder-slate-500 px-3.5 py-2.5 rounded-xl border border-slate-700 text-xs focus:outline-none focus:border-sky-500 mb-3"
+      oninput="handleSearch()"
+    />
+
+    <div id="results" class="space-y-1.5 max-h-48 overflow-y-auto"></div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+    const data = [
+      { name: 'React Live Sandbox', type: 'Frontend' },
+      { name: 'Python Pyodide Wasm', type: 'Data Science' },
+      { name: 'PostgreSQL Relational DB', type: 'Database' },
+      { name: 'Redis In-Memory Store', type: 'Cache' },
+      { name: 'Docker Linux Container', type: 'DevOps' },
+      { name: 'Kubernetes Cluster Manager', type: 'Cloud' }
+    ];
+
+    const fuse = new Fuse(data, { keys: ['name', 'type'], threshold: 0.4 });
+
+    function handleSearch() {
+      const q = document.getElementById('searchBox').value;
+      const res = q.trim() ? fuse.search(q) : data.map(d => ({ item: d }));
+      const container = document.getElementById('results');
+      container.innerHTML = res.map(r => \`
+        <div class="p-2.5 bg-slate-900/80 rounded-lg border border-slate-800 flex items-center justify-between text-xs">
+          <span class="font-semibold text-slate-200">\${r.item.name}</span>
+          <span class="text-[10px] text-sky-400 bg-sky-950 px-1.5 py-0.5 rounded">\${r.item.type}</span>
+        </div>
+      \`).join('');
+    }
+    handleSearch();
+  </script>
+</body>
+</html>
+`,
+    },
+  },
+  {
+    id: 'html-27-katex-formula-renderer',
+    title: '27. [라이브러리] KaTeX 고속 LaTeX 수학 수식 렌더러',
+    category: 'Frontend & UI',
+    language: 'html',
+    engine: 'html-sandbox',
+    description: 'KaTeX 수식 렌더링 엔진을 통한 복잡한 미적분, 행렬, 극한 기호 시각화',
+    mainFile: 'index.html',
+    tags: ['KaTeX', 'LaTeX', 'Math', 'Formulas'],
+    files: {
+      'index.html': `<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-6 font-sans flex items-center justify-center">
+  <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 max-w-md w-full shadow-2xl space-y-4">
+    <div class="border-b border-slate-800 pb-3">
+      <h2 class="font-bold text-white text-base">📐 KaTeX 수학 공식 렌더러</h2>
+      <p class="text-xs text-slate-400">초고속 WebAssembly LaTeX 파서</p>
+    </div>
+
+    <div class="space-y-3">
+      <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 text-center">
+        <div class="text-[11px] text-slate-500 mb-1">오일러 항등식</div>
+        <div id="math1" class="text-lg text-amber-300"></div>
+      </div>
+
+      <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 text-center">
+        <div class="text-[11px] text-slate-500 mb-1">정규분포 확률밀도함수 (Gaussian PDF)</div>
+        <div id="math2" class="text-base text-sky-300"></div>
+      </div>
+
+      <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 text-center">
+        <div class="text-[11px] text-slate-500 mb-1">맥스웰 방정식 (전자기학)</div>
+        <div id="math3" class="text-base text-emerald-300"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    katex.render("e^{i\\\\pi} + 1 = 0", document.getElementById('math1'), { displayMode: true });
+    katex.render("f(x) = \\\\frac{1}{\\\\sigma \\\\sqrt{2\\\\pi}} e^{-\\\\frac{1}{2}\\\\left(\\\\frac{x-\\\\mu}{\\\\sigma}\\\\right)^2}", document.getElementById('math2'), { displayMode: true });
+    katex.render("\\\\nabla \\\\times \\\\mathbf{E} = -\\\\frac{\\\\partial \\\\mathbf{B}}{\\\\partial t}", document.getElementById('math3'), { displayMode: true });
+  </script>
+</body>
+</html>
+`,
+    },
+  },
 ];

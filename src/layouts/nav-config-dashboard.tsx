@@ -5,6 +5,8 @@ import GifRoundedIcon from '@mui/icons-material/GifRounded';
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
 import CodeRoundedIcon from '@mui/icons-material/CodeRounded';
 import AppsRoundedIcon from '@mui/icons-material/AppsRounded';
+import HiveRoundedIcon from '@mui/icons-material/HiveRounded';
+import WavesRoundedIcon from '@mui/icons-material/WavesRounded';
 import CasinoRoundedIcon from '@mui/icons-material/CasinoRounded';
 import FolderRoundedIcon from '@mui/icons-material/FolderRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
@@ -18,19 +20,26 @@ import TerminalRoundedIcon from '@mui/icons-material/TerminalRounded';
 import ApprovalRoundedIcon from '@mui/icons-material/ApprovalRounded';
 import VideocamRoundedIcon from '@mui/icons-material/VideocamRounded';
 import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded';
+import ViewInArRoundedIcon from '@mui/icons-material/ViewInArRounded';
 import TableViewRoundedIcon from '@mui/icons-material/TableViewRounded';
 import FunctionsRoundedIcon from '@mui/icons-material/FunctionsRounded';
 import DataArrayRoundedIcon from '@mui/icons-material/DataArrayRounded';
 import SlideshowRoundedIcon from '@mui/icons-material/SlideshowRounded';
+import AutoGraphRoundedIcon from '@mui/icons-material/AutoGraphRounded';
+import CalculateRoundedIcon from '@mui/icons-material/CalculateRounded';
 import TextFieldsRoundedIcon from '@mui/icons-material/TextFieldsRounded';
 import WorkspacesRoundedIcon from '@mui/icons-material/WorkspacesRounded';
 import AccountTreeRoundedIcon from '@mui/icons-material/AccountTreeRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import PhotoFilterRoundedIcon from '@mui/icons-material/PhotoFilterRounded';
 import DescriptionRoundedIcon from '@mui/icons-material/DescriptionRounded';
+import MeetingRoomRoundedIcon from '@mui/icons-material/MeetingRoomRounded';
+import ScatterPlotRoundedIcon from '@mui/icons-material/ScatterPlotRounded';
 import PhotoLibraryRoundedIcon from '@mui/icons-material/PhotoLibraryRounded';
 import PictureAsPdfRoundedIcon from '@mui/icons-material/PictureAsPdfRounded';
 import InvertColorsRoundedIcon from '@mui/icons-material/InvertColorsRounded';
+import AllInclusiveRoundedIcon from '@mui/icons-material/AllInclusiveRounded';
+import TrackChangesRoundedIcon from '@mui/icons-material/TrackChangesRounded';
 import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
 import CompareArrowsRoundedIcon from '@mui/icons-material/CompareArrowsRounded';
 import QrCodeScannerRoundedIcon from '@mui/icons-material/QrCodeScannerRounded';
@@ -78,7 +87,16 @@ const ICONS = {
   bitLab: <DataArrayRoundedIcon fontSize="small" />,
   linearAlgebra: <Grid4x4RoundedIcon fontSize="small" />,
   physicsSandbox: <ScienceRoundedIcon fontSize="small" />,
+  normalDistribution: <AutoGraphRoundedIcon fontSize="small" />,
+  montyHall: <MeetingRoomRoundedIcon fontSize="small" />,
+  fractalsChaos: <AllInclusiveRoundedIcon fontSize="small" />,
+  cellularAutomata: <HiveRoundedIcon fontSize="small" />,
+  waveOptics: <WavesRoundedIcon fontSize="small" />,
+  monteCarlo: <ScatterPlotRoundedIcon fontSize="small" />,
   appsInToss: <AppsRoundedIcon fontSize="small" />,
+  matlab: <CalculateRoundedIcon fontSize="small" />,
+  blackHole: <TrackChangesRoundedIcon fontSize="small" />,
+  threejs: <ViewInArRoundedIcon fontSize="small" />,
 };
 
 // ----------------------------------------------------------------------
@@ -166,9 +184,24 @@ export const navData: NavSectionProps['data'] = [
         path: paths.devTools,
         icon: ICONS.devTools,
         children: [
+          { title: 'Three.js 3D 랩', path: paths.threejs },
           { title: '코드 실행기', path: paths.codeRunner },
+          { title: 'MATLAB 랩 (Web Studio)', path: paths.matlab },
           { title: 'SQL 연습실', path: paths.public.sql },
           { title: '개발자 툴킷', path: paths.devTools },
+        ],
+      },
+      {
+        title: '알고리즘',
+        path: paths.algo.root,
+        icon: ICONS.algoVisualizer,
+        children: [
+          { title: '알고리즘 시각화 랩', path: paths.algo.visualizer },
+          { title: '자료구조 도감 & 실습실', path: paths.algo.dataStructures },
+          { title: '1:1 알고리즘 비교', path: paths.algo.compare },
+          { title: 'CS 챌린지 모드', path: paths.algo.challenge },
+          { title: '커스텀 코드 샌드박스', path: paths.algo.playground },
+          { title: 'Big-O 마스터 & 카탈로그', path: paths.algo.catalog },
         ],
       },
       { title: 'Drive', path: paths.fileManager, icon: ICONS.folder },
@@ -228,6 +261,46 @@ export const navData: NavSectionProps['data'] = [
       { title: '비트 & IEEE-754 랩', path: paths.bitLab, icon: ICONS.bitLab },
       { title: '선형대수 & 공간 변환', path: paths.linearAlgebra, icon: ICONS.linearAlgebra },
       { title: '2D 물리 & 과학 샌드박스', path: paths.physicsSandbox, icon: ICONS.physicsSandbox },
+      {
+        title: '정규분포 & 확률통계 랩',
+        path: paths.normalDistribution,
+        icon: ICONS.normalDistribution,
+      },
+      {
+        title: '몬티홀 & 확률 역설 랩',
+        path: paths.montyHall,
+        icon: ICONS.montyHall,
+      },
+      {
+        title: '프랙탈 & 카오스 랩',
+        path: paths.fractalsChaos,
+        icon: ICONS.fractalsChaos,
+      },
+      {
+        title: '셀룰러 오토마타 & 라이프 게임',
+        path: paths.cellularAutomata,
+        icon: ICONS.cellularAutomata,
+      },
+      {
+        title: '파동, 광학 & 푸리에 랩',
+        path: paths.waveOptics,
+        icon: ICONS.waveOptics,
+      },
+      {
+        title: '몬테카를로 & 기하 확률 랩',
+        path: paths.monteCarlo,
+        icon: ICONS.monteCarlo,
+      },
+      {
+        title: '블랙홀 & 일반 상대성 이론',
+        path: paths.blackHole,
+        icon: ICONS.blackHole,
+      },
+      {
+        title: 'MATLAB 랩 (Web Studio)',
+        path: paths.matlab,
+        icon: ICONS.matlab,
+      },
     ],
   },
 

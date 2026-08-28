@@ -761,4 +761,284 @@ puts "  ✨ 빌드 순서: #{order.join(' ➔ ')}"
 `,
     },
   },
+  {
+    id: 'ruby-21-enumerable-analytics',
+    title: '21. [라이브러리] Ruby Enumerable 데이터 파이프라인 (group_by & tally)',
+    category: 'Backend & Scripting',
+    language: 'ruby',
+    engine: 'ruby',
+    description: 'group_by, tally, chunk, minmax, filter_map을 활용한 강력한 함수형 데이터 집계',
+    mainFile: 'main.rb',
+    tags: ['Ruby', 'Enumerable', 'group_by', 'tally', 'Data Pipeline'],
+    files: {
+      'main.rb': `# ==========================================
+# 💎 [21] Ruby: Enumerable 데이터 분석 파이프라인
+# ==========================================
+
+puts "\\033[96m✨ [Ruby Enumerable] 고급 데이터 집계 및 파이프라인\\033[0m"
+puts "------------------------------------------"
+
+orders = [
+  { id: 1, user: "Alice", category: :tech, price: 150000 },
+  { id: 2, user: "Bob", category: :books, price: 25000 },
+  { id: 3, user: "Alice", category: :tech, price: 320000 },
+  { id: 4, user: "Charlie", category: :food, price: 48000 },
+  { id: 5, user: "Bob", category: :tech, price: 89000 },
+  { id: 6, user: "Alice", category: :books, price: 15000 }
+]
+
+# 1. 카테고리별 group_by 및 총 매출 계산
+grouped = orders.group_by { |o| o[:category] }
+puts "[1] 카테고리별 집계 결과:"
+grouped.each do |cat, list|
+  total_spent = list.sum { |o| o[:price] }
+  puts "  • #{cat.to_s.upcase.ljust(6)}: 총 #{list.count}건 | 합계: #{total_spent.to_s.reverse.gsub(/(\\d{3})(?=\\d)/, '\\1,').reverse}원"
+end
+
+# 2. 사용자별 주문 횟수 tally (도수분포표)
+user_counts = orders.map { |o| o[:user] }.tally
+puts "\\n[2] 사용자별 주문 빈도수 (tally):"
+user_counts.each do |user, count|
+  puts "  • #{user}: #{count}회 주문"
+end
+`,
+    },
+  },
+  {
+    id: 'ruby-22-struct-domain-modeling',
+    title: '22. [라이브러리] Ruby Struct & 불변 도메인 모델링',
+    category: 'Backend & Scripting',
+    language: 'ruby',
+    engine: 'ruby',
+    description: 'Struct.new를 이용한 경량 불변 객체 모델링 및 비즈니스 로직 메서드 합성',
+    mainFile: 'main.rb',
+    tags: ['Ruby', 'Struct', 'OOP', 'Domain Model'],
+    files: {
+      'main.rb': `# ==========================================
+# 💎 [22] Ruby: Struct 기반 도메인 모델링
+# ==========================================
+
+puts "\\033[96m✨ [Ruby Struct] 경량 도메인 모델 & 계산 로직\\033[0m"
+puts "------------------------------------------"
+
+Product = Struct.new(:id, :name, :price, :stock, keyword_init: true) do
+  def total_value
+    price * stock
+  end
+
+  def in_stock?
+    stock > 0
+  end
+
+  def discount(percent)
+    self.class.new(
+      id: id,
+      name: name,
+      price: (price * (1.0 - percent / 100.0)).to_i,
+      stock: stock
+    )
+  end
+end
+
+laptop = Product.new(id: 101, name: "MacBook Pro 16", price: 3400000, stock: 5)
+discounted_laptop = laptop.discount(10)
+
+puts "[1] 원본 상품: #{laptop.name}"
+puts "  ➜ 정가: #{laptop.price}원 | 재고 가치: #{laptop.total_value}원"
+puts "  ➜ 10% 할인 적용가: \\033[92m#{discounted_laptop.price}원\\033[0m"
+`,
+    },
+  },
+  {
+    id: 'ruby-23-json-date-arithmetic',
+    title: '23. [라이브러리] Ruby JSON 직렬화 & Time 시간 연산',
+    category: 'Backend & Scripting',
+    language: 'ruby',
+    engine: 'ruby',
+    description: 'JSON 파싱, 해시 변환, Time/Date 날짜 간격 계산 및 포맷팅',
+    mainFile: 'main.rb',
+    tags: ['Ruby', 'JSON', 'Time', 'Date', 'Serialization'],
+    files: {
+      'main.rb': `# ==========================================
+# 💎 [23] Ruby: JSON 직렬화 & 시간 연산
+# ==========================================
+require 'json'
+require 'time'
+
+puts "\\033[96m✨ [Ruby JSON & Time] REST 응답 및 일자 계산\\033[0m"
+puts "------------------------------------------"
+
+# 1. JSON 직렬화 & 파싱
+payload = {
+  service: "OmniRunner Cloud",
+  status: :healthy,
+  version: "3.3.0",
+  metrics: { cpu_usage: 18.5, active_nodes: 12 },
+  timestamp: Time.now.utc.iso8601
+}
+
+json_str = JSON.pretty_generate(payload)
+puts "[1] 생성된 JSON 페이로드:"
+puts json_str
+
+# 2. Time 시간 연산
+now = Time.now
+after_3_days = now + (3 * 24 * 60 * 60)
+puts "\\n[2] 시간 연산:"
+puts "  • 현재 시각: #{now.strftime('%Y년 %m월 %d일 %H:%M:%S')}"
+puts "  • 3일 후 마감 시각: #{after_3_days.strftime('%Y-%m-%d %H:%M')}"
+`,
+    },
+  },
+  {
+    id: 'ruby-24-matrix-linear-algebra',
+    title: '24. [라이브러리] Ruby Matrix & 선형대수 (행렬곱, 행렬식, 역행렬)',
+    category: 'Backend & Scripting',
+    language: 'ruby',
+    engine: 'ruby',
+    description:
+      'Ruby Matrix 표준 라이브러리를 활용한 2D 행렬 곱셈, 행렬식(Determinant) 및 역행렬 계산',
+    mainFile: 'main.rb',
+    tags: ['Ruby', 'Matrix', 'Linear Algebra', 'Math'],
+    files: {
+      'main.rb': `# ==========================================
+# 💎 [24] Ruby: Matrix 선형대수 & 행렬 연산
+# ==========================================
+require 'matrix'
+
+puts "\\033[96m✨ [Ruby Matrix] 2x2 행렬 연산 & 역행렬\\033[0m"
+puts "------------------------------------------"
+
+m1 = Matrix[[3, 2], [1, 4]]
+m2 = Matrix[[5, 1], [2, 3]]
+
+# 1. 행렬 곱셈
+product = m1 * m2
+puts "[1] 행렬 M1 * M2 곱셈 결과:"
+product.to_a.each { |row| puts "  | #{row.map { |v| v.to_s.rjust(4) }.join(' ')} |" }
+
+# 2. 행렬식 (Determinant)
+det = m1.determinant
+puts "\\n[2] M1 행렬식 det(M1) = #{det}"
+
+# 3. 역행렬 (Inverse Matrix)
+inv = m1.inverse
+puts "\\n[3] M1의 역행렬 M1^(-1):"
+inv.to_a.each { |row| puts "  | #{row.map { |v| v.round(4).to_s.rjust(8) }.join(' ')} |" }
+`,
+    },
+  },
+  {
+    id: 'ruby-25-prime-number-theory',
+    title: '25. [라이브러리] Ruby Prime 정수론 (소수 판별 & 소인수분해)',
+    category: 'Backend & Scripting',
+    language: 'ruby',
+    engine: 'ruby',
+    description: 'Prime.prime?, Prime.prime_division, 에라토스테네스의 체를 활용한 정수론 연산',
+    mainFile: 'main.rb',
+    tags: ['Ruby', 'Prime', 'Number Theory', 'Math'],
+    files: {
+      'main.rb': `# ==========================================
+# 💎 [25] Ruby: Prime 정수론 & 소인수분해
+# ==========================================
+require 'prime'
+
+puts "\\033[96m✨ [Ruby Prime] 소수 분석 & 소인수분해\\033[0m"
+puts "------------------------------------------"
+
+# 1. 100 이하의 모든 소수 생성
+primes_under_100 = Prime.take_while { |p| p < 100 }
+puts "[1] 100 이하의 소수 (#{primes_under_100.count}개):"
+puts "  ➜ " + primes_under_100.join(', ')
+
+# 2. 큰 수의 소인수분해 (Prime Factorization)
+number = 12600
+factors = Prime.prime_division(number)
+formula = factors.map { |base, exp| exp > 1 ? "#{base}^#{exp}" : "#{base}" }.join(' × ')
+
+puts "\\n[2] 정수 #{number}의 소인수분해:"
+puts "  ➜ #{number} = \\033[92m#{formula}\\033[0m"
+
+# 3. 소수 판별 (Primality Test)
+candidates = [97, 101, 1003, 1009]
+puts "\\n[3] 소수 여부 판정:"
+candidates.each do |c|
+  status = Prime.prime?(c) ? "\\033[92m[소수 Prime]\\033[0m" : "\\033[91m[합성수]\\033[0m"
+  puts "  • #{c.to_s.rjust(5)}: #{status}"
+end
+`,
+    },
+  },
+  {
+    id: 'ruby-26-digest-cryptography',
+    title: '26. [라이브러리] Ruby Digest 암호화 해시 (SHA-256 & MD5)',
+    category: 'Backend & Scripting',
+    language: 'ruby',
+    engine: 'ruby',
+    description: 'Digest::SHA256, Digest::MD5, HMAC 다이제스트 생성 및 데이터 무결성 검증',
+    mainFile: 'main.rb',
+    tags: ['Ruby', 'Digest', 'Cryptography', 'SHA-256'],
+    files: {
+      'main.rb': `# ==========================================
+# 💎 [26] Ruby: Digest 암호화 해시 연산
+# ==========================================
+require 'digest'
+
+puts "\\033[96m✨ [Ruby Digest] 단방향 암호화 해시\\033[0m"
+puts "------------------------------------------"
+
+message = "Antigravity OmniRunner Platform 2026"
+
+sha256 = Digest::SHA256.hexdigest(message)
+md5 = Digest::MD5.hexdigest(message)
+
+puts "• 원본 메시지: '#{message}'"
+puts "  ➜ SHA-256 해시: \\033[92m#{sha256}\\033[0m"
+puts "  ➜ MD5 해시:     #{md5}"
+
+# 데이터 무결성 검증 시뮬레이션
+tampered = "Antigravity OmniRunner Platform 2027"
+tampered_hash = Digest::SHA256.hexdigest(tampered)
+puts "\\n[무결성 변조 검사]"
+puts "  • 원본 해시 일치 여부: #{sha256 == sha256 ? '✅ 무결성 확인' : '❌ 변조됨'}"
+puts "  • 변조본 해시 일치 여부: #{sha256 == tampered_hash ? '✅ 정상' : '❌ 해시 불일치 (위변조 감지)'}"
+`,
+    },
+  },
+  {
+    id: 'ruby-27-set-collection-algebra',
+    title: '27. [라이브러리] Ruby Set 집합 대수 (합집합, 교집합, 부분집합)',
+    category: 'Backend & Scripting',
+    language: 'ruby',
+    engine: 'ruby',
+    description:
+      'Set 표준 라이브러리를 활용한 합집합(|), 교집합(&), 차집합(-), 부분집합(subset?) 연산',
+    mainFile: 'main.rb',
+    tags: ['Ruby', 'Set', 'Collection', 'Set Theory'],
+    files: {
+      'main.rb': `# ==========================================
+# 💎 [27] Ruby: Set 집합 대수 연산
+# ==========================================
+require 'set'
+
+puts "\\033[96m✨ [Ruby Set] 집합 연산 & 유저 세그먼트 분석\\033[0m"
+puts "------------------------------------------"
+
+# 모바일 사용자 그룹과 웹 사용자 그룹
+mobile_users = Set.new(["alice", "bob", "charlie", "david"])
+web_users = Set.new(["charlie", "david", "eve", "frank"])
+
+union_users = mobile_users | web_users        # 합집합
+cross_platform = mobile_users & web_users     # 교집합
+mobile_only = mobile_users - web_users        # 차집합
+
+puts "• 모바일 사용자: #{mobile_users.to_a.join(', ')}"
+puts "• 웹 사용자:     #{web_users.to_a.join(', ')}"
+puts "\\n[집합 분석 결과]"
+puts "  ➜ 전체 순수 활성 유저(합집합): \\033[92m#{union_users.to_a.join(', ')}\\033[0m (#{union_users.size}명)"
+puts "  ➜ 크로스 플랫폼 유저(교집합): #{cross_platform.to_a.join(', ')} (#{cross_platform.size}명)"
+puts "  ➜ 모바일 전용 유저(차집합):   #{mobile_only.to_a.join(', ')} (#{mobile_only.size}명)"
+`,
+    },
+  },
 ];

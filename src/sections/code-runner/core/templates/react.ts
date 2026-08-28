@@ -1064,4 +1064,847 @@ export default function App() {
 `,
     },
   },
+  {
+    id: 'react-21-tailwind-lucide-confetti',
+    title: '21. [라이브러리] Tailwind CSS + Lucide + Confetti 축하 카드',
+    category: 'Frontend & UI',
+    language: 'react',
+    engine: 'react-live',
+    description:
+      'Tailwind CSS 유틸리티 클래스, Lucide 벡터 아이콘, Canvas Confetti 파티클 애니메이션',
+    mainFile: 'App.jsx',
+    tags: ['TailwindCSS', 'LucideIcons', 'CanvasConfetti', 'Gamification'],
+    files: {
+      'App.jsx': `import React, { useState } from 'react';
+import { Trophy, Sparkles, Zap, Shield, Heart } from 'lucide-react';
+import confetti from 'canvas-confetti';
+
+export default function App() {
+  const [level, setLevel] = useState(1);
+  const [points, setPoints] = useState(350);
+
+  const handleLevelUp = () => {
+    setLevel(prev => prev + 1);
+    setPoints(prev => prev + 500);
+
+    // Canvas Confetti 축하 파티클 발사
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 }
+    });
+  };
+
+  return (
+    <div className="p-6 max-w-md mx-auto bg-slate-900 text-white rounded-2xl shadow-2xl border border-slate-800 font-sans">
+      <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div className="flex items-center gap-2">
+          <div className="p-2 bg-amber-500/20 rounded-lg text-amber-400">
+            <Trophy size={24} />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold">마스터 개발자</h2>
+            <p className="text-xs text-slate-400">Level {level} 달성자</p>
+          </div>
+        </div>
+        <span className="px-3 py-1 bg-indigo-500/20 text-indigo-400 rounded-full text-xs font-semibold flex items-center gap-1">
+          <Zap size={14} /> {points} EXP
+        </span>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 my-4">
+        <div className="p-3 bg-slate-800/60 rounded-xl border border-slate-700/50 flex items-center gap-3">
+          <div className="p-2 bg-emerald-500/20 text-emerald-400 rounded-lg">
+            <Shield size={20} />
+          </div>
+          <div>
+            <div className="text-xs text-slate-400">안정성 지수</div>
+            <div className="text-sm font-bold">99.98%</div>
+          </div>
+        </div>
+
+        <div className="p-3 bg-slate-800/60 rounded-xl border border-slate-700/50 flex items-center gap-3">
+          <div className="p-2 bg-rose-500/20 text-rose-400 rounded-lg">
+            <Heart size={20} />
+          </div>
+          <div>
+            <div className="text-xs text-slate-400">커뮤니티 호감도</div>
+            <div className="text-sm font-bold">+1,240</div>
+          </div>
+        </div>
+      </div>
+
+      <button
+        onClick={handleLevelUp}
+        className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-[0.98] transition-all rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25"
+      >
+        <Sparkles size={18} /> 레벨업 & 폭죽 터뜨리기
+      </button>
+    </div>
+  );
+}
+`,
+    },
+  },
+  {
+    id: 'react-22-chartjs-live-metrics',
+    title: '22. [라이브러리] Chart.js 실시간 인터랙티브 라인/바 차트',
+    category: 'Frontend & UI',
+    language: 'react',
+    engine: 'react-live',
+    description: 'Chart.js 캔버스 렌더링, 실시간 데이터셋 토글 및 그라데이션 차트',
+    mainFile: 'App.jsx',
+    tags: ['Chart.js', 'Visualization', 'Live Metrics', 'React'],
+    files: {
+      'App.jsx': `import React, { useEffect, useRef, useState } from 'react';
+import Chart from 'chart.js/auto';
+
+export default function App() {
+  const canvasRef = useRef(null);
+  const chartInstance = useRef(null);
+  const [metricType, setMetricType] = useState('traffic');
+
+  const dataSets = {
+    traffic: {
+      label: '일별 방문자 수 (명)',
+      data: [1200, 1900, 3000, 5000, 4200, 6800, 7900],
+      borderColor: '#38bdf8',
+      backgroundColor: 'rgba(56, 189, 248, 0.15)',
+    },
+    revenue: {
+      label: '일별 매출액 (만원)',
+      data: [450, 620, 890, 1450, 1200, 2100, 2600],
+      borderColor: '#10b981',
+      backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    }
+  };
+
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    const ctx = canvasRef.current.getContext('2d');
+
+    if (chartInstance.current) {
+      chartInstance.current.destroy();
+    }
+
+    const cur = dataSets[metricType];
+
+    chartInstance.current = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['월', '화', '수', '목', '금', '토', '일'],
+        datasets: [{
+          label: cur.label,
+          data: cur.data,
+          borderColor: cur.borderColor,
+          backgroundColor: cur.backgroundColor,
+          fill: true,
+          tension: 0.35,
+          borderWidth: 2.5,
+          pointRadius: 4,
+          pointBackgroundColor: cur.borderColor,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: '#64748b', font: { size: 12 } } },
+        },
+        scales: {
+          x: { grid: { display: false } },
+          y: { grid: { color: 'rgba(226, 232, 240, 0.6)' } }
+        }
+      }
+    });
+
+    return () => {
+      if (chartInstance.current) {
+        chartInstance.current.destroy();
+      }
+    };
+  }, [metricType]);
+
+  return (
+    <div className="p-5 font-sans max-w-lg mx-auto bg-white rounded-xl shadow-md border border-slate-100">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h3 className="font-bold text-slate-800">📊 Chart.js 실시간 지표</h3>
+          <p className="text-xs text-slate-500">주간 퍼포먼스 모니터링</p>
+        </div>
+        <div className="flex gap-1.5 bg-slate-100 p-1 rounded-lg">
+          <button
+            onClick={() => setMetricType('traffic')}
+            className={\`px-2.5 py-1 text-xs rounded-md font-semibold transition-all \${metricType === 'traffic' ? 'bg-white text-sky-600 shadow-sm' : 'text-slate-600'}\`}
+          >
+            트래픽
+          </button>
+          <button
+            onClick={() => setMetricType('revenue')}
+            className={\`px-2.5 py-1 text-xs rounded-md font-semibold transition-all \${metricType === 'revenue' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-600'}\`}
+          >
+            매출
+          </button>
+        </div>
+      </div>
+
+      <div className="h-56 w-full">
+        <canvas ref={canvasRef} />
+      </div>
+    </div>
+  );
+}
+`,
+    },
+  },
+  {
+    id: 'react-23-lodash-dayjs-scheduler',
+    title: '23. [라이브러리] Lodash + Day.js 스마트 일정 & 데이터 파이프라인',
+    category: 'Frontend & UI',
+    language: 'react',
+    engine: 'react-live',
+    description: 'Lodash(groupBy, orderBy, sumBy) 및 Day.js(format, fromNow, add) 데이터 분석',
+    mainFile: 'App.jsx',
+    tags: ['Lodash', 'Dayjs', 'Data Pipeline', 'Scheduler'],
+    files: {
+      'App.jsx': `import React, { useState } from 'react';
+import _ from 'lodash';
+import dayjs from 'dayjs';
+
+const INITIAL_TASKS = [
+  { id: 1, title: 'WebContainer 런타임 최적화', category: '개발', hours: 4, dueDate: dayjs().add(1, 'day').format('YYYY-MM-DD') },
+  { id: 2, title: '신규 UI 테마 컬러 검수', category: '디자인', hours: 2, dueDate: dayjs().add(2, 'day').format('YYYY-MM-DD') },
+  { id: 3, title: 'SymPy 및 SciPy 라이브러리 검증', category: '개발', hours: 5, dueDate: dayjs().add(1, 'day').format('YYYY-MM-DD') },
+  { id: 4, title: '사용자 피드백 서베이 집계', category: '기획', hours: 3, dueDate: dayjs().add(3, 'day').format('YYYY-MM-DD') },
+];
+
+export default function App() {
+  const [tasks] = useState(INITIAL_TASKS);
+
+  // Lodash 데이터 분석 파이프라인
+  const grouped = _.groupBy(tasks, 'category');
+  const totalHours = _.sumBy(tasks, 'hours');
+  const sorted = _.orderBy(tasks, ['dueDate', 'hours'], ['asc', 'desc']);
+
+  return (
+    <div className="p-5 font-sans max-w-md mx-auto bg-slate-50 rounded-2xl border border-slate-200">
+      <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+        <div>
+          <h3 className="font-bold text-slate-800">📅 Lodash & Day.js 일정 분석</h3>
+          <p className="text-xs text-slate-500">기준 일시: {dayjs().format('YYYY-MM-DD HH:mm')}</p>
+        </div>
+        <span className="px-2.5 py-1 bg-blue-100 text-blue-700 rounded-lg text-xs font-bold">
+          총 {totalHours}시간
+        </span>
+      </div>
+
+      <div className="my-3 flex gap-2">
+        {Object.entries(grouped).map(([cat, list]) => (
+          <div key={cat} className="flex-1 p-2 bg-white rounded-lg border border-slate-200 text-center">
+            <div className="text-[11px] text-slate-500">{cat}</div>
+            <div className="text-sm font-bold text-slate-800">{_.sumBy(list, 'hours')}h ({list.length}건)</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="space-y-2">
+        {sorted.map(t => (
+          <div key={t.id} className="p-3 bg-white rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <div className="text-xs font-bold text-slate-800">{t.title}</div>
+              <div className="text-[11px] text-slate-400">마감: {t.dueDate} ({t.category})</div>
+            </div>
+            <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">
+              {t.hours}시간
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+`,
+    },
+  },
+  {
+    id: 'react-24-roughjs-sketchy-ui',
+    title: '24. [라이브러리] Rough.js 손그림(Hand-Drawn) 스케치 UI 캔버스',
+    category: 'Frontend & UI',
+    language: 'react',
+    engine: 'react-live',
+    description: 'Rough.js를 활용한 감성적인 핸드 드로잉 스타일 박스, 원, SVG 패스 렌더링',
+    mainFile: 'App.jsx',
+    tags: ['Rough.js', 'Canvas', 'Hand-drawn', 'Sketchy UI'],
+    files: {
+      'App.jsx': `import React, { useEffect, useRef, useState } from 'react';
+import rough from 'roughjs/bin/rough';
+
+export default function App() {
+  const canvasRef = useRef(null);
+  const [roughness, setRoughness] = useState(1.5);
+  const [bowing, setBowing] = useState(1);
+
+  useEffect(() => {
+    if (!canvasRef.current || !window.rough) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const rc = rough.canvas(canvas);
+
+    // Sketchy Rectangle Card
+    rc.rectangle(20, 20, 200, 100, {
+      roughness: Number(roughness),
+      bowing: Number(bowing),
+      fill: 'rgba(56, 189, 248, 0.2)',
+      fillStyle: 'cross-hatch',
+      stroke: '#0284c7',
+      strokeWidth: 2,
+    });
+
+    // Sketchy Circle
+    rc.circle(300, 70, 80, {
+      roughness: Number(roughness),
+      fill: 'rgba(244, 114, 182, 0.25)',
+      fillStyle: 'dots',
+      stroke: '#db2777',
+      strokeWidth: 2,
+    });
+
+    // Sketchy Bar Graph
+    const heights = [40, 70, 55, 85, 60];
+    heights.forEach((h, idx) => {
+      rc.rectangle(30 + idx * 75, 260 - h, 45, h, {
+        roughness: Number(roughness),
+        fill: ['#818cf8', '#34d399', '#fbbf24', '#f87171', '#a78bfa'][idx],
+        fillStyle: 'zigzag',
+        stroke: '#334155',
+      });
+    });
+  }, [roughness, bowing]);
+
+  return (
+    <div className="p-6 font-sans max-w-lg mx-auto bg-amber-50/50 rounded-2xl border border-amber-200">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-bold text-slate-800 text-base">✏️ Rough.js 핸드 드로잉 그래픽</h3>
+        <span className="text-xs bg-amber-200/60 text-amber-800 px-2 py-0.5 rounded font-medium">Canvas API</span>
+      </div>
+
+      <div className="flex gap-4 mb-4 text-xs text-slate-600 bg-white p-3 rounded-xl border border-amber-100">
+        <div className="flex-1">
+          <label className="block font-semibold mb-1">Roughness: {roughness}</label>
+          <input
+            type="range" min="0" max="3.5" step="0.1" value={roughness}
+            onChange={(e) => setRoughness(e.target.value)}
+            className="w-full accent-amber-600"
+          />
+        </div>
+        <div className="flex-1">
+          <label className="block font-semibold mb-1">Bowing: {bowing}</label>
+          <input
+            type="range" min="0" max="3" step="0.2" value={bowing}
+            onChange={(e) => setBowing(e.target.value)}
+            className="w-full accent-amber-600"
+          />
+        </div>
+      </div>
+
+      <div className="bg-white p-2 rounded-xl shadow-inner border border-amber-200/70 flex justify-center">
+        <canvas ref={canvasRef} width={420} height={280} />
+      </div>
+    </div>
+  );
+}
+`,
+    },
+  },
+  {
+    id: 'react-25-fusejs-fuzzy-search',
+    title: '25. [라이브러리] Fuse.js 고속 퍼지(Fuzzy) 오타 교정 검색',
+    category: 'Frontend & UI',
+    language: 'react',
+    engine: 'react-live',
+    description: 'Fuse.js를 이용한 클라이언트 인메모리 퍼지 매칭, 오타 허용 검색 및 하이라이트',
+    mainFile: 'App.jsx',
+    tags: ['Fuse.js', 'Fuzzy Search', 'Autocomplete', 'Search'],
+    files: {
+      'App.jsx': `import React, { useState, useMemo } from 'react';
+import Fuse from 'fuse.js';
+
+const DEVELOPER_TOOLS = [
+  { title: 'Visual Studio Code', category: 'IDE', author: 'Microsoft', tags: ['Editor', 'TypeScript', 'Extension'] },
+  { title: 'Docker Container', category: 'DevOps', author: 'Docker Inc.', tags: ['Container', 'Deploy', 'Linux'] },
+  { title: 'PostgreSQL Database', category: 'Database', author: 'PostgreSQL Global', tags: ['SQL', 'Relational', 'ACID'] },
+  { title: 'Kubernetes Cluster', category: 'DevOps', author: 'CNCF', tags: ['Orchestration', 'Scaling', 'Cloud'] },
+  { title: 'Pyodide Python Wasm', category: 'Runtime', author: 'Mozilla / Pyodide', tags: ['Python', 'Wasm', 'Browser'] },
+  { title: 'WebContainer API', category: 'Runtime', author: 'StackBlitz', tags: ['Node.js', 'Terminal', 'Wasm'] },
+  { title: 'Tailwind CSS Engine', category: 'Styling', author: 'Tailwind Labs', tags: ['CSS', 'Utility', 'JIT'] }
+];
+
+export default function App() {
+  const [query, setQuery] = useState('dockr');
+
+  const fuse = useMemo(() => {
+    return new Fuse(DEVELOPER_TOOLS, {
+      keys: ['title', 'category', 'author', 'tags'],
+      threshold: 0.4, // 오타 허용치 (0: 완벽일치 ~ 1: 매우 관대함)
+      includeScore: true,
+    });
+  }, []);
+
+  const results = useMemo(() => {
+    if (!query.trim()) return DEVELOPER_TOOLS.map(t => ({ item: t, score: 0 }));
+    return fuse.search(query);
+  }, [query, fuse]);
+
+  return (
+    <div className="p-6 font-sans max-w-md mx-auto bg-slate-900 text-slate-100 rounded-2xl shadow-xl border border-slate-800">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-bold text-white text-base">🔍 Fuse.js 퍼지 오타 검색</h3>
+        <span className="text-xs text-sky-400 bg-sky-950 px-2 py-0.5 rounded-full border border-sky-800">Fuzzy Search</span>
+      </div>
+
+      <div className="relative mb-4">
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="검색어를 입력하세요 (예: dockr, pyodde, postgr)..."
+          className="w-full bg-slate-800 text-white placeholder-slate-500 px-3.5 py-2.5 rounded-xl border border-slate-700 text-sm focus:outline-none focus:border-sky-500 transition-all"
+        />
+        {query && (
+          <button onClick={() => setQuery('')} className="absolute right-3 top-2.5 text-xs text-slate-400 hover:text-white">✕</button>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <div className="text-[11px] text-slate-400 flex justify-between">
+          <span>검색 결과 ({results.length}건)</span>
+          <span>오타 매칭 점수</span>
+        </div>
+
+        {results.length === 0 ? (
+          <div className="p-4 text-center text-xs text-slate-500 bg-slate-800/40 rounded-xl">일치하는 항목이 없습니다.</div>
+        ) : (
+          results.map(({ item, score }, i) => (
+            <div key={i} className="p-3 bg-slate-800/80 hover:bg-slate-800 rounded-xl border border-slate-700/60 flex items-center justify-between transition-all">
+              <div>
+                <div className="text-xs font-bold text-sky-300">{item.title}</div>
+                <div className="text-[11px] text-slate-400 mt-0.5">{item.category} • {item.author}</div>
+              </div>
+              <span className="text-[10px] font-mono px-2 py-0.5 bg-slate-900 rounded text-emerald-400 border border-slate-700">
+                {score === 0 ? 'Exact' : \`\${(100 - (score || 0) * 100).toFixed(0)}% 일치\`}
+              </span>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+`,
+    },
+  },
+  {
+    id: 'react-26-papaparse-csv-analyzer',
+    title: '26. [라이브러리] PapaParse CSV 데이터 파서 & 통계 요약',
+    category: 'Frontend & UI',
+    language: 'react',
+    engine: 'react-live',
+    description: 'PapaParse를 활용한 실시간 CSV 문자열 파싱, 컬럼 데이터 타입 추론 및 통계 집계',
+    mainFile: 'App.jsx',
+    tags: ['PapaParse', 'CSV', 'Data Analysis', 'Table'],
+    files: {
+      'App.jsx': `import React, { useState, useEffect } from 'react';
+import Papa from 'papaparse';
+import _ from 'lodash';
+
+const DEFAULT_CSV = \`name,department,salary,experience
+김철수,인프라팀,7500,5
+이영희,프론트엔드팀,6800,3
+박지훈,AI연구팀,9200,7
+최유진,백엔드팀,8100,6
+정다은,디자인팀,5900,2
+강민혁,AI연구팀,9800,8\`;
+
+export default function App() {
+  const [csvText, setCsvText] = useState(DEFAULT_CSV);
+  const [parsedData, setParsedData] = useState([]);
+  const [headers, setHeaders] = useState([]);
+
+  useEffect(() => {
+    if (!window.Papa) return;
+    const result = Papa.parse(csvText.trim(), {
+      header: true,
+      dynamicTyping: true,
+      skipEmptyLines: true,
+    });
+    setHeaders(result.meta.fields || []);
+    setParsedData(result.data || []);
+  }, [csvText]);
+
+  const avgSalary = parsedData.length ? Math.round(_.meanBy(parsedData, 'salary')) : 0;
+  const maxSalaryPerson = _.maxBy(parsedData, 'salary');
+
+  return (
+    <div className="p-6 font-sans max-w-lg mx-auto bg-white rounded-2xl shadow-lg border border-slate-200">
+      <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div>
+          <h3 className="font-bold text-slate-800 text-base">📊 PapaParse CSV 파서</h3>
+          <p className="text-xs text-slate-500">인메모리 CSV 스트리밍 & 집계</p>
+        </div>
+        <div className="text-right">
+          <div className="text-[10px] text-slate-400">평균 급여</div>
+          <div className="text-sm font-bold text-indigo-600">{avgSalary?.toLocaleString()}만원</div>
+        </div>
+      </div>
+
+      <div className="my-3">
+        <label className="block text-xs font-semibold text-slate-600 mb-1">CSV 원본 데이터 편집</label>
+        <textarea
+          rows={3}
+          value={csvText}
+          onChange={(e) => setCsvText(e.target.value)}
+          className="w-full text-xs font-mono p-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500"
+        />
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr className="bg-slate-100/70 border-b border-slate-200">
+              {headers.map(h => (
+                <th key={h} className="p-2 font-semibold text-slate-700 capitalize">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {parsedData.map((row, idx) => (
+              <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50">
+                {headers.map(h => (
+                  <td key={h} className="p-2 text-slate-600">
+                    {typeof row[h] === 'number' ? row[h].toLocaleString() : String(row[h])}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {maxSalaryPerson && (
+        <div className="mt-3 p-2.5 bg-indigo-50 rounded-xl text-xs text-indigo-800 flex items-center justify-between">
+          <span>🏆 최고 급여: <strong>{maxSalaryPerson.name}</strong> ({maxSalaryPerson.department})</span>
+          <span className="font-bold">{maxSalaryPerson.salary?.toLocaleString()}만원</span>
+        </div>
+      )}
+    </div>
+  );
+}
+`,
+    },
+  },
+  {
+    id: 'react-27-tonejs-sound-board',
+    title: '27. [라이브러리] Tone.js 오디오 신디사이저 사운드보드',
+    category: 'Frontend & UI',
+    language: 'react',
+    engine: 'react-live',
+    description: 'Tone.js Synth & PolySynth를 활용한 실시간 웹 오디오 음계 연주 및 사운드 이펙트',
+    mainFile: 'App.jsx',
+    tags: ['Tone.js', 'Web Audio', 'Synthesizer', 'Sound FX'],
+    files: {
+      'App.jsx': `import React, { useState, useRef } from 'react';
+import * as Tone from 'tone';
+
+const NOTES = [
+  { note: 'C4', label: '도', color: 'bg-rose-500' },
+  { note: 'D4', label: '레', color: 'bg-orange-500' },
+  { note: 'E4', label: '미', color: 'bg-amber-500' },
+  { note: 'F4', label: '파', color: 'bg-emerald-500' },
+  { note: 'G4', label: '솔', color: 'bg-teal-500' },
+  { note: 'A4', label: '라', color: 'bg-blue-500' },
+  { note: 'B4', label: '시', color: 'bg-indigo-500' },
+  { note: 'C5', label: '높은 도', color: 'bg-purple-500' },
+];
+
+export default function App() {
+  const [activeNote, setActiveNote] = useState(null);
+  const synthRef = useRef(null);
+
+  const initSynth = () => {
+    if (!synthRef.current && window.Tone) {
+      synthRef.current = new Tone.Synth({
+        oscillator: { type: 'triangle' },
+        envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 }
+      }).toDestination();
+    }
+  };
+
+  const playNote = async (note) => {
+    if (!window.Tone) return;
+    await Tone.start();
+    initSynth();
+    synthRef.current.triggerAttackRelease(note, '8n');
+    setActiveNote(note);
+    setTimeout(() => setActiveNote(null), 250);
+  };
+
+  const playLaser = async () => {
+    if (!window.Tone) return;
+    await Tone.start();
+    const synth = new Tone.MembraneSynth().toDestination();
+    synth.triggerAttackRelease('C2', '16n');
+  };
+
+  return (
+    <div className="p-6 font-sans max-w-md mx-auto bg-slate-900 text-white rounded-2xl shadow-2xl border border-slate-800">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h3 className="font-bold text-white text-base">🎹 Tone.js 신디사이저 사운드보드</h3>
+          <p className="text-xs text-slate-400">Web Audio API 실시간 합성음</p>
+        </div>
+        <span className="text-[11px] bg-indigo-500/20 text-indigo-400 px-2.5 py-1 rounded-full border border-indigo-500/30">Tone.js</span>
+      </div>
+
+      <div className="grid grid-cols-4 gap-2 mb-4">
+        {NOTES.map((n) => (
+          <button
+            key={n.note}
+            onClick={() => playNote(n.note)}
+            className={\`p-3 rounded-xl font-bold text-xs flex flex-col items-center justify-center transition-all active:scale-90 \${n.color} \${activeNote === n.note ? 'ring-4 ring-white/50 scale-105' : 'opacity-90 hover:opacity-100'}\`}
+          >
+            <span>{n.label}</span>
+            <span className="text-[10px] opacity-75 font-mono">{n.note}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="p-3 bg-slate-800 rounded-xl border border-slate-700 flex items-center justify-between">
+        <span className="text-xs text-slate-300">특수 사운드 FX</span>
+        <button
+          onClick={playLaser}
+          className="px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-xs font-bold rounded-lg active:scale-95 transition-all shadow"
+        >
+          💥 킥/베이스 사운드
+        </button>
+      </div>
+    </div>
+  );
+}
+`,
+    },
+  },
+  {
+    id: 'react-28-chromajs-palette-contrast',
+    title: '28. [라이브러리] Chroma.js 컬러 하모니 & WCAG 명도 대비 검사',
+    category: 'Frontend & UI',
+    language: 'react',
+    engine: 'react-live',
+    description:
+      'Chroma.js 색상 공간 변환(LAB, LCH), 보간(Interpolation) 및 WCAG 접근성 명도 대비 계산기',
+    mainFile: 'App.jsx',
+    tags: ['Chroma.js', 'Color Palette', 'WCAG Contrast', 'Design System'],
+    files: {
+      'App.jsx': `import React, { useState, useMemo } from 'react';
+import chroma from 'chroma-js';
+
+export default function App() {
+  const [baseColor, setBaseColor] = useState('#3b82f6');
+
+  // Chroma.js로 9단계 그라데이션 스케일 생성
+  const scale = useMemo(() => {
+    if (!window.chroma) return [];
+    return chroma.scale(['#ffffff', baseColor, '#0f172a']).mode('lch').colors(9);
+  }, [baseColor]);
+
+  // 배경 대비 텍스트 명도비 (WCAG) 계산
+  const contrastWhite = window.chroma ? chroma.contrast(baseColor, '#ffffff').toFixed(2) : 0;
+  const contrastBlack = window.chroma ? chroma.contrast(baseColor, '#000000').toFixed(2) : 0;
+
+  return (
+    <div className="p-6 font-sans max-w-md mx-auto bg-slate-50 rounded-2xl border border-slate-200">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h3 className="font-bold text-slate-800 text-base">🎨 Chroma.js 컬러 엔진</h3>
+          <p className="text-xs text-slate-500">LCH 보간 & WCAG 명도 대비</p>
+        </div>
+        <input
+          type="color"
+          value={baseColor}
+          onChange={(e) => setBaseColor(e.target.value)}
+          className="w-8 h-8 rounded-lg cursor-pointer border-0"
+        />
+      </div>
+
+      <div className="mb-4">
+        <label className="block text-xs font-semibold text-slate-700 mb-1.5">생성된 9단계 LCH 스케일</label>
+        <div className="flex h-10 rounded-xl overflow-hidden shadow-sm border border-slate-200">
+          {scale.map((c, i) => (
+            <div
+              key={i}
+              style={{ backgroundColor: c }}
+              title={c}
+              className="flex-1 flex items-end justify-center pb-1 text-[9px] font-mono text-slate-500 select-all"
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div
+          style={{ backgroundColor: baseColor, color: '#ffffff' }}
+          className="p-3.5 rounded-xl text-center shadow-sm"
+        >
+          <div className="text-xs font-semibold">흰색 텍스트</div>
+          <div className="text-lg font-bold mt-1">{contrastWhite} : 1</div>
+          <div className="text-[10px] opacity-80">{Number(contrastWhite) >= 4.5 ? '✅ WCAG AA 통과' : '❌ 명도 대비 부족'}</div>
+        </div>
+
+        <div
+          style={{ backgroundColor: baseColor, color: '#000000' }}
+          className="p-3.5 rounded-xl text-center shadow-sm"
+        >
+          <div className="text-xs font-semibold">검은색 텍스트</div>
+          <div className="text-lg font-bold mt-1">{contrastBlack} : 1</div>
+          <div className="text-[10px] opacity-80">{Number(contrastBlack) >= 4.5 ? '✅ WCAG AA 통과' : '❌ 명도 대비 부족'}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+`,
+    },
+  },
+  {
+    id: 'react-29-katex-marked-latex-editor',
+    title: '29. [라이브러리] KaTeX + Marked 실시간 마크다운 & 수식 에디터',
+    category: 'Frontend & UI',
+    language: 'react',
+    engine: 'react-live',
+    description:
+      'Marked.js 마크다운 렌더링 및 KaTeX LaTeX 수식 (\\int, \\sum, \\frac, \\sqrt) 실시간 렌더러',
+    mainFile: 'App.jsx',
+    tags: ['KaTeX', 'Marked', 'LaTeX', 'Markdown'],
+    files: {
+      'App.jsx': `import React, { useState, useEffect, useRef } from 'react';
+import katex from 'katex';
+import { marked } from 'marked';
+
+const DEFAULT_DOC = \`# 📐 양자역학 & 상대성 이론 공식
+- 아인슈타인 질량-에너지 등가: $E = mc^2$
+- 슈뢰딩거 파동 방정식: $i\\hbar \\frac{\\partial}{\\partial t} \\Psi = \\hat{H} \\Psi$
+- 가우스 정적분: $\\int_{-\\infty}^{\\infty} e^{-x^2} dx = \\sqrt{\\pi}$\`;
+
+export default function App() {
+  const [doc, setDoc] = useState(DEFAULT_DOC);
+  const previewRef = useRef(null);
+
+  useEffect(() => {
+    if (!previewRef.current || !window.marked || !window.katex) return;
+
+    let html = window.marked.parse(doc);
+
+    // Replace $formula$ with KaTeX rendered HTML
+    html = html.replace(/\\$([^$]+)\\$/g, (match, formula) => {
+      try {
+        return window.katex.renderToString(formula, { throwOnError: false });
+      } catch (err) {
+        return match;
+      }
+    });
+
+    previewRef.current.innerHTML = html;
+  }, [doc]);
+
+  return (
+    <div className="p-5 font-sans max-w-lg mx-auto bg-white rounded-2xl shadow-lg border border-slate-200">
+      <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+        <h3 className="font-bold text-slate-800 text-sm">📝 KaTeX + Marked LaTeX 수식 뷰어</h3>
+        <span className="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded font-semibold">LaTeX / KaTeX</span>
+      </div>
+
+      <textarea
+        rows={4}
+        value={doc}
+        onChange={(e) => setDoc(e.target.value)}
+        className="w-full text-xs font-mono p-2.5 bg-slate-50 border border-slate-200 rounded-xl mb-3 focus:outline-none focus:border-purple-500"
+      />
+
+      <div
+        ref={previewRef}
+        className="prose prose-sm max-w-none text-xs text-slate-700 p-4 bg-slate-50/50 rounded-xl border border-slate-100"
+      />
+    </div>
+  );
+}
+`,
+    },
+  },
+  {
+    id: 'react-30-qrcode-custom-generator',
+    title: '30. [라이브러리] QRCode.js 동적 QR 코드 생성기 & 다운로드',
+    category: 'Frontend & UI',
+    language: 'react',
+    engine: 'react-live',
+    description: 'QRCode.js를 활용한 URL / 텍스트 QR 코드 실시간 생성 및 색상 커스텀',
+    mainFile: 'App.jsx',
+    tags: ['QRCode', 'Canvas', 'Generator', 'Utility'],
+    files: {
+      'App.jsx': `import React, { useState, useEffect, useRef } from 'react';
+
+export default function App() {
+  const [text, setText] = useState('https://github.com/bloodstrawberry/ultra-office');
+  const [color, setColor] = useState('#0f172a');
+  const qrRef = useRef(null);
+
+  useEffect(() => {
+    if (!qrRef.current || !window.QRCode) return;
+    qrRef.current.innerHTML = '';
+    new window.QRCode(qrRef.current, {
+      text: text || 'https://google.com',
+      width: 140,
+      height: 140,
+      colorDark: color,
+      colorLight: '#ffffff',
+      correctLevel: window.QRCode.CorrectLevel.H,
+    });
+  }, [text, color]);
+
+  return (
+    <div className="p-6 font-sans max-w-sm mx-auto bg-white rounded-2xl shadow-xl border border-slate-200 text-center">
+      <h3 className="font-bold text-slate-800 text-base mb-1">📱 동적 QR 코드 생성기</h3>
+      <p className="text-xs text-slate-500 mb-4">텍스트나 링크를 입력하면 QR이 즉시 생성됩니다</p>
+
+      <div className="flex justify-center p-4 bg-slate-50 rounded-2xl border border-slate-100 mb-4">
+        <div ref={qrRef} className="shadow-sm p-2 bg-white rounded-lg" />
+      </div>
+
+      <div className="space-y-3 text-left">
+        <div>
+          <label className="block text-xs font-semibold text-slate-700 mb-1">QR 인코딩 텍스트/URL</label>
+          <input
+            type="text"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500"
+          />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-semibold text-slate-700">QR 패턴 색상</label>
+          <input
+            type="color"
+            value={color}
+            onChange={(e) => setColor(e.target.value)}
+            className="w-7 h-7 rounded-lg cursor-pointer border-0"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+`,
+    },
+  },
 ];

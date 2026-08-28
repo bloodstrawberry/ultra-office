@@ -865,4 +865,73 @@ Console.WriteLine("Done");
 `,
     },
   },
+  {
+    id: 'cs-21-linq-records-pattern-matching',
+    title: '21. [라이브러리] C# LINQ & Records (패턴 매칭 & 그룹 집계)',
+    category: 'Backend & Scripting',
+    language: 'csharp',
+    engine: 'wasm',
+    description:
+      'C# 10+ record 불변 객체, LINQ(GroupBy, Select, OrderByDescending) 및 switch 패턴 매칭',
+    mainFile: 'Program.cs',
+    tags: ['C#', '.NET', 'LINQ', 'Records', 'Pattern Matching'],
+    files: {
+      'Program.cs': `// ==========================================
+// 🔷 [21] C#: Records & LINQ 데이터 집계
+// ==========================================
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+// C# 불변 레코드 타입
+public record Transaction(string Id, string User, string Category, int Amount);
+
+public class Program
+{
+    public static void Main()
+    {
+        Console.WriteLine("\\033[96m✨ [C# LINQ & Records] 트랜잭션 집계 파이프라인\\033[0m");
+        Console.WriteLine("------------------------------------------");
+
+        var transactions = new List<Transaction>
+        {
+            new("TX101", "김철수", "IT", 150000),
+            new("TX102", "이영희", "도서", 25000),
+            new("TX103", "김철수", "IT", 320000),
+            new("TX104", "박지훈", "식품", 48000),
+            new("TX105", "이영희", "IT", 89000),
+            new("TX106", "최유진", "도서", 18000)
+        };
+
+        // 1. LINQ 카테고리별 그룹 집계
+        var categorySummary = transactions
+            .GroupBy(t => t.Category)
+            .Select(g => new
+            {
+                Category = g.Key,
+                Count = g.Count(),
+                TotalAmount = g.Sum(t => t.Amount)
+            })
+            .OrderByDescending(x => x.TotalAmount);
+
+        Console.WriteLine("[1] 카테고리별 매출 집계 (LINQ GroupBy):");
+        foreach (var item in categorySummary)
+        {
+            Console.WriteLine($"  • {item.Category,-6}: 총 {item.Count}건 | 합계: {item.TotalAmount:N0}원");
+        }
+
+        // 2. LINQ 사용자별 최대 결제액
+        var topUser = transactions
+            .GroupBy(t => t.User)
+            .Select(g => new { User = g.Key, TotalSpent = g.Sum(t => t.Amount) })
+            .OrderByDescending(x => x.TotalSpent)
+            .First();
+
+        Console.WriteLine($"\\n[2] VIP 고객 선정:");
+        Console.WriteLine($"  ➜ \\033[92m{topUser.User}\\033[0m님 (총 결제액: {topUser.TotalSpent:N0}원)");
+    }
+}
+`,
+    },
+  },
 ];

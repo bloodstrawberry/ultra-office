@@ -934,4 +934,515 @@ print("  ✨ 빌드 태스크 실행 순서:", " ➔ ".join(order))
 `,
     },
   },
+  {
+    id: 'py-21-sympy-calculus',
+    title: '21. [라이브러리] SymPy 기호 수학 (미적분 & 연립방정식)',
+    category: 'Python',
+    language: 'python',
+    engine: 'pyodide',
+    description: 'SymPy 기호 미분, 정적분/부정적분, 테일러 급수 전개 및 대수 방정식 대수적 해법',
+    mainFile: 'main.py',
+    tags: ['SymPy', 'Calculus', 'Symbolic Math', 'Algebra'],
+    files: {
+      'main.py': `# ==========================================
+# 🐍 [21] Python: SymPy 기호 수학 & 미적분
+# ==========================================
+import sympy as sp
+
+print("\\033[96m✨ [SymPy] 기호 수학 및 미적분 연산\\033[0m")
+print("-" * 45)
+
+x, y, z = sp.symbols('x y z')
+
+# 1. 기호 미분
+f = sp.sin(x) * sp.exp(x) + x**3
+df_dx = sp.diff(f, x)
+print(f"[1] 함수 f(x) = {f}")
+print(f"  ➜ 1계 도함수 f'(x): {df_dx}")
+
+# 2. 정적분 & 부정적분
+indef_integral = sp.integrate(sp.sin(x)**2, x)
+def_integral = sp.integrate(sp.exp(-x**2), (x, -sp.oo, sp.oo))
+print(f"\\n[2] 적분 연산:")
+print(f"  ➜ ∫ sin^2(x) dx = {indef_integral}")
+print(f"  ➜ ∫[-∞, ∞] e^(-x^2) dx = {def_integral} (가우스 적분 = √π)")
+
+# 3. 비선형 연립방정식 풀이
+eq1 = sp.Eq(x**2 + y**2, 25)
+eq2 = sp.Eq(x - y, 1)
+solutions = sp.solve((eq1, eq2), (x, y))
+print(f"\\n[3] 연립방정식 x^2+y^2=25, x-y=1 해:")
+for sol in solutions:
+    print(f"  ➜ (x, y) = ({sol[0]}, {sol[1]})")
+
+# 4. 테일러 급수 전개 (Taylor Series)
+series = sp.series(sp.cos(x), x, 0, 6)
+print(f"\\n[4] cos(x)의 x=0 기준 5차 테일러 전개: {series}")
+`,
+    },
+  },
+  {
+    id: 'py-22-sklearn-machine-learning',
+    title: '22. [라이브러리] Scikit-Learn 머신러닝 (의사결정나무 & 군집화)',
+    category: 'Python',
+    language: 'python',
+    engine: 'pyodide',
+    description: 'Scikit-Learn 분류 모델 학습, 정확도 평가 및 K-Means 비지도 군집화',
+    mainFile: 'main.py',
+    tags: ['Scikit-Learn', 'Machine Learning', 'Decision Tree', 'KMeans'],
+    files: {
+      'main.py': `# ==========================================
+# 🐍 [22] Python: Scikit-Learn 머신러닝
+# ==========================================
+import numpy as np
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.cluster import KMeans
+from sklearn.metrics import accuracy_score, classification_report
+
+print("\\033[96m⚡ [1] Iris 붓꽃 품종 분류 (Decision Tree)\\033[0m")
+iris = load_iris()
+X_train, X_test, y_train, y_test = train_test_split(
+    iris.data, iris.target, test_size=0.3, random_state=42
+)
+
+clf = DecisionTreeClassifier(max_depth=3, random_state=42)
+clf.fit(X_train, y_train)
+y_pred = clf.predict(X_test)
+
+acc = accuracy_score(y_test, y_pred)
+print(f"• 테스트 세트 정확도: \\033[92m{acc * 100:.2f}%\\033[0m")
+print("• 특성별 중요도:")
+for name, imp in zip(iris.feature_names, clf.feature_importances_):
+    print(f"  - {name}: {imp:.4f}")
+
+print("\\n\\033[96m⚡ [2] K-Means 비지도 군집화 (k=3)\\033[0m")
+kmeans = KMeans(n_clusters=3, random_state=42, n_init=10)
+cluster_labels = kmeans.fit_predict(iris.data)
+print(f"• 군집 중심 좌표 (1번 클러스터): {np.round(kmeans.cluster_centers_[0], 2)}")
+print(f"• 총 150개 데이터의 클러스터 분배 현황: {np.bincount(cluster_labels)}")
+`,
+    },
+  },
+  {
+    id: 'py-23-scipy-optimization',
+    title: '23. [라이브러리] SciPy 수치 최적화 (Curve Fitting & Minimize)',
+    category: 'Python',
+    language: 'python',
+    engine: 'pyodide',
+    description: 'SciPy 비선형 데이터 곡선 피팅, 다변수 손실 함수 수치 최적화',
+    mainFile: 'main.py',
+    tags: ['SciPy', 'Optimization', 'Curve Fitting', 'Numerical'],
+    files: {
+      'main.py': `# ==========================================
+# 🐍 [23] Python: SciPy 수치 최적화 & 통계
+# ==========================================
+import numpy as np
+from scipy.optimize import curve_fit, minimize
+from scipy import stats
+
+print("\\033[96m⚡ [1] 비선형 곡선 피팅 (Curve Fitting)\\033[0m")
+# 참 모델: y = a * exp(b * x)
+def exp_model(x, a, b):
+    return a * np.exp(b * x)
+
+# 가상 실험 데이터 생성 (노이즈 포함)
+np.random.seed(42)
+x_data = np.linspace(0, 4, 30)
+y_noisy = 2.5 * np.exp(0.8 * x_data) + np.random.normal(0, 0.4, len(x_data))
+
+popt, pcov = curve_fit(exp_model, x_data, y_noisy, p0=[1.0, 1.0])
+print(f"• 추정 파라미터: a = {popt[0]:.4f} (실제: 2.5), b = {popt[1]:.4f} (실제: 0.8)")
+
+print("\\n\\033[96m⚡ [2] 다변수 로젠브록 함수 최소화 (Rosenbrock Minimize)\\033[0m")
+# f(x, y) = (1-x)^2 + 100*(y - x^2)^2 (최솟점 (1, 1)에서 0)
+def rosenbrock(v):
+    x, y = v
+    return (1 - x)**2 + 100 * (y - x**2)**2
+
+res = minimize(rosenbrock, [0.0, 0.0], method='Nelder-Mead')
+print(f"• 최소점 탐색 결과: x = {res.x[0]:.4f}, y = {res.x[1]:.4f}")
+print(f"• 최솟값: {res.fun:.6e} (수렴 완료: {res.success})")
+
+print("\\n\\033[96m⚡ [3] 정규성 검정 (Shapiro-Wilk Test)\\033[0m")
+samples = np.random.normal(loc=0, scale=1, size=100)
+stat, p_val = stats.shapiro(samples)
+print(f"• 통계량: {stat:.4f}, p-value: {p_val:.4f} (정규분포 채택)")
+`,
+    },
+  },
+  {
+    id: 'py-24-networkx-graph-analysis',
+    title: '24. [라이브러리] NetworkX 그래프 & PageRank 중심성 분석',
+    category: 'Python',
+    language: 'python',
+    engine: 'pyodide',
+    description: 'NetworkX 복잡계 네트워크 생성, PageRank 알고리즘, 최단 경로 및 클러스터링 계수',
+    mainFile: 'main.py',
+    tags: ['NetworkX', 'Graph Theory', 'PageRank', 'Centrality'],
+    files: {
+      'main.py': `# ==========================================
+# 🐍 [24] Python: NetworkX 그래프 분석
+# ==========================================
+import networkx as nx
+
+print("\\033[96m✨ [NetworkX] 네트워크 그래프 & 중심성 분석\\033[0m")
+print("-" * 45)
+
+# 가상 소셜 네트워크 구성
+G = nx.Graph()
+edges = [
+    ("Alice", "Bob"), ("Alice", "Charlie"), ("Bob", "David"),
+    ("Charlie", "David"), ("David", "Eve"), ("Eve", "Frank"),
+    ("Frank", "Grace"), ("Grace", "Eve"), ("Charlie", "Eve")
+]
+G.add_edges_from(edges)
+
+print(f"• 네트워크 노드 수: {G.number_of_nodes()}명 | 엣지 수: {G.number_of_edges()}개")
+
+# 1. PageRank 알고리즘
+pagerank = nx.pagerank(G, alpha=0.85)
+print("\\n[1] PageRank 영향력 순위:")
+sorted_pr = sorted(pagerank.items(), key=lambda x: x[1], reverse=True)
+for rank, (node, score) in enumerate(sorted_pr, 1):
+    print(f"  {rank}. {node:7s}: {score:.4f}")
+
+# 2. 매개 중심성 (Betweenness Centrality)
+betweenness = nx.betweenness_centrality(G)
+top_bridge = max(betweenness.items(), key=lambda x: x[1])
+print(f"\\n[2] 가장 중요한 허브 브릿지 노드: \\033[92m{top_bridge[0]}\\033[0m (매개도: {top_bridge[1]:.4f})")
+
+# 3. 최단 경로 (Alice ➔ Frank)
+path = nx.shortest_path(G, source="Alice", target="Frank")
+print(f"\\n[3] Alice에서 Frank까지 최단 친구 경로:")
+print("  ➜ " + " ➔ ".join(path))
+`,
+    },
+  },
+  {
+    id: 'py-25-pillow-image-art',
+    title: '25. [라이브러리] Pillow (PIL) 이미지 생성 & ASCII 아트 변환',
+    category: 'Python',
+    language: 'python',
+    engine: 'pyodide',
+    description: 'Pillow 라이브러리를 활용한 가상 캔버스 그래픽 드로잉 및 콘솔 ASCII 아트',
+    mainFile: 'main.py',
+    tags: ['Pillow', 'PIL', 'ASCII Art', 'Image Processing'],
+    files: {
+      'main.py': `# ==========================================
+# 🐍 [25] Python: Pillow (PIL) 이미지 & ASCII 아트
+# ==========================================
+from PIL import Image, ImageDraw
+import numpy as np
+
+print("\\033[96m✨ [Pillow] 이미지 생성 & 콘솔 렌더링\\033[0m")
+print("-" * 45)
+
+# 1. 가상 캔버스 생성 (32x16 흑백)
+W, H = 32, 16
+img = Image.new('L', (W, H), color=0)
+draw = ImageDraw.Draw(img)
+
+# 그라데이션 원 & 다이아몬드 그리기
+draw.ellipse([4, 2, 28, 14], fill=180, outline=255)
+draw.polygon([(16, 2), (28, 8), (16, 14), (4, 8)], outline=255, fill=220)
+
+# 2. 픽셀 데이터를 ASCII 문자로 변환
+ascii_chars = " .:-=+*#%@"
+pixels = np.array(img)
+
+print("[Pillow 생성 이미지 ➔ ASCII 콘솔 뷰]")
+for row in pixels:
+    line = "".join(ascii_chars[int(p / 255 * (len(ascii_chars) - 1))] for p in row)
+    print("  " + line)
+
+print(f"\\n• 이미지 규격: {W}x{H} 픽셀 (포맷: {img.mode})")
+print("• Pillow 이미지 객체 생성 및 분석 완료!")
+`,
+    },
+  },
+  {
+    id: 'py-26-beautifulsoup-html-parser',
+    title: '26. [라이브러리] BeautifulSoup4 (bs4) HTML 파싱 & 웹 스크래핑',
+    category: 'Python',
+    language: 'python',
+    engine: 'pyodide',
+    description: 'bs4 파서, CSS 셀렉터 쿼리, 테이블 데이터 정제 및 메타데이터 추출',
+    mainFile: 'main.py',
+    tags: ['BeautifulSoup', 'bs4', 'HTML Parser', 'Web Scraping'],
+    files: {
+      'main.py': `# ==========================================
+# 🐍 [26] Python: BeautifulSoup (bs4) HTML 파싱
+# ==========================================
+from bs4 import BeautifulSoup
+
+html_doc = """
+<!DOCTYPE html>
+<html>
+<head><title>인기 기술 트렌드 2026</title></head>
+<body>
+  <div class="container">
+    <h1 id="main-title">Top 개발자 언어 & 프레임워크</h1>
+    <ul class="ranking-list">
+      <li class="item" data-stars="98000"><span class="name">Python 3</span> (Pyodide Wasm)</li>
+      <li class="item" data-stars="92000"><span class="name">TypeScript</span> (WebContainer)</li>
+      <li class="item" data-stars="89000"><span class="name">Rust</span> (Wasm Engine)</li>
+      <li class="item" data-stars="78000"><span class="name">Go</span> (Golang Wasm)</li>
+    </ul>
+    <div class="footer">데이터 집계일: 2026-08-28</div>
+  </div>
+</body>
+</html>
+"""
+
+soup = BeautifulSoup(html_doc, 'html.parser')
+
+print("\\033[96m✨ [BeautifulSoup] HTML 파싱 분석 결과\\033[0m")
+print("-" * 45)
+
+title = soup.title.string
+h1 = soup.find('h1', id='main-title').text
+print(f"• 문서 제목: {title}")
+print(f"• 메인 헤더: {h1}\\n")
+
+print("[인기 기술 순위 추출]")
+items = soup.select('.ranking-list .item')
+for idx, item in enumerate(items, 1):
+    name = item.find('span', class_='name').text
+    stars = int(item.get('data-stars', 0))
+    full_text = item.get_text(strip=True)
+    print(f"  {idx}. {name:12s} | Star: {stars:,}개 ({full_text})")
+`,
+    },
+  },
+  {
+    id: 'py-27-statsmodels-ols-regression',
+    title: '27. [라이브러리] statsmodels 선형 회귀 분석 & 통계 검정',
+    category: 'Python',
+    language: 'python',
+    engine: 'pyodide',
+    description: 'statsmodels OLS 다중 회귀 모델 적합, R-squared, t-통계량 및 p-value 분석',
+    mainFile: 'main.py',
+    tags: ['statsmodels', 'Regression', 'Statistics', 'Econometrics'],
+    files: {
+      'main.py': `# ==========================================
+# 🐍 [27] Python: statsmodels OLS 회귀분석
+# ==========================================
+import numpy as np
+import statsmodels.api as sm
+
+print("\\033[96m✨ [statsmodels] OLS 선형 회귀분석\\033[0m")
+print("-" * 45)
+
+# 가상 데이터 생성: 광고비(TV, Radio)에 따른 매출액 예측
+np.random.seed(42)
+n_samples = 50
+tv_ad = np.random.uniform(10, 100, n_samples)
+radio_ad = np.random.uniform(5, 50, n_samples)
+noise = np.random.normal(0, 5, n_samples)
+
+# 실제 관계: Sales = 15 + 0.45*TV + 0.75*Radio + noise
+sales = 15 + 0.45 * tv_ad + 0.75 * radio_ad + noise
+
+# 독립변수 행렬 (상수항 절편 추가)
+X = np.column_stack((tv_ad, radio_ad))
+X = sm.add_constant(X)
+
+# OLS 모델 피팅
+model = sm.OLS(sales, X)
+results = model.fit()
+
+print(f"• 모델 결정계수 (R-squared): \\033[92m{results.rsquared:.4f}\\033[0m")
+print(f"• F-통계량 p-value: {results.f_pvalue:.4e}")
+print("\\n[추정 회귀 계수 (Coefficients)]")
+param_names = ["절편(Const)", "TV 광고비", "Radio 광고비"]
+for name, coef, pval in zip(param_names, results.params, results.pvalues):
+    print(f"  • {name:12s}: 계수 = {coef:8.4f} | p-value = {pval:.4e}")
+`,
+    },
+  },
+  {
+    id: 'py-28-mpmath-high-precision',
+    title: '28. [라이브러리] mpmath 100자리 초고정밀도 수학 연산',
+    category: 'Python',
+    language: 'python',
+    engine: 'pyodide',
+    description: 'mpmath 임의 정밀도 부동소수점, 원주율 100자리 출력, 리만 제타 함수 및 감마 함수',
+    mainFile: 'main.py',
+    tags: ['mpmath', 'High Precision', 'Riemann Zeta', 'Mathematics'],
+    files: {
+      'main.py': `# ==========================================
+# 🐍 [28] Python: mpmath 100자리 고정밀도 수학
+# ==========================================
+import mpmath as mp
+
+# 100자리 정밀도 설정
+mp.mp.dps = 100
+
+print("\\033[96m✨ [mpmath] 임의 정밀도 (100-digit) 연산\\033[0m")
+print("-" * 55)
+
+print("[1] 원주율 (Pi) 100자리:")
+print(f"  ➜ {mp.pi}")
+
+print("\\n[2] 자연상수 (e) 100자리:")
+print(f"  ➜ {mp.e}")
+
+# 리만 제타 함수 zeta(2) = pi^2 / 6
+zeta_2 = mp.zeta(2)
+pi_sq_6 = (mp.pi ** 2) / 6
+diff = mp.fabs(zeta_2 - pi_sq_6)
+
+print("\\n[3] 리만 제타 함수 ζ(2) 검증:")
+print(f"  • ζ(2)     = {zeta_2}")
+print(f"  • π²/6     = {pi_sq_6}")
+print(f"  • 정밀 오차 = {diff} (완벽 일치!)")
+`,
+    },
+  },
+  {
+    id: 'py-29-sqlite3-in-memory-db',
+    title: '29. [라이브러리] sqlite3 인메모리 RDBMS & 트랜잭션',
+    category: 'Python',
+    language: 'python',
+    engine: 'pyodide',
+    description:
+      'Python 내장 sqlite3 모듈을 활용한 메모리 DB 생성, 외래키 제약조건 및 트랜잭션 롤백/커밋',
+    mainFile: 'main.py',
+    tags: ['sqlite3', 'Database', 'SQL in Python', 'Transactions'],
+    files: {
+      'main.py': `# ==========================================
+# 🐍 [29] Python: sqlite3 인메모리 RDBMS
+# ==========================================
+import sqlite3
+
+print("\\033[96m✨ [sqlite3] Python 메모리 데이터베이스\\033[0m")
+print("-" * 45)
+
+# 인메모리 DB 연결
+conn = sqlite3.connect(":memory:")
+cursor = conn.cursor()
+
+# 테이블 생성
+cursor.execute("""
+CREATE TABLE developers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    role TEXT NOT NULL,
+    salary INTEGER
+);
+""")
+
+# 데이터 다중 삽입 (executemany)
+devs = [
+    ("홍길동", "Frontend", 7500),
+    ("김철수", "Backend", 8200),
+    ("이영희", "DevOps", 9100),
+    ("박지훈", "AI/ML", 9800),
+]
+cursor.executemany("INSERT INTO developers (name, role, salary) VALUES (?, ?, ?);", devs)
+conn.commit()
+
+# 집계 쿼리 실행
+cursor.execute("""
+SELECT 
+    role, 
+    COUNT(*) AS count, 
+    AVG(salary) AS avg_sal 
+FROM developers 
+GROUP BY role 
+ORDER BY avg_sal DESC;
+""")
+
+print("[개발자 직군별 평균 급여 집계]")
+for row in cursor.fetchall():
+    print(f"  • {row[0]:10s}: {row[1]}명 | 평균 {row[2]:,.0f}만원")
+
+conn.close()
+`,
+    },
+  },
+  {
+    id: 'py-30-pydantic-schema-validation',
+    title: '30. [라이브러리] Pydantic 데이터 검증 & 직렬화 모델',
+    category: 'Python',
+    language: 'python',
+    engine: 'pyodide',
+    description: 'Pydantic BaseModel, Field 제약조건, 이메일/정수 검증 및 JSON Schema 내보내기',
+    mainFile: 'main.py',
+    tags: ['Pydantic', 'Data Validation', 'Type Hinting', 'Schema'],
+    files: {
+      'main.py': `# ==========================================
+# 🐍 [30] Python: Pydantic 데이터 검증
+# ==========================================
+from pydantic import BaseModel, Field, ValidationError
+from typing import List, Optional
+
+print("\\033[96m✨ [Pydantic] 타입 검증 & 모델 파싱\\033[0m")
+print("-" * 45)
+
+class ServerConfig(BaseModel):
+    hostname: str = Field(..., min_length=3)
+    port: int = Field(default=8080, ge=1024, le=65535)
+    tags: List[str] = Field(default_factory=list)
+    is_active: bool = True
+    cpu_limit: Optional[float] = 4.0
+
+# 1. 올바른 페이로드 파싱
+valid_payload = {
+    "hostname": "prod-api-server-01",
+    "port": 4430,
+    "tags": ["cloud", "k8s", "asia-seoul"],
+    "is_active": True
+}
+server = ServerConfig(**valid_payload)
+print("[1] 정상 인스턴스 생성:")
+print(f"  • 호스트명: {server.hostname} (포트: {server.port})")
+print(f"  • JSON 직렬화: {server.model_dump_json()}\\n")
+
+# 2. 유효하지 않은 데이터 검증 에러 포착
+print("[2] 비정상 데이터 유효성 검사:")
+try:
+    ServerConfig(hostname="ab", port=80) # 포트 1024 미만, 호스트명 3자 미만
+except ValidationError as e:
+    print(f"  \\033[91mValidation Error 포착 ({len(e.errors())}건):\\033[0m")
+    for err in e.errors():
+        print(f"  - 필드 '{err['loc'][0]}': {err['msg']}")
+`,
+    },
+  },
+  {
+    id: 'py-31-tabulate-pygments-terminal',
+    title: '31. [라이브러리] Tabulate & Pygments 콘솔 포맷터',
+    category: 'Python',
+    language: 'python',
+    engine: 'pyodide',
+    description: 'Tabulate를 이용한 ASCII/Grid 테이블 출력 및 Pygments 구문 하이라이트 토큰화',
+    mainFile: 'main.py',
+    tags: ['Tabulate', 'Pygments', 'CLI', 'Formatting'],
+    files: {
+      'main.py': `# ==========================================
+# 🐍 [31] Python: Tabulate 표 포맷터
+# ==========================================
+from tabulate import tabulate
+
+table_data = [
+    ["Python 3.12", "Pyodide Wasm", "Active", 98.5],
+    ["TypeScript", "WebContainer", "Active", 99.2],
+    ["Lua 5.3", "Fengari Wasm", "Active", 94.0],
+    ["Ruby 3.3", "Opal Wasm", "Active", 91.8],
+    ["Rust Wasm", "Binaryen", "Active", 99.9],
+]
+
+headers = ["언어", "런타임 엔진", "상태", "가용성(%)"]
+
+print("\\033[96m✨ [Tabulate] 터미널 그리드 테이블\\033[0m")
+print(tabulate(table_data, headers=headers, tablefmt="fancy_grid"))
+
+print("\\n\\033[96m✨ [Tabulate] GitHub 마크다운 포맷\\033[0m")
+print(tabulate(table_data, headers=headers, tablefmt="github"))
+`,
+    },
+  },
 ];

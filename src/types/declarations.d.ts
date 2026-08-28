@@ -75,3 +75,16 @@ declare module '@mediapipe/tasks-vision' {
   export const FilesetResolver: any;
   export const FaceDetector: any;
 }
+
+declare module 'plotly.js-dist-min' {
+  import * as Plotly from 'plotly.js';
+
+  export default Plotly;
+}
+
+declare module 'react-plotly.js/factory' {
+  import type * as React from 'react';
+  import type { PlotParams } from 'react-plotly.js';
+
+  export default function createPlotlyComponent(plotly: any): React.ComponentType<PlotParams>;
+}

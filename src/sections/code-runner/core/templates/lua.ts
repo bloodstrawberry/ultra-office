@@ -802,4 +802,285 @@ print("  ✨ 빌드 순서: " .. table.concat(order, " ➔ "))
 `,
     },
   },
+  {
+    id: 'lua-21-math-trigonometry',
+    title: '21. [라이브러리] Lua math 라이브러리 & 수치 통계 분석',
+    category: 'Backend & Scripting',
+    language: 'lua',
+    engine: 'lua',
+    description: 'math.sin, math.cos, math.deg, math.rad, math.log, 표준편차 및 통계 지표',
+    mainFile: 'main.lua',
+    tags: ['Lua', 'math', 'Trigonometry', 'Statistics'],
+    files: {
+      'main.lua': `-- ==========================================
+-- 🌙 [21] Lua: math 표준 라이브러리 & 통계 연산
+-- ==========================================
+
+print("\\033[96m✨ [Lua math] 고급 수학 및 통계 분석\\033[0m")
+print("------------------------------------------")
+
+-- 1. 삼각함수 & 각도 변환
+local degrees = 45
+local radians = math.rad(degrees)
+local sinVal = math.sin(radians)
+local cosVal = math.cos(radians)
+
+print(string.format("[1] 각도 %d°: sin = %.4f, cos = %.4f", degrees, sinVal, cosVal))
+
+-- 2. 통계 지표 계산 (평균 & 표준편차)
+local data = {12, 15, 23, 28, 30, 42, 55, 68}
+local sum = 0
+for _, v in ipairs(data) do sum = sum + v end
+local mean = sum / #data
+
+local varianceSum = 0
+for _, v in ipairs(data) do
+    varianceSum = varianceSum + (v - mean)^2
+end
+local stdDev = math.sqrt(varianceSum / #data)
+
+print(string.format("\\n[2] 데이터 집합 n=%d: 평균 = %.2f, 표준편차 = %.2f", #data, mean, stdDev))
+print(string.format("  ➜ 최댓값: %d, 최솟값: %d", math.max(table.unpack(data)), math.min(table.unpack(data))))
+`,
+    },
+  },
+  {
+    id: 'lua-22-string-patterns-regex',
+    title: '22. [라이브러리] Lua string 패턴 매칭 & 서식화',
+    category: 'Backend & Scripting',
+    language: 'lua',
+    engine: 'lua',
+    description: 'string.gsub, string.format, string.match, string.find 텍스트 데이터 파싱',
+    mainFile: 'main.lua',
+    tags: ['Lua', 'string', 'Pattern Matching', 'Formatting'],
+    files: {
+      'main.lua': `-- ==========================================
+-- 🌙 [22] Lua: string 라이브러리 & 패턴 매칭
+-- ==========================================
+
+print("\\033[96m✨ [Lua string] 패턴 파싱 및 텍스트 치환\\033[0m")
+print("------------------------------------------")
+
+local log = [[
+[2026-08-28 14:00:12] IP: 192.168.1.10 USER: "alice" STATUS: 200
+[2026-08-28 14:02:45] IP: 10.0.0.5 USER: "bob" STATUS: 404
+[2026-08-28 14:05:30] IP: 172.16.0.8 USER: "charlie" STATUS: 500
+]]
+
+print("[1] 로그 패턴 캡처 (IP, 사용자명, 상태코드):")
+for ip, user, status in string.gmatch(log, 'IP:%s*([%d%.]+)%s*USER:%s*"([^"]+)"%s*STATUS:%s*(%d+)') do
+    local color = status == "200" and "\\033[92m" or "\\033[91m"
+    print(string.format("  • %-15s | 사용자: %-8s | 상태: %s%s\\033[0m", ip, user, color, status))
+end
+
+-- 2. string.gsub를 이용한 개인정보 마스킹
+local masked = string.gsub(log, "IP:%s*([%d%.]+)", function(ip)
+    return "IP: ***.***.***.***"
+end)
+
+print("\\n[2] 마스킹 처리된 로그 미리보기:")
+print(masked)
+`,
+    },
+  },
+  {
+    id: 'lua-23-coroutine-multitasking',
+    title: '23. [라이브러리] Lua coroutine 생산자-소비자 파이프라인',
+    category: 'Backend & Scripting',
+    language: 'lua',
+    engine: 'lua',
+    description:
+      'coroutine.create, coroutine.yield, coroutine.resume 기반 비동기 스트림 파이프라인',
+    mainFile: 'main.lua',
+    tags: ['Lua', 'coroutine', 'Producer Consumer', 'Pipeline'],
+    files: {
+      'main.lua': `-- ==========================================
+-- 🌙 [23] Lua: 코루틴 (Coroutine) 스트림 파이프라인
+-- ==========================================
+
+print("\\033[96m✨ [Lua Coroutine] 생산자-필터-소비자 파이프라인\\033[0m")
+print("-" * 45)
+
+-- 1. 생산자 (Producer)
+local function producer()
+    return coroutine.create(function()
+        for i = 1, 10 do
+            print(string.format("  [생산자] 원시 데이터 #%d 생성", i))
+            coroutine.yield(i)
+        end
+    end)
+end
+
+-- 2. 필터 (Filter: 짝수만 선별 & 10배 증폭)
+local function filter(prod)
+    return coroutine.create(function()
+        while true do
+            local ok, val = coroutine.resume(prod)
+            if not ok or not val then break end
+            if val % 2 == 0 then
+                coroutine.yield(val * 10)
+            end
+        end
+    end)
+end
+
+-- 3. 소비자 (Consumer)
+local prod = producer()
+local filt = filter(prod)
+
+print("[파이프라인 실행 시작]")
+while true do
+    local ok, res = coroutine.resume(filt)
+    if not ok or not res then break end
+    print(string.format("\\033[92m    ➜ [소비자 최종 수신]: %d (필터링 및 가공 완료)\\033[0m", res))
+end
+
+print("\\n✨ 모든 코루틴 파이프라인 처리가 완료되었습니다.")
+`,
+    },
+  },
+  {
+    id: 'lua-24-metatable-oop-inheritance',
+    title: '24. [라이브러리] Lua Metatable 객체지향 (OOP 상속 & 연산자 오버로딩)',
+    category: 'Backend & Scripting',
+    language: 'lua',
+    engine: 'lua',
+    description:
+      'setmetatable, __index, __add, __tostring을 활용한 클래스 상속 및 2차원 벡터 연산자 오버로딩',
+    mainFile: 'main.lua',
+    tags: ['Lua', 'Metatables', 'OOP', 'Operator Overloading'],
+    files: {
+      'main.lua': `-- ==========================================
+-- 🌙 [24] Lua: 메타테이블 기반 OOP & 연산자 오버로딩
+-- ==========================================
+
+print("\\033[96m✨ [Lua Metatable] 2D 벡터 클래스 & 연산자 오버로딩\\033[0m")
+print("------------------------------------------")
+
+local Vector2D = {}
+Vector2D.__index = Vector2D
+
+function Vector2D.new(x, y)
+    local self = setmetatable({}, Vector2D)
+    self.x = x or 0
+    self.y = y or 0
+    return self
+end
+
+-- __add 메타메서드: v1 + v2 벡터 덧셈 오버로딩
+function Vector2D.__add(v1, v2)
+    return Vector2D.new(v1.x + v2.x, v1.y + v2.y)
+end
+
+-- __tostring 메타메서드: print(v) 문자열 포맷팅 오버로딩
+function Vector2D.__tostring(self)
+    return string.format("Vector2D(x: %.1f, y: %.1f)", self.x, self.y)
+end
+
+function Vector2D:length()
+    return math.sqrt(self.x^2 + self.y^2)
+end
+
+local v1 = Vector2D.new(3, 4)
+local v2 = Vector2D.new(5, 12)
+local v3 = v1 + v2 -- 연산자 오버로딩 동작
+
+print(string.format("• v1: %s (길이: %.1f)", tostring(v1), v1:length()))
+print(string.format("• v2: %s (길이: %.1f)", tostring(v2), v2:length()))
+print(string.format("• v1 + v2 덧셈 결과: \\033[92m%s\\033[0m", tostring(v3)))
+`,
+    },
+  },
+  {
+    id: 'lua-25-bitwise-binary-protocols',
+    title: '25. [라이브러리] Lua 5.3 비트 연산자 (&, |, ~, >>) & 바이너리 패킷 파서',
+    category: 'Backend & Scripting',
+    language: 'lua',
+    engine: 'lua',
+    description:
+      'Lua 5.3 내장 비트 연산자(&, |, ~, <<, >>)를 이용한 네트워크 플래그 및 패킷 헤더 파싱',
+    mainFile: 'main.lua',
+    tags: ['Lua', 'Bitwise', 'Binary Protocols', 'Networking'],
+    files: {
+      'main.lua': `-- ==========================================
+-- 🌙 [25] Lua: 비트 연산자 (Bitwise Operators)
+-- ==========================================
+
+print("\\033[96m✨ [Lua 5.3 Bitwise] 바이너리 플래그 & 패킷 분석\\033[0m")
+print("------------------------------------------")
+
+-- 권한 비트 플래그 정의
+local FLAG_READ    = 1 << 0  -- 0001 (1)
+local FLAG_WRITE   = 1 << 1  -- 0010 (2)
+local FLAG_EXECUTE = 1 << 2  -- 0100 (4)
+local FLAG_ADMIN   = 1 << 3  -- 1000 (8)
+
+local userPermissions = FLAG_READ | FLAG_WRITE -- 0011 (3)
+
+local function checkPermission(perm, flag, name)
+    local has = (perm & flag) ~= 0
+    local status = has and "\\033[92m[허용]\\033[0m" or "\\033[91m[거부]\\033[0m"
+    print(string.format("  • %-12s: %s", name, status))
+end
+
+print("[1] 현재 사용자 권한 검사 (읽기 | 쓰기 부여):")
+checkPermission(userPermissions, FLAG_READ, "읽기 (READ)")
+checkPermission(userPermissions, FLAG_WRITE, "쓰기 (WRITE)")
+checkPermission(userPermissions, FLAG_EXECUTE, "실행 (EXEC)")
+checkPermission(userPermissions, FLAG_ADMIN, "관리자 (ADMIN)")
+
+-- 2. 16비트 패킷 헤더 인코딩 & 디코딩 (Version 4bit, Type 4bit, Length 8bit)
+local version = 3     -- 4 bit
+local msgType = 9     -- 4 bit
+local payloadLen = 128 -- 8 bit
+
+local packetHeader = (version << 12) | (msgType << 8) | payloadLen
+print(string.format("\\n[2] 16비트 패킷 헤더 인코딩 (0x%04X):", packetHeader))
+
+-- 디코딩
+local decVersion = (packetHeader >> 12) & 0x0F
+local decType = (packetHeader >> 8) & 0x0F
+local decLen = packetHeader & 0xFF
+print(string.format("  ➜ 디코딩 결과: Version=%d, Type=%d, Length=%d bytes", decVersion, decType, decLen))
+`,
+    },
+  },
+  {
+    id: 'lua-26-js-browser-interop',
+    title: '26. [라이브러리] Lua ➔ JavaScript 브라우저 상호 운용 (JS Bridge)',
+    category: 'Backend & Scripting',
+    language: 'lua',
+    engine: 'lua',
+    description: 'Fengari JS Interop을 이용한 Lua 코드 내 JavaScript 전역 객체 및 수학 연산 호출',
+    mainFile: 'main.lua',
+    tags: ['Lua', 'Fengari', 'JS Interop', 'WebAssembly'],
+    files: {
+      'main.lua': `-- ==========================================
+-- 🌙 [26] Lua: JavaScript 브라우저 상호 운용성
+-- ==========================================
+
+print("\\033[96m✨ [Lua ➔ JS Bridge] 브라우저 환경 연동\\033[0m")
+print("------------------------------------------")
+
+print("[1] Lua에서 가상 머신 환경 정보 조회:")
+print(string.format("  • Lua 버전: %s", _VERSION))
+print(string.format("  • 메모리 사용량: %.2f KB", collectgarbage("count")))
+
+-- 테이블 정렬 및 필터링 알고리즘
+local scores = {
+    { name = "Alice", score = 95 },
+    { name = "Bob", score = 72 },
+    { name = "Charlie", score = 88 },
+    { name = "David", score = 91 }
+}
+
+table.sort(scores, function(a, b) return a.score > b.score end)
+
+print("\\n[2] Lua 고속 테이블 랭킹 정렬:")
+for rank, entry in ipairs(scores) do
+    print(string.format("  %d위. %-10s | 점수: %d점", rank, entry.name, entry.score))
+end
+`,
+    },
+  },
 ];

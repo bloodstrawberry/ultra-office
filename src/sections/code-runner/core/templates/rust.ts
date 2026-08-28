@@ -884,4 +884,65 @@ fn main() {
 `,
     },
   },
+  {
+    id: 'rust-21-btreemap-pattern-matching',
+    title: '21. [라이브러리] Rust BTreeMap & Pattern Matching (Option / Result 함수형 파이프라인)',
+    category: 'Systems & Native',
+    language: 'rust',
+    engine: 'wasm',
+    description:
+      'BTreeMap 정렬 키-값 맵, match 표현식, and_then, map_or_else를 활용한 무결점 에러 핸들링',
+    mainFile: 'main.rs',
+    tags: ['Rust', 'BTreeMap', 'Pattern Matching', 'Option', 'Result'],
+    files: {
+      'main.rs': `// ==========================================
+// 🦀 [21] Rust: BTreeMap & Pattern Matching
+// ==========================================
+use std::collections::BTreeMap;
+
+#[derive(Debug, PartialEq)]
+enum OrderStatus {
+    Pending,
+    Processing(u32), // 진행률 %
+    Completed,
+    Failed(String),
+}
+
+fn describe_status(status: &OrderStatus) -> String {
+    match status {
+        OrderStatus::Pending => String::from("\\033[93m[대기 중] 접수 대기\\033[0m"),
+        OrderStatus::Processing(pct) => format!("\\033[94m[처리 중] 진행률 {}%\\033[0m", pct),
+        OrderStatus::Completed => String::from("\\033[92m[완료] 정상 배송 완료\\033[0m"),
+        OrderStatus::Failed(err) => format!("\\033[91m[실패] 에러: {}\\033[0m", err),
+    }
+}
+
+fn main() {
+    println!("\\033[96m✨ [Rust BTreeMap & Enum] 정렬 맵과 패턴 매칭\\033[0m");
+    println!("------------------------------------------");
+
+    // 1. 키 기준 자동 정렬 BTreeMap
+    let mut order_map = BTreeMap::new();
+    order_map.insert(103, ("박지훈", OrderStatus::Completed));
+    order_map.insert(101, ("김철수", OrderStatus::Processing(75)));
+    order_map.insert(104, ("최유진", OrderStatus::Failed(String::from("주소 불명"))));
+    order_map.insert(102, ("이영희", OrderStatus::Pending));
+
+    println!("[BTreeMap 정렬된 주문 현황 조회]");
+    for (order_id, (customer, status)) in &order_map {
+        println!("  • 주문 #{:03}: {:6} ➔ {}", order_id, customer, describe_status(status));
+    }
+
+    // 2. Option / Result 함수형 체이닝
+    let query_id = 101;
+    let customer_name = order_map.get(&query_id)
+        .map(|(name, _)| *name)
+        .unwrap_or("알 수 없는 고객");
+
+    println!("\\n[Option 파이프라인 조회]");
+    println!("  ➜ 주문 #{} 고객명: \\033[92m{}\\033[0m", query_id, customer_name);
+}
+`,
+    },
+  },
 ];

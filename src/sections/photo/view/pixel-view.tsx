@@ -25,12 +25,12 @@ import {
   renderGenericSplitComparisonImage,
 } from '../utils/image-processor';
 import {
+  type SplitMode,
   PhotoUploadWorkspace,
   PhotoCompareViewport,
-  type SplitMode,
+  type SampleImageItem,
   type SplitOrientation,
   type ComparePreviewMode,
-  type SampleImageItem,
 } from '../components';
 
 const PIXEL_SAMPLE_IMAGES: SampleImageItem[] = [

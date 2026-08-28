@@ -968,4 +968,73 @@ int main() {
 `,
     },
   },
+  {
+    id: 'cpp-21-modern-cpp20-ranges',
+    title: '21. [라이브러리] Modern C++20/17 (std::optional, std::variant & 알고리즘 파이프라인)',
+    category: 'Systems & Native',
+    language: 'cpp',
+    engine: 'wasm',
+    description:
+      'std::optional 안전한 널 처리, std::variant 타입 안전 유니온 및 함수형 알고리즘 파이프라인',
+    mainFile: 'main.cpp',
+    tags: ['C++', 'C++20', 'STL', 'optional', 'variant'],
+    files: {
+      'main.cpp': `// ==========================================
+// 🚀 [21] C++: Modern C++ STL (optional & variant)
+// ==========================================
+#include <iostream>
+#include <vector>
+#include <string>
+#include <optional>
+#include <variant>
+#include <numeric>
+#include <algorithm>
+
+// 1. std::optional을 통한 안전한 나눗셈
+std::optional<double> safeDivide(double a, double b) {
+    if (b == 0.0) return std::nullopt;
+    return a / b;
+}
+
+// 2. std::variant 타입 안전 다형성
+using ApiResponse = std::variant<std::string, int, double>;
+
+void printResponse(const ApiResponse& resp) {
+    std::visit([](const auto& arg) {
+        std::cout << "  • 응답 페이로드 값: " << arg << "\\n";
+    }, resp);
+}
+
+int main() {
+    std::cout << "\\033[96m✨ [Modern C++] std::optional & std::variant\\033[0m\\n";
+    std::cout << "------------------------------------------\\n";
+
+    // Optional 테스트
+    auto res1 = safeDivide(100.0, 4.0);
+    auto res2 = safeDivide(100.0, 0.0);
+
+    std::cout << "[1] std::optional 안전 연산:\\n";
+    if (res1) std::cout << "  ➜ 100 / 4 = " << *res1 << "\\n";
+    if (!res2) std::cout << "  ➜ 100 / 0 = \\033[91m[0으로 나눌 수 없음 nullopt]\\033[0m\\n";
+
+    // Variant 테스트
+    std::cout << "\\n[2] std::variant 다형 페이로드:\\n";
+    ApiResponse r1 = std::string("Success: 200 OK");
+    ApiResponse r2 = 42;
+    ApiResponse r3 = 99.98;
+
+    printResponse(r1);
+    printResponse(r2);
+    printResponse(r3);
+
+    // 함수형 std::accumulate 집계
+    std::vector<int> nums = {10, 20, 30, 40, 50};
+    int total = std::accumulate(nums.begin(), nums.end(), 0);
+    std::cout << "\\n[3] STL accumulate 총합: \\033[92m" << total << "\\033[0m\\n";
+
+    return 0;
+}
+`,
+    },
+  },
 ];

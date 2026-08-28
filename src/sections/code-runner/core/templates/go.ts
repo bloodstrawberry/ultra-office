@@ -1017,4 +1017,85 @@ func main() {
 `,
     },
   },
+  {
+    id: 'go-21-concurrency-worker-pool',
+    title: '21. [라이브러리] Go Concurrency (Goroutines, Channels & Worker Pool)',
+    category: 'Systems & Native',
+    language: 'go',
+    engine: 'wasm',
+    description:
+      'sync.WaitGroup과 버퍼드 채널을 활용한 고성능 비동기 워커 풀(Worker Pool) 작업 분배',
+    mainFile: 'main.go',
+    tags: ['Go', 'Goroutines', 'Channels', 'Concurrency', 'Worker Pool'],
+    files: {
+      'main.go': `// ==========================================
+// 🐹 [21] Go: 고루틴 & 워커 풀 동시성 처리
+// ==========================================
+package main
+
+import (
+	"fmt"
+	"sync"
+)
+
+type Job struct {
+	ID    int
+	Input int
+}
+
+type Result struct {
+	Job    Job
+	Output int
+}
+
+func worker(id int, jobs <-chan Job, results chan<- Result, wg *sync.WaitGroup) {
+	defer wg.Done()
+	for j := range jobs {
+		// 작업 시뮬레이션: 제곱수 계산
+		output := j.Input * j.Input
+		results <- Result{Job: j, Output: output}
+	}
+}
+
+func main() {
+	fmt.Println("\\033[96m✨ [Go Concurrency] 3개 워커 풀 병렬 처리\\033[0m")
+	fmt.Println("------------------------------------------")
+
+	numJobs := 6
+	numWorkers := 3
+
+	jobs := make(chan Job, numJobs)
+	results := make(chan Result, numJobs)
+
+	var wg sync.WaitGroup
+
+	// 워커 풀 구동
+	for w := 1; w <= numWorkers; w++ {
+		wg.Add(1)
+		go worker(w, jobs, results, &wg)
+	}
+
+	// 작업 발행
+	for j := 1; j <= numJobs; j++ {
+		jobs <- Job{ID: j, Input: j * 10}
+	}
+	close(jobs)
+
+	// 결과 대기 및 채널 종료
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
+	// 결과 수신
+	for r := range results {
+		fmt.Printf("  • \\033[92m[작업 #%d 완료]\\033[0m 입력값: %3d ➔ 연산 결과: %5d\\n",
+			r.Job.ID, r.Job.Input, r.Output)
+	}
+
+	fmt.Println("\\n✨ 모든 비동기 고루틴 워커 작업이 성공적으로 종료되었습니다.")
+}
+`,
+    },
+  },
 ];

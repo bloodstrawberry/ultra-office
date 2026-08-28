@@ -139,8 +139,38 @@ export function usePyodide(): PyodideHookReturn {
         });
 
         // 사용된 패키지 자동 분석 및 로드
-        onStdout('\x1b[90m[Pyodide] 코드 내 필요한 패키지 분석 중...\x1b[0m\r\n');
-        await pyodide.loadPackagesFromImports(code);
+        onStdout(
+          '\x1b[90m[Pyodide] 코드 내 필요한 라이브러리(NumPy, SciPy, SymPy, Scikit-Learn, NetworkX 등) 분석 및 로딩 중...\x1b[0m\r\n'
+        );
+
+        try {
+          await pyodide.loadPackagesFromImports(code);
+        } catch {
+          const packagesToLoad: string[] = [];
+          if (code.includes('sympy') || code.includes('Symbol(')) packagesToLoad.push('sympy');
+          if (code.includes('sklearn') || code.includes('scikit-learn'))
+            packagesToLoad.push('scikit-learn');
+          if (code.includes('scipy')) packagesToLoad.push('scipy');
+          if (code.includes('networkx') || code.includes('nx.')) packagesToLoad.push('networkx');
+          if (code.includes('PIL') || code.includes('Pillow') || code.includes('Image.'))
+            packagesToLoad.push('pillow');
+          if (code.includes('bs4') || code.includes('BeautifulSoup'))
+            packagesToLoad.push('beautifulsoup4');
+          if (code.includes('seaborn') || code.includes('sns.')) packagesToLoad.push('seaborn');
+          if (code.includes('pandas') || code.includes('pd.')) packagesToLoad.push('pandas');
+          if (code.includes('numpy') || code.includes('np.')) packagesToLoad.push('numpy');
+          if (code.includes('statsmodels') || code.includes('sm.'))
+            packagesToLoad.push('statsmodels');
+          if (code.includes('mpmath')) packagesToLoad.push('mpmath');
+          if (code.includes('tabulate')) packagesToLoad.push('tabulate');
+          if (code.includes('pydantic')) packagesToLoad.push('pydantic');
+          if (code.includes('shapely')) packagesToLoad.push('shapely');
+          if (code.includes('pygments')) packagesToLoad.push('pygments');
+
+          if (packagesToLoad.length > 0) {
+            await pyodide.loadPackage(packagesToLoad);
+          }
+        }
 
         // Matplotlib 감지 시 차트 인터셉터 주입
         let finalCode = code;

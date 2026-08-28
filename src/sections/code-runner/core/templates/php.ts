@@ -837,4 +837,295 @@ echo "  ✨ 빌드 순서: " . implode(" ➔ ", $order) . "\\n";
 `,
     },
   },
+  {
+    id: 'php-21-array-functional-pipelines',
+    title: '21. [라이브러리] PHP 배열 함수형 파이프라인 (array_reduce & array_chunk)',
+    category: 'Backend & Scripting',
+    language: 'php',
+    engine: 'php',
+    description: 'array_reduce, array_chunk, array_column, array_map을 활용한 e-커머스 주문 집계',
+    mainFile: 'index.php',
+    tags: ['PHP', 'Arrays', 'array_reduce', 'array_chunk', 'Data Pipeline'],
+    files: {
+      'index.php': `<?php
+// ==========================================
+// 🐘 [21] PHP: 배열 함수형 데이터 파이프라인
+// ==========================================
+
+echo "\\033[96m✨ [PHP Array Functions] 함수형 데이터 집계 파이프라인\\033[0m\\n";
+echo "------------------------------------------\\n";
+
+$transactions = [
+    ["id" => "TX101", "user" => "김철수", "amount" => 150000, "status" => "PAID"],
+    ["id" => "TX102", "user" => "이영희", "amount" => 45000,  "status" => "PAID"],
+    ["id" => "TX103", "user" => "박지훈", "amount" => 89000,  "status" => "CANCELLED"],
+    ["id" => "TX104", "user" => "최유진", "amount" => 230000, "status" => "PAID"],
+    ["id" => "TX105", "user" => "정다은", "amount" => 12000,  "status" => "PAID"],
+];
+
+// 1. 결제 완료 건 필터링 & 총 매출 계산 (array_reduce)
+$paidList = array_filter($transactions, fn($t) => $t['status'] === 'PAID');
+$totalRevenue = array_reduce($paidList, fn($carry, $item) => $carry + $item['amount'], 0);
+
+echo "[1] 결제 완료 요약:\\n";
+echo "  • 완료 건수: " . count($paidList) . "건\\n";
+echo "  • 총 결제액: \\033[92m" . number_format($totalRevenue) . "원\\033[0m\\n";
+
+// 2. 배치 처리를 위한 청크 분할 (array_chunk)
+$batches = array_chunk($paidList, 2);
+echo "\\n[2] 2건 단위 일괄 배치 처리 (array_chunk):\\n";
+foreach ($batches as $idx => $batch) {
+    $ids = implode(", ", array_column($batch, 'id'));
+    echo "  • 배치 #" . ($idx + 1) . ": [ {$ids} ]\\n";
+}
+`,
+    },
+  },
+  {
+    id: 'php-22-pcre-regex-validation',
+    title: '22. [라이브러리] PCRE 정규식 & preg_replace_callback',
+    category: 'Backend & Scripting',
+    language: 'php',
+    engine: 'php',
+    description: 'PCRE 고급 정규표현식, preg_match_all 및 콜백 치환을 통한 포맷터',
+    mainFile: 'index.php',
+    tags: ['PHP', 'PCRE', 'Regex', 'preg_match_all', 'Validation'],
+    files: {
+      'index.php': `<?php
+// ==========================================
+// 🐘 [22] PHP: PCRE 정규표현식 & 콜백 치환
+// ==========================================
+
+echo "\\033[96m✨ [PHP PCRE] 정규표현식 데이터 정제\\033[0m\\n";
+echo "------------------------------------------\\n";
+
+$text = "고객 문의 목록: user_101 (chulsoo@corp.com) / user_202 (younghee@test.co.kr) / user_303 (invalid-email)";
+
+// 1. 유효한 이메일 전체 추출 (preg_match_all)
+$pattern = "/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+/";
+preg_match_all($pattern, $text, $matches);
+
+echo "[1] 추출된 이메일 목록:\\n";
+foreach ($matches[0] as $email) {
+    echo "  ➜ {$email}\\n";
+}
+
+// 2. 이메일 도메인 마스킹 처리 (preg_replace_callback)
+$masked = preg_replace_callback(
+    "/([a-zA-Z0-9_.+-]{2})([a-zA-Z0-9_.+-]*)@([a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+)/",
+    fn($m) => $m[1] . str_repeat("*", max(2, strlen($m[2]))) . "@" . $m[3],
+    $text
+);
+
+echo "\\n[2] 개인정보 마스킹 결과:\\n";
+echo "  {$masked}\\n";
+`,
+    },
+  },
+  {
+    id: 'php-23-modern-php8-features',
+    title: '23. [라이브러리] Modern PHP 8 (Enums, Readonly & Match)',
+    category: 'Backend & Scripting',
+    language: 'php',
+    engine: 'php',
+    description: 'PHP 8.2+ 백킹 Enum, Readonly 클래스, Match 표현식 및 Nullsafe 체이닝',
+    mainFile: 'index.php',
+    tags: ['PHP', 'PHP 8', 'Enums', 'Readonly', 'OOP'],
+    files: {
+      'index.php': `<?php
+// ==========================================
+// 🐘 [23] PHP: 모던 PHP 8 기능 (Enums & Readonly)
+// ==========================================
+
+echo "\\033[96m✨ [Modern PHP 8] Enums & Readonly 클래스\\033[0m\\n";
+echo "------------------------------------------\\n";
+
+enum OrderStatus: string {
+    case PENDING = "주문 접수";
+    case PROCESSING = "상품 준비 중";
+    case SHIPPED = "배송 출발";
+    case DELIVERED = "배송 완료";
+
+    public function color(): string {
+        return match ($this) {
+            self::PENDING => "\\033[93m",
+            self::PROCESSING => "\\033[94m",
+            self::SHIPPED, self::DELIVERED => "\\033[92m",
+        };
+    }
+}
+
+readonly class OrderItem {
+    public function __construct(
+        public string $name,
+        public int $price,
+        public int $quantity = 1
+    ) {}
+
+    public function getTotal(): int {
+        return $this->price * $this->quantity;
+    }
+}
+
+$item = new OrderItem("무선 기계식 키보드", 159000, 2);
+$status = OrderStatus::SHIPPED;
+
+echo "주문 상품: {$item->name} (수량: {$item->quantity}개)\\n";
+echo "총 결제액: " . number_format($item->getTotal()) . "원\\n";
+echo "배송 현황: " . $status->color() . $status->value . "\\033[0m\\n";
+`,
+    },
+  },
+  {
+    id: 'php-24-spl-datastructures',
+    title: '24. [라이브러리] PHP SPL 표준 자료구조 (SplStack & SplPriorityQueue)',
+    category: 'Backend & Scripting',
+    language: 'php',
+    engine: 'php',
+    description: 'SPL 고성능 내장 자료구조(SplStack LIFO, SplPriorityQueue 우선순위 큐) 활용',
+    mainFile: 'index.php',
+    tags: ['PHP', 'SPL', 'SplStack', 'SplPriorityQueue', 'Data Structures'],
+    files: {
+      'index.php': `<?php
+// ==========================================
+// 🐘 [24] PHP: SPL 표준 자료구조
+// ==========================================
+
+echo "\\033[96m✨ [PHP SPL] 스택 & 우선순위 큐 자료구조\\033[0m\\n";
+echo "------------------------------------------\\n";
+
+// 1. SplStack (LIFO: 후입선출)
+$stack = new SplStack();
+$stack->push("요청 #1 (일반 조회)");
+$stack->push("요청 #2 (장바구니 담기)");
+$stack->push("요청 #3 (결제하기)");
+
+echo "[1] SplStack LIFO 인출 순서:\\n";
+while (!$stack->isEmpty()) {
+    echo "  ➜ 처리 중: " . $stack->pop() . "\\n";
+}
+
+// 2. SplPriorityQueue (우선순위 큐)
+$queue = new SplPriorityQueue();
+$queue->insert("서버 백업 작업", 10);
+$queue->insert("긴급 보안 패치", 90);
+$queue->insert("일일 통계 집계", 30);
+$queue->insert("고객 문의 이메일 발송", 50);
+
+echo "\\n[2] SplPriorityQueue 우선순위 순차 실행:\\n";
+while ($queue->valid()) {
+    echo "  • \\033[92m[우선순위 처리]\\033[0m " . $queue->current() . "\\n";
+    $queue->next();
+}
+`,
+    },
+  },
+  {
+    id: 'php-25-datetime-immutable-business-days',
+    title: '25. [라이브러리] PHP DateTimeImmutable & DateInterval 비즈니스 영업일 계산',
+    category: 'Backend & Scripting',
+    language: 'php',
+    engine: 'php',
+    description:
+      '불변 날짜 객체 DateTimeImmutable, DateInterval을 활용한 정산일 및 주말 제외 영업일 계산',
+    mainFile: 'index.php',
+    tags: ['PHP', 'DateTimeImmutable', 'DateInterval', 'Business Days'],
+    files: {
+      'index.php': `<?php
+// ==========================================
+// 🐘 [25] PHP: DateTimeImmutable & 비즈니스 일자
+// ==========================================
+
+echo "\\033[96m✨ [PHP DateTime] 불변 날짜 객체 & 영업일 계산\\033[0m\\n";
+echo "------------------------------------------\\n";
+
+$startDate = new DateTimeImmutable('2026-08-28');
+$settlementInterval = new DateInterval('P14D'); // 14일 후 정산
+
+$settlementDate = $startDate->add($settlementInterval);
+
+echo "[1] 정산 기준일 계산:\\n";
+echo "  • 결제 발생일: " . $startDate->format('Y-m-d (D)') . "\\n";
+echo "  • 정산 예정일 (D+14): \\033[92m" . $settlementDate->format('Y-m-d (D)') . "\\033[0m\\n";
+
+// 주말 제외 5영업일 후 마감일 계산 함수
+function addBusinessDays(DateTimeImmutable $date, int $days): DateTimeImmutable {
+    $cur = $date;
+    $added = 0;
+    while ($added < $days) {
+        $cur = $cur->modify('+1 day');
+        if ($cur->format('N') < 6) { // 1(월) ~ 5(금)
+            $added++;
+        }
+    }
+    return $cur;
+}
+
+$deadline = addBusinessDays($startDate, 5);
+echo "\\n[2] 주말 제외 5영업일 후 업무 마감일:\\n";
+echo "  ➜ 최종 마감일시: \\033[96m" . $deadline->format('Y년 m월 d일 (D)') . "\\033[0m\\n";
+`,
+    },
+  },
+  {
+    id: 'php-26-jwt-hash-token-generator',
+    title: '26. [라이브러리] PHP JWT 토큰 생성 & HMAC-SHA256 해시',
+    category: 'Backend & Scripting',
+    language: 'php',
+    engine: 'php',
+    description:
+      'PHP hash_hmac, base64_encode를 이용한 표준 JSON Web Token (JWT) 생성 및 서명 검증기',
+    mainFile: 'index.php',
+    tags: ['PHP', 'JWT', 'HMAC', 'hash_hmac', 'Security'],
+    files: {
+      'index.php': `<?php
+// ==========================================
+// 🐘 [26] PHP: JWT 토큰 발급 & HMAC-SHA256
+// ==========================================
+
+echo "\\033[96m✨ [PHP Security] JWT 토큰 발급 및 서명 검증\\033[0m\\n";
+echo "------------------------------------------\\n";
+
+function base64UrlEncode(string $data): string {
+    return str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($data));
+}
+
+$secretKey = "super-secret-production-key-2026";
+
+// 1. Header & Payload 생성
+$header = json_encode(['alg' => 'HS256', 'typ' => 'JWT']);
+$payload = json_encode([
+    'sub' => 'user_10293',
+    'name' => '홍길동',
+    'role' => 'ADMIN',
+    'iat' => time(),
+    'exp' => time() + 3600
+]);
+
+$base64Header = base64UrlEncode($header);
+$base64Payload = base64UrlEncode($payload);
+
+// 2. HMAC-SHA256 디지털 서명 생성
+$signature = hash_hmac('sha256', "{$base64Header}.{$base64Payload}", $secretKey, true);
+$base64Signature = base64UrlEncode($signature);
+
+$jwtToken = "{$base64Header}.{$base64Payload}.{$base64Signature}";
+
+echo "[1] 발급된 JWT 토큰:\\n";
+echo "  \\033[92m{$jwtToken}\\033[0m\\n\\n";
+
+// 3. 서명 무결성 검증
+$parts = explode('.', $jwtToken);
+$expectedSig = base64UrlEncode(hash_hmac('sha256', "{$parts[0]}.{$parts[1]}", $secretKey, true));
+
+echo "[2] 토큰 서명 유효성 검증:\\n";
+if (hash_equals($expectedSig, $parts[2])) {
+    echo "  • 상태: \\033[92m[서명 유효] 인증 성공!\\033[0m\\n";
+    echo "  • 사용자 정보: " . $payload . "\\n";
+} else {
+    echo "  • 상태: \\033[91m[서명 불일치] 위조된 토큰\\033[0m\\n";
+}
+`,
+    },
+  },
 ];

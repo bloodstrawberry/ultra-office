@@ -1209,4 +1209,165 @@ console.log('  ✨ 실행 순환 의존성 해결 순서:', topologicalSort(task
       ),
     },
   },
+  {
+    id: 'js-21-crypto-hash',
+    title: '21. [라이브러리] Node.js crypto 암호화 (SHA-256 & HMAC)',
+    category: 'JavaScript/Node',
+    language: 'javascript',
+    engine: 'webcontainer',
+    description: 'Node.js 내장 crypto 모듈을 이용한 SHA-256 해시, HMAC 서명 및 무작위 UUID 생성',
+    mainFile: 'index.js',
+    entryCommand: 'node index.js',
+    tags: ['JavaScript', 'crypto', 'SHA-256', 'HMAC', 'Security'],
+    files: {
+      'index.js': `// ==========================================
+// 🟨 [21] JavaScript: crypto 암호화 및 해시
+// ==========================================
+import crypto from 'node:crypto';
+
+console.log('\\x1b[36m%s\\x1b[0m', '🔐 [Node.js crypto 모듈]');
+console.log('------------------------------------------');
+
+// 1. SHA-256 단방향 해시
+const secretMessage = 'Antigravity OmniRunner 2026';
+const sha256Hash = crypto.createHash('sha256').update(secretMessage).digest('hex');
+console.log('[1] SHA-256 해시 결과:');
+console.log('  ➜ 메시지:', secretMessage);
+console.log('  ➜ 해시값:', sha256Hash);
+
+// 2. HMAC 서명 생성 (HMAC-SHA512)
+const secretKey = 'my-super-secret-key';
+const hmac = crypto.createHmac('sha512', secretKey).update(secretMessage).digest('hex');
+console.log('\\n[2] HMAC-SHA512 서명값 (앞 32자리):');
+console.log('  ➜', hmac.slice(0, 32) + '...');
+
+// 3. 안전한 무작위 UUID & 토큰 생성
+const randomUUID = crypto.randomUUID();
+const randomBytes = crypto.randomBytes(16).toString('hex');
+console.log('\\n[3] 고유 식별자 및 보안 토큰:');
+console.log('  • UUID v4:', randomUUID);
+console.log('  • Random Hex Token:', randomBytes);
+`,
+      'package.json': JSON.stringify(
+        { name: 'js-crypto', type: 'module', version: '1.0.0' },
+        null,
+        2
+      ),
+    },
+  },
+  {
+    id: 'js-22-event-emitter',
+    title: '22. [라이브러리] Node.js events (EventEmitter Pub/Sub)',
+    category: 'JavaScript/Node',
+    language: 'javascript',
+    engine: 'webcontainer',
+    description: 'Node.js 이벤트 기반 아키텍처 EventEmitter 발행/구독(Pub/Sub) 패턴',
+    mainFile: 'index.js',
+    entryCommand: 'node index.js',
+    tags: ['JavaScript', 'EventEmitter', 'PubSub', 'Events'],
+    files: {
+      'index.js': `// ==========================================
+// 🟨 [22] JavaScript: EventEmitter Pub/Sub 아키텍처
+// ==========================================
+import EventEmitter from 'node:events';
+
+class OrderProcessor extends EventEmitter {
+  processOrder(orderId, amount) {
+    console.log(\`\\x1b[90m[OrderProcessor] 주문 #\${orderId} 처리 시작 (\${amount.toLocaleString()}원)...\\x1b[0m\`);
+    this.emit('order:created', { orderId, amount, timestamp: new Date() });
+
+    setTimeout(() => {
+      this.emit('payment:completed', { orderId, amount, txId: 'TX_' + Math.random().toString(36).slice(2, 8) });
+      this.emit('notification:sent', { orderId, target: 'user@domain.com' });
+    }, 150);
+  }
+}
+
+const processor = new OrderProcessor();
+
+// 이벤트 리스너 등록
+processor.on('order:created', (data) => {
+  console.log('  📦 [이벤트: order:created]', \`주문 접수 완료 (금액: \${data.amount.toLocaleString()}원)\`);
+});
+
+processor.on('payment:completed', (data) => {
+  console.log('  💳 [이벤트: payment:completed]', \`결제 승인 (TX: \${data.txId})\`);
+});
+
+processor.on('notification:sent', (data) => {
+  console.log('\\x1b[32m%s\\x1b[0m', \`  ✨ [이벤트: notification:sent] 알림톡 발송 완료 (수신: \${data.target})\`);
+});
+
+processor.processOrder(10482, 145000);
+`,
+      'package.json': JSON.stringify(
+        { name: 'js-events', type: 'module', version: '1.0.0' },
+        null,
+        2
+      ),
+    },
+  },
+  {
+    id: 'js-23-cheerio-dom-scraper',
+    title: '23. [라이브러리] Cheerio 스타일 서버사이드 DOM 파싱 & CSS 셀렉터',
+    category: 'JavaScript/Node',
+    language: 'javascript',
+    engine: 'webcontainer',
+    description: '서버사이드 HTML 문자열 DOM 파싱, 직관적인 CSS 셀렉터 쿼리 및 데이터 정제 추출',
+    mainFile: 'index.js',
+    entryCommand: 'node index.js',
+    tags: ['JavaScript', 'Cheerio', 'Web Scraping', 'HTML Parser'],
+    files: {
+      'index.js': `// ==========================================
+// 🟨 [23] JavaScript: 서버사이드 HTML 파서
+// ==========================================
+
+const htmlDoc = \`
+<div class="market-summary">
+  <h2 class="title">실시간 클라우드 서비스 가용 현황</h2>
+  <div class="services">
+    <div class="card" data-id="srv-1" data-uptime="99.99">
+      <span class="name">WebContainer API</span>
+      <span class="status status-ok">정상 운영</span>
+    </div>
+    <div class="card" data-id="srv-2" data-uptime="99.95">
+      <span class="name">Pyodide Wasm Engine</span>
+      <span class="status status-ok">정상 운영</span>
+    </div>
+    <div class="card" data-id="srv-3" data-uptime="98.50">
+      <span class="name">SQL In-Memory Cluster</span>
+      <span class="status status-warn">점검 예정</span>
+    </div>
+  </div>
+</div>
+\`;
+
+console.log('\\x1b[36m%s\\x1b[0m', '🌐 [서버사이드 DOM 파싱 & 추출]');
+console.log('------------------------------------------');
+
+// 정규식 기반 경량 DOM 셀렉터 파서
+const cardRegex = /<div class="card" data-id="([^"]+)" data-uptime="([^"]+)">\\s*<span class="name">([^<]+)<\\/span>\\s*<span class="status ([^"]+)">([^<]+)<\\/span>/g;
+
+let match;
+let count = 0;
+
+while ((match = cardRegex.exec(htmlDoc)) !== null) {
+  count++;
+  const [, id, uptime, name, statusClass, statusText] = match;
+  const isOk = statusClass.includes('ok');
+  const color = isOk ? '\\x1b[32m' : '\\x1b[33m';
+
+  console.log(\`[\${count}] 서비스: \${name.padEnd(24)} (ID: \${id})\`);
+  console.log(\`    ➜ 가동률: \${uptime}% | 상태: \${color}\${statusText}\\x1b[0m\`);
+}
+
+console.log('\\n\\x1b[32m%s\\x1b[0m', \`✨ 총 \${count}개 서비스 항목 파싱 완료\`);
+`,
+      'package.json': JSON.stringify(
+        { name: 'js-dom-scraper', type: 'module', version: '1.0.0' },
+        null,
+        2
+      ),
+    },
+  },
 ];

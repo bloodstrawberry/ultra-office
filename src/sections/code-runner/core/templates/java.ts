@@ -914,4 +914,63 @@ public class Main {
 `,
     },
   },
+  {
+    id: 'java-21-streams-records-completable-future',
+    title: '21. [라이브러리] Java Modern Streams & Records (함수형 집계 & 불변 레코드)',
+    category: 'Backend & Scripting',
+    language: 'java',
+    engine: 'wasm',
+    description:
+      'Java 17/21 Record 불변 DTO, Stream API(filter, map, groupingBy, summarizingInt)를 활용한 데이터 분석',
+    mainFile: 'Main.java',
+    tags: ['Java', 'Java 21', 'Records', 'Streams', 'Collectors'],
+    files: {
+      'Main.java': `// ==========================================
+// ☕ [21] Java: Records & Stream API 분석
+// ==========================================
+import java.util.*;
+import java.util.stream.Collectors;
+
+public class Main {
+    // Java 불변 Record DTO 정의
+    record Employee(String name, String department, int salary) {}
+
+    public static void main(String[] args) {
+        System.out.println("\\033[96m✨ [Modern Java] Records & Stream API 데이터 분석\\033[0m");
+        System.out.println("------------------------------------------");
+
+        List<Employee> employees = List.of(
+            new Employee("김철수", "Engineering", 8200),
+            new Employee("이영희", "Design", 6900),
+            new Employee("박지훈", "Engineering", 9500),
+            new Employee("최유진", "Product", 7800),
+            new Employee("정다은", "Design", 6300),
+            new Employee("강민혁", "Engineering", 9100)
+        );
+
+        // 1. 부서별 groupingBy 및 평균 급여 집계
+        Map<String, Double> avgSalaryByDept = employees.stream()
+            .collect(Collectors.groupingBy(
+                Employee::department,
+                Collectors.averagingInt(Employee::salary)
+            ));
+
+        System.out.println("[1] 부서별 평균 급여 집계:");
+        avgSalaryByDept.forEach((dept, avg) -> {
+            System.out.printf("  • %-12s: %,.0f만원\\n", dept, avg);
+        });
+
+        // 2. 전체 급여 통계 요약 (IntSummaryStatistics)
+        IntSummaryStatistics stats = employees.stream()
+            .mapToInt(Employee::salary)
+            .summaryStatistics();
+
+        System.out.println("\\n[2] 전체 급여 종합 통계:");
+        System.out.printf("  ➜ 총 인원: %d명 | 총 급여합: %,d만원\\n", stats.getCount(), stats.getSum());
+        System.out.printf("  ➜ 최고 급여: \\033[92m%,d만원\\033[0m | 최저 급여: %,d만원\\n", stats.getMax(), stats.getMin());
+    }
+}
+`,
+    },
+  },
 ];

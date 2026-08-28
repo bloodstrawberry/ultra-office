@@ -25,17 +25,17 @@ import CompareArrowsRoundedIcon from '@mui/icons-material/CompareArrowsRounded';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import {
-  PhotoUploadWorkspace,
-  PhotoCompareViewport,
-  type SplitMode,
-  type SplitOrientation,
-  type ComparePreviewMode,
-} from '../components';
-import {
   downloadDataUrl,
   shareToKakaoTalk,
   renderGenericSplitComparisonImage,
 } from '../utils/image-processor';
+import {
+  type SplitMode,
+  PhotoUploadWorkspace,
+  PhotoCompareViewport,
+  type SplitOrientation,
+  type ComparePreviewMode,
+} from '../components';
 import {
   WEATHERING_PRESETS,
   WEATHERING_SAMPLES,
