@@ -12,19 +12,24 @@ import ClearRoundedIcon from '@mui/icons-material/ClearRounded';
 import TerminalRoundedIcon from '@mui/icons-material/TerminalRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 
+import { DEFAULT_THEME_ID, getThemeById } from 'src/sections/code-runner/core/editor-themes';
+
 // ----------------------------------------------------------------------
 
 interface MatlabCommandWindowProps {
   logs: MatlabCommandLog[];
   onExecuteCommand: (command: string) => void;
   onClearLogs: () => void;
+  themeId?: string;
 }
 
 export function MatlabCommandWindow({
   logs,
   onExecuteCommand,
   onClearLogs,
+  themeId = DEFAULT_THEME_ID,
 }: MatlabCommandWindowProps) {
+  const activeTheme = getThemeById(themeId);
   const [inputVal, setInputVal] = useState('');
   const [historyIndex, setHistoryIndex] = useState<number>(-1);
   const [historyList, setHistoryList] = useState<string[]>([]);
@@ -79,10 +84,10 @@ export function MatlabCommandWindow({
         flexDirection: 'column',
         height: '100%',
         width: '100%',
-        bgcolor: '#0f1115',
-        color: '#f8fafc',
+        bgcolor: activeTheme.uiColors.surface,
+        color: activeTheme.uiColors.text,
         borderRadius: 1,
-        border: '1px solid #242933',
+        border: `1px solid ${activeTheme.uiColors.border}`,
         overflow: 'hidden',
       }}
     >
@@ -92,8 +97,8 @@ export function MatlabCommandWindow({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          bgcolor: '#191c23',
-          borderBottom: '1px solid #242933',
+          bgcolor: activeTheme.uiColors.card,
+          borderBottom: `1px solid ${activeTheme.uiColors.border}`,
           px: 1,
           minHeight: 34,
         }}
@@ -145,10 +150,11 @@ export function MatlabCommandWindow({
           </Box>
         )}
 
-        {logs.map((log) => {
+        {logs.map((log, index) => {
+          const itemKey = `${log.id}-${index}`;
           if (log.type === 'input') {
             return (
-              <Box key={log.id} sx={{ color: '#38bdf8', fontWeight: 600, mt: 0.75 }}>
+              <Box key={itemKey} sx={{ color: '#38bdf8', fontWeight: 600, mt: 0.75 }}>
                 <span>&gt;&gt; </span>
                 <span>{log.content}</span>
               </Box>
@@ -156,20 +162,20 @@ export function MatlabCommandWindow({
           }
           if (log.type === 'error') {
             return (
-              <Box key={log.id} sx={{ color: '#f87171', whiteSpace: 'pre-wrap', my: 0.5 }}>
+              <Box key={itemKey} sx={{ color: '#f87171', whiteSpace: 'pre-wrap', my: 0.5 }}>
                 {log.content}
               </Box>
             );
           }
           if (log.type === 'info') {
             return (
-              <Box key={log.id} sx={{ color: '#a3e635', fontStyle: 'italic', my: 0.25 }}>
+              <Box key={itemKey} sx={{ color: '#a3e635', fontStyle: 'italic', my: 0.25 }}>
                 {log.content}
               </Box>
             );
           }
           return (
-            <Box key={log.id} sx={{ color: '#e2e8f0', whiteSpace: 'pre-wrap', my: 0.5 }}>
+            <Box key={itemKey} sx={{ color: '#e2e8f0', whiteSpace: 'pre-wrap', my: 0.5 }}>
               {log.content}
             </Box>
           );

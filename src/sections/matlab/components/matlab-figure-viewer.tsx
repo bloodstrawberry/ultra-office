@@ -17,6 +17,8 @@ import AutoGraphRoundedIcon from '@mui/icons-material/AutoGraphRounded';
 import FullscreenRoundedIcon from '@mui/icons-material/FullscreenRounded';
 import FullscreenExitRoundedIcon from '@mui/icons-material/FullscreenExitRounded';
 
+import { DEFAULT_THEME_ID, getThemeById } from 'src/sections/code-runner/core/editor-themes';
+
 // Dynamically import Plotly component with plotly.js-dist-min
 const Plot = dynamic(
   async () => {
@@ -50,6 +52,7 @@ interface MatlabFigureViewerProps {
   activeFigureId: string | null;
   onSelectFigure: (id: string) => void;
   onClearFigures: () => void;
+  themeId?: string;
 }
 
 export function MatlabFigureViewer({
@@ -57,7 +60,10 @@ export function MatlabFigureViewer({
   activeFigureId,
   onSelectFigure,
   onClearFigures,
+  themeId = DEFAULT_THEME_ID,
 }: MatlabFigureViewerProps) {
+  const activeTheme = getThemeById(themeId);
+  const isLightTheme = !activeTheme.isDark;
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isClient, setIsClient] = useState(false);
 
@@ -89,10 +95,10 @@ export function MatlabFigureViewer({
         flexDirection: 'column',
         height: '100%',
         width: '100%',
-        bgcolor: '#181b20',
-        color: '#e0e6ed',
+        bgcolor: activeTheme.uiColors.surface,
+        color: activeTheme.uiColors.text,
         borderRadius: 1,
-        border: '1px solid #2b313d',
+        border: `1px solid ${activeTheme.uiColors.border}`,
         overflow: 'hidden',
         position: isFullscreen ? 'fixed' : 'relative',
         top: isFullscreen ? 0 : 'auto',
@@ -108,15 +114,15 @@ export function MatlabFigureViewer({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          bgcolor: '#1e222b',
-          borderBottom: '1px solid #2b313d',
+          bgcolor: activeTheme.uiColors.card,
+          borderBottom: `1px solid ${activeTheme.uiColors.border}`,
           px: 1,
           minHeight: 38,
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1, overflow: 'hidden' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mr: 1, pl: 0.5 }}>
-            <AutoGraphRoundedIcon sx={{ fontSize: 18, color: '#38bdf8' }} />
+            <AutoGraphRoundedIcon sx={{ fontSize: 18, color: 'primary.main' }} />
             <Typography sx={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.5px' }}>
               FIGURES
             </Typography>
@@ -135,13 +141,14 @@ export function MatlabFigureViewer({
                   py: 0.5,
                   px: 1.5,
                   fontSize: '12px',
-                  color: '#94a3b8',
+                  color: activeTheme.uiColors.textMuted,
                   textTransform: 'none',
                   '&.Mui-selected': {
-                    bgcolor: '#282e3b',
-                    color: '#38bdf8',
+                    bgcolor: activeTheme.uiColors.surface,
+                    color: 'primary.main',
                     fontWeight: 600,
-                    borderTop: '2px solid #38bdf8',
+                    borderTop: '2px solid',
+                    borderColor: 'primary.main',
                   },
                 },
                 '& .MuiTabs-indicator': {
@@ -158,7 +165,9 @@ export function MatlabFigureViewer({
               ))}
             </Tabs>
           ) : (
-            <Typography sx={{ fontSize: '11px', color: '#64748b', fontStyle: 'italic' }}>
+            <Typography
+              sx={{ fontSize: '11px', color: activeTheme.uiColors.textMuted, fontStyle: 'italic' }}
+            >
               플롯 출력 대기 중...
             </Typography>
           )}
@@ -168,7 +177,11 @@ export function MatlabFigureViewer({
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           {activeFigure && (
             <Tooltip title="PNG 이미지 저장">
-              <IconButton size="small" onClick={handleExportPng} sx={{ color: '#94a3b8' }}>
+              <IconButton
+                size="small"
+                onClick={handleExportPng}
+                sx={{ color: activeTheme.uiColors.textMuted }}
+              >
                 <DownloadRoundedIcon sx={{ fontSize: 16 }} />
               </IconButton>
             </Tooltip>
@@ -178,7 +191,7 @@ export function MatlabFigureViewer({
             <IconButton
               size="small"
               onClick={() => setIsFullscreen((prev) => !prev)}
-              sx={{ color: '#94a3b8' }}
+              sx={{ color: activeTheme.uiColors.textMuted }}
             >
               {isFullscreen ? (
                 <FullscreenExitRoundedIcon sx={{ fontSize: 17 }} />
@@ -210,6 +223,7 @@ export function MatlabFigureViewer({
           position: 'relative',
           overflow: 'hidden',
           p: 0.5,
+          bgcolor: isLightTheme ? '#ffffff' : activeTheme.uiColors.bg,
         }}
       >
         {isClient && activeFigure && activeFigure.traces.length > 0 ? (
@@ -229,35 +243,45 @@ export function MatlabFigureViewer({
               layout={{
                 autosize: true,
                 paper_bgcolor: 'transparent',
-                plot_bgcolor: '#121418',
-                font: { color: '#e2e8f0', family: 'Inter, sans-serif', size: 11 },
+                plot_bgcolor: isLightTheme ? '#f8fafc' : activeTheme.uiColors.bg,
+                font: {
+                  color: isLightTheme ? '#1e293b' : activeTheme.uiColors.text,
+                  family: 'Inter, sans-serif',
+                  size: 11,
+                },
                 margin: { l: 48, r: 24, t: 36, b: 36 },
                 xaxis: {
-                  gridcolor: '#2d3748',
-                  zerolinecolor: '#4a5568',
+                  gridcolor: isLightTheme ? '#e2e8f0' : activeTheme.uiColors.border,
+                  zerolinecolor: isLightTheme ? '#94a3b8' : activeTheme.uiColors.textMuted,
                   ...activeFigure.layout?.xaxis,
                 },
                 yaxis: {
-                  gridcolor: '#2d3748',
-                  zerolinecolor: '#4a5568',
+                  gridcolor: isLightTheme ? '#e2e8f0' : activeTheme.uiColors.border,
+                  zerolinecolor: isLightTheme ? '#94a3b8' : activeTheme.uiColors.textMuted,
                   ...activeFigure.layout?.yaxis,
                 },
                 scene: {
-                  xaxis: { gridcolor: '#2d3748' },
-                  yaxis: { gridcolor: '#2d3748' },
-                  zaxis: { gridcolor: '#2d3748' },
+                  xaxis: { gridcolor: isLightTheme ? '#e2e8f0' : activeTheme.uiColors.border },
+                  yaxis: { gridcolor: isLightTheme ? '#e2e8f0' : activeTheme.uiColors.border },
+                  zaxis: { gridcolor: isLightTheme ? '#e2e8f0' : activeTheme.uiColors.border },
                   ...activeFigure.layout?.scene,
                 },
                 title: activeFigure.layout?.title || {
                   text: activeFigure.title,
-                  font: { size: 13, color: '#f1f5f9' },
+                  font: {
+                    size: 13,
+                    color: isLightTheme ? '#0f172a' : activeTheme.uiColors.text,
+                  },
                 },
                 showlegend: activeFigure.layout?.showlegend ?? activeFigure.traces.length > 1,
                 legend: {
-                  bgcolor: 'rgba(24, 27, 32, 0.8)',
-                  bordercolor: '#334155',
+                  bgcolor: isLightTheme ? 'rgba(255, 255, 255, 0.9)' : 'rgba(24, 27, 32, 0.8)',
+                  bordercolor: isLightTheme ? '#cbd5e1' : activeTheme.uiColors.border,
                   borderwidth: 1,
-                  font: { color: '#e2e8f0', size: 10 },
+                  font: {
+                    color: isLightTheme ? '#1e293b' : activeTheme.uiColors.text,
+                    size: 10,
+                  },
                 },
                 ...activeFigure.layout,
               }}
@@ -287,16 +311,20 @@ export function MatlabFigureViewer({
               alignItems: 'center',
               justifyContent: 'center',
               gap: 1.5,
-              color: '#64748b',
+              color: activeTheme.uiColors.textMuted,
               textAlign: 'center',
               p: 3,
             }}
           >
-            <AutoGraphRoundedIcon sx={{ fontSize: 44, color: '#334155' }} />
-            <Typography sx={{ fontSize: '13px', fontWeight: 600, color: '#94a3b8' }}>
+            <AutoGraphRoundedIcon sx={{ fontSize: 44, color: activeTheme.uiColors.border }} />
+            <Typography
+              sx={{ fontSize: '13px', fontWeight: 600, color: activeTheme.uiColors.text }}
+            >
               현재 활성화된 플롯(Figure)이 없습니다
             </Typography>
-            <Typography sx={{ fontSize: '12px', maxWidth: 360, color: '#64748b' }}>
+            <Typography
+              sx={{ fontSize: '12px', maxWidth: 360, color: activeTheme.uiColors.textMuted }}
+            >
               스크립트에서 <code>plot(x, y)</code>, <code>surf(X, Y, Z)</code>,{' '}
               <code>scatter()</code> 명령을 실행하거나 상단의 <b>PLOTS</b> 탭을 클릭하세요.
             </Typography>

@@ -16,6 +16,12 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 
+import {
+  IDE_THEMES,
+  getThemeById,
+  DEFAULT_THEME_ID,
+} from 'src/sections/code-runner/core/editor-themes';
+
 // ----------------------------------------------------------------------
 
 interface MatlabEditorProps {
@@ -28,6 +34,7 @@ interface MatlabEditorProps {
   onRunScript: () => void;
   onRunSelection: (code: string) => void;
   onResetToTemplate: () => void;
+  themeId?: string;
 }
 
 export function MatlabEditor({
@@ -40,12 +47,21 @@ export function MatlabEditor({
   onRunScript,
   onRunSelection,
   onResetToTemplate,
+  themeId = DEFAULT_THEME_ID,
 }: MatlabEditorProps) {
   const editorRef = useRef<any>(null);
+  const currentTheme = getThemeById(themeId);
   const activeFile = files.find((f) => f.id === activeFileId) || files[0];
 
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
+
+    // Define all IDE themes in Monaco
+    IDE_THEMES.forEach((t) => {
+      if (t.monacoDefinition) {
+        monaco.editor.defineTheme(t.monacoThemeId, t.monacoDefinition);
+      }
+    });
 
     // Register MATLAB language configuration if not present
     monaco.languages.register({ id: 'matlab' });
@@ -165,10 +181,10 @@ export function MatlabEditor({
         flexDirection: 'column',
         height: '100%',
         width: '100%',
-        bgcolor: '#14161b',
-        color: '#e2e8f0',
+        bgcolor: currentTheme.uiColors.surface,
+        color: currentTheme.uiColors.text,
         borderRadius: 1,
-        border: '1px solid #282e3b',
+        border: `1px solid ${currentTheme.uiColors.border}`,
         overflow: 'hidden',
       }}
     >
@@ -178,8 +194,8 @@ export function MatlabEditor({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          bgcolor: '#1c2027',
-          borderBottom: '1px solid #282e3b',
+          bgcolor: currentTheme.uiColors.card,
+          borderBottom: `1px solid ${currentTheme.uiColors.border}`,
           px: 1,
           minHeight: 38,
         }}
@@ -198,15 +214,16 @@ export function MatlabEditor({
                 py: 0.5,
                 px: 1.5,
                 fontSize: '12px',
-                color: '#94a3b8',
+                color: currentTheme.uiColors.textMuted,
                 fontFamily: 'monospace',
                 textTransform: 'none',
                 gap: 0.5,
                 '&.Mui-selected': {
-                  bgcolor: '#14161b',
-                  color: '#38bdf8',
+                  bgcolor: currentTheme.uiColors.surface,
+                  color: 'primary.main',
                   fontWeight: 600,
-                  borderTop: '2px solid #38bdf8',
+                  borderTop: '2px solid',
+                  borderColor: 'primary.main',
                 },
               },
               '& .MuiTabs-indicator': {
@@ -236,7 +253,7 @@ export function MatlabEditor({
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.1)', color: '#f87171' },
+                          '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.1)', color: '#f87171' },
                         }}
                       >
                         <CloseRoundedIcon sx={{ fontSize: 12 }} />
@@ -249,7 +266,11 @@ export function MatlabEditor({
           </Tabs>
 
           <Tooltip title="새 스크립트 파일 추가">
-            <IconButton size="small" onClick={onNewFile} sx={{ color: '#94a3b8', ml: 0.5 }}>
+            <IconButton
+              size="small"
+              onClick={onNewFile}
+              sx={{ color: currentTheme.uiColors.textMuted, ml: 0.5 }}
+            >
               <AddRoundedIcon sx={{ fontSize: 16 }} />
             </IconButton>
           </Tooltip>
@@ -258,13 +279,17 @@ export function MatlabEditor({
         {/* Action Buttons */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           <Tooltip title="선택 영역 또는 섹션 실행 (Ctrl+Enter)">
-            <IconButton size="small" onClick={handleRunCurrentSelection} sx={{ color: '#38bdf8' }}>
+            <IconButton size="small" onClick={handleRunCurrentSelection} color="primary">
               <PlayArrowRoundedIcon sx={{ fontSize: 18 }} />
             </IconButton>
           </Tooltip>
 
           <Tooltip title="템플릿 초기 상태로 되돌리기">
-            <IconButton size="small" onClick={onResetToTemplate} sx={{ color: '#94a3b8' }}>
+            <IconButton
+              size="small"
+              onClick={onResetToTemplate}
+              sx={{ color: currentTheme.uiColors.textMuted }}
+            >
               <ReplayRoundedIcon sx={{ fontSize: 16 }} />
             </IconButton>
           </Tooltip>
@@ -277,7 +302,7 @@ export function MatlabEditor({
           <Editor
             height="100%"
             language="matlab"
-            theme="vs-dark"
+            theme={currentTheme.monacoThemeId}
             value={activeFile.content}
             onChange={(val) => onCodeChange(activeFile.id, val || '')}
             onMount={handleEditorDidMount}

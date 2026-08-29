@@ -106,7 +106,9 @@ export function CompareTab() {
   const sortingAlgos = Object.values(ALGORITHMS).filter((a) => a.category === 'sorting');
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <Box
+      sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, flex: '1 1 auto', minHeight: 0 }}
+    >
       {/* 1. Header Toolbar */}
       <Card
         sx={{
@@ -220,7 +222,15 @@ export function CompareTab() {
       </Card>
 
       {/* 2. Side-by-Side Comparison Split View */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+          gap: 1.5,
+          flex: '1 1 auto',
+          minHeight: 0,
+        }}
+      >
         {/* Left: Algorithm A */}
         <Card
           sx={{

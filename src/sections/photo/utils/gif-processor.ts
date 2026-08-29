@@ -14,7 +14,7 @@ export interface GifFrameItem {
 }
 
 export interface GifCreateOptions {
-  images: Array<{ src: string; delay?: number }>;
+  images: Array<{ id?: string; src: string; duration?: number; delay?: number; name?: string }>;
   width: number;
   height: number;
   fitMode?: 'contain' | 'cover' | 'stretch';
@@ -300,43 +300,80 @@ export async function createGifFromImages(options: GifCreateOptions): Promise<st
     throw new Error('GIF로 변환할 이미지가 없습니다.');
   }
 
-  // 1. Process frames (Filters, Scaling, Overlays)
-  let processedFrames: string[] = [];
+  // 1. Process each unique canvas once
+  const renderedUniqueFrames: { dataUrl: string; durationSec: number }[] = [];
   const total = images.length;
 
   for (let i = 0; i < total; i += 1) {
     const item = images[i];
     const frameDataUrl = await processSingleFrameCanvas(item.src, width, height, options);
-    processedFrames.push(frameDataUrl);
+
+    // Determine duration in seconds: item.duration -> item.delay (ms) -> 1 / fps
+    let durationSec = 1.0;
+    if (typeof item.duration === 'number' && item.duration > 0) {
+      durationSec = item.duration;
+    } else if (typeof item.delay === 'number' && item.delay > 0) {
+      durationSec = item.delay / 1000;
+    } else if (fps > 0) {
+      durationSec = 1 / fps;
+    }
+
+    renderedUniqueFrames.push({
+      dataUrl: frameDataUrl,
+      durationSec,
+    });
+
     if (progressCallback) {
-      progressCallback(Math.round(((i + 1) / total) * 40)); // 0~40%
+      progressCallback(Math.round(((i + 1) / total) * 35));
     }
   }
 
-  // 2. Apply loop mode
-  if (loopMode === 'reverse') {
-    processedFrames.reverse();
-  } else if (loopMode === 'boomerang') {
-    const reversedCopy = [...processedFrames].reverse().slice(1, -1);
-    processedFrames = [...processedFrames, ...reversedCopy];
+  // 2. Determine base tick interval (T_tick) to avoid excessive frames while keeping exact relative durations
+  const totalDurationSec = renderedUniqueFrames.reduce((acc, f) => acc + f.durationSec, 0);
+
+  let baseTickSec = 0.05;
+  if (totalDurationSec > 25) {
+    baseTickSec = 0.15;
+  } else if (totalDurationSec > 12) {
+    baseTickSec = 0.1;
+  } else if (totalDurationSec > 5) {
+    baseTickSec = 0.08;
   }
 
-  // Calculate interval in seconds per frame
-  const intervalSeconds = 1 / Math.max(1, Math.min(30, fps));
+  // Expand frames based on duration
+  let expandedFrames: string[] = [];
+  for (let i = 0; i < renderedUniqueFrames.length; i += 1) {
+    const item = renderedUniqueFrames[i];
+    const repeatCount = Math.max(1, Math.round(item.durationSec / baseTickSec));
+    for (let k = 0; k < repeatCount; k += 1) {
+      expandedFrames.push(item.dataUrl);
+    }
+  }
 
-  // 3. Call gifshot createGIF
+  if (expandedFrames.length === 0) {
+    expandedFrames = renderedUniqueFrames.map((f) => f.dataUrl);
+  }
+
+  // 3. Loop mode direction
+  if (loopMode === 'reverse') {
+    expandedFrames.reverse();
+  } else if (loopMode === 'boomerang') {
+    const reversedCopy = [...expandedFrames].reverse().slice(1, -1);
+    expandedFrames = [...expandedFrames, ...reversedCopy];
+  }
+
   return new Promise((resolve, reject) => {
     gifshot.createGIF(
       {
-        images: processedFrames,
+        images: expandedFrames,
         gifWidth: width,
         gifHeight: height,
-        interval: intervalSeconds,
+        interval: baseTickSec,
         sampleInterval,
         numWorkers: 2,
         progressCallback: (captureProgress: number) => {
           if (progressCallback) {
-            progressCallback(40 + Math.round(captureProgress * 60)); // 40~100%
+            progressCallback(35 + Math.round(captureProgress * 65));
           }
         },
       },

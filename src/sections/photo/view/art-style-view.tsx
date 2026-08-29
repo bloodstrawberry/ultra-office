@@ -33,7 +33,9 @@ import {
   type ComparePreviewMode,
 } from '../components';
 
-type FilterType = 'pencil' | 'kuwahara' | 'comic' | 'watercolor' | 'cyberpunk';
+import { renderDoodlePhoto } from '../utils/doodle-processor';
+
+type FilterType = 'pencil' | 'kuwahara' | 'comic' | 'watercolor' | 'cyberpunk' | 'doodle' | 'derpy';
 
 const ART_SAMPLE_IMAGES: SampleImageItem[] = [
   {
@@ -73,6 +75,18 @@ const FILTERS: FilterOption[] = [
     name: '사이버펑크 네온',
     desc: '고대비 네온 글로우 & 사이버 미래',
     icon: '⚡',
+  },
+  {
+    id: 'doodle',
+    name: '대충 그린 스케치',
+    desc: '끄적끄적 성의 없이 그린 볼펜/연필 드로잉',
+    icon: '✏️',
+  },
+  {
+    id: 'derpy',
+    name: '하찮은 그림판 짤',
+    desc: '그림판 마우스 개발새발 삐뚤빼뚤 픽셀 & 점눈',
+    icon: '🤪',
   },
 ];
 
@@ -155,6 +169,55 @@ export function ArtStyleView() {
         img.onerror = reject;
         img.src = imageSrc;
       });
+
+      if (activeFilter === 'doodle') {
+        const outUrl = await renderDoodlePhoto(canvas, imageSrc, {
+          mode: 'doodle',
+          randomSeed: 42,
+          roughness: Math.max(1, Math.round(intensity / 10)),
+          strokeWidth: Math.max(1, Math.round(brushSize / 2)),
+          crosshatchDensity: intensity,
+          colorStyle: 'black_ink',
+          paperBg: 'white',
+          derpLevel: 6,
+          mouseJitter: 60,
+          pixelBrushSize: 2,
+          enablePaintBucket: true,
+          paintColorCount: 16,
+          derpyExpression: 'auto',
+          customCaption: '(대충 그린 그림)',
+          showCaption: true,
+        });
+        setResultDataUrl(outUrl);
+        return outUrl;
+      }
+
+      if (activeFilter === 'derpy') {
+        const outUrl = await renderDoodlePhoto(canvas, imageSrc, {
+          mode: 'derpy',
+          randomSeed: 42,
+          roughness: 6,
+          strokeWidth: 2,
+          crosshatchDensity: 50,
+          colorStyle: 'black_ink',
+          paperBg: 'white',
+          derpLevel: Math.max(1, Math.min(10, Math.round(intensity / 10))),
+          mouseJitter: intensity,
+          pixelBrushSize: (Math.max(1, Math.min(5, Math.round(brushSize / 2))) || 2) as
+            | 1
+            | 2
+            | 3
+            | 4
+            | 5,
+          enablePaintBucket: true,
+          paintColorCount: 16,
+          derpyExpression: 'auto',
+          customCaption: '(하찮음 100%)',
+          showCaption: true,
+        });
+        setResultDataUrl(outUrl);
+        return outUrl;
+      }
 
       const maxDim = 1200;
       let w = img.naturalWidth || img.width;

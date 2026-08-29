@@ -117,7 +117,9 @@ export function DataStructuresTab({
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <Box
+      sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, flex: '1 1 auto', minHeight: 0 }}
+    >
       {/* 1. Header Card: Selector, Quiz, Chips */}
       <Card
         sx={{
@@ -216,7 +218,7 @@ export function DataStructuresTab({
       </Box>
 
       {/* 3. Main Content: Interactive Canvas vs Concept Card */}
-      <Box sx={{ mt: 1 }}>
+      <Box sx={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto' }}>
         {activeTab === 'interactive' ? (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {renderInteractiveCanvas()}

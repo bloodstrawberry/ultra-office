@@ -6,24 +6,33 @@ import React, { useRef, useState, useEffect, useCallback } from 'react';
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
 import Card from '@mui/material/Card';
+import Chip from '@mui/material/Chip';
+import Menu from '@mui/material/Menu';
 import Tabs from '@mui/material/Tabs';
 import Button from '@mui/material/Button';
 import Slider from '@mui/material/Slider';
+import Tooltip from '@mui/material/Tooltip';
+import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import ToggleButton from '@mui/material/ToggleButton';
 import GifRoundedIcon from '@mui/icons-material/GifRounded';
+import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
 import CircularProgress from '@mui/material/CircularProgress';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import ArchiveRoundedIcon from '@mui/icons-material/ArchiveRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
-import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import CallSplitRoundedIcon from '@mui/icons-material/CallSplitRounded';
 import ColorLensRoundedIcon from '@mui/icons-material/ColorLensRounded';
+import FilterAltRoundedIcon from '@mui/icons-material/FilterAltRounded';
+import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
+import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
+import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
 
 import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
 
@@ -72,9 +81,17 @@ export function GifView() {
   const [splitFile, setSplitFile] = useState<File | null>(null);
   const [splitFrames, setSplitFrames] = useState<GifFrameItem[]>([]);
   const [selectedFrameIds, setSelectedFrameIds] = useState<Set<string>>(new Set());
+  const [disabledFrameIds, setDisabledFrameIds] = useState<Set<string>>(new Set());
   const [isExtracting, setIsExtracting] = useState<boolean>(false);
   const [splitPlayerIndex, setSplitPlayerIndex] = useState<number>(0);
   const [isPlayingSplit, setIsPlayingSplit] = useState<boolean>(false);
+  const [splitIntervalStep, setSplitIntervalStep] = useState<number>(2);
+  const [splitMenuAnchorEl, setSplitMenuAnchorEl] = useState<null | HTMLElement>(null);
+
+  // Exclude disabled frames from playback and active selection
+  const selectedSplitFrames = splitFrames.filter(
+    (f) => selectedFrameIds.has(f.id) && !disabledFrameIds.has(f.id)
+  );
 
   // Tab 3: BgColor
   const [bgFile, setBgFile] = useState<File | null>(null);
@@ -131,14 +148,22 @@ export function GifView() {
 
   // Preview player for Tab 2
   useEffect(() => {
-    if (!isPlayingSplit || splitFrames.length === 0) return undefined;
-    const currentFrame = splitFrames[splitPlayerIndex];
-    const delay = currentFrame?.delay || 100;
+    if (!isPlayingSplit || selectedSplitFrames.length === 0) return undefined;
+    const safeIndex = splitPlayerIndex % selectedSplitFrames.length;
+    const currentFrame = selectedSplitFrames[safeIndex];
+    const delay = Math.max(20, currentFrame?.delay || 100);
     const timer = setTimeout(() => {
-      setSplitPlayerIndex((prev) => (prev + 1) % splitFrames.length);
+      setSplitPlayerIndex((prev) => (prev + 1) % selectedSplitFrames.length);
     }, delay);
     return () => clearTimeout(timer);
-  }, [isPlayingSplit, splitFrames, splitPlayerIndex]);
+  }, [isPlayingSplit, selectedSplitFrames, splitPlayerIndex]);
+
+  // Stop playback if no frames are selected/active
+  useEffect(() => {
+    if (selectedSplitFrames.length === 0 && isPlayingSplit) {
+      setIsPlayingSplit(false);
+    }
+  }, [selectedSplitFrames.length, isPlayingSplit]);
 
   // Tab 1: Handle Images upload
   const addCreateFiles = useCallback((files: File[]) => {
@@ -222,6 +247,8 @@ export function GifView() {
       const res = await extractGifFrames(file);
       setSplitFrames(res.frames);
       setSelectedFrameIds(new Set(res.frames.map((f) => f.id)));
+      setDisabledFrameIds(new Set());
+      setSplitPlayerIndex(0);
       toast.success(`총 ${res.frames.length}개 프레임이 추출되었습니다.`);
     } catch {
       toast.error('GIF 프레임 분할에 실패했습니다.');
@@ -246,9 +273,67 @@ export function GifView() {
     });
   };
 
+  const toggleDisableFrame = (id: string) => {
+    setDisabledFrameIds((prev) => {
+      const next = new Set(prev);
+      const wasDisabled = next.has(id);
+      if (wasDisabled) {
+        next.delete(id);
+        toast.info('프레임이 다시 활성화되었습니다.');
+      } else {
+        next.add(id);
+        toast.info('프레임이 비활성화(재생 및 추출에서 제외)되었습니다.');
+      }
+      return next;
+    });
+  };
+
+  const handleEnableAllSplitFrames = () => {
+    setDisabledFrameIds(new Set());
+    toast.success('모든 프레임이 활성화되었습니다.');
+  };
+
+  const handleSelectIntervalSplitFrames = (step: number, offset: number = 0) => {
+    if (splitFrames.length === 0 || step < 1) return;
+    const newIds = new Set<string>();
+    for (let i = offset; i < splitFrames.length; i += step) {
+      newIds.add(splitFrames[i].id);
+    }
+    setSelectedFrameIds(newIds);
+    setSplitIntervalStep(step);
+    setSplitMenuAnchorEl(null);
+    toast.success(`${step}칸 간격으로 ${newIds.size}개 프레임이 선택되었습니다.`);
+  };
+
+  const handleSelectAllSplitFrames = () => {
+    setSelectedFrameIds(new Set(splitFrames.map((f) => f.id)));
+  };
+
+  const handleDeselectAllSplitFrames = () => {
+    setSelectedFrameIds(new Set());
+    setIsPlayingSplit(false);
+  };
+
+  const handleTogglePlaySplit = () => {
+    if (!isPlayingSplit) {
+      if (selectedSplitFrames.length === 0) {
+        toast.warning('재생할 활성 프레임이 없습니다. 프레임을 활성화하거나 선택해주세요.');
+        return;
+      }
+      setIsPlayingSplit(true);
+    } else {
+      setIsPlayingSplit(false);
+    }
+  };
+
   const handleExportFramesZip = async () => {
-    const framesToExport = splitFrames.filter((f) => selectedFrameIds.has(f.id));
-    if (framesToExport.length === 0) return;
+    const framesToExport = splitFrames.filter(
+      (f) => selectedFrameIds.has(f.id) && !disabledFrameIds.has(f.id)
+    );
+    if (framesToExport.length === 0) {
+      toast.error('내보낼 활성 프레임을 1개 이상 선택해주세요.');
+      return;
+    }
 
     try {
       await exportFramesToZip(framesToExport, `gif_frames_${Date.now()}.zip`);
@@ -970,36 +1055,100 @@ export function GifView() {
                   <Box
                     sx={{
                       display: 'flex',
+                      flexWrap: 'wrap',
                       justifyContent: 'space-between',
                       alignItems: 'center',
                       mb: 1.5,
+                      gap: 1,
                       flexShrink: 0,
                     }}
                   >
                     <Box>
                       <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                        {splitFile.name} (총 {splitFrames.length} 프레임)
+                        {splitFile.name} (총 {splitFrames.length}개 프레임)
                       </Typography>
-                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                        선택된 프레임: {selectedFrameIds.size}개
+                      <Typography
+                        variant="caption"
+                        sx={{ color: 'text.secondary', fontWeight: 600 }}
+                      >
+                        재생/내보내기: {selectedSplitFrames.length}개
+                        {disabledFrameIds.size > 0 && ` (비활성 ${disabledFrameIds.size}개 제외)`}
                       </Typography>
                     </Box>
-                    <Box sx={{ display: 'flex', gap: 1 }}>
+
+                    {/* Toolbar Controls */}
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
                       <Button
                         size="small"
-                        variant="outlined"
+                        variant={isPlayingSplit ? 'contained' : 'outlined'}
+                        color={isPlayingSplit ? 'primary' : 'inherit'}
                         startIcon={isPlayingSplit ? <PauseRoundedIcon /> : <PlayArrowRoundedIcon />}
-                        onClick={() => setIsPlayingSplit(!isPlayingSplit)}
+                        onClick={handleTogglePlaySplit}
+                        disabled={selectedSplitFrames.length === 0}
+                        sx={{ fontWeight: 700 }}
                       >
                         {isPlayingSplit ? '정지' : '재생'}
                       </Button>
                       <Button
                         size="small"
                         variant="outlined"
-                        onClick={() => setSelectedFrameIds(new Set(splitFrames.map((f) => f.id)))}
+                        onClick={handleSelectAllSplitFrames}
+                        sx={{ fontWeight: 600 }}
                       >
                         전체 선택
                       </Button>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="inherit"
+                        onClick={handleDeselectAllSplitFrames}
+                        sx={{ fontWeight: 600 }}
+                      >
+                        전체 해제
+                      </Button>
+                      {disabledFrameIds.size > 0 && (
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          color="warning"
+                          startIcon={<RestartAltRoundedIcon />}
+                          onClick={handleEnableAllSplitFrames}
+                          sx={{ fontWeight: 700 }}
+                        >
+                          제외 초기화 ({disabledFrameIds.size})
+                        </Button>
+                      )}
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="inherit"
+                        startIcon={<FilterAltRoundedIcon />}
+                        endIcon={<KeyboardArrowDownRoundedIcon />}
+                        onClick={(e) => setSplitMenuAnchorEl(e.currentTarget)}
+                        sx={{ fontWeight: 600 }}
+                      >
+                        간격 선택
+                      </Button>
+                      <Menu
+                        anchorEl={splitMenuAnchorEl}
+                        open={Boolean(splitMenuAnchorEl)}
+                        onClose={() => setSplitMenuAnchorEl(null)}
+                        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                      >
+                        <MenuItem onClick={() => handleSelectIntervalSplitFrames(2, 0)}>
+                          2칸 간격 (1/2 분할 선택)
+                        </MenuItem>
+                        <MenuItem onClick={() => handleSelectIntervalSplitFrames(3, 0)}>
+                          3칸 간격 (1/3 분할 선택)
+                        </MenuItem>
+                        <MenuItem onClick={() => handleSelectIntervalSplitFrames(4, 0)}>
+                          4칸 간격 (1/4 분할 선택)
+                        </MenuItem>
+                        <MenuItem onClick={() => handleSelectIntervalSplitFrames(5, 0)}>
+                          5칸 간격 (1/5 분할 선택)
+                        </MenuItem>
+                      </Menu>
                     </Box>
                   </Box>
 
@@ -1012,10 +1161,18 @@ export function GifView() {
                       flex: '1 1 auto',
                       minHeight: 0,
                       overflowY: 'auto',
+                      p: 0.5,
                     }}
                   >
                     {splitFrames.map((frame, idx) => {
                       const isSelected = selectedFrameIds.has(frame.id);
+                      const isDisabled = disabledFrameIds.has(frame.id);
+                      const isCurrentPlaying =
+                        isPlayingSplit &&
+                        selectedSplitFrames.length > 0 &&
+                        selectedSplitFrames[splitPlayerIndex % selectedSplitFrames.length]?.id ===
+                          frame.id;
+
                       return (
                         <Card
                           key={frame.id}
@@ -1024,12 +1181,66 @@ export function GifView() {
                             p: 1,
                             borderRadius: 2,
                             cursor: 'pointer',
+                            position: 'relative',
                             border: '2px solid',
-                            borderColor: isSelected ? 'primary.main' : 'transparent',
-                            bgcolor: isSelected ? 'action.selected' : 'action.hover',
+                            borderColor: isDisabled
+                              ? 'rgba(239, 68, 68, 0.4)'
+                              : isCurrentPlaying
+                                ? 'primary.main'
+                                : isSelected
+                                  ? 'primary.light'
+                                  : 'transparent',
+                            bgcolor: isDisabled
+                              ? 'action.disabledBackground'
+                              : isSelected
+                                ? 'action.selected'
+                                : 'action.hover',
+                            boxShadow: isCurrentPlaying
+                              ? '0 0 12px rgba(32, 101, 209, 0.6)'
+                              : 'none',
+                            transition: 'all 0.15s ease',
                             flexShrink: 0,
                           }}
                         >
+                          {/* Top Right Disable (X) / Restore Toggle Button */}
+                          <Tooltip
+                            title={
+                              isDisabled
+                                ? '프레임 다시 포함하기'
+                                : '프레임 제외하기 (재생/다운로드에서 제외)'
+                            }
+                          >
+                            <IconButton
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleDisableFrame(frame.id);
+                              }}
+                              sx={{
+                                position: 'absolute',
+                                top: 4,
+                                right: 4,
+                                zIndex: 5,
+                                width: 22,
+                                height: 22,
+                                bgcolor: isDisabled
+                                  ? 'rgba(239, 68, 68, 0.85)'
+                                  : 'rgba(0, 0, 0, 0.55)',
+                                color: '#ffffff',
+                                backdropFilter: 'blur(2px)',
+                                '&:hover': {
+                                  bgcolor: isDisabled ? '#ef4444' : 'rgba(239, 68, 68, 0.9)',
+                                },
+                              }}
+                            >
+                              {isDisabled ? (
+                                <RestartAltRoundedIcon sx={{ fontSize: 13 }} />
+                              ) : (
+                                <CloseRoundedIcon sx={{ fontSize: 13 }} />
+                              )}
+                            </IconButton>
+                          </Tooltip>
+
                           <Box
                             sx={{
                               width: '100%',
@@ -1038,13 +1249,45 @@ export function GifView() {
                               overflow: 'hidden',
                               bgcolor: '#0f172a',
                               mb: 0.5,
+                              position: 'relative',
                             }}
                           >
                             <img
                               src={frame.dataUrl}
                               alt={`frame ${idx + 1}`}
-                              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                              style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'contain',
+                                filter: isDisabled ? 'grayscale(100%)' : 'none',
+                                opacity: isDisabled ? 0.45 : 1,
+                                transition: 'filter 0.2s ease, opacity 0.2s ease',
+                              }}
                             />
+                            {isDisabled && (
+                              <Box
+                                sx={{
+                                  position: 'absolute',
+                                  inset: 0,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  pointerEvents: 'none',
+                                }}
+                              >
+                                <Chip
+                                  label="제외됨"
+                                  size="small"
+                                  color="error"
+                                  sx={{
+                                    height: 20,
+                                    fontSize: '0.65rem',
+                                    fontWeight: 800,
+                                    boxShadow: '0 2px 6px rgba(0,0,0,0.4)',
+                                  }}
+                                />
+                              </Box>
+                            )}
                           </Box>
                           <Box
                             sx={{
@@ -1053,7 +1296,14 @@ export function GifView() {
                               alignItems: 'center',
                             }}
                           >
-                            <Typography variant="caption" sx={{ fontWeight: 800 }}>
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                fontWeight: 800,
+                                color: isDisabled ? 'text.disabled' : 'text.primary',
+                                textDecoration: isDisabled ? 'line-through' : 'none',
+                              }}
+                            >
                               #{idx + 1}
                             </Typography>
                             <Typography variant="caption" sx={{ color: 'text.secondary' }}>
@@ -1165,6 +1415,235 @@ export function GifView() {
                   pr: 0.5,
                 }}
               >
+                {/* Live Preview Player */}
+                <Card
+                  sx={{
+                    p: 2,
+                    borderRadius: 3,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1.5,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                      실시간 미리보기 ({selectedSplitFrames.length}프레임)
+                    </Typography>
+                    <Button
+                      size="small"
+                      variant={isPlayingSplit ? 'contained' : 'outlined'}
+                      color={isPlayingSplit ? 'primary' : 'inherit'}
+                      startIcon={isPlayingSplit ? <PauseRoundedIcon /> : <PlayArrowRoundedIcon />}
+                      onClick={handleTogglePlaySplit}
+                      disabled={selectedSplitFrames.length === 0}
+                      sx={{ py: 0.25, px: 1, fontSize: '0.75rem', fontWeight: 700 }}
+                    >
+                      {isPlayingSplit ? '정지' : '재생'}
+                    </Button>
+                  </Box>
+
+                  <Box
+                    sx={{
+                      width: '100%',
+                      aspectRatio: '1',
+                      bgcolor: '#0f172a',
+                      borderRadius: 2,
+                      overflow: 'hidden',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      position: 'relative',
+                    }}
+                  >
+                    {selectedSplitFrames.length > 0 ? (
+                      <img
+                        src={
+                          selectedSplitFrames[splitPlayerIndex % selectedSplitFrames.length]
+                            ?.dataUrl
+                        }
+                        alt="split preview"
+                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                      />
+                    ) : (
+                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                        선택 및 활성화된 프레임이 없습니다
+                      </Typography>
+                    )}
+                  </Box>
+
+                  {/* Frame Scrubber */}
+                  {selectedSplitFrames.length > 1 && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 0.5 }}>
+                      <Slider
+                        size="small"
+                        value={splitPlayerIndex % selectedSplitFrames.length}
+                        min={0}
+                        max={selectedSplitFrames.length - 1}
+                        step={1}
+                        onChange={(_, val) => {
+                          setIsPlayingSplit(false);
+                          setSplitPlayerIndex(Number(val));
+                        }}
+                        sx={{ flex: '1 1 auto' }}
+                      />
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontFamily: 'monospace',
+                          fontWeight: 700,
+                          minWidth: 45,
+                          textAlign: 'right',
+                          color: 'text.secondary',
+                        }}
+                      >
+                        {(splitPlayerIndex % selectedSplitFrames.length) + 1} /{' '}
+                        {selectedSplitFrames.length}
+                      </Typography>
+                    </Box>
+                  )}
+                </Card>
+
+                {/* Frame Interval Selection Card */}
+                <Card
+                  sx={{
+                    p: 2.5,
+                    borderRadius: 3,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1.5,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <TuneRoundedIcon fontSize="small" color="primary" />
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                        간격 선택 (프레임 수 줄이기)
+                      </Typography>
+                    </Box>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>
+                      {splitFrames.length > 0
+                        ? `${selectedFrameIds.size}/${splitFrames.length}개 (${Math.round(
+                            (selectedFrameIds.size / splitFrames.length) * 100
+                          )}%)`
+                        : ''}
+                    </Typography>
+                  </Box>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.4 }}>
+                    일정한 간격으로 프레임을 띄워서 선택하여 GIF 용량을 줄이고 프레임 속도를
+                    최적화합니다.
+                  </Typography>
+
+                  {/* Preset Buttons */}
+                  <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 1 }}>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() => handleSelectIntervalSplitFrames(2, 0)}
+                      disabled={splitFrames.length === 0}
+                      sx={{ py: 0.75, fontSize: '0.75rem', fontWeight: 600 }}
+                    >
+                      2칸 간격 (1/2)
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() => handleSelectIntervalSplitFrames(3, 0)}
+                      disabled={splitFrames.length === 0}
+                      sx={{ py: 0.75, fontSize: '0.75rem', fontWeight: 600 }}
+                    >
+                      3칸 간격 (1/3)
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() => handleSelectIntervalSplitFrames(4, 0)}
+                      disabled={splitFrames.length === 0}
+                      sx={{ py: 0.75, fontSize: '0.75rem', fontWeight: 600 }}
+                    >
+                      4칸 간격 (1/4)
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() => handleSelectIntervalSplitFrames(5, 0)}
+                      disabled={splitFrames.length === 0}
+                      sx={{ py: 0.75, fontSize: '0.75rem', fontWeight: 600 }}
+                    >
+                      5칸 간격 (1/5)
+                    </Button>
+                  </Box>
+
+                  {/* Custom Interval Slider */}
+                  {splitFrames.length > 2 && (
+                    <Box
+                      sx={{
+                        p: 1.25,
+                        bgcolor: 'background.neutral',
+                        borderRadius: 2,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 0.5,
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                          간격 직접 조절
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          sx={{ fontWeight: 800, color: 'primary.main' }}
+                        >
+                          매 {splitIntervalStep}칸 띄워서 선택
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 0.5 }}>
+                        <Slider
+                          size="small"
+                          value={splitIntervalStep}
+                          min={1}
+                          max={Math.min(20, Math.max(2, Math.floor(splitFrames.length / 2)))}
+                          step={1}
+                          onChange={(_, val) => {
+                            const s = Number(val);
+                            setSplitIntervalStep(s);
+                            handleSelectIntervalSplitFrames(s, 0);
+                          }}
+                          sx={{ flex: '1 1 auto' }}
+                        />
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            fontFamily: 'monospace',
+                            fontWeight: 700,
+                            minWidth: 35,
+                            textAlign: 'right',
+                          }}
+                        >
+                          {splitIntervalStep}칸
+                        </Typography>
+                      </Box>
+                    </Box>
+                  )}
+                </Card>
+
                 <Card sx={{ p: 2.5, borderRadius: 3 }}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
                     프레임 추출 정보
@@ -1176,7 +1655,8 @@ export function GifView() {
                     총 프레임: {splitFrames.length}개
                   </Typography>
                   <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                    선택된 프레임: {selectedFrameIds.size}개
+                    재생/내보내기 프레임: {selectedSplitFrames.length}개
+                    {disabledFrameIds.size > 0 && ` (비활성 ${disabledFrameIds.size}개 제외)`}
                   </Typography>
                 </Card>
 
@@ -1196,10 +1676,10 @@ export function GifView() {
                     color="primary"
                     startIcon={<ArchiveRoundedIcon />}
                     onClick={handleExportFramesZip}
-                    disabled={selectedFrameIds.size === 0}
+                    disabled={selectedSplitFrames.length === 0}
                     sx={{ py: 1.4, borderRadius: 2, fontWeight: 700, fontSize: '0.95rem' }}
                   >
-                    선택 프레임 ZIP 다운로드
+                    선택 프레임 ZIP 다운로드 ({selectedSplitFrames.length}개)
                   </Button>
                   <Button
                     fullWidth
@@ -1219,6 +1699,8 @@ export function GifView() {
                       setSplitFile(null);
                       setSplitFrames([]);
                       setSelectedFrameIds(new Set());
+                      setDisabledFrameIds(new Set());
+                      setIsPlayingSplit(false);
                     }}
                     sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
                   >

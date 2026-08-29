@@ -10,23 +10,24 @@ import Typography from '@mui/material/Typography';
 import GifRoundedIcon from '@mui/icons-material/GifRounded';
 import BlurOnRoundedIcon from '@mui/icons-material/BlurOnRounded';
 import FlashOnRoundedIcon from '@mui/icons-material/FlashOnRounded';
+import GestureRoundedIcon from '@mui/icons-material/GestureRounded';
 import CompressRoundedIcon from '@mui/icons-material/CompressRounded';
 import WhatshotRoundedIcon from '@mui/icons-material/WhatshotRounded';
 import ColorLensRoundedIcon from '@mui/icons-material/ColorLensRounded';
-import TransformRoundedIcon from '@mui/icons-material/TransformRounded';
 import LaptopMacRoundedIcon from '@mui/icons-material/LaptopMacRounded';
-import TextFieldsRoundedIcon from '@mui/icons-material/TextFieldsRounded';
-import ViewModuleRoundedIcon from '@mui/icons-material/ViewModuleRounded';
+import TransformRoundedIcon from '@mui/icons-material/TransformRounded';
 import CropRotateRoundedIcon from '@mui/icons-material/CropRotateRounded';
 import CropSquareRoundedIcon from '@mui/icons-material/CropSquareRounded';
-import AutoFixHighRoundedIcon from '@mui/icons-material/AutoFixHighRounded';
+import TextFieldsRoundedIcon from '@mui/icons-material/TextFieldsRounded';
+import ViewModuleRoundedIcon from '@mui/icons-material/ViewModuleRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
+import AutoFixHighRoundedIcon from '@mui/icons-material/AutoFixHighRounded';
 import PhotoFilterRoundedIcon from '@mui/icons-material/PhotoFilterRounded';
 import InvertColorsRoundedIcon from '@mui/icons-material/InvertColorsRounded';
-import PictureAsPdfRoundedIcon from '@mui/icons-material/PictureAsPdfRounded';
 import PhoneAndroidRoundedIcon from '@mui/icons-material/PhoneAndroidRounded';
-import HourglassBottomRoundedIcon from '@mui/icons-material/HourglassBottomRounded';
+import PictureAsPdfRoundedIcon from '@mui/icons-material/PictureAsPdfRounded';
 import DocumentScannerRoundedIcon from '@mui/icons-material/DocumentScannerRounded';
+import HourglassBottomRoundedIcon from '@mui/icons-material/HourglassBottomRounded';
 import BrandingWatermarkRoundedIcon from '@mui/icons-material/BrandingWatermarkRounded';
 
 import { paths } from 'src/routes/paths';
@@ -107,6 +108,15 @@ const TOOL_SECTIONS: { category: string; desc: string; tools: PhotoToolItem[] }[
         tag: 'HOT',
         badgeColor: 'error',
       },
+      {
+        id: 'doodle',
+        title: '대충 · 하찮은 그림 변환기',
+        desc: '대충 끄적인 펜 스케치 & 그림판 마우스 개발새발 세상에서 가장 하찮은 짤 생성',
+        href: paths.photo.doodle,
+        icon: <GestureRoundedIcon sx={{ fontSize: 28, color: '#e11d48' }} />,
+        tag: 'NEW',
+        badgeColor: 'error',
+      },
     ],
   },
   {
@@ -151,6 +161,15 @@ const TOOL_SECTIONS: { category: string; desc: string; tools: PhotoToolItem[] }[
         desc: '원형, 하트, 별, 육각형, 꽃, 말풍선 형태로 사진 크롭 & 펀칭',
         href: paths.photo.shapeCrop,
         icon: <CropRotateRoundedIcon sx={{ fontSize: 28, color: '#f43f5e' }} />,
+      },
+      {
+        id: 'ai-watermark',
+        title: 'AI 워터마크 & 생성물 각인기',
+        desc: 'ChatGPT, Gemini, Claude 등 AI 로고와 손그림 마커(동그라미·화살표·네모) 자유 드래그 각인',
+        href: paths.photo.aiWatermark,
+        icon: <AutoAwesomeRoundedIcon sx={{ fontSize: 28, color: '#3b82f6' }} />,
+        tag: 'AI 추천',
+        badgeColor: 'primary',
       },
       {
         id: 'watermark',

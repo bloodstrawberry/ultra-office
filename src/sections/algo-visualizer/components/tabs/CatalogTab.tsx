@@ -36,7 +36,9 @@ export function CatalogTab({ onSelectAlgo }: { onSelectAlgo: (algoId: string) =>
   });
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <Box
+      sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, flex: '1 1 auto', minHeight: 0 }}
+    >
       {/* 1. Filter Bar & Search */}
       <Card
         sx={{

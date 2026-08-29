@@ -40,7 +40,7 @@ const iconStyles = (theme: Theme): CSSObject => ({
     flexShrink: 0,
     display: 'flex',
     alignItems: 'center',
-    alignSelf: 'flex-start',
+    alignSelf: 'center',
     justifyContent: 'center',
     [`&:not(.${snackbarClasses.unset})`]: {
       width: 48,
@@ -64,17 +64,21 @@ const contentStyles = (theme: Theme): CSSObject => ({
     display: 'flex',
     flex: '1 1 auto',
     flexDirection: 'column',
+    minWidth: 0,
   },
   [`& .${snackbarClasses.title}`]: {
     lineHeight: 20 / 13,
     fontSize: theme.typography.pxToRem(13),
     fontWeight: theme.typography.fontWeightMedium,
-    whiteSpace: 'nowrap',
+    whiteSpace: 'normal',
+    wordBreak: 'break-word',
   },
   [`& .${snackbarClasses.description}`]: {
     opacity: 0.64,
     lineHeight: 18 / 13,
     fontSize: theme.typography.pxToRem(13),
+    whiteSpace: 'normal',
+    wordBreak: 'break-word',
   },
 });
 
@@ -96,9 +100,11 @@ const actionsStyles = (theme: Theme): CSSObject => ({
   [`& .${snackbarClasses.actionButton}`]: {
     borderRadius: 6,
     lineHeight: 18 / 13,
-    padding: ' 2px 8px',
+    padding: '2px 8px',
     fontSize: theme.typography.pxToRem(13),
     fontWeight: theme.typography.fontWeightSemiBold,
+    flexShrink: 0,
+    marginLeft: 'auto',
   },
   [`& .${snackbarClasses.closeButton}`]: {
     top: 0,
@@ -118,14 +124,17 @@ const toastStyles = (theme: Theme): CSSObject => ({
     gap: 12,
     minHeight: 52,
     borderRadius: 12,
-    width: '100%',
+    width: 'max-content',
+    minWidth: 'min(300px, calc(100vw - 32px))',
+    maxWidth: 'min(640px, calc(100vw - 32px))',
+    boxSizing: 'border-box',
     display: 'flex',
     alignItems: 'center',
     padding: theme.spacing(0.5, 1, 0.5, 0.5),
     boxShadow: theme.vars.customShadows.z8,
     backgroundColor: theme.vars.palette.background.paper,
-    [`&:has(${snackbarClasses.closeBtnVisible})`]: {
-      [`& .${snackbarClasses.content}`]: { paddingRight: 24 },
+    [`&:has(.${snackbarClasses.closeButton}), &:has(${snackbarClasses.closeBtnVisible})`]: {
+      [`& .${snackbarClasses.content}`]: { paddingRight: 28 },
     },
     [snackbarClasses.default]: {
       padding: theme.spacing(1, 1, 1, 1.5),
@@ -153,7 +162,12 @@ export const SnackbarRoot = styled(Toaster)(({ theme }) => ({
   '@keyframes rotate': {
     to: { transform: 'rotate(1turn)' },
   },
-  width: 420,
+  width: 'auto',
+  maxWidth: 'min(640px, calc(100vw - 32px))',
+  [`& [data-sonner-toaster]`]: {
+    width: 'auto',
+    maxWidth: 'min(640px, calc(100vw - 32px))',
+  },
   ...toastStyles(theme),
   ...iconStyles(theme),
   ...contentStyles(theme),

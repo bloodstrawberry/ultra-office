@@ -38,6 +38,8 @@ import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
 import FullscreenRoundedIcon from '@mui/icons-material/FullscreenRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
+import { ThemeSelector } from 'src/components/theme-selector';
+import { DEFAULT_THEME_ID, IDE_THEMES } from 'src/sections/code-runner/core/editor-themes';
 
 import { ParameterPanel } from '../components/parameter-panel';
 import { CodeExportDialog } from '../components/code-export-dialog';
@@ -77,6 +79,8 @@ const ThreeJsCanvas = dynamic(
 
 export function ThreeJsView() {
   const [hasLoaded, setHasLoaded] = useState(false);
+  const [themeId, setThemeId] = useState<string>(DEFAULT_THEME_ID);
+  const [hasLoadedTheme, setHasLoadedTheme] = useState(false);
 
   const [activeCategory, setActiveCategory] = useState<ThreeCategory | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -94,7 +98,26 @@ export function ThreeJsView() {
 
   useEffect(() => {
     setHasLoaded(true);
+    try {
+      const savedTheme = localStorage.getItem('threejs-theme');
+      if (savedTheme && IDE_THEMES.some((t) => t.id === savedTheme)) {
+        setThemeId(savedTheme);
+      }
+    } catch {
+      // ignore storage access error
+    }
+    setHasLoadedTheme(true);
   }, []);
+
+  useEffect(() => {
+    if (hasLoadedTheme) {
+      try {
+        localStorage.setItem('threejs-theme', themeId);
+      } catch {
+        // ignore storage access error
+      }
+    }
+  }, [themeId, hasLoadedTheme]);
 
   const activeExample: ExampleDefinition = useMemo(() => {
     const found = THREE_EXAMPLES.find((ex) => ex.id === activeExampleId);
@@ -312,6 +335,15 @@ export function ThreeJsView() {
               <FullscreenRoundedIcon fontSize="small" />
             </IconButton>
           </Tooltip>
+
+          {/* Code Theme Selector */}
+          <ThemeSelector
+            currentThemeId={themeId}
+            onThemeChange={setThemeId}
+            size="small"
+            height={34}
+            minWidth={140}
+          />
 
           {/* Code Export Dialog Button */}
           <Button
@@ -569,6 +601,8 @@ export function ThreeJsView() {
         onClose={() => setIsCodeDialogOpen(false)}
         example={activeExample}
         currentParams={customParams}
+        themeId={themeId}
+        onThemeChange={setThemeId}
       />
     </DashboardContent>
   );

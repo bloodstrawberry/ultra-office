@@ -8,17 +8,15 @@ import Tabs from '@mui/material/Tabs';
 import Typography from '@mui/material/Typography';
 import CodeRoundedIcon from '@mui/icons-material/CodeRounded';
 import TransformRoundedIcon from '@mui/icons-material/TransformRounded';
-import FindReplaceRoundedIcon from '@mui/icons-material/FindReplaceRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import { RegexStudioTab } from '../components/regex-studio-tab';
 import { FormatConvertTab } from '../components/format-convert-tab';
 import { ContentProcessorTab } from '../components/content-processor-tab';
 
 // ----------------------------------------------------------------------
 
-type TabCategory = 'format' | 'content' | 'regex';
+type TabCategory = 'format' | 'content';
 
 export function TextTransformView() {
   const [currentTab, setCurrentTab] = useState<TabCategory>('format');
@@ -37,11 +35,10 @@ export function TextTransformView() {
     >
       <Box sx={{ mb: 1.5, flexShrink: 0 }}>
         <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
-          텍스트 변환 & 정규식 스튜디오 (Text Transform)
+          텍스트 변환 스튜디오 (Text Transform)
         </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          JSON·CSV·XML·YAML 구조 데이터 상호 변환, 텍스트 가공·인코딩, 120+종 실무 정규식 라이브러리
-          테스터를 제공합니다.
+          JSON·CSV·XML·YAML 구조 데이터 상호 변환 및 텍스트 가공·인코딩을 제공합니다.
         </Typography>
       </Box>
 
@@ -63,12 +60,6 @@ export function TextTransformView() {
             icon={<CodeRoundedIcon />}
             iconPosition="start"
           />
-          <Tab
-            label="3. 정규식 테스터 & 치환 (Regex Studio)"
-            value="regex"
-            icon={<FindReplaceRoundedIcon />}
-            iconPosition="start"
-          />
         </Tabs>
       </Box>
 
@@ -84,7 +75,6 @@ export function TextTransformView() {
       >
         {currentTab === 'format' && <FormatConvertTab />}
         {currentTab === 'content' && <ContentProcessorTab />}
-        {currentTab === 'regex' && <RegexStudioTab />}
       </Box>
     </DashboardContent>
   );

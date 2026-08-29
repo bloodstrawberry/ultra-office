@@ -40,6 +40,7 @@ export interface VisualizerUserPrefs {
   arraySize: number;
   recentAlgorithms: string[];
   completedAlgorithms: string[];
+  themeId?: string;
 }
 
 const VISUALIZER_PREFS_KEY = 'ultra_algo_visualizer_prefs_v1';
@@ -50,6 +51,7 @@ export const DEFAULT_VISUALIZER_PREFS: VisualizerUserPrefs = {
   arraySize: 12,
   recentAlgorithms: ['bubbleSort', 'dijkstra', 'binarySearch'],
   completedAlgorithms: [],
+  themeId: 'light',
 };
 
 export const getVisualizerPrefsSync = (): VisualizerUserPrefs => {

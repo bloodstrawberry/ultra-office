@@ -124,7 +124,9 @@ export function VisualizerTab({ initialAlgoId }: { initialAlgoId?: AlgorithmId }
   );
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <Box
+      sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, flex: '1 1 auto', minHeight: 0 }}
+    >
       {/* 1. Header Toolbar: Algorithm Picker, Category Chips, 3D & Custom Data Buttons */}
       <Card
         sx={{
@@ -233,16 +235,19 @@ export function VisualizerTab({ initialAlgoId }: { initialAlgoId?: AlgorithmId }
         sx={{
           display: 'grid',
           gridTemplateColumns: { xs: '1fr', lg: '1.45fr 1fr' },
-          gap: 2,
-          alignItems: 'start',
+          gap: 1.5,
+          alignItems: 'stretch',
+          flex: '1 1 auto',
+          minHeight: 0,
         }}
       >
         {/* Left Column: Canvas & Player Controls */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, minHeight: 0 }}>
           {/* Visualizer Canvas Area */}
           <Card
             sx={{
-              minHeight: 450,
+              flex: '1 1 auto',
+              minHeight: 380,
               display: 'flex',
               flexDirection: 'column',
               p: 2,
@@ -268,7 +273,7 @@ export function VisualizerTab({ initialAlgoId }: { initialAlgoId?: AlgorithmId }
             borderRadius: 3,
             boxShadow: 2,
             overflow: 'hidden',
-            minHeight: 520,
+            minHeight: 0,
           }}
         >
           {/* Sub Tab Navigation */}

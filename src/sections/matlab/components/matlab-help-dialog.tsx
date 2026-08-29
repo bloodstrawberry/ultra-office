@@ -14,11 +14,14 @@ import IconButton from '@mui/material/IconButton';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import HelpOutlineRoundedIcon from '@mui/icons-material/HelpOutlineRounded';
 
+import { DEFAULT_THEME_ID, getThemeById } from 'src/sections/code-runner/core/editor-themes';
+
 // ----------------------------------------------------------------------
 
 interface MatlabHelpDialogProps {
   open: boolean;
   onClose: () => void;
+  themeId?: string;
 }
 
 const CHEAT_SHEET = [
@@ -91,17 +94,23 @@ const CHEAT_SHEET = [
   },
 ];
 
-export function MatlabHelpDialog({ open, onClose }: MatlabHelpDialogProps) {
+export function MatlabHelpDialog({
+  open,
+  onClose,
+  themeId = DEFAULT_THEME_ID,
+}: MatlabHelpDialogProps) {
+  const activeTheme = getThemeById(themeId);
   const [search, setSearch] = useState('');
 
-  const filtered = CHEAT_SHEET.map((cat) => ({
-    ...cat,
-    items: cat.items.filter(
-      (item) =>
-        item.syntax.toLowerCase().includes(search.toLowerCase()) ||
-        item.desc.toLowerCase().includes(search.toLowerCase())
+  const filtered = CHEAT_SHEET.map((group) => ({
+    ...group,
+    items: group.items.filter(
+      (it) =>
+        it.syntax.toLowerCase().includes(search.toLowerCase()) ||
+        it.desc.toLowerCase().includes(search.toLowerCase()) ||
+        group.category.toLowerCase().includes(search.toLowerCase())
     ),
-  })).filter((cat) => cat.items.length > 0);
+  })).filter((group) => group.items.length > 0);
 
   return (
     <Dialog
@@ -111,9 +120,9 @@ export function MatlabHelpDialog({ open, onClose }: MatlabHelpDialogProps) {
       fullWidth
       sx={{
         '& .MuiDialog-paper': {
-          bgcolor: '#13161c',
-          color: '#f8fafc',
-          border: '1px solid #282f3d',
+          bgcolor: activeTheme.uiColors.surface,
+          color: activeTheme.uiColors.text,
+          border: `1px solid ${activeTheme.uiColors.border}`,
           borderRadius: 1.5,
           maxHeight: 650,
           display: 'flex',
@@ -127,26 +136,32 @@ export function MatlabHelpDialog({ open, onClose }: MatlabHelpDialogProps) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          bgcolor: '#1a1f28',
-          borderBottom: '1px solid #282f3d',
+          bgcolor: activeTheme.uiColors.card,
+          borderBottom: `1px solid ${activeTheme.uiColors.border}`,
           px: 2.5,
           py: 1.5,
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <HelpOutlineRoundedIcon sx={{ fontSize: 20, color: '#38bdf8' }} />
+          <HelpOutlineRoundedIcon sx={{ fontSize: 20, color: 'primary.main' }} />
           <Typography sx={{ fontSize: '14px', fontWeight: 700 }}>
             MATLAB Web Studio 문법 & 함수 빠른 참조 가이드 (Cheatsheet)
           </Typography>
         </Box>
 
-        <IconButton size="small" onClick={onClose} sx={{ color: '#94a3b8' }}>
+        <IconButton size="small" onClick={onClose} sx={{ color: activeTheme.uiColors.textMuted }}>
           <CloseRoundedIcon sx={{ fontSize: 18 }} />
         </IconButton>
       </Box>
 
       {/* Search */}
-      <Box sx={{ p: 2, bgcolor: '#161922', borderBottom: '1px solid #282f3d' }}>
+      <Box
+        sx={{
+          p: 2,
+          bgcolor: activeTheme.uiColors.bg,
+          borderBottom: `1px solid ${activeTheme.uiColors.border}`,
+        }}
+      >
         <Box
           component="input"
           value={search}
@@ -154,14 +169,14 @@ export function MatlabHelpDialog({ open, onClose }: MatlabHelpDialogProps) {
           placeholder="함수명 또는 설명 검색 (예: eig, fft, surf, plot...)"
           sx={{
             width: '100%',
-            bgcolor: '#1c202a',
-            border: '1px solid #334155',
+            bgcolor: activeTheme.uiColors.card,
+            border: `1px solid ${activeTheme.uiColors.border}`,
             borderRadius: 1,
             p: 1,
             fontSize: '12px',
-            color: '#f8fafc',
+            color: activeTheme.uiColors.text,
             outline: 'none',
-            '&:focus': { borderColor: '#38bdf8' },
+            '&:focus': { borderColor: 'primary.main' },
           }}
         />
       </Box>
@@ -171,37 +186,56 @@ export function MatlabHelpDialog({ open, onClose }: MatlabHelpDialogProps) {
         {filtered.map((group) => (
           <Box key={group.category} sx={{ mb: 3 }}>
             <Typography
-              sx={{ fontSize: '13px', fontWeight: 700, color: '#38bdf8', mb: 1, px: 0.5 }}
+              sx={{ fontSize: '13px', fontWeight: 700, color: 'primary.main', mb: 1, px: 0.5 }}
             >
               {group.category}
             </Typography>
             <Table
               size="small"
               sx={{
-                bgcolor: '#0e1014',
+                bgcolor: activeTheme.uiColors.card,
                 borderRadius: 1,
-                border: '1px solid #242933',
-                '& .MuiTableCell-root': { py: 0.75, px: 1.5, borderBottom: '1px solid #1f242e' },
+                border: `1px solid ${activeTheme.uiColors.border}`,
+                '& .MuiTableCell-root': {
+                  py: 0.75,
+                  px: 1.5,
+                  borderBottom: `1px solid ${activeTheme.uiColors.border}`,
+                },
               }}
             >
               <TableHead>
-                <TableRow sx={{ bgcolor: '#181b22' }}>
+                <TableRow sx={{ bgcolor: activeTheme.uiColors.surface }}>
                   <TableCell
-                    sx={{ color: '#94a3b8', fontSize: '11px', fontWeight: 700, width: '38%' }}
+                    sx={{
+                      color: activeTheme.uiColors.textMuted,
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      width: '38%',
+                    }}
                   >
                     문법 / 함수
                   </TableCell>
-                  <TableCell sx={{ color: '#94a3b8', fontSize: '11px', fontWeight: 700 }}>
+                  <TableCell
+                    sx={{
+                      color: activeTheme.uiColors.textMuted,
+                      fontSize: '11px',
+                      fontWeight: 700,
+                    }}
+                  >
                     설명
                   </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {group.items.map((it, idx) => (
-                  <TableRow key={idx} hover>
+                  <TableRow
+                    key={idx}
+                    hover
+                    sx={{ '&:hover': { bgcolor: 'rgba(128, 128, 128, 0.08) !important' } }}
+                  >
                     <TableCell
                       sx={{
-                        color: '#38bdf8',
+                        color: 'primary.main',
                         fontFamily: 'monospace',
                         fontSize: '12px',
                         fontWeight: 600,

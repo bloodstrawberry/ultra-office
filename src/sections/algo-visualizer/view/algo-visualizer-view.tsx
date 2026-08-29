@@ -19,6 +19,8 @@ import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 import { DashboardContent } from 'src/layouts/dashboard';
 
+import { ThemeSelector } from 'src/components/theme-selector';
+import { useVisualizerStore } from '../store/visualizerStore';
 import { VisualizerTab } from '../components/tabs/VisualizerTab';
 import { DataStructuresTab } from '../components/tabs/DataStructuresTab';
 import { CompareTab } from '../components/tabs/CompareTab';
@@ -48,6 +50,7 @@ function AlgoVisualizerMain({ defaultTab = 'visualizer' }: AlgoVisualizerViewPro
   const [hasLoaded, setHasLoaded] = useState(false);
   const [currentTab, setCurrentTab] = useState<VisualizerMainTab>(defaultTab);
   const [selectedAlgoId, setSelectedAlgoId] = useState<AlgorithmId | undefined>(undefined);
+  const { themeId, setThemeId } = useVisualizerStore();
 
   useEffect(() => {
     setHasLoaded(true);
@@ -88,22 +91,42 @@ function AlgoVisualizerMain({ defaultTab = 'visualizer' }: AlgoVisualizerViewPro
   return (
     <DashboardContent>
       {/* 1. Header */}
-      <Box sx={{ mb: 2, flexShrink: 0 }}>
-        <Typography
-          variant="h4"
-          sx={{ fontWeight: 800, mb: 0.5, display: 'flex', alignItems: 'center', gap: 1 }}
-        >
-          <SchemaRoundedIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-          인터랙티브 알고리즘 & 자료구조 스튜디오 (Algorithm Visualizer)
-        </Typography>
-        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          32종 알고리즘과 15종 핵심 자료구조의 동작 원리를 실시간 단계별(Step) 애니메이션, 다국어
-          코드 뷰어, 1:1 비교 및 CS 챌린지로 체화합니다.
-        </Typography>
+      <Box
+        sx={{
+          mb: 1,
+          flexShrink: 0,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: { xs: 'flex-start', md: 'center' },
+          flexDirection: { xs: 'column', md: 'row' },
+          gap: 1.5,
+        }}
+      >
+        <Box>
+          <Typography
+            variant="h4"
+            sx={{ fontWeight: 800, mb: 0.5, display: 'flex', alignItems: 'center', gap: 1 }}
+          >
+            <SchemaRoundedIcon sx={{ fontSize: 32, color: 'primary.main' }} />
+            인터랙티브 알고리즘 & 자료구조 스튜디오 (Algorithm Visualizer)
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            32종 알고리즘과 15종 핵심 자료구조의 동작 원리를 실시간 단계별(Step) 애니메이션, 다국어
+            코드 뷰어, 1:1 비교 및 CS 챌린지로 체화합니다.
+          </Typography>
+        </Box>
+
+        <ThemeSelector
+          currentThemeId={themeId}
+          onThemeChange={setThemeId}
+          size="small"
+          height={34}
+          minWidth={150}
+        />
       </Box>
 
       {/* 2. Top Navigation Tabs */}
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2.5 }}>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 1.5, flexShrink: 0 }}>
         <Tabs
           value={currentTab}
           onChange={handleTabChange}
@@ -156,7 +179,7 @@ function AlgoVisualizerMain({ defaultTab = 'visualizer' }: AlgoVisualizerViewPro
       </Box>
 
       {/* 3. Main Content Panes */}
-      <Box sx={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', pb: 4 }}>
+      <Box sx={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto' }}>
         {currentTab === 'visualizer' && <VisualizerTab initialAlgoId={selectedAlgoId} />}
         {currentTab === 'dataStructures' && (
           <DataStructuresTab onNavigateToAlgo={handleNavigateToAlgo} />

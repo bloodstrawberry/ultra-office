@@ -67,6 +67,7 @@ export const paths = {
     diff: `/text/diff`,
     extract: `/text/extract`,
     transform: `/text/transform`,
+    regex: `/text/regex`,
   },
   gifStudio: {
     root: `/gif-studio`,
@@ -100,5 +101,7 @@ export const paths = {
     garo: `/photo/garo`,
     weathering: `/photo/weathering`,
     memeLab: `/photo/meme-lab`,
+    doodle: `/photo/doodle`,
+    aiWatermark: `/photo/ai-watermark`,
   },
 };

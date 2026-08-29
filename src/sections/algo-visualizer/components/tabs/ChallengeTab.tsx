@@ -199,7 +199,9 @@ export function ChallengeTab() {
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <Box
+      sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, flex: '1 1 auto', minHeight: 0 }}
+    >
       {/* 1. Game Mode Selector Toolbar */}
       <Card
         sx={{
@@ -241,7 +243,15 @@ export function ChallengeTab() {
       </Card>
 
       {/* 2. Main Game Arena */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          flex: '1 1 auto',
+          minHeight: 0,
+          overflowY: 'auto',
+        }}
+      >
         {/* Sort Puzzle Game */}
         {activeGame === 'sortPuzzle' && (
           <Card

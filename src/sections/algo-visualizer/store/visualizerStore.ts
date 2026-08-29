@@ -27,6 +27,7 @@ export interface VisualizerState {
   isPlaying: boolean;
   speed: number;
   soundEnabled: boolean;
+  themeId: string;
 
   // Custom inputs for various categories
   customArray: number[];
@@ -53,6 +54,7 @@ export interface VisualizerState {
   reset: () => void;
   setSpeed: (speed: number) => void;
   toggleSound: () => void;
+  setThemeId: (themeId: string) => void;
 
   // Input actions
   setCustomArray: (arr: number[]) => void;
@@ -116,6 +118,7 @@ export const useVisualizerStore = create<VisualizerState>((set, get) => {
     isPlaying: false,
     speed: 1,
     soundEnabled: true,
+    themeId: 'light',
 
     customArray: [...DEFAULT_SORT_ARRAY],
     searchTarget: 56,
@@ -134,7 +137,13 @@ export const useVisualizerStore = create<VisualizerState>((set, get) => {
       set({
         speed: prefs.speed || 1,
         soundEnabled: prefs.soundEnabled ?? true,
+        themeId: prefs.themeId || 'light',
       });
+    },
+
+    setThemeId: (themeId: string) => {
+      set({ themeId });
+      setVisualizerPrefsSync({ themeId });
     },
 
     setAlgorithm: (id: AlgorithmId) => {

@@ -18,6 +18,8 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import TableChartRoundedIcon from '@mui/icons-material/TableChartRounded';
 
+import { DEFAULT_THEME_ID, getThemeById } from 'src/sections/code-runner/core/editor-themes';
+
 // ----------------------------------------------------------------------
 
 interface MatlabVariableEditorDialogProps {
@@ -25,6 +27,7 @@ interface MatlabVariableEditorDialogProps {
   open: boolean;
   onClose: () => void;
   onSaveValue: (varName: string, newValue: any) => void;
+  themeId?: string;
 }
 
 export function MatlabVariableEditorDialog({
@@ -32,7 +35,9 @@ export function MatlabVariableEditorDialog({
   open,
   onClose,
   onSaveValue,
+  themeId = DEFAULT_THEME_ID,
 }: MatlabVariableEditorDialogProps) {
+  const activeTheme = getThemeById(themeId);
   const [gridData, setGridData] = useState<any[][]>([]);
   const [isEditing, setIsEditing] = useState<{ r: number; c: number } | null>(null);
   const [cellInput, setCellInput] = useState<string>('');
@@ -112,9 +117,9 @@ export function MatlabVariableEditorDialog({
       fullWidth
       sx={{
         '& .MuiDialog-paper': {
-          bgcolor: '#13161c',
-          color: '#f8fafc',
-          border: '1px solid #282f3d',
+          bgcolor: activeTheme.uiColors.surface,
+          color: activeTheme.uiColors.text,
+          border: `1px solid ${activeTheme.uiColors.border}`,
           borderRadius: 1.5,
           height: 600,
           display: 'flex',
@@ -128,14 +133,14 @@ export function MatlabVariableEditorDialog({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          bgcolor: '#1a1f28',
-          borderBottom: '1px solid #282f3d',
+          bgcolor: activeTheme.uiColors.card,
+          borderBottom: `1px solid ${activeTheme.uiColors.border}`,
           px: 2,
           py: 1.25,
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <TableChartRoundedIcon sx={{ fontSize: 18, color: '#38bdf8' }} />
+          <TableChartRoundedIcon sx={{ fontSize: 18, color: 'primary.main' }} />
           <Typography sx={{ fontSize: '13px', fontWeight: 700 }}>
             Variable Editor - <code>{variable.name}</code> ({variable.typeName}, {variable.sizeStr})
           </Typography>
@@ -151,21 +156,21 @@ export function MatlabVariableEditorDialog({
               fontSize: '11px',
               py: 0.25,
               px: 1,
-              borderColor: '#334155',
-              color: '#94a3b8',
-              '&:hover': { borderColor: '#38bdf8', color: '#38bdf8' },
+              borderColor: activeTheme.uiColors.border,
+              color: activeTheme.uiColors.textMuted,
+              '&:hover': { borderColor: 'primary.main', color: 'primary.main' },
             }}
           >
             CSV 저장
           </Button>
-          <IconButton size="small" onClick={onClose} sx={{ color: '#94a3b8' }}>
+          <IconButton size="small" onClick={onClose} sx={{ color: activeTheme.uiColors.textMuted }}>
             <CloseRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
         </Box>
       </Box>
 
       {/* Grid Content */}
-      <Box sx={{ flex: 1, overflow: 'auto', p: 1, bgcolor: '#0e1014' }}>
+      <Box sx={{ flex: 1, overflow: 'auto', p: 1, bgcolor: activeTheme.uiColors.bg }}>
         {rows === 0 ? (
           <Box
             sx={{
@@ -173,7 +178,7 @@ export function MatlabVariableEditorDialog({
               alignItems: 'center',
               justifyContent: 'center',
               height: '100%',
-              color: '#64748b',
+              color: activeTheme.uiColors.textMuted,
               fontSize: '12px',
             }}
           >
@@ -186,12 +191,13 @@ export function MatlabVariableEditorDialog({
             sx={{
               borderCollapse: 'collapse',
               '& .MuiTableCell-root': {
-                border: '1px solid #242933',
+                border: `1px solid ${activeTheme.uiColors.border}`,
                 py: 0.5,
                 px: 1,
                 fontFamily: 'monospace',
                 fontSize: '11px',
                 textAlign: 'right',
+                color: activeTheme.uiColors.text,
               },
             }}
           >
@@ -199,22 +205,28 @@ export function MatlabVariableEditorDialog({
               <TableRow>
                 <TableCell
                   sx={{
-                    bgcolor: '#191d26',
-                    color: '#64748b',
-                    width: 50,
-                    textAlign: 'center !important',
+                    bgcolor: activeTheme.uiColors.card,
+                    color: activeTheme.uiColors.textMuted,
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    width: 40,
+                    textAlign: 'center',
+                    borderBottom: `1px solid ${activeTheme.uiColors.border}`,
                   }}
                 >
                   #
                 </TableCell>
-                {Array.from({ length: cols }, (_, cIdx) => (
+                {Array.from({ length: cols }).map((_, cIdx) => (
                   <TableCell
                     key={cIdx}
                     sx={{
-                      bgcolor: '#191d26',
-                      color: '#94a3b8',
+                      bgcolor: activeTheme.uiColors.card,
+                      color: activeTheme.uiColors.textMuted,
+                      fontSize: '10px',
+                      fontWeight: 700,
                       minWidth: 70,
-                      textAlign: 'center !important',
+                      textAlign: 'center',
+                      borderBottom: `1px solid ${activeTheme.uiColors.border}`,
                     }}
                   >
                     col {cIdx + 1}
@@ -223,35 +235,36 @@ export function MatlabVariableEditorDialog({
               </TableRow>
             </TableHead>
             <TableBody>
-              {gridData.map((rowArr, rIdx) => (
-                <TableRow key={rIdx} hover>
+              {gridData.map((row, rIdx) => (
+                <TableRow key={rIdx}>
                   <TableCell
                     sx={{
-                      bgcolor: '#161920',
-                      color: '#64748b',
+                      bgcolor: activeTheme.uiColors.card,
+                      color: activeTheme.uiColors.textMuted,
+                      fontSize: '10px',
                       fontWeight: 600,
-                      textAlign: 'center !important',
+                      textAlign: 'center',
                     }}
                   >
                     {rIdx + 1}
                   </TableCell>
-                  {rowArr.map((cellVal, cIdx) => {
+                  {(Array.isArray(row) ? row : [row]).map((cell, cIdx) => {
                     const isCellEditing = isEditing?.r === rIdx && isEditing?.c === cIdx;
                     return (
                       <TableCell
                         key={cIdx}
                         onClick={() => handleCellClick(rIdx, cIdx)}
                         sx={{
-                          bgcolor: isCellEditing ? '#1e293b' : 'inherit',
-                          color: '#e2e8f0',
                           cursor: 'pointer',
-                          '&:hover': { bgcolor: 'rgba(56, 189, 248, 0.08)' },
+                          bgcolor: isCellEditing ? 'rgba(56, 189, 248, 0.15)' : 'transparent',
+                          '&:hover': { bgcolor: 'rgba(128, 128, 128, 0.08)' },
                         }}
                       >
                         {isCellEditing ? (
                           <Box
                             component="input"
                             autoFocus
+                            type="text"
                             value={cellInput}
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                               setCellInput(e.target.value)
@@ -263,24 +276,27 @@ export function MatlabVariableEditorDialog({
                             }}
                             sx={{
                               width: '100%',
-                              bgcolor: 'transparent',
-                              border: 'none',
-                              outline: 'none',
-                              color: '#38bdf8',
-                              fontFamily: 'inherit',
+                              bgcolor: activeTheme.uiColors.card,
+                              color: activeTheme.uiColors.text,
+                              border: '1px solid',
+                              borderColor: 'primary.main',
+                              borderRadius: 0.5,
+                              px: 0.5,
+                              py: 0.2,
                               fontSize: '11px',
+                              fontFamily: 'monospace',
                               textAlign: 'right',
-                              p: 0,
+                              outline: 'none',
                             }}
                           />
-                        ) : typeof cellVal === 'number' ? (
-                          Number.isInteger(cellVal) ? (
-                            cellVal
+                        ) : typeof cell === 'number' ? (
+                          Number.isInteger(cell) ? (
+                            cell
                           ) : (
-                            cellVal.toFixed(4)
+                            cell.toFixed(4)
                           )
                         ) : (
-                          String(cellVal ?? '')
+                          String(cell)
                         )}
                       </TableCell>
                     );

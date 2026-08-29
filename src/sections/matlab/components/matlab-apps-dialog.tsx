@@ -15,6 +15,8 @@ import MemoryRoundedIcon from '@mui/icons-material/MemoryRounded';
 import ScienceRoundedIcon from '@mui/icons-material/ScienceRounded';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 
+import { DEFAULT_THEME_ID, getThemeById } from 'src/sections/code-runner/core/editor-themes';
+
 // ----------------------------------------------------------------------
 
 interface MatlabAppsDialogProps {
@@ -22,9 +24,17 @@ interface MatlabAppsDialogProps {
   open: boolean;
   onClose: () => void;
   onInsertCode: (code: string) => void;
+  themeId?: string;
 }
 
-export function MatlabAppsDialog({ appType, open, onClose, onInsertCode }: MatlabAppsDialogProps) {
+export function MatlabAppsDialog({
+  appType,
+  open,
+  onClose,
+  onInsertCode,
+  themeId = DEFAULT_THEME_ID,
+}: MatlabAppsDialogProps) {
+  const activeTheme = getThemeById(themeId);
   // Linear Algebra App state
   const [matrixStr, setMatrixStr] = useState('4 1 2; 1 3 0; 2 0 5');
   const [linalgResult, setLinalgResult] = useState<any>(null);
@@ -99,9 +109,9 @@ export function MatlabAppsDialog({ appType, open, onClose, onInsertCode }: Matla
       fullWidth
       sx={{
         '& .MuiDialog-paper': {
-          bgcolor: '#13161c',
-          color: '#f8fafc',
-          border: '1px solid #282f3d',
+          bgcolor: activeTheme.uiColors.surface,
+          color: activeTheme.uiColors.text,
+          border: `1px solid ${activeTheme.uiColors.border}`,
           borderRadius: 1.5,
           maxHeight: 650,
           display: 'flex',
@@ -115,8 +125,8 @@ export function MatlabAppsDialog({ appType, open, onClose, onInsertCode }: Matla
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          bgcolor: '#1a1f28',
-          borderBottom: '1px solid #282f3d',
+          bgcolor: activeTheme.uiColors.card,
+          borderBottom: `1px solid ${activeTheme.uiColors.border}`,
           px: 2.5,
           py: 1.5,
         }}

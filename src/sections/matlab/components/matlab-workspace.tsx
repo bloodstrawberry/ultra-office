@@ -17,6 +17,8 @@ import ClearRoundedIcon from '@mui/icons-material/ClearRounded';
 import StorageRoundedIcon from '@mui/icons-material/StorageRounded';
 import TableChartRoundedIcon from '@mui/icons-material/TableChartRounded';
 
+import { DEFAULT_THEME_ID, getThemeById } from 'src/sections/code-runner/core/editor-themes';
+
 // ----------------------------------------------------------------------
 
 interface MatlabWorkspaceProps {
@@ -26,6 +28,7 @@ interface MatlabWorkspaceProps {
   onOpenVariableEditor: (variable: MatlabVariable) => void;
   onQuickPlot: (varName: string, plotType: string) => void;
   onClearWorkspace: () => void;
+  themeId?: string;
 }
 
 export function MatlabWorkspace({
@@ -35,7 +38,9 @@ export function MatlabWorkspace({
   onOpenVariableEditor,
   onQuickPlot,
   onClearWorkspace,
+  themeId = DEFAULT_THEME_ID,
 }: MatlabWorkspaceProps) {
+  const activeTheme = getThemeById(themeId);
   const [filterText, setFilterText] = useState('');
 
   const varList = Object.values(variables).filter((v) =>
@@ -49,10 +54,10 @@ export function MatlabWorkspace({
         flexDirection: 'column',
         height: '100%',
         width: '100%',
-        bgcolor: '#14171d',
-        color: '#e2e8f0',
+        bgcolor: activeTheme.uiColors.surface,
+        color: activeTheme.uiColors.text,
         borderRadius: 1,
-        border: '1px solid #282e3b',
+        border: `1px solid ${activeTheme.uiColors.border}`,
         overflow: 'hidden',
       }}
     >
@@ -62,14 +67,14 @@ export function MatlabWorkspace({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          bgcolor: '#1c2027',
-          borderBottom: '1px solid #282e3b',
+          bgcolor: activeTheme.uiColors.card,
+          borderBottom: `1px solid ${activeTheme.uiColors.border}`,
           px: 1,
           minHeight: 34,
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-          <StorageRoundedIcon sx={{ fontSize: 16, color: '#38bdf8' }} />
+          <StorageRoundedIcon sx={{ fontSize: 16, color: 'primary.main' }} />
           <Typography sx={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.5px' }}>
             WORKSPACE ({varList.length})
           </Typography>
@@ -84,7 +89,7 @@ export function MatlabWorkspace({
                   const target = variables[selectedVarName];
                   if (target) onOpenVariableEditor(target);
                 }}
-                sx={{ color: '#38bdf8' }}
+                color="primary"
               >
                 <TableChartRoundedIcon sx={{ fontSize: 15 }} />
               </IconButton>
@@ -92,7 +97,11 @@ export function MatlabWorkspace({
           )}
 
           <Tooltip title="워크스페이스 초기화 (clear)">
-            <IconButton size="small" onClick={onClearWorkspace} sx={{ color: '#94a3b8' }}>
+            <IconButton
+              size="small"
+              onClick={onClearWorkspace}
+              sx={{ color: activeTheme.uiColors.textMuted }}
+            >
               <ClearRoundedIcon sx={{ fontSize: 15 }} />
             </IconButton>
           </Tooltip>
@@ -100,7 +109,13 @@ export function MatlabWorkspace({
       </Box>
 
       {/* Filter / Search Bar */}
-      <Box sx={{ p: 0.75, borderBottom: '1px solid #242933', bgcolor: '#121419' }}>
+      <Box
+        sx={{
+          p: 0.75,
+          borderBottom: `1px solid ${activeTheme.uiColors.border}`,
+          bgcolor: activeTheme.uiColors.bg,
+        }}
+      >
         <Box
           component="input"
           type="text"
@@ -109,15 +124,15 @@ export function MatlabWorkspace({
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFilterText(e.target.value)}
           sx={{
             width: '100%',
-            bgcolor: '#1a1e27',
-            border: '1px solid #2d3748',
+            bgcolor: activeTheme.uiColors.card,
+            border: `1px solid ${activeTheme.uiColors.border}`,
             borderRadius: 0.75,
             px: 1,
             py: 0.25,
             fontSize: '11px',
-            color: '#f8fafc',
+            color: activeTheme.uiColors.text,
             outline: 'none',
-            '&:focus': { borderColor: '#38bdf8' },
+            '&:focus': { borderColor: 'primary.main' },
           }}
         />
       </Box>
@@ -131,7 +146,7 @@ export function MatlabWorkspace({
               alignItems: 'center',
               justifyContent: 'center',
               height: '100%',
-              color: '#64748b',
+              color: activeTheme.uiColors.textMuted,
               fontSize: '11px',
               fontStyle: 'italic',
               p: 2,
@@ -145,22 +160,46 @@ export function MatlabWorkspace({
             <TableHead>
               <TableRow>
                 <TableCell
-                  sx={{ bgcolor: '#1a1e27', color: '#94a3b8', fontSize: '10px', fontWeight: 700 }}
+                  sx={{
+                    bgcolor: activeTheme.uiColors.card,
+                    color: activeTheme.uiColors.textMuted,
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    borderBottom: `1px solid ${activeTheme.uiColors.border}`,
+                  }}
                 >
                   Name
                 </TableCell>
                 <TableCell
-                  sx={{ bgcolor: '#1a1e27', color: '#94a3b8', fontSize: '10px', fontWeight: 700 }}
+                  sx={{
+                    bgcolor: activeTheme.uiColors.card,
+                    color: activeTheme.uiColors.textMuted,
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    borderBottom: `1px solid ${activeTheme.uiColors.border}`,
+                  }}
                 >
                   Value
                 </TableCell>
                 <TableCell
-                  sx={{ bgcolor: '#1a1e27', color: '#94a3b8', fontSize: '10px', fontWeight: 700 }}
+                  sx={{
+                    bgcolor: activeTheme.uiColors.card,
+                    color: activeTheme.uiColors.textMuted,
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    borderBottom: `1px solid ${activeTheme.uiColors.border}`,
+                  }}
                 >
                   Size
                 </TableCell>
                 <TableCell
-                  sx={{ bgcolor: '#1a1e27', color: '#94a3b8', fontSize: '10px', fontWeight: 700 }}
+                  sx={{
+                    bgcolor: activeTheme.uiColors.card,
+                    color: activeTheme.uiColors.textMuted,
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    borderBottom: `1px solid ${activeTheme.uiColors.border}`,
+                  }}
                 >
                   Class
                 </TableCell>
@@ -179,49 +218,49 @@ export function MatlabWorkspace({
                     sx={{
                       cursor: 'pointer',
                       bgcolor: isSelected ? 'rgba(56, 189, 248, 0.12) !important' : 'inherit',
-                      '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.04) !important' },
+                      '&:hover': { bgcolor: 'rgba(128, 128, 128, 0.08) !important' },
                     }}
                   >
                     <TableCell
                       sx={{
-                        color: '#38bdf8',
+                        color: 'primary.main',
                         fontFamily: 'monospace',
                         fontSize: '11px',
                         fontWeight: 600,
-                        borderBottom: '1px solid #1f242e',
+                        borderBottom: `1px solid ${activeTheme.uiColors.border}`,
                       }}
                     >
                       {v.name}
                     </TableCell>
                     <TableCell
                       sx={{
-                        color: '#e2e8f0',
+                        color: activeTheme.uiColors.text,
                         fontFamily: 'monospace',
                         fontSize: '11px',
                         maxWidth: 120,
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
-                        borderBottom: '1px solid #1f242e',
+                        borderBottom: `1px solid ${activeTheme.uiColors.border}`,
                       }}
                     >
                       {v.preview || '[]'}
                     </TableCell>
                     <TableCell
                       sx={{
-                        color: '#94a3b8',
+                        color: activeTheme.uiColors.textMuted,
                         fontSize: '10px',
                         fontFamily: 'monospace',
-                        borderBottom: '1px solid #1f242e',
+                        borderBottom: `1px solid ${activeTheme.uiColors.border}`,
                       }}
                     >
                       {v.sizeStr}
                     </TableCell>
                     <TableCell
                       sx={{
-                        color: '#a3e635',
+                        color: '#10b981',
                         fontSize: '10px',
-                        borderBottom: '1px solid #1f242e',
+                        borderBottom: `1px solid ${activeTheme.uiColors.border}`,
                       }}
                     >
                       {v.typeName}

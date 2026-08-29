@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { ThemeSelector } from 'src/components/theme-selector';
 import { useVisualizerStore } from '../../store/visualizerStore';
 
 interface HeaderNavProps {
@@ -13,7 +14,7 @@ interface HeaderNavProps {
 
 export const HeaderNav: React.FC<HeaderNavProps> = ({ title, subtitle, showBack = true }) => {
   const pathname = usePathname();
-  const { soundEnabled, toggleSound } = useVisualizerStore();
+  const { soundEnabled, toggleSound, themeId, setThemeId } = useVisualizerStore();
 
   const navLinks = [
     { href: '/', label: '홈', icon: '🏠' },
@@ -85,8 +86,16 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({ title, subtitle, showBack 
         })}
       </nav>
 
-      {/* 오른쪽: 사운드 토글 */}
+      {/* 오른쪽: 테마 및 사운드 토글 */}
       <div className="flex items-center gap-2">
+        <ThemeSelector
+          currentThemeId={themeId}
+          onThemeChange={setThemeId}
+          size="small"
+          height={30}
+          minWidth={140}
+        />
+
         <button
           onClick={toggleSound}
           className={`px-3 py-1.5 rounded-2xl text-xs font-bold border transition-all flex items-center gap-1.5 shadow-sm active:scale-95 ${

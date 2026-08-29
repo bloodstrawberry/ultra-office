@@ -6,6 +6,12 @@ import { preprocessMatlabLine } from './matlab-parser';
 
 // ----------------------------------------------------------------------
 
+let globalLogCounter = 0;
+function createUniqueLogId(prefix: string): string {
+  globalLogCounter += 1;
+  return `${prefix}-${Date.now()}-${globalLogCounter}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
 export interface RuntimeExecutionResult {
   success: boolean;
   logs: MatlabCommandLog[];
@@ -691,7 +697,7 @@ export class MatlabRuntime {
               this.executeBlock(blockBuffer, logs);
             } catch (err: any) {
               logs.push({
-                id: `err-${Date.now()}-${Math.random()}`,
+                id: createUniqueLogId('err'),
                 type: 'error',
                 content: `Error in block: ${err.message || String(err)}`,
                 timestamp: Date.now(),
@@ -708,7 +714,7 @@ export class MatlabRuntime {
         this.executeStatement(trimmed, logs);
       } catch (err: any) {
         logs.push({
-          id: `err-${Date.now()}-${Math.random()}`,
+          id: createUniqueLogId('err'),
           type: 'error',
           content: `Line ${i + 1}: ${err.message || String(err)}`,
           timestamp: Date.now(),
@@ -738,7 +744,7 @@ export class MatlabRuntime {
     // Check for special commands
     if (cleanLine === 'clc') {
       logs.push({
-        id: `info-${Date.now()}`,
+        id: createUniqueLogId('info'),
         type: 'info',
         content: '[Command window cleared]',
         timestamp: Date.now(),
@@ -748,7 +754,7 @@ export class MatlabRuntime {
     if (cleanLine === 'clear' || cleanLine === 'clear all') {
       this.clearWorkspace();
       logs.push({
-        id: `info-${Date.now()}`,
+        id: createUniqueLogId('info'),
         type: 'info',
         content: '[Workspace cleared]',
         timestamp: Date.now(),
@@ -763,7 +769,7 @@ export class MatlabRuntime {
         msg += `  ${v.name.padEnd(8)}  ${v.sizeStr.padEnd(11)}  --     ${v.typeName}\n`;
       });
       logs.push({
-        id: `out-${Date.now()}`,
+        id: createUniqueLogId('out'),
         type: 'output',
         content: msg,
         timestamp: Date.now(),
@@ -776,7 +782,7 @@ export class MatlabRuntime {
       const inner = cleanLine.substring(5, cleanLine.length - 1);
       const val = this.mathInstance.evaluate(inner, this.scope);
       logs.push({
-        id: `out-${Date.now()}`,
+        id: createUniqueLogId('out'),
         type: 'output',
         content: this.formatValue(val),
         timestamp: Date.now(),
@@ -795,7 +801,7 @@ export class MatlabRuntime {
         this.scope.ans = result;
       }
       logs.push({
-        id: `out-${Date.now()}`,
+        id: createUniqueLogId('out'),
         type: 'output',
         content: `${varName} =\n\n${this.formatValue(result)}`,
         timestamp: Date.now(),

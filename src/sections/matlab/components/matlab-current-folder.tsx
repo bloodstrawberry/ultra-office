@@ -23,6 +23,8 @@ import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import LibraryBooksRoundedIcon from '@mui/icons-material/LibraryBooksRounded';
 import InsertDriveFileRoundedIcon from '@mui/icons-material/InsertDriveFileRounded';
 
+import { DEFAULT_THEME_ID, getThemeById } from 'src/sections/code-runner/core/editor-themes';
+
 // ----------------------------------------------------------------------
 
 interface MatlabCurrentFolderProps {
@@ -35,6 +37,7 @@ interface MatlabCurrentFolderProps {
   onUploadFile: (file: File) => void;
   onDownloadFile: (file: MatlabFile) => void;
   onLoadTemplate: (template: MatlabTemplate) => void;
+  themeId?: string;
 }
 
 export function MatlabCurrentFolder({
@@ -47,7 +50,9 @@ export function MatlabCurrentFolder({
   onUploadFile,
   onDownloadFile,
   onLoadTemplate,
+  themeId = DEFAULT_THEME_ID,
 }: MatlabCurrentFolderProps) {
+  const activeTheme = getThemeById(themeId);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [templateMenuAnchor, setTemplateMenuAnchor] = React.useState<null | HTMLElement>(null);
 
@@ -66,10 +71,10 @@ export function MatlabCurrentFolder({
         flexDirection: 'column',
         height: '100%',
         width: '100%',
-        bgcolor: '#14171d',
-        color: '#e2e8f0',
+        bgcolor: activeTheme.uiColors.surface,
+        color: activeTheme.uiColors.text,
         borderRadius: 1,
-        border: '1px solid #282e3b',
+        border: `1px solid ${activeTheme.uiColors.border}`,
         overflow: 'hidden',
       }}
     >
@@ -88,8 +93,8 @@ export function MatlabCurrentFolder({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          bgcolor: '#1c2027',
-          borderBottom: '1px solid #282e3b',
+          bgcolor: activeTheme.uiColors.card,
+          borderBottom: `1px solid ${activeTheme.uiColors.border}`,
           px: 1,
           minHeight: 34,
         }}
@@ -106,14 +111,18 @@ export function MatlabCurrentFolder({
             <IconButton
               size="small"
               onClick={(e) => setTemplateMenuAnchor(e.currentTarget)}
-              sx={{ color: '#38bdf8' }}
+              color="primary"
             >
               <LibraryBooksRoundedIcon sx={{ fontSize: 15 }} />
             </IconButton>
           </Tooltip>
 
           <Tooltip title="새 .m 파일">
-            <IconButton size="small" onClick={onNewFile} sx={{ color: '#94a3b8' }}>
+            <IconButton
+              size="small"
+              onClick={onNewFile}
+              sx={{ color: activeTheme.uiColors.textMuted }}
+            >
               <AddRoundedIcon sx={{ fontSize: 15 }} />
             </IconButton>
           </Tooltip>
@@ -122,7 +131,7 @@ export function MatlabCurrentFolder({
             <IconButton
               size="small"
               onClick={() => fileInputRef.current?.click()}
-              sx={{ color: '#94a3b8' }}
+              sx={{ color: activeTheme.uiColors.textMuted }}
             >
               <UploadRoundedIcon sx={{ fontSize: 15 }} />
             </IconButton>
@@ -137,14 +146,22 @@ export function MatlabCurrentFolder({
         onClose={() => setTemplateMenuAnchor(null)}
         sx={{
           '& .MuiPaper-root': {
-            bgcolor: '#1a1f28',
-            color: '#e2e8f0',
-            border: '1px solid #2d3748',
+            bgcolor: activeTheme.uiColors.card,
+            color: activeTheme.uiColors.text,
+            border: `1px solid ${activeTheme.uiColors.border}`,
             minWidth: 260,
           },
         }}
       >
-        <Typography sx={{ px: 2, py: 1, fontSize: '11px', fontWeight: 700, color: '#94a3b8' }}>
+        <Typography
+          sx={{
+            px: 2,
+            py: 1,
+            fontSize: '11px',
+            fontWeight: 700,
+            color: activeTheme.uiColors.textMuted,
+          }}
+        >
           MATLAB 예제 템플릿
         </Typography>
         {templates.map((tpl) => (
@@ -163,8 +180,12 @@ export function MatlabCurrentFolder({
             <ListItemText
               primary={tpl.title}
               secondary={tpl.category}
-              primaryTypographyProps={{ fontSize: '12px', fontWeight: 600 }}
-              secondaryTypographyProps={{ fontSize: '10px', color: '#64748b' }}
+              primaryTypographyProps={{
+                fontSize: '12px',
+                fontWeight: 600,
+                color: activeTheme.uiColors.text,
+              }}
+              secondaryTypographyProps={{ fontSize: '10px', color: activeTheme.uiColors.textMuted }}
             />
           </MenuItem>
         ))}
@@ -186,7 +207,7 @@ export function MatlabCurrentFolder({
                   bgcolor: isSelected ? 'rgba(56, 189, 248, 0.12)' : 'transparent',
                   borderLeft: isSelected ? '3px solid #38bdf8' : '3px solid transparent',
                   '&:hover': {
-                    bgcolor: isSelected ? 'rgba(56, 189, 248, 0.15)' : 'rgba(255, 255, 255, 0.04)',
+                    bgcolor: isSelected ? 'rgba(56, 189, 248, 0.18)' : 'rgba(128, 128, 128, 0.08)',
                   },
                 }}
                 secondaryAction={
@@ -198,7 +219,11 @@ export function MatlabCurrentFolder({
                           e.stopPropagation();
                           onDownloadFile(file);
                         }}
-                        sx={{ color: '#64748b', p: 0.25, '&:hover': { color: '#38bdf8' } }}
+                        sx={{
+                          color: activeTheme.uiColors.textMuted,
+                          p: 0.25,
+                          '&:hover': { color: 'primary.main' },
+                        }}
                       >
                         <DownloadRoundedIcon sx={{ fontSize: 13 }} />
                       </IconButton>
@@ -211,7 +236,11 @@ export function MatlabCurrentFolder({
                             e.stopPropagation();
                             onDeleteFile(file.id);
                           }}
-                          sx={{ color: '#64748b', p: 0.25, '&:hover': { color: '#f87171' } }}
+                          sx={{
+                            color: activeTheme.uiColors.textMuted,
+                            p: 0.25,
+                            '&:hover': { color: '#f87171' },
+                          }}
                         >
                           <DeleteRoundedIcon sx={{ fontSize: 13 }} />
                         </IconButton>
@@ -220,7 +249,7 @@ export function MatlabCurrentFolder({
                   </Box>
                 }
               >
-                <ListItemIcon sx={{ minWidth: 24, color: '#38bdf8' }}>
+                <ListItemIcon sx={{ minWidth: 24, color: 'primary.main' }}>
                   <InsertDriveFileRoundedIcon sx={{ fontSize: 16 }} />
                 </ListItemIcon>
                 <ListItemText
@@ -228,7 +257,7 @@ export function MatlabCurrentFolder({
                   primaryTypographyProps={{
                     fontSize: '11px',
                     fontFamily: 'monospace',
-                    color: isSelected ? '#38bdf8' : '#e2e8f0',
+                    color: isSelected ? 'primary.main' : activeTheme.uiColors.text,
                     fontWeight: isSelected ? 700 : 400,
                   }}
                 />

@@ -143,12 +143,14 @@ export const navData: NavSectionProps['data'] = [
           { title: '글리치 효과', path: paths.photo.glitch },
           { title: '디지털 풍화 효과', path: paths.photo.weathering },
           { title: '종합 밈 연구소', path: paths.photo.memeLab },
+          { title: '대충 · 하찮은 그림', path: paths.photo.doodle },
           { title: '인생네컷', path: paths.photo.fourCut },
           { title: '스포이드 색상 추출', path: paths.photo.colorPicker },
           { title: '사진 용량 압축', path: paths.photo.compress },
           { title: '확장자 변환', path: paths.photo.convert },
           { title: '도형 자르기', path: paths.photo.shapeCrop },
           { title: '모자이크 & 블러', path: paths.photo.mosaic },
+          { title: 'AI 워터마크 각인', path: paths.photo.aiWatermark },
           { title: '워터마크 각인', path: paths.photo.watermark },
           { title: '스캔 효과 · 문서 스캐너', path: paths.photo.scan },
           { title: 'PDF 스튜디오', path: paths.photo.pdf },
@@ -188,6 +190,7 @@ export const navData: NavSectionProps['data'] = [
           { title: '코드 실행기', path: paths.codeRunner },
           { title: 'MATLAB 랩 (Web Studio)', path: paths.matlab },
           { title: 'SQL 연습실', path: paths.public.sql },
+          { title: '정규표현식', path: paths.text.regex },
           { title: '개발자 툴킷', path: paths.devTools },
         ],
       },
@@ -204,38 +207,16 @@ export const navData: NavSectionProps['data'] = [
           { title: 'Big-O 마스터 & 카탈로그', path: paths.algo.catalog },
         ],
       },
-      { title: 'Drive', path: paths.fileManager, icon: ICONS.folder },
     ],
   },
 
   /**
-   * 2. AI & 스마트 인텔리전스
-   */
-  {
-    subheader: 'AI & Smart',
-    items: [
-      { title: 'AI Agent', path: paths.agent, icon: ICONS.agent },
-      {
-        title: '개인정보 마스킹 · EXIF 파기',
-        path: paths.privacySanitizer,
-        icon: ICONS.privacySanitizer,
-      },
-    ],
-  },
-
-  /**
-   * 3. 문서 & 데이터 분석
+   * 2. 문서 & 데이터 분석
    */
   {
     subheader: 'Document & Data',
     items: [
-      { title: '한글 파일 문서', path: paths.hwpMaster, icon: ICONS.hwpMaster },
-      { title: '워드 (Word Processor)', path: paths.docMaster, icon: ICONS.docMaster },
-      { title: '파워 포인트 (Power Point)', path: paths.powerpoint, icon: ICONS.powerpoint },
-      { title: '마크다운 스튜디오', path: paths.markdown, icon: ICONS.markdown },
-      { title: '대용량 로그 & CSV 뷰어', path: paths.gigaViewer, icon: ICONS.gigaViewer },
       { title: '수식 그래프 시각화', path: paths.mathGraph, icon: ICONS.mathGraph },
-      { title: '스프레드시트 (Excel)', path: paths.spreadsheet, icon: ICONS.spreadsheet },
       { title: '데이터 & 코드 비교', path: paths.compare, icon: ICONS.compare },
       {
         title: '텍스트 도구',
@@ -251,13 +232,12 @@ export const navData: NavSectionProps['data'] = [
   },
 
   /**
-   * 4. 수학 · 과학 & 컴퓨터 사이언스
+   * 3. 수학 · 과학 & 컴퓨터 사이언스
    */
   {
     subheader: 'Sci-Math & CS',
     items: [
       { title: '디지털 논리회로 랩', path: paths.logicLab, icon: ICONS.logicLab },
-      { title: '알고리즘 & 자료구조 랩', path: paths.algoVisualizer, icon: ICONS.algoVisualizer },
       { title: '비트 & IEEE-754 랩', path: paths.bitLab, icon: ICONS.bitLab },
       { title: '선형대수 & 공간 변환', path: paths.linearAlgebra, icon: ICONS.linearAlgebra },
       { title: '2D 물리 & 과학 샌드박스', path: paths.physicsSandbox, icon: ICONS.physicsSandbox },
@@ -296,16 +276,11 @@ export const navData: NavSectionProps['data'] = [
         path: paths.blackHole,
         icon: ICONS.blackHole,
       },
-      {
-        title: 'MATLAB 랩 (Web Studio)',
-        path: paths.matlab,
-        icon: ICONS.matlab,
-      },
     ],
   },
 
   /**
-   * 5. PDF & 파일 변환
+   * 4. PDF & 파일 변환
    */
   {
     subheader: 'PDF & File',
@@ -326,16 +301,6 @@ export const navData: NavSectionProps['data'] = [
         title: '동영상 편집 스튜디오',
         path: paths.videoMaster,
         icon: ICONS.videoMaster,
-      },
-      {
-        title: 'GIF 편집 스튜디오',
-        path: paths.gifStudio.root,
-        icon: ICONS.gif,
-      },
-      {
-        title: '화면 & 웹캠 녹화 스튜디오',
-        path: paths.screenRecorder,
-        icon: ICONS.screenRecorder,
       },
       { title: '다이어그램', path: paths.diagram, icon: ICONS.diagram },
       { title: '이미지 툴킷', path: paths.imageTool, icon: ICONS.imageTool },
@@ -359,6 +324,28 @@ export const navData: NavSectionProps['data'] = [
           { title: '사다리타기', path: paths.drawing.ladder },
           { title: '룰렛 게임', path: paths.drawing.roulette },
         ],
+      },
+    ],
+  },
+
+  /**
+   * 7. 보류
+   */
+  {
+    subheader: '보류',
+    items: [
+      { title: 'Drive', path: paths.fileManager, icon: ICONS.folder },
+      { title: 'AI Agent', path: paths.agent, icon: ICONS.agent },
+      {
+        title: '개인정보 마스킹 · EXIF 파기',
+        path: paths.privacySanitizer,
+        icon: ICONS.privacySanitizer,
+      },
+      { title: '대용량 로그 & CSV 뷰어', path: paths.gigaViewer, icon: ICONS.gigaViewer },
+      {
+        title: '화면 & 웹캠 녹화 스튜디오',
+        path: paths.screenRecorder,
+        icon: ICONS.screenRecorder,
       },
     ],
   },

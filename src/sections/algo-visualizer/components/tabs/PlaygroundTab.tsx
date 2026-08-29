@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
+import React, { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -8,14 +9,43 @@ import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import CircularProgress from '@mui/material/CircularProgress';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import CodeRoundedIcon from '@mui/icons-material/CodeRounded';
 
+import { ThemeSelector } from 'src/components/theme-selector';
+import {
+  IDE_THEMES,
+  getThemeById,
+  DEFAULT_THEME_ID,
+} from 'src/sections/code-runner/core/editor-themes';
+import { useVisualizerStore } from '../../store/visualizerStore';
 import { SortingVisualizer } from '../visualizer/SortingVisualizer';
 import { type Step } from '../../lib/algorithms/types';
 import { playSwapSound, playSuccessFanfare } from '../../lib/sound';
+
+const MonacoEditor = dynamic(() => import('@monaco-editor/react').then((mod) => mod.Editor), {
+  ssr: false,
+  loading: () => (
+    <Box
+      sx={{
+        height: 360,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 1.5,
+        bgcolor: 'background.paper',
+        color: 'text.secondary',
+      }}
+    >
+      <CircularProgress size={32} color="primary" />
+      <Typography variant="caption">샌드박스 에디터 로딩 중...</Typography>
+    </Box>
+  ),
+});
 
 const TEMPLATES: Record<string, { name: string; code: string; defaultArray: number[] }> = {
   bubbleSort: {
@@ -110,6 +140,9 @@ function runAlgorithm(arr, recordStep) {
 };
 
 export function PlaygroundTab() {
+  const { themeId = DEFAULT_THEME_ID, setThemeId } = useVisualizerStore();
+  const currentTheme = getThemeById(themeId);
+
   const [selectedTemplate, setSelectedTemplate] = useState<string>('bubbleSort');
   const [code, setCode] = useState<string>(TEMPLATES.bubbleSort.code);
   const [inputArrayStr, setInputArrayStr] = useState<string>('40, 20, 60, 10, 50, 30');
@@ -117,6 +150,14 @@ export function PlaygroundTab() {
   const [currentStepIdx, setCurrentStepIdx] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const handleBeforeMount = useCallback((monaco: any) => {
+    IDE_THEMES.forEach((theme) => {
+      if (theme.monacoDefinition) {
+        monaco.editor.defineTheme(theme.monacoThemeId, theme.monacoDefinition);
+      }
+    });
+  }, []);
 
   const handleSelectTemplate = (key: string) => {
     setSelectedTemplate(key);
@@ -212,7 +253,9 @@ export function PlaygroundTab() {
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <Box
+      sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, flex: '1 1 auto', minHeight: 0 }}
+    >
       {/* 1. Header Toolbar */}
       <Card
         sx={{
@@ -243,19 +286,37 @@ export function PlaygroundTab() {
           ))}
         </Box>
 
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<PlayArrowRoundedIcon />}
-          onClick={handleRunCode}
-          sx={{ borderRadius: 2, fontWeight: 800, px: 3 }}
-        >
-          실시간 시각화 실행하기
-        </Button>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <ThemeSelector
+            currentThemeId={themeId}
+            onThemeChange={setThemeId}
+            size="small"
+            height={36}
+            minWidth={150}
+          />
+
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<PlayArrowRoundedIcon />}
+            onClick={handleRunCode}
+            sx={{ borderRadius: 2, fontWeight: 800, px: 3, height: 36 }}
+          >
+            실시간 시각화 실행하기
+          </Button>
+        </Box>
       </Card>
 
       {/* 2. Main 2-Column Split: Editor + Live Canvas */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr' }, gap: 2 }}>
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr' },
+          gap: 1.5,
+          flex: '1 1 auto',
+          minHeight: 0,
+        }}
+      >
         {/* Left Column: Code & Array Input */}
         <Card
           sx={{
@@ -289,27 +350,36 @@ export function PlaygroundTab() {
           </Box>
 
           <Box
-            component="textarea"
-            value={code}
-            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setCode(e.target.value)}
-            spellCheck={false}
             sx={{
+              height: 380,
               width: '100%',
-              minHeight: 340,
-              p: 2,
               borderRadius: 2,
               border: 1,
-              borderColor: 'divider',
-              bgcolor: 'background.neutral',
-              color: 'text.primary',
-              fontFamily: 'monospace',
-              fontSize: '0.85rem',
-              lineHeight: 1.6,
-              resize: 'vertical',
-              outline: 'none',
-              '&:focus': { borderColor: 'primary.main' },
+              borderColor: currentTheme.uiColors.border,
+              overflow: 'hidden',
+              bgcolor: currentTheme.uiColors.surface,
             }}
-          />
+          >
+            <MonacoEditor
+              height="100%"
+              language="javascript"
+              value={code}
+              theme={currentTheme.monacoThemeId}
+              beforeMount={handleBeforeMount}
+              onChange={(val) => setCode(val || '')}
+              options={{
+                fontSize: 13,
+                fontFamily: "'JetBrains Mono', 'Fira Code', Consolas, monospace",
+                fontLigatures: true,
+                minimap: { enabled: true, scale: 0.75 },
+                scrollBeyondLastLine: false,
+                wordWrap: 'on',
+                lineNumbers: 'on',
+                automaticLayout: true,
+                padding: { top: 8, bottom: 8 },
+              }}
+            />
+          </Box>
 
           {errorMessage && (
             <Alert severity="error" sx={{ borderRadius: 2 }}>

@@ -30,6 +30,9 @@ import DeleteSweepRoundedIcon from '@mui/icons-material/DeleteSweepRounded';
 import HelpOutlineRoundedIcon from '@mui/icons-material/HelpOutlineRounded';
 import ScatterPlotRoundedIcon from '@mui/icons-material/ScatterPlotRounded';
 
+import { ThemeSelector } from 'src/components/theme-selector';
+import { DEFAULT_THEME_ID, getThemeById } from 'src/sections/code-runner/core/editor-themes';
+
 // ----------------------------------------------------------------------
 
 interface MatlabToolstripProps {
@@ -50,6 +53,8 @@ interface MatlabToolstripProps {
   onOpenApp: (appType: 'linalg' | 'fft' | 'ode') => void;
   onOpenHelp: () => void;
   onInsertSnippet: (snippetCode: string) => void;
+  currentThemeId?: string;
+  onThemeChange?: (themeId: string) => void;
 }
 
 export function MatlabToolstrip({
@@ -70,16 +75,19 @@ export function MatlabToolstrip({
   onOpenApp,
   onOpenHelp,
   onInsertSnippet,
+  currentThemeId = DEFAULT_THEME_ID,
+  onThemeChange,
 }: MatlabToolstripProps) {
   const [layoutMenuAnchor, setLayoutMenuAnchor] = React.useState<null | HTMLElement>(null);
+  const activeTheme = getThemeById(currentThemeId);
 
   return (
     <Box
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        bgcolor: '#191d24',
-        borderBottom: '1px solid #282f3d',
+        bgcolor: activeTheme.uiColors.surface,
+        borderBottom: `1px solid ${activeTheme.uiColors.border}`,
         userSelect: 'none',
         flexShrink: 0,
       }}
@@ -91,20 +99,20 @@ export function MatlabToolstrip({
           alignItems: 'center',
           justifyContent: 'space-between',
           px: 1.5,
-          bgcolor: '#13161c',
-          borderBottom: '1px solid #232834',
-          minHeight: 32,
+          bgcolor: activeTheme.uiColors.bg,
+          borderBottom: `1px solid ${activeTheme.uiColors.border}`,
+          minHeight: 34,
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mr: 1.5 }}>
-            <CalculateRoundedIcon sx={{ fontSize: 19, color: '#38bdf8' }} />
+            <CalculateRoundedIcon sx={{ fontSize: 19, color: 'primary.main' }} />
             <Typography
               sx={{
                 fontSize: '12px',
                 fontWeight: 800,
                 letterSpacing: '0.5px',
-                color: '#f8fafc',
+                color: activeTheme.uiColors.text,
               }}
             >
               MATLAB <span style={{ color: '#38bdf8' }}>WEB STUDIO</span>
@@ -115,20 +123,21 @@ export function MatlabToolstrip({
             value={activeTab}
             onChange={(_, val) => onTabChange(val)}
             sx={{
-              minHeight: 32,
+              minHeight: 34,
               '& .MuiTab-root': {
-                minHeight: 32,
+                minHeight: 34,
                 py: 0.25,
                 px: 1.75,
                 fontSize: '11px',
                 fontWeight: 700,
-                color: '#94a3b8',
+                color: activeTheme.uiColors.textMuted,
                 letterSpacing: '0.5px',
                 textTransform: 'none',
                 '&.Mui-selected': {
-                  bgcolor: '#191d24',
-                  color: '#38bdf8',
-                  borderTop: '2px solid #38bdf8',
+                  bgcolor: activeTheme.uiColors.surface,
+                  color: 'primary.main',
+                  borderTop: '2px solid',
+                  borderColor: 'primary.main',
                 },
               },
               '& .MuiTabs-indicator': {
@@ -144,9 +153,26 @@ export function MatlabToolstrip({
           </Tabs>
         </Box>
 
-        {/* Quick Info */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography sx={{ fontSize: '10px', color: '#64748b', fontFamily: 'monospace' }}>
+        {/* Quick Info & Theme Selector */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          {onThemeChange && (
+            <ThemeSelector
+              currentThemeId={currentThemeId}
+              onThemeChange={onThemeChange}
+              size="small"
+              height={26}
+              minWidth={140}
+              sx={{ my: 0.25 }}
+            />
+          )}
+
+          <Typography
+            sx={{
+              fontSize: '10px',
+              color: activeTheme.uiColors.textMuted,
+              fontFamily: 'monospace',
+            }}
+          >
             R2024b MathJS Wasm
           </Typography>
         </Box>
