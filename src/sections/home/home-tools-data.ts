@@ -151,7 +151,7 @@ export const TOOLS_DATA: ToolItem[] = [
   },
   {
     id: 'compare',
-    title: '데이터 & 코드 비교',
+    title: 'Diff Checker',
     subtitle: '실시간 Diff & 차이점 정밀 분석',
     description:
       '텍스트, 소스코드, JSON, 표 데이터 간의 차이점을 좌우 분할 뷰로 한눈에 비교하고 병합합니다.',

@@ -11,13 +11,6 @@ export interface LinePreset {
   listB: string;
 }
 
-export interface EntityItem {
-  id: string;
-  name: string;
-  dept: string;
-  role: string;
-}
-
 export const TEXT_DIFF_PRESETS: DiffPreset[] = [
   {
     name: '1. 소스 코드 (TypeScript)',
@@ -132,20 +125,4 @@ SKU-IPHONE-16-PRO
 SKU-AIRPODS-PRO-2
 SKU-MAGIC-KEYBOARD`,
   },
-];
-
-export const ENTITY_PRESET_A: EntityItem[] = [
-  { id: 'E101', name: '김민수', dept: '플랫폼개발팀', role: '수석연구원' },
-  { id: 'E102', name: '이지은', dept: '글로벌마케팅팀', role: '책임연구원' },
-  { id: 'E103', name: '박서준', dept: '디자인전략실', role: '선임연구원' },
-  { id: 'E104', name: '정유나', dept: '인사기획팀', role: '책임연구원' },
-  { id: 'E105', name: '홍길동', dept: 'AI 연구소', role: '수석연구원' },
-];
-
-export const ENTITY_PRESET_B: EntityItem[] = [
-  { id: 'E102', name: '이지은', dept: '글로벌마케팅팀', role: '책임연구원' },
-  { id: 'E103', name: '박서준', dept: '디자인전략실', role: '선임연구원' },
-  { id: 'E106', name: '최동욱', dept: '재무회계팀', role: '수석연구원' },
-  { id: 'E107', name: '송해원', dept: '보안인프라팀', role: '선임연구원' },
-  { id: 'E108', name: '강태양', dept: '클라우드개발팀', role: '책임연구원' },
 ];

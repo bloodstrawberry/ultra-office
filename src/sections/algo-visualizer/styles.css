@@ -448,10 +448,10 @@
 .blur-3xl { filter: blur(64px) !important; }
 .backdrop-blur-md { backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important; }
 
-/* Inputs and Buttons styling */
-input[type='text'],
-input[type='number'],
-textarea {
+/* Inputs and Buttons styling (scoped to Algorithm Visualizer) */
+.algo-studio-container input[type='text'],
+.algo-studio-container input[type='number'],
+.algo-studio-container textarea {
   background-color: #020617;
   color: #f8fafc;
   border: 1px solid #334155;
@@ -459,21 +459,21 @@ textarea {
   font-family: 'JetBrains Mono', Consolas, monospace;
 }
 
-input[type='text']:focus,
-input[type='number']:focus,
-textarea:focus {
+.algo-studio-container input[type='text']:focus,
+.algo-studio-container input[type='number']:focus,
+.algo-studio-container textarea:focus {
   border-color: #3b82f6;
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 
-button {
+.algo-studio-container button {
   cursor: pointer;
   border: none;
   background: transparent;
   font-family: inherit;
 }
 
-button:disabled {
+.algo-studio-container button:disabled {
   opacity: 0.35 !important;
   cursor: not-allowed !important;
 }

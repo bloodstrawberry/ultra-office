@@ -146,7 +146,7 @@ export function RegexStudioTab() {
             flexShrink: 0,
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, flexWrap: 'wrap' }}>
             <TextField
               fullWidth
               size="small"
@@ -160,7 +160,7 @@ export function RegexStudioTab() {
             />
 
             {/* Flags Chips */}
-            <Box sx={{ display: 'flex', gap: 0.5 }}>
+            <Box sx={{ display: 'flex', gap: 0.5, height: 40, alignItems: 'center' }}>
               {[
                 { flag: 'g', label: 'g (전역)' },
                 { flag: 'i', label: 'i (대소문자)' },
@@ -178,7 +178,7 @@ export function RegexStudioTab() {
                     onClick={() => toggleFlag(flag)}
                     color={isActive ? 'primary' : 'default'}
                     variant={isActive ? 'filled' : 'outlined'}
-                    sx={{ fontWeight: 700 }}
+                    sx={{ fontWeight: 700, height: 32 }}
                   />
                 );
               })}
@@ -190,13 +190,16 @@ export function RegexStudioTab() {
               size="small"
               startIcon={<AutoFixHighRoundedIcon />}
               onClick={() => setRegexMode((m) => (m === 'extract' ? 'replace' : 'extract'))}
-              sx={{ height: 40 }}
+              sx={{ height: 40, flexShrink: 0 }}
             >
               {regexMode === 'replace' ? '치환 모드' : '추출 모드'}
             </Button>
 
             <Tooltip title={showLibraryDrawer ? '라이브러리 닫기' : '정규식 라이브러리 열기'}>
-              <IconButton onClick={() => setShowLibraryDrawer((prev) => !prev)}>
+              <IconButton
+                onClick={() => setShowLibraryDrawer((prev) => !prev)}
+                sx={{ width: 40, height: 40 }}
+              >
                 <MenuBookRoundedIcon color={showLibraryDrawer ? 'primary' : 'inherit'} />
               </IconButton>
             </Tooltip>

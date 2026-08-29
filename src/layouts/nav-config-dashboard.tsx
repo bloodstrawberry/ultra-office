@@ -192,11 +192,12 @@ export const navData: NavSectionProps['data'] = [
         path: paths.devTools,
         icon: ICONS.devTools,
         children: [
-          { title: 'Three.js 3D 랩', path: paths.threejs },
-          { title: '코드 실행기', path: paths.codeRunner },
-          { title: 'MATLAB 랩 (Web Studio)', path: paths.matlab },
-          { title: 'SQL 연습실', path: paths.public.sql },
+          { title: 'Online 컴파일러', path: paths.codeRunner },
+          { title: 'SQL Lab', path: paths.public.sql },
+          { title: 'Diff Checker', path: paths.compare },
           { title: '정규표현식', path: paths.text.regex },
+          { title: 'Math Lab', path: paths.matlab },
+          { title: 'Three.js Lab', path: paths.threejs },
           { title: '개발자 툴킷', path: paths.devTools },
         ],
       },
@@ -223,7 +224,6 @@ export const navData: NavSectionProps['data'] = [
     subheader: 'Document & Data',
     items: [
       { title: '수식 그래프 시각화', path: paths.mathGraph, icon: ICONS.mathGraph },
-      { title: '데이터 & 코드 비교', path: paths.compare, icon: ICONS.compare },
       {
         title: '텍스트 도구',
         path: paths.text.root,

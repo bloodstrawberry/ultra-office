@@ -89,7 +89,7 @@ function AlgoVisualizerMain({ defaultTab = 'visualizer' }: AlgoVisualizerViewPro
   }
 
   return (
-    <DashboardContent>
+    <DashboardContent className="algo-studio-container">
       {/* 1. Header */}
       <Box
         sx={{
