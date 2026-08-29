@@ -5,13 +5,16 @@ import React, { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
+import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
 import Slider from '@mui/material/Slider';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import ToggleButton from '@mui/material/ToggleButton';
 import CircularProgress from '@mui/material/CircularProgress';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import ArchiveRoundedIcon from '@mui/icons-material/ArchiveRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
@@ -23,13 +26,36 @@ import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { downloadZipFile, type ZipFileEntry } from '../utils/zip-exporter';
+import { PhotoUploadWorkspace, type SampleImageItem } from '../components/photo-upload-workspace';
 import {
   formatBytes,
   downloadDataUrl,
+  shareToKakaoTalk,
   convertImageFormat,
   type SupportedFormat,
   calculateDataUrlByteSize,
 } from '../utils/image-processor';
+
+const CONVERT_SAMPLE_IMAGES: SampleImageItem[] = [
+  {
+    id: 'sample-transparent-png',
+    label: '✨ 투명 배경 그래픽 & 아이콘 (PNG)',
+    url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1000&auto=format&fit=crop&q=80',
+    subLabel: 'PNG ➜ WebP / JPG / ICO',
+  },
+  {
+    id: 'sample-highres-jpg',
+    label: '📸 고화질 자연 풍경 (JPG)',
+    url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1000&auto=format&fit=crop&q=80',
+    subLabel: 'JPG ➜ PNG / AVIF / WebP',
+  },
+  {
+    id: 'sample-vector-art',
+    label: '🎨 컬러 일러스트 아트 (PNG)',
+    url: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=1000&auto=format&fit=crop&q=80',
+    subLabel: 'PNG ➜ ICO 파비콘 & BMP',
+  },
+];
 
 interface ConvertedFileItem {
   id: string;
@@ -57,12 +83,18 @@ export function ConvertView() {
   const [targetFormat, setTargetFormat] = useState<SupportedFormat>('png');
   const [quality, setQuality] = useState<number>(90);
   const [icoSize, setIcoSize] = useState<number>(64);
+  const [activeItemIndex, setActiveItemIndex] = useState<number>(0);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [rightPanelWidth, setRightPanelWidth] = useState<number>(380);
+  const [listPanelHeight, setListPanelHeight] = useState<number>(180);
 
   const isResizingRef = useRef<boolean>(false);
   const resizeStartXRef = useRef<number>(0);
   const resizeStartWidthRef = useRef<number>(380);
+
+  const isResizingListRef = useRef<boolean>(false);
+  const resizeStartYRef = useRef<number>(0);
+  const resizeStartHeightRef = useRef<number>(180);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -85,6 +117,33 @@ export function ConvertView() {
   const handleDividerPointerUp = (e: React.PointerEvent) => {
     if (isResizingRef.current) {
       isResizingRef.current = false;
+      try {
+        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+      } catch {
+        // ignore
+      }
+    }
+  };
+
+  const handleListDividerPointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    isResizingListRef.current = true;
+    resizeStartYRef.current = e.clientY;
+    resizeStartHeightRef.current = listPanelHeight;
+  };
+
+  const handleListDividerPointerMove = (e: React.PointerEvent) => {
+    if (!isResizingListRef.current) return;
+    const deltaY = resizeStartYRef.current - e.clientY;
+    const newHeight = Math.max(90, Math.min(500, resizeStartHeightRef.current + deltaY));
+    setListPanelHeight(newHeight);
+  };
+
+  const handleListDividerPointerUp = (e: React.PointerEvent) => {
+    if (isResizingListRef.current) {
+      isResizingListRef.current = false;
       try {
         (e.target as HTMLElement).releasePointerCapture(e.pointerId);
       } catch {
@@ -161,7 +220,13 @@ export function ConvertView() {
   };
 
   const removeItem = (id: string) => {
-    setItems((prev) => prev.filter((it) => it.id !== id));
+    setItems((prev) => {
+      const filtered = prev.filter((it) => it.id !== id);
+      if (activeItemIndex >= filtered.length) {
+        setActiveItemIndex(Math.max(0, filtered.length - 1));
+      }
+      return filtered;
+    });
   };
 
   const handleDownloadSingle = async (item: ConvertedFileItem) => {
@@ -190,6 +255,31 @@ export function ConvertView() {
       setIsProcessing(false);
     }
   };
+
+  const handleShare = async () => {
+    const active = items[activeItemIndex] || items[0];
+    if (!active || !active.resultUrl) {
+      toast.error('공유할 변환 이미지가 없습니다.');
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      const baseName = active.file.name.replace(/\.[^/.]+$/, '');
+      const res = await shareToKakaoTalk(
+        active.resultUrl,
+        `사진 확장자 변환 결과 - ${active.file.name}`,
+        `${baseName}.${targetFormat}`
+      );
+      toast.success(res.message);
+    } catch {
+      toast.error('공유 중 오류가 발생했습니다.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const activeItem = items[activeItemIndex] || items[0];
 
   return (
     <DashboardContent
@@ -222,53 +312,26 @@ export function ConvertView() {
       />
 
       {items.length === 0 ? (
-        <Card
-          {...getRootProps({
-            onClick: () => fileInputRef.current?.click(),
-          })}
-          sx={{
-            p: 6,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            border: '2px dashed',
-            borderColor: isDragActive ? 'primary.main' : 'divider',
-            bgcolor: isDragActive ? 'action.hover' : 'transparent',
-            borderRadius: 3,
-            flex: '1 1 auto',
-            minHeight: 0,
-            height: '100%',
-            transition: (theme) => theme.transitions.create(['border-color', 'background-color']),
-            '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
+        <PhotoUploadWorkspace
+          sampleImages={CONVERT_SAMPLE_IMAGES}
+          onSelectSample={async (sampleUrl) => {
+            try {
+              const res = await fetch(sampleUrl);
+              const blob = await res.blob();
+              const file = new File([blob], 'sample_convert_image.png', {
+                type: blob.type || 'image/png',
+              });
+              addFiles([file]);
+              toast.success('샘플 이미지를 불러왔습니다.');
+            } catch {
+              toast.error('샘플 이미지를 로드하지 못했습니다.');
+            }
           }}
-        >
-          <Box
-            sx={{
-              width: 64,
-              height: 64,
-              borderRadius: '50%',
-              bgcolor: 'primary.lighter',
-              color: 'primary.main',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              mb: 2,
-            }}
-          >
-            <TransformRoundedIcon sx={{ fontSize: 32 }} />
-          </Box>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
-            확장자를 변경할 이미지들을 업로드하세요
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-            다중 선택으로 여러 장의 사진을 한 번에 변환할 수 있습니다
-          </Typography>
-          <Button variant="contained" color="primary" startIcon={<CloudUploadRoundedIcon />}>
-            사진 선택하기
-          </Button>
-        </Card>
+          onFileSelect={(file) => addFiles([file])}
+          title="확장자를 변환할 이미지 업로드"
+          subtitle="사진을 드래그하거나 다중 선택하여 PNG, JPG, WebP, AVIF, ICO로 변환하세요."
+          icon={<TransformRoundedIcon sx={{ fontSize: 36 }} />}
+        />
       ) : (
         <Box
           sx={{
@@ -281,7 +344,7 @@ export function ConvertView() {
             position: 'relative',
           }}
         >
-          {/* Left: Files List */}
+          {/* Left: Original (Left) vs Converted (Right) Stage & List Strip */}
           <Box
             sx={{
               display: 'flex',
@@ -290,17 +353,321 @@ export function ConvertView() {
               minWidth: 0,
               minHeight: 0,
               height: '100%',
+              gap: 0,
               pr: { md: 1 },
             }}
           >
+            {activeItem && (
+              <Card
+                sx={{
+                  p: { xs: 1.5, sm: 2 },
+                  borderRadius: 3,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  flex: '1 1 0px',
+                  minHeight: 0,
+                }}
+              >
+                {/* Top Information Bar */}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    mb: 1.5,
+                    flexShrink: 0,
+                    gap: 1,
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+                    <Typography
+                      variant="subtitle2"
+                      sx={{
+                        fontWeight: 700,
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
+                      {activeItem.file.name}
+                    </Typography>
+                    {activeItem.origSize && (
+                      <Chip
+                        label={`${formatBytes(activeItem.origSize)} → ${targetFormat.toUpperCase()} (${
+                          activeItem.resultSize ? formatBytes(activeItem.resultSize) : '변환 중'
+                        })`}
+                        size="small"
+                        color="primary"
+                        sx={{ fontWeight: 800, fontSize: '0.72rem', height: 22 }}
+                      />
+                    )}
+                  </Box>
+                </Box>
+
+                {/* Viewport: Side-by-Side (좌우 나란히) */}
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                    gap: 1.5,
+                    flex: '1 1 auto',
+                    minHeight: 0,
+                    height: '100%',
+                  }}
+                >
+                  {/* Left: Uploaded Original Photo */}
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      bgcolor: '#0f172a',
+                      borderRadius: 2,
+                      overflow: 'hidden',
+                      position: 'relative',
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      minHeight: 0,
+                      height: '100%',
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        px: 1.5,
+                        py: 0.75,
+                        bgcolor: 'rgba(15, 23, 42, 0.95)',
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                        zIndex: 2,
+                      }}
+                    >
+                      <Chip
+                        label="업로드한 원본 사진"
+                        size="small"
+                        sx={{
+                          fontWeight: 700,
+                          fontSize: '0.72rem',
+                          bgcolor: 'rgba(255, 255, 255, 0.15)',
+                          color: '#ffffff',
+                          height: 22,
+                        }}
+                      />
+                      <Typography
+                        variant="caption"
+                        sx={{ color: '#94a3b8', fontWeight: 700, fontFamily: 'monospace' }}
+                      >
+                        {formatBytes(activeItem.origSize)}
+                      </Typography>
+                    </Box>
+
+                    <Box
+                      sx={{
+                        flex: '1 1 auto',
+                        minHeight: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        p: 1,
+                        position: 'relative',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <img
+                        src={activeItem.origUrl}
+                        alt="Original"
+                        style={{
+                          maxWidth: '100%',
+                          maxHeight: '100%',
+                          objectFit: 'contain',
+                        }}
+                      />
+                    </Box>
+                  </Box>
+
+                  {/* Right: Converted Preview */}
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      bgcolor: '#0f172a',
+                      borderRadius: 2,
+                      overflow: 'hidden',
+                      position: 'relative',
+                      border: '1px solid',
+                      borderColor: 'primary.main',
+                      minHeight: 0,
+                      height: '100%',
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        px: 1.5,
+                        py: 0.75,
+                        bgcolor: 'rgba(15, 23, 42, 0.95)',
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                        zIndex: 2,
+                      }}
+                    >
+                      <Chip
+                        label={`변환 미리보기 (${targetFormat.toUpperCase()})`}
+                        size="small"
+                        color="primary"
+                        sx={{ fontWeight: 700, fontSize: '0.72rem', height: 22 }}
+                      />
+                      <Typography
+                        variant="caption"
+                        sx={{ color: '#38bdf8', fontWeight: 800, fontFamily: 'monospace' }}
+                      >
+                        {activeItem.resultSize ? formatBytes(activeItem.resultSize) : '변환 중...'}
+                      </Typography>
+                    </Box>
+
+                    <Box
+                      sx={{
+                        flex: '1 1 auto',
+                        minHeight: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        p: 1,
+                        position: 'relative',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      {activeItem.status === 'processing' ? (
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: 1.5,
+                          }}
+                        >
+                          <CircularProgress color="primary" size={32} />
+                          <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+                            확장자 변환 처리 중...
+                          </Typography>
+                        </Box>
+                      ) : activeItem.resultUrl ? (
+                        <img
+                          src={activeItem.resultUrl}
+                          alt="Converted Preview"
+                          style={{
+                            maxWidth: '100%',
+                            maxHeight: '100%',
+                            objectFit: 'contain',
+                          }}
+                        />
+                      ) : (
+                        <Typography variant="caption" sx={{ color: '#ef4444' }}>
+                          변환 오류가 발생했습니다.
+                        </Typography>
+                      )}
+                    </Box>
+                  </Box>
+                </Box>
+              </Card>
+            )}
+
+            {/* Draggable Horizontal Divider between Preview and List Strip */}
+            <Box
+              onPointerDown={handleListDividerPointerDown}
+              onPointerMove={handleListDividerPointerMove}
+              onPointerUp={handleListDividerPointerUp}
+              sx={{
+                display: 'flex',
+                height: 12,
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'row-resize',
+                userSelect: 'none',
+                touchAction: 'none',
+                zIndex: 10,
+                flexShrink: 0,
+                position: 'relative',
+                my: 0.25,
+                '&:hover .divider-hbar, &:active .divider-hbar': {
+                  bgcolor: 'primary.main',
+                  height: '3px',
+                },
+                '&:hover .divider-hhandle, &:active .divider-hhandle': {
+                  bgcolor: 'primary.main',
+                  borderColor: 'primary.main',
+                  '& > div > div': {
+                    bgcolor: '#ffffff',
+                  },
+                },
+              }}
+            >
+              {/* Horizontal Divider Line */}
+              <Box
+                className="divider-hbar"
+                sx={{
+                  width: '100%',
+                  height: '2px',
+                  bgcolor: 'divider',
+                  borderRadius: '1px',
+                  transition: 'all 0.15s ease',
+                }}
+              />
+              {/* Horizontal Grab Handle */}
+              <Box
+                className="divider-hhandle"
+                sx={{
+                  position: 'absolute',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: 36,
+                  height: 12,
+                  borderRadius: 1,
+                  bgcolor: 'background.paper',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  boxShadow: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.15s ease',
+                  pointerEvents: 'none',
+                }}
+              >
+                <Box
+                  sx={{
+                    height: 4,
+                    width: 14,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    '& > div': {
+                      height: 1.5,
+                      width: '100%',
+                      bgcolor: 'text.disabled',
+                      borderRadius: 1,
+                      transition: 'all 0.15s ease',
+                    },
+                  }}
+                >
+                  <div />
+                  <div />
+                </Box>
+              </Box>
+            </Box>
+
+            {/* List Strip - Height Controlled by Draggable Divider */}
             <Card
               sx={{
-                p: 2,
-                borderRadius: 3,
+                p: 1.5,
+                borderRadius: 2.5,
+                flexShrink: 0,
+                height: `${listPanelHeight}px`,
+                minHeight: `${listPanelHeight}px`,
+                maxHeight: `${listPanelHeight}px`,
                 display: 'flex',
                 flexDirection: 'column',
-                flex: '1 1 auto',
-                minHeight: 0,
               }}
             >
               <Box
@@ -308,47 +675,63 @@ export function ConvertView() {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  mb: 1.5,
+                  mb: 0.75,
                   flexShrink: 0,
                 }}
               >
-                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: '0.85rem' }}>
                   변환 대상 목록 ({items.length}개)
                 </Typography>
+                <Button
+                  size="small"
+                  variant="text"
+                  onClick={() => fileInputRef.current?.click()}
+                  startIcon={<CloudUploadRoundedIcon sx={{ fontSize: 16 }} />}
+                  sx={{ fontSize: '0.75rem', fontWeight: 600, py: 0.2 }}
+                >
+                  + 사진 추가
+                </Button>
               </Box>
 
               <Box
                 sx={{
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 1.2,
-                  flex: '1 1 auto',
+                  gap: 0.6,
+                  flex: '1 1 0px',
                   minHeight: 0,
                   overflowY: 'auto',
+                  pr: 0.5,
+                  '&::-webkit-scrollbar': { width: '5px' },
+                  '&::-webkit-scrollbar-track': { bgcolor: 'transparent' },
+                  '&::-webkit-scrollbar-thumb': { bgcolor: 'divider', borderRadius: '3px' },
+                  '&::-webkit-scrollbar-thumb:hover': { bgcolor: 'text.disabled' },
                 }}
               >
                 {items.map((item, idx) => (
                   <Box
                     key={item.id}
+                    onClick={() => setActiveItemIndex(idx)}
                     sx={{
-                      p: 1.5,
-                      borderRadius: 2,
-                      bgcolor: 'action.hover',
+                      p: '6px 10px',
+                      borderRadius: 1.5,
+                      bgcolor: activeItemIndex === idx ? 'action.selected' : 'action.hover',
+                      border: '1px solid',
+                      borderColor: activeItemIndex === idx ? 'primary.main' : 'transparent',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      gap: 2,
+                      cursor: 'pointer',
+                      flexShrink: 0,
+                      transition: 'all 0.15s ease',
                     }}
                   >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0 }}>
-                      <Typography variant="caption" sx={{ fontWeight: 800, width: 24 }}>
-                        #{idx + 1}
-                      </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0 }}>
                       <Box
                         sx={{
-                          width: 48,
-                          height: 48,
-                          borderRadius: 1.5,
+                          width: 32,
+                          height: 32,
+                          borderRadius: 1,
                           overflow: 'hidden',
                           bgcolor: '#0f172a',
                           flexShrink: 0,
@@ -361,10 +744,17 @@ export function ConvertView() {
                         />
                       </Box>
                       <Box sx={{ minWidth: 0 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 700 }} noWrap>
+                        <Typography
+                          variant="body2"
+                          sx={{ fontWeight: 700, fontSize: '0.82rem' }}
+                          noWrap
+                        >
                           {item.file.name}
                         </Typography>
-                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                        <Typography
+                          variant="caption"
+                          sx={{ color: 'text.secondary', fontSize: '0.72rem' }}
+                        >
                           {formatBytes(item.origSize)} →{' '}
                           <span style={{ color: '#3b82f6', fontWeight: 800 }}>
                             {targetFormat.toUpperCase()} ({formatBytes(item.resultSize)})
@@ -373,18 +763,28 @@ export function ConvertView() {
                       </Box>
                     </Box>
 
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      {item.status === 'processing' && <CircularProgress size={18} />}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }}>
+                      {item.status === 'processing' && <CircularProgress size={16} />}
                       {item.status === 'done' && (
                         <IconButton
                           size="small"
                           color="primary"
-                          onClick={() => handleDownloadSingle(item)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownloadSingle(item);
+                          }}
                         >
                           <DownloadRoundedIcon fontSize="small" />
                         </IconButton>
                       )}
-                      <IconButton size="small" color="error" onClick={() => removeItem(item.id)}>
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeItem(item.id);
+                        }}
+                      >
                         <DeleteRoundedIcon fontSize="small" />
                       </IconButton>
                     </Box>
@@ -485,51 +885,50 @@ export function ConvertView() {
               minWidth: { md: `${rightPanelWidth}px` },
               maxWidth: { md: `${rightPanelWidth}px` },
               flexShrink: 0,
-              gap: 2,
+              gap: 1.5,
               minHeight: 0,
               overflow: 'auto',
               pl: { md: 1 },
               pr: 0.5,
             }}
           >
-            <Card sx={{ p: 2.5, borderRadius: 3 }}>
+            <Card sx={{ p: 2, borderRadius: 2.5 }}>
               {/* Target Format Selector */}
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
                 1. 변환할 목표 확장자 선택
               </Typography>
-              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, mb: 2.5 }}>
+              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, mb: 2 }}>
                 {FORMAT_OPTIONS.map((opt) => (
-                  <Button
-                    key={opt.id}
-                    size="small"
-                    variant={targetFormat === opt.id ? 'contained' : 'outlined'}
-                    color={targetFormat === opt.id ? 'primary' : 'inherit'}
-                    onClick={() => reprocessAll(opt.id)}
-                    sx={{
-                      borderRadius: 1.5,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      py: 1,
-                    }}
-                  >
-                    <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+                  <Tooltip key={opt.id} title={opt.desc} arrow placement="top">
+                    <Button
+                      size="medium"
+                      variant={targetFormat === opt.id ? 'contained' : 'outlined'}
+                      color={targetFormat === opt.id ? 'primary' : 'inherit'}
+                      onClick={() => reprocessAll(opt.id)}
+                      sx={{
+                        borderRadius: 2,
+                        py: 1,
+                        fontWeight: 800,
+                        fontSize: '0.92rem',
+                      }}
+                    >
                       {opt.label}
-                    </Typography>
-                    <Typography variant="caption" sx={{ fontSize: '0.65rem', opacity: 0.8 }} noWrap>
-                      {opt.desc}
-                    </Typography>
-                  </Button>
+                    </Button>
+                  </Tooltip>
                 ))}
               </Box>
 
               {/* Quality Slider (for JPG/WebP/AVIF) */}
               {(targetFormat === 'jpg' || targetFormat === 'webp' || targetFormat === 'avif') && (
                 <Box sx={{ mb: 2 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                    <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.25 }}>
+                    <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
                       변환 화질 (Quality)
                     </Typography>
-                    <Typography variant="caption" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                    <Typography
+                      variant="caption"
+                      sx={{ fontWeight: 700, color: 'primary.main', fontSize: '0.75rem' }}
+                    >
                       {quality}%
                     </Typography>
                   </Box>
@@ -540,14 +939,18 @@ export function ConvertView() {
                     value={quality}
                     onChange={(_, v) => setQuality(v as number)}
                     onChangeCommitted={() => reprocessAll(targetFormat)}
+                    sx={{ py: 0.5 }}
                   />
                 </Box>
               )}
 
               {/* ICO Size Preset */}
               {targetFormat === 'ico' && (
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="caption" sx={{ fontWeight: 600, mb: 0.5, display: 'block' }}>
+                <Box>
+                  <Typography
+                    variant="caption"
+                    sx={{ fontWeight: 600, mb: 0.5, display: 'block', fontSize: '0.75rem' }}
+                  >
                     아이콘 해상도 (px)
                   </Typography>
                   <ToggleButtonGroup
@@ -572,12 +975,12 @@ export function ConvertView() {
               )}
             </Card>
 
-            {/* Action Buttons Column */}
+            {/* Action Buttons Column - Unified with Compressor */}
             <Box
               sx={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 1.25,
+                gap: 1,
                 mt: 'auto',
                 pt: 0.5,
               }}
@@ -595,28 +998,46 @@ export function ConvertView() {
                     <ArchiveRoundedIcon />
                   )
                 }
-                sx={{ py: 1.4, borderRadius: 2, fontWeight: 700, fontSize: '0.95rem' }}
+                sx={{ py: 1.2, borderRadius: 2, fontWeight: 700, fontSize: '0.9rem' }}
               >
                 전체 일괄 변환(ZIP) 다운로드
               </Button>
+
+              {activeItem && activeItem.status === 'done' && (
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  color="primary"
+                  onClick={() => handleDownloadSingle(activeItem)}
+                  startIcon={<DownloadRoundedIcon />}
+                  sx={{ py: 0.9, borderRadius: 1.5, fontWeight: 600, fontSize: '0.82rem' }}
+                >
+                  현재 사진 개별 저장
+                </Button>
+              )}
+
+              {activeItem && activeItem.status === 'done' && (
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  color="inherit"
+                  onClick={handleShare}
+                  startIcon={<ShareRoundedIcon />}
+                  sx={{ py: 0.9, borderRadius: 1.5, fontWeight: 600, fontSize: '0.82rem' }}
+                >
+                  공유
+                </Button>
+              )}
+
               <Button
                 fullWidth
                 variant="outlined"
-                color="inherit"
-                onClick={() => fileInputRef.current?.click()}
-                startIcon={<CloudUploadRoundedIcon />}
-                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
-              >
-                + 이미지 추가하기
-              </Button>
-              <Button
-                fullWidth
-                variant="outlined"
-                color="inherit"
+                color="error"
                 onClick={() => setItems([])}
-                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+                startIcon={<DeleteRoundedIcon sx={{ fontSize: 18 }} />}
+                sx={{ py: 0.8, borderRadius: 1.5, fontWeight: 600, fontSize: '0.8rem' }}
               >
-                전체 삭제
+                목록 비우기
               </Button>
             </Box>
           </Box>

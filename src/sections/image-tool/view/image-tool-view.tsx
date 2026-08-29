@@ -927,8 +927,8 @@ export function ImageToolView() {
                 path: paths.photo.compress,
               },
               {
-                title: '스포이드 색상 추출',
-                desc: '이미지 픽셀 색상 추출 및 HEX/RGB 팔레트',
+                title: 'Color Picker',
+                desc: '이미지 픽셀 색상 스포이드 추출 및 HEX/RGB 변환',
                 path: paths.photo.colorPicker,
               },
               {

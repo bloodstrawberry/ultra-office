@@ -7,7 +7,6 @@ export * from './sero-view';
 export * from './ascii-view';
 export * from './color-view';
 export * from './pixel-view';
-export * from './doodle-view';
 export * from './glitch-view';
 export * from './mosaic-view';
 export * from './convert-view';

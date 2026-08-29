@@ -905,16 +905,6 @@ export function BgRemoveView() {
                     >
                       {isTouchupMode ? '터치업 종료' : '수동 터치업'}
                     </Button>
-
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      color="inherit"
-                      onClick={handleReset}
-                      startIcon={<RefreshRoundedIcon />}
-                    >
-                      다른 사진
-                    </Button>
                   </Box>
                 </Box>
 

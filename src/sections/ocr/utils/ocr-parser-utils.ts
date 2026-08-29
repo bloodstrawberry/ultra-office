@@ -239,3 +239,145 @@ export function exportTableToExcelBlob(lines: string[]): Blob {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   });
 }
+
+/**
+ * 1-클릭 테스트용 샘플 영수증 이미지 생성 (DataURL)
+ */
+export function createSampleReceiptImage(): string {
+  if (typeof document === 'undefined') return '';
+  const canvas = document.createElement('canvas');
+  canvas.width = 600;
+  canvas.height = 700;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return '';
+
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, 600, 700);
+
+  ctx.fillStyle = '#111827';
+  ctx.font = 'bold 28px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('(주)울트라커피 강남점', 300, 60);
+
+  ctx.font = '18px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('상호명: (주)울트라커피', 50, 110);
+  ctx.fillText('사업자등록번호: 123-45-67890', 50, 145);
+  ctx.fillText('결제일자: 2026-08-29 14:30', 50, 180);
+
+  ctx.strokeStyle = '#D1D5DB';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(50, 210);
+  ctx.lineTo(550, 210);
+  ctx.stroke();
+
+  ctx.font = '18px sans-serif';
+  ctx.fillText('아메리카노 (Ice)     2개     9,000', 50, 250);
+  ctx.fillText('카페라떼 (Hot)       1개     5,500', 50, 285);
+  ctx.fillText('치즈 케이크           1개     6,500', 50, 320);
+
+  ctx.beginPath();
+  ctx.moveTo(50, 355);
+  ctx.lineTo(550, 355);
+  ctx.stroke();
+
+  ctx.font = '19px sans-serif';
+  ctx.fillText('공급가액: 19,091 원', 50, 400);
+  ctx.fillText('부가세(VAT): 1,909 원', 50, 435);
+
+  ctx.font = 'bold 28px sans-serif';
+  ctx.fillStyle = '#2563EB';
+  ctx.fillText('합계금액: 21,000 원', 50, 490);
+
+  ctx.fillStyle = '#9CA3AF';
+  ctx.font = '16px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('감사합니다. 좋은 하루 되세요!', 300, 580);
+
+  return canvas.toDataURL('image/png');
+}
+
+/**
+ * 1-클릭 테스트용 샘플 비즈니스 명함 이미지 생성 (DataURL)
+ */
+export function createSampleCardImage(): string {
+  if (typeof document === 'undefined') return '';
+  const canvas = document.createElement('canvas');
+  canvas.width = 650;
+  canvas.height = 400;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return '';
+
+  ctx.fillStyle = '#F8FAFC';
+  ctx.fillRect(0, 0, 650, 400);
+
+  ctx.strokeStyle = '#3B82F6';
+  ctx.lineWidth = 6;
+  ctx.strokeRect(3, 3, 644, 394);
+
+  ctx.fillStyle = '#1E3A8A';
+  ctx.font = 'bold 26px sans-serif';
+  ctx.fillText('(주)울트라소프트웨어', 45, 65);
+
+  ctx.fillStyle = '#111827';
+  ctx.font = 'bold 36px sans-serif';
+  ctx.fillText('홍길동 수석', 45, 135);
+
+  ctx.fillStyle = '#475569';
+  ctx.font = 'bold 18px sans-serif';
+  ctx.fillText('AI 플랫폼 개발본부 / 팀장', 45, 175);
+
+  ctx.fillStyle = '#1E293B';
+  ctx.font = '17px monospace';
+  ctx.fillText('TEL: 010-1234-5678', 45, 235);
+  ctx.fillText('EMAIL: gildong.hong@ultrasoft.co.kr', 45, 270);
+  ctx.fillText('ADDR: 서울특별시 강남구 테헤란로 152', 45, 305);
+
+  return canvas.toDataURL('image/png');
+}
+
+/**
+ * 1-클릭 테스트용 샘플 표/데이터 이미지 생성 (DataURL)
+ */
+export function createSampleTableImage(): string {
+  if (typeof document === 'undefined') return '';
+  const canvas = document.createElement('canvas');
+  canvas.width = 650;
+  canvas.height = 360;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return '';
+
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, 650, 360);
+
+  ctx.fillStyle = '#0F172A';
+  ctx.font = 'bold 22px sans-serif';
+  ctx.fillText('2026 분기별 부서 매출 집계표', 40, 50);
+
+  ctx.font = '16px monospace';
+  ctx.fillStyle = '#1E293B';
+
+  const rows = [
+    '부서명\t1분기\t2분기\t3분기\t합계',
+    'AI솔루션팀\t120\t145\t180\t445',
+    '클라우드팀\t95\t110\t130\t335',
+    '데이터팀\t80\t95\t115\t290',
+    '디자인팀\t50\t65\t70\t185',
+  ];
+
+  let y = 100;
+  rows.forEach((row, idx) => {
+    if (idx === 0) {
+      ctx.fillStyle = '#2563EB';
+      ctx.font = 'bold 17px monospace';
+    } else {
+      ctx.fillStyle = '#1E293B';
+      ctx.font = '16px monospace';
+    }
+    ctx.fillText(row, 40, y);
+    y += 40;
+  });
+
+  return canvas.toDataURL('image/png');
+}

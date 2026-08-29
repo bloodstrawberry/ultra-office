@@ -10,7 +10,6 @@ import Typography from '@mui/material/Typography';
 import GifRoundedIcon from '@mui/icons-material/GifRounded';
 import BlurOnRoundedIcon from '@mui/icons-material/BlurOnRounded';
 import FlashOnRoundedIcon from '@mui/icons-material/FlashOnRounded';
-import GestureRoundedIcon from '@mui/icons-material/GestureRounded';
 import CompressRoundedIcon from '@mui/icons-material/CompressRounded';
 import WhatshotRoundedIcon from '@mui/icons-material/WhatshotRounded';
 import ColorLensRoundedIcon from '@mui/icons-material/ColorLensRounded';
@@ -52,7 +51,7 @@ const TOOL_SECTIONS: { category: string; desc: string; tools: PhotoToolItem[] }[
       {
         id: 'art-style',
         title: '명화 & 스케치 필터',
-        desc: '연필 스케치, 유화(Kuwahara), 팝아트, 수채화, 네온 필터',
+        desc: '인상파 유화, 수묵화, 색연필, 수채화, 지브리 애니, 판화 등 14종 화풍',
         href: paths.photo.artStyle,
         icon: <AutoFixHighRoundedIcon sx={{ fontSize: 28, color: '#ec4899' }} />,
         tag: '인기',
@@ -108,20 +107,11 @@ const TOOL_SECTIONS: { category: string; desc: string; tools: PhotoToolItem[] }[
         tag: 'HOT',
         badgeColor: 'error',
       },
-      {
-        id: 'doodle',
-        title: '대충 · 하찮은 그림 변환기',
-        desc: '대충 끄적인 펜 스케치 & 그림판 마우스 개발새발 세상에서 가장 하찮은 짤 생성',
-        href: paths.photo.doodle,
-        icon: <GestureRoundedIcon sx={{ fontSize: 28, color: '#e11d48' }} />,
-        tag: 'NEW',
-        badgeColor: 'error',
-      },
     ],
   },
   {
     category: '컬러 & 배경 & 보정',
-    desc: '배경 투명화, 스포이드 컬러 추출, 모자이크 등 정밀 편집 도구입니다.',
+    desc: '배경 투명화, Color Picker, 모자이크 등 정밀 편집 도구입니다.',
     tools: [
       {
         id: 'bg-remove',
@@ -141,8 +131,8 @@ const TOOL_SECTIONS: { category: string; desc: string; tools: PhotoToolItem[] }[
       },
       {
         id: 'color-picker',
-        title: '스포이드 컬러 추출기',
-        desc: '사진 픽셀 스포이드, HEX/RGB/HSL/CMYK 변환 및 컬러카드 PNG',
+        title: 'Color Picker',
+        desc: '사진 픽셀 스포이드, HEX/RGB/HSL/HSV/CMYK 정밀 색상 코드 추출 & 복사',
         href: paths.photo.colorPicker,
         icon: <ColorLensRoundedIcon sx={{ fontSize: 28, color: '#eab308' }} />,
       },

@@ -97,41 +97,6 @@ export const PRESET_AI_LOGOS: WatermarkLogo[] = [
     defaultText: 'Galaxy AI',
     category: 'ai_model',
   },
-  {
-    id: 'perplexity',
-    name: 'Perplexity',
-    src: '/assets/watermark_logo/perplexity.png',
-    defaultText: 'Perplexity AI',
-    category: 'ai_model',
-  },
-  {
-    id: 'meta',
-    name: 'Meta AI',
-    src: '/assets/watermark_logo/meta.jpg',
-    defaultText: 'Meta AI (Llama)',
-    category: 'ai_model',
-  },
-  {
-    id: 'mistral',
-    name: 'Mistral AI',
-    src: '/assets/watermark_logo/mistral.png',
-    defaultText: 'Mistral AI',
-    category: 'ai_model',
-  },
-  {
-    id: 'wrtn',
-    name: '뤼튼 (Wrtn)',
-    src: '/assets/watermark_logo/wrtn.png',
-    defaultText: '뤼튼 AI 생성',
-    category: 'ai_model',
-  },
-  {
-    id: 'adot',
-    name: '에이닷 (A.dot)',
-    src: '/assets/watermark_logo/adot.png',
-    defaultText: '에이닷 AI',
-    category: 'ai_model',
-  },
 ];
 
 // ----------------------------------------------------------------------

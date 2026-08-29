@@ -25,6 +25,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import { SafeNumberInput } from '../components/safe-number-input';
 import { downloadZipFile, type ZipFileEntry } from '../utils/zip-exporter';
+import { PhotoUploadWorkspace, type SampleImageItem } from '../components/photo-upload-workspace';
 import {
   downloadDataUrl,
   shareToKakaoTalk,
@@ -36,6 +37,27 @@ import {
   saveHorizontalCropSettings,
   DEFAULT_HORIZONTAL_SETTINGS,
 } from '../utils/thumbnail-storage';
+
+const GARO_SAMPLE_IMAGES: SampleImageItem[] = [
+  {
+    id: 'sample-web-dashboard',
+    label: '💻 웹 대시보드 & 통계 차트',
+    url: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&auto=format&fit=crop&q=80',
+    subLabel: '16:9 PC 웹 화면',
+  },
+  {
+    id: 'sample-youtube-thumb',
+    label: '📺 유튜브 썸네일 & 배너',
+    url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80',
+    subLabel: '가로형 배너 스크린샷',
+  },
+  {
+    id: 'sample-desktop-app',
+    label: '🖥️ 데스크톱 오피스 작업창',
+    url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop&q=80',
+    subLabel: '가로 와이드 화면 캡처',
+  },
+];
 
 interface UploadedFile {
   id: string;
@@ -179,6 +201,16 @@ export function GaroView() {
     setFiles((prev) => prev.filter((file) => file.id !== id));
   };
 
+  const handleSelectSample = (sampleUrl: string) => {
+    const sampleFile: UploadedFile = {
+      id: Math.random().toString(36).substring(2, 9),
+      name: 'sample_garo_screenshot.jpg',
+      src: sampleUrl,
+    };
+    setFiles((prev) => [...prev, sampleFile]);
+    toast.success('샘플 가로 스크린샷 이미지를 불러왔습니다.');
+  };
+
   const handleResetSettings = () => {
     updateCropSettings(DEFAULT_HORIZONTAL_SETTINGS);
     toast.info('기본값(1504x741)으로 복원되었습니다.');
@@ -253,61 +285,14 @@ export function GaroView() {
       />
 
       {files.length === 0 ? (
-        <Card
-          {...getRootProps({
-            onClick: () => fileInputRef.current?.click(),
-          })}
-          sx={{
-            p: 4,
-            flex: '1 1 auto',
-            minHeight: 0,
-            width: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            border: '2px dashed',
-            borderColor: isDragActive ? 'primary.main' : 'divider',
-            bgcolor: isDragActive ? 'action.hover' : 'transparent',
-            borderRadius: 3,
-            transition: (theme) => theme.transitions.create(['border-color', 'background-color']),
-            '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
-          }}
-        >
-          <Box
-            sx={{
-              width: { xs: 64, sm: 80 },
-              height: { xs: 64, sm: 80 },
-              borderRadius: '50%',
-              bgcolor: 'primary.lighter',
-              color: 'primary.main',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              mb: 2.5,
-            }}
-          >
-            <LaptopMacRoundedIcon sx={{ fontSize: { xs: 36, sm: 44 } }} />
-          </Box>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 1, textAlign: 'center' }}>
-            이미지 업로드
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{ color: 'text.secondary', mb: 3, textAlign: 'center', maxWidth: 480 }}
-          >
-            다중 선택으로 여러 장을 한 번에 올릴 수 있습니다.
-          </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            size="large"
-            startIcon={<CloudUploadRoundedIcon />}
-          >
-            사진 선택하기
-          </Button>
-        </Card>
+        <PhotoUploadWorkspace
+          sampleImages={GARO_SAMPLE_IMAGES}
+          onSelectSample={handleSelectSample}
+          onFileSelect={(file) => addFiles([file])}
+          title="가로 스크린샷 생성할 이미지 업로드"
+          subtitle="PC 웹 화면 캡처나 가로 와이드 사진을 드래그하거나 다중 선택하세요."
+          icon={<LaptopMacRoundedIcon sx={{ fontSize: 36 }} />}
+        />
       ) : (
         <Box
           sx={{

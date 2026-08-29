@@ -69,6 +69,21 @@ const FILTERS: { id: PhotoFilter; name: string }[] = [
 
 const STICKER_PRESETS = ['✨', '💖', '🎀', '🧸', '🌸', '👑', '🕶️', '🐱', '🐶', '🔥', '⭐', '🎈'];
 
+const FOUR_CUT_SAMPLES = {
+  portrait: [
+    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=800&auto=format&fit=crop&q=80',
+  ],
+  pets: [
+    'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=800&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?w=800&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=800&auto=format&fit=crop&q=80',
+  ],
+};
+
 export function FourCutView() {
   const [layout, setLayout] = useState<LayoutType>('strip4');
   const [theme, setTheme] = useState<FrameTheme>('classic-dark');
@@ -155,7 +170,15 @@ export function FourCutView() {
   };
 
   const removeImage = (index: number) => {
-    setImages((prev) => prev.filter((_, i) => i !== index));
+    setImages((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
+  const handleLoadSampleSet = (type: 'portrait' | 'pets') => {
+    const list = FOUR_CUT_SAMPLES[type].slice(0, maxSlots);
+    setImages(list);
+    toast.success(
+      `${type === 'portrait' ? '감성 인물' : '귀여운 펫'} 예시 사진 ${list.length}장을 불러왔습니다.`
+    );
   };
 
   const addSticker = (emoji: string) => {
@@ -727,6 +750,28 @@ export function FourCutView() {
                     </Box>
                   );
                 })}
+              </Box>
+
+              {/* Sample Preset Buttons */}
+              <Box sx={{ mt: 1.25, display: 'flex', gap: 1 }}>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color="primary"
+                  onClick={() => handleLoadSampleSet('portrait')}
+                  sx={{ flex: 1, fontSize: '0.72rem', py: 0.6, borderRadius: 1.5, fontWeight: 700 }}
+                >
+                  ✨ 감성 인물 예시
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color="secondary"
+                  onClick={() => handleLoadSampleSet('pets')}
+                  sx={{ flex: 1, fontSize: '0.72rem', py: 0.6, borderRadius: 1.5, fontWeight: 700 }}
+                >
+                  🐱 펫 예시
+                </Button>
               </Box>
             </Box>
 

@@ -371,20 +371,6 @@ export function GlitchView() {
               splitEnd={splitEnd}
               onSplitEndChange={setSplitEnd}
               bgStyle="neutral"
-              extraTopActions={
-                <Button
-                  variant="outlined"
-                  size="small"
-                  color="inherit"
-                  onClick={() => {
-                    setImageSrc('');
-                    setResultDataUrl('');
-                  }}
-                  startIcon={<RefreshRoundedIcon />}
-                >
-                  다른 사진
-                </Button>
-              }
             />
           </Box>
 

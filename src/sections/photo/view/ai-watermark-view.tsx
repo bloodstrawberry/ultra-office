@@ -782,7 +782,7 @@ export function AiWatermarkView() {
   };
 
   // Reset All Settings
-  const handleResetSettings = () => {
+  const handleResetSettings = useCallback(() => {
     setOpacity(0.4);
     setScale(0.12);
     setRotation(0);
@@ -800,7 +800,29 @@ export function AiWatermarkView() {
     setLogoAnnotationOpacity(1.0);
     setLogoAnnotationSize(1.0);
     toast.success('워터마크 설정이 초기화되었습니다.');
-  };
+  }, []);
+
+  // Reset Everything to Upload Workspace
+  const handleReset = useCallback(() => {
+    setItems([]);
+    setActiveItemIndex(0);
+    setOpacity(0.4);
+    setScale(0.12);
+    setRotation(0);
+    setPositionPreset('bottom-right');
+    setCustomX(0.85);
+    setCustomY(0.85);
+    setShowText(false);
+    setCustomText('Generated with AI');
+    setTextColor('#ffffff');
+    setShowLogoCircle(false);
+    setShowLogoArrow(false);
+    setShowLogoSquare(false);
+    setLogoAnnotationColor('#EF4444');
+    setLogoAnnotationLineWidth(1.0);
+    setLogoAnnotationOpacity(1.0);
+    setLogoAnnotationSize(1.0);
+  }, []);
 
   // Resizable Divider
   const handleDividerPointerDown = (e: React.PointerEvent) => {
@@ -930,33 +952,40 @@ export function AiWatermarkView() {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: 1,
                   mb: 1.5,
                   flexShrink: 0,
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, mr: 0.5 }}>
                     {activeItem ? activeItem.name : '미리보기'}
                   </Typography>
                   {isProcessing && <CircularProgress size={16} />}
-                </Box>
 
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   {/* Before / After Toggle */}
                   <ToggleButtonGroup
                     value={viewMode}
                     exclusive
                     onChange={(_, v) => v && setViewMode(v)}
                     size="small"
+                    sx={{
+                      '& .MuiToggleButtonGroup-grouped': {
+                        px: 2,
+                        py: 0.75,
+                        fontSize: '0.8125rem',
+                        fontWeight: 700,
+                        whiteSpace: 'nowrap',
+                      },
+                    }}
                   >
-                    <ToggleButton value="before" sx={{ px: 1.2, py: 0.4, fontWeight: 700 }}>
-                      원본 보기
-                    </ToggleButton>
-                    <ToggleButton value="after" sx={{ px: 1.2, py: 0.4, fontWeight: 700 }}>
-                      워터마크 각인
-                    </ToggleButton>
+                    <ToggleButton value="before">원본 보기</ToggleButton>
+                    <ToggleButton value="after">워터마크 각인</ToggleButton>
                   </ToggleButtonGroup>
+                </Box>
 
+                <Box sx={{ display: 'flex', gap: 0.8 }}>
                   <Button
                     variant="outlined"
                     size="small"
@@ -1317,19 +1346,31 @@ export function AiWatermarkView() {
                 onChange={(_, v) => v && setActiveTab(v)}
                 fullWidth
                 size="small"
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(4, 1fr)',
+                  gap: 0.5,
+                  '& .MuiToggleButtonGroup-grouped': {
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: '8px !important',
+                    whiteSpace: 'nowrap',
+                    py: 0.8,
+                    fontWeight: 700,
+                    fontSize: '0.8125rem',
+                    '&.Mui-selected': {
+                      bgcolor: 'primary.lighter',
+                      color: 'primary.darker',
+                      borderColor: 'primary.main',
+                      fontWeight: 700,
+                    },
+                  },
+                }}
               >
-                <ToggleButton value="logo" sx={{ py: 0.8, fontWeight: 700 }}>
-                  로고 선택
-                </ToggleButton>
-                <ToggleButton value="style" sx={{ py: 0.8, fontWeight: 700 }}>
-                  스타일
-                </ToggleButton>
-                <ToggleButton value="position" sx={{ py: 0.8, fontWeight: 700 }}>
-                  위치
-                </ToggleButton>
-                <ToggleButton value="text" sx={{ py: 0.8, fontWeight: 700 }}>
-                  문구
-                </ToggleButton>
+                <ToggleButton value="logo">로고 선택</ToggleButton>
+                <ToggleButton value="style">스타일</ToggleButton>
+                <ToggleButton value="position">위치</ToggleButton>
+                <ToggleButton value="text">문구</ToggleButton>
               </ToggleButtonGroup>
             </Card>
 
@@ -1787,45 +1828,68 @@ export function AiWatermarkView() {
               </Card>
             )}
 
-            {/* Bottom Actions (Reset, Download, Share) */}
-            <Card sx={{ p: 2, borderRadius: 2.5, flexShrink: 0 }}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2 }}>
+            {/* Action & Download Bar */}
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1.25,
+                mt: 'auto',
+                pt: 0.5,
+              }}
+            >
+              <Button
+                fullWidth
+                variant="outlined"
+                color="inherit"
+                onClick={handleReset}
+                disabled={items.length === 0 || isProcessing}
+                startIcon={<RefreshRoundedIcon />}
+                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+              >
+                다른 사진
+              </Button>
+
+              {/* Main: Clean Result Save */}
+              <Button
+                fullWidth
+                variant="contained"
+                color="primary"
+                onClick={() => activeItem && handleDownloadSingle(activeItem)}
+                disabled={items.length === 0 || isProcessing}
+                startIcon={<DownloadRoundedIcon />}
+                sx={{ py: 1.3, borderRadius: 2, fontWeight: 700, fontSize: '0.95rem' }}
+              >
+                결과물 저장
+              </Button>
+
+              {/* Secondary: All ZIP Download if multiple items */}
+              {items.length > 1 && (
                 <Button
                   fullWidth
-                  variant="contained"
+                  variant="outlined"
                   color="primary"
-                  size="large"
-                  onClick={() => activeItem && handleDownloadSingle(activeItem)}
-                  startIcon={<DownloadRoundedIcon />}
-                  sx={{ py: 1.2, fontWeight: 800, borderRadius: 2 }}
+                  onClick={handleDownloadAllZip}
+                  disabled={isProcessing}
+                  startIcon={<ArchiveRoundedIcon />}
+                  sx={{ py: 1.1, borderRadius: 2, fontWeight: 700, fontSize: '0.85rem' }}
                 >
-                  현재 사진 고해상도 다운로드
+                  전체 일괄 압축(ZIP) 다운로드
                 </Button>
+              )}
 
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <Button
-                    fullWidth
-                    variant="outlined"
-                    color="inherit"
-                    onClick={handleResetSettings}
-                    startIcon={<RefreshRoundedIcon />}
-                    sx={{ py: 1, fontWeight: 700, borderRadius: 2 }}
-                  >
-                    초기화
-                  </Button>
-                  <Button
-                    fullWidth
-                    variant="outlined"
-                    color="warning"
-                    onClick={handleShare}
-                    startIcon={<ShareRoundedIcon />}
-                    sx={{ py: 1, fontWeight: 700, borderRadius: 2 }}
-                  >
-                    카카오톡 공유
-                  </Button>
-                </Box>
-              </Box>
-            </Card>
+              <Button
+                fullWidth
+                variant="contained"
+                color="secondary"
+                onClick={handleShare}
+                disabled={!activeItem?.resultUrl || isProcessing}
+                startIcon={<ShareRoundedIcon />}
+                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+              >
+                공유
+              </Button>
+            </Box>
           </Box>
         </Box>
       )}

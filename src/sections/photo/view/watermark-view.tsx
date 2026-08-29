@@ -35,6 +35,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import { downloadDataUrl } from '../utils/image-processor';
 import { downloadZipFile, type ZipFileEntry } from '../utils/zip-exporter';
+import { PhotoUploadWorkspace, type SampleImageItem } from '../components/photo-upload-workspace';
 
 type WatermarkType = 'text' | 'image' | 'logo';
 type PositionGrid = 'tl' | 'tc' | 'tr' | 'ml' | 'mc' | 'mr' | 'bl' | 'bc' | 'br';
@@ -45,6 +46,27 @@ interface WatermarkedImageItem {
   origUrl: string;
   resultUrl?: string;
 }
+
+const WATERMARK_SAMPLE_IMAGES: SampleImageItem[] = [
+  {
+    id: 'sample-landscape-watermark',
+    label: '🌄 풍경 포트폴리오 (저작권 각인)',
+    url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1200&auto=format&fit=crop&q=80',
+    subLabel: '사진 작가 저작권 워터마크',
+  },
+  {
+    id: 'sample-document-confidential',
+    label: '📄 비즈니스 기획서 (대외비 / CONFIDENTIAL)',
+    url: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=1200&auto=format&fit=crop&q=80',
+    subLabel: '기밀 문서 보안 각인',
+  },
+  {
+    id: 'sample-ecommerce-product',
+    label: '🛍️ 상품 썸네일 (로고 / 워터마크)',
+    url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=1200&auto=format&fit=crop&q=80',
+    subLabel: '도용 방지 워터마크',
+  },
+];
 
 const AI_LOGOS = [
   { id: 'chatgpt', name: 'ChatGPT', src: '/assets/watermark_logo/chatgpt.png' },
@@ -490,53 +512,26 @@ export function WatermarkView() {
       />
 
       {items.length === 0 ? (
-        <Card
-          {...getRootProps({
-            onClick: () => fileInputRef.current?.click(),
-          })}
-          sx={{
-            p: 6,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            border: '2px dashed',
-            borderColor: isDragActive ? 'primary.main' : 'divider',
-            bgcolor: isDragActive ? 'action.hover' : 'transparent',
-            borderRadius: 3,
-            flex: '1 1 auto',
-            minHeight: 0,
-            height: '100%',
-            transition: (theme) => theme.transitions.create(['border-color', 'background-color']),
-            '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
+        <PhotoUploadWorkspace
+          sampleImages={WATERMARK_SAMPLE_IMAGES}
+          onSelectSample={async (sampleUrl) => {
+            try {
+              const res = await fetch(sampleUrl);
+              const blob = await res.blob();
+              const file = new File([blob], 'sample_watermark_image.jpg', {
+                type: blob.type || 'image/jpeg',
+              });
+              addFiles([file]);
+              toast.success('샘플 이미지를 불러왔습니다.');
+            } catch {
+              toast.error('샘플 이미지를 로드하지 못했습니다.');
+            }
           }}
-        >
-          <Box
-            sx={{
-              width: 68,
-              height: 68,
-              borderRadius: '50%',
-              bgcolor: 'primary.lighter',
-              color: 'primary.main',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              mb: 2,
-            }}
-          >
-            <BrandingWatermarkRoundedIcon sx={{ fontSize: 34 }} />
-          </Box>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
-            워터마크를 각인할 사진들을 업로드하세요
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-            사진을 드래그하여 놓거나 클릭하여 다중 선택하세요 (클라이언트 100% 로컬 처리)
-          </Typography>
-          <Button variant="contained" color="primary" startIcon={<CloudUploadRoundedIcon />}>
-            사진 선택하기
-          </Button>
-        </Card>
+          onFileSelect={(file) => addFiles([file])}
+          title="워터마크 각인할 사진 업로드"
+          subtitle="사진을 드래그하거나 다중 선택하여 텍스트/로고/워터마크를 각인하세요."
+          icon={<BrandingWatermarkRoundedIcon sx={{ fontSize: 36 }} />}
+        />
       ) : (
         <Box
           sx={{

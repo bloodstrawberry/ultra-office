@@ -29,6 +29,7 @@ import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { saveBlob, downloadZipFile, type ZipFileEntry } from '../utils/zip-exporter';
+import { PhotoUploadWorkspace, type SampleImageItem } from '../components/photo-upload-workspace';
 import {
   type PdfMargin,
   type PdfOptions,
@@ -38,6 +39,42 @@ import {
   generatePdfFromImages,
   extractPagesFromPdfFile,
 } from '../utils/pdf-generator';
+
+const PDF_SAMPLE_IMAGES: SampleImageItem[] = [
+  {
+    id: 'sample-report-set',
+    label: '📑 3페이지 보고서 세트 (일괄 로드)',
+    url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1000&auto=format&fit=crop&q=80',
+    subLabel: '3장 일괄 PDF 생성',
+  },
+  {
+    id: 'sample-presentation',
+    label: '📊 프레젠테이션 & 차트 슬라이드',
+    url: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1000&auto=format&fit=crop&q=80',
+    subLabel: '가로/세로 슬라이드',
+  },
+  {
+    id: 'sample-contract',
+    label: '✍️ 표준 계약서 및 서명 문서',
+    url: 'https://images.unsplash.com/photo-1450133064473-71024230f91b?w=1000&auto=format&fit=crop&q=80',
+    subLabel: 'A4 규격 문서',
+  },
+];
+
+const PDF_3PAGE_SET = [
+  {
+    name: 'page_1_cover.jpg',
+    url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1000&auto=format&fit=crop&q=80',
+  },
+  {
+    name: 'page_2_charts.jpg',
+    url: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1000&auto=format&fit=crop&q=80',
+  },
+  {
+    name: 'page_3_summary.jpg',
+    url: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=1000&auto=format&fit=crop&q=80',
+  },
+];
 
 export function PdfView() {
   const [currentTab, setCurrentTab] = useState<'create' | 'extract'>('create');
@@ -290,54 +327,35 @@ export function PdfView() {
           />
 
           {pages.length === 0 ? (
-            <Card
-              {...createDrop.getRootProps({
-                onClick: () => fileInputRef.current?.click(),
-              })}
-              sx={{
-                p: 6,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                border: '2px dashed',
-                borderColor: createDrop.isDragActive ? 'primary.main' : 'divider',
-                bgcolor: createDrop.isDragActive ? 'action.hover' : 'transparent',
-                borderRadius: 3,
-                flex: '1 1 auto',
-                minHeight: 0,
-                height: '100%',
-                transition: (theme) =>
-                  theme.transitions.create(['border-color', 'background-color']),
-                '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
+            <PhotoUploadWorkspace
+              sampleImages={PDF_SAMPLE_IMAGES}
+              onSelectSample={(sampleUrl) => {
+                const foundPreset = PDF_SAMPLE_IMAGES.find((s) => s.url === sampleUrl);
+                if (foundPreset?.id === 'sample-report-set') {
+                  const newPages: PdfImageItem[] = PDF_3PAGE_SET.map((p, idx) => ({
+                    id: `sample_pdf_page_${idx}_${Date.now()}`,
+                    name: p.name,
+                    src: p.url,
+                    rotation: 0,
+                  }));
+                  setPages(newPages);
+                  toast.success('3페이지 비즈니스 보고서 샘플을 불러왔습니다.');
+                } else {
+                  const singlePage: PdfImageItem = {
+                    id: `sample_pdf_page_${Date.now()}`,
+                    name: foundPreset?.label || 'sample_page.jpg',
+                    src: sampleUrl,
+                    rotation: 0,
+                  };
+                  setPages((prev) => [...prev, singlePage]);
+                  toast.success('샘플 문서를 추가했습니다.');
+                }
               }}
-            >
-              <Box
-                sx={{
-                  width: 64,
-                  height: 64,
-                  borderRadius: '50%',
-                  bgcolor: 'primary.lighter',
-                  color: 'primary.main',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  mb: 2,
-                }}
-              >
-                <PictureAsPdfRoundedIcon sx={{ fontSize: 36 }} />
-              </Box>
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
-                PDF로 만들 이미지들 업로드
-              </Typography>
-              <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-                문서 스캔, 보고서 사진, 영수증 등을 모아 하나의 PDF로 묶습니다
-              </Typography>
-              <Button variant="contained" color="primary" startIcon={<CloudUploadRoundedIcon />}>
-                사진 선택하기
-              </Button>
-            </Card>
+              onFileSelect={(file) => addImages([file])}
+              title="PDF로 만들 이미지 업로드"
+              subtitle="문서 사진, 보고서, 슬라이드, 영수증 등을 모아 하나의 PDF로 변환하세요."
+              icon={<PictureAsPdfRoundedIcon sx={{ fontSize: 36 }} />}
+            />
           ) : (
             <Box
               sx={{

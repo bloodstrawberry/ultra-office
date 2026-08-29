@@ -32,7 +32,10 @@ import {
   parseReceiptText,
   parseBusinessCard,
   generateVCardString,
+  createSampleCardImage,
   exportTableToExcelBlob,
+  createSampleTableImage,
+  createSampleReceiptImage,
 } from '../utils/ocr-parser-utils';
 
 export function OcrScannerView() {
@@ -57,20 +60,28 @@ export function OcrScannerView() {
     setHasLoaded(true);
   }, []);
 
-  const handleProcessImage = async (file: File) => {
-    setImagePreview(URL.createObjectURL(file));
+  const handleProcessSource = async (
+    source: File | string,
+    targetTab?: 'receipt' | 'card' | 'table'
+  ) => {
+    const tabToUse = targetTab || currentTab;
+    if (targetTab && targetTab !== currentTab) {
+      setCurrentTab(targetTab);
+    }
+    const previewUrl = typeof source === 'string' ? source : URL.createObjectURL(source);
+    setImagePreview(previewUrl);
     setIsProcessing(true);
     setProgressPercent(0);
 
     try {
-      const text = await performOcr(file, (p) => setProgressPercent(p));
+      const text = await performOcr(source, (p) => setProgressPercent(p));
       setRawOcrText(text);
 
-      if (currentTab === 'receipt') {
+      if (tabToUse === 'receipt') {
         const parsed = parseReceiptText(text);
         setReceiptData(parsed);
         toast.success('영수증 정보가 성공적으로 추출되었습니다.');
-      } else if (currentTab === 'card') {
+      } else if (tabToUse === 'card') {
         const parsed = parseBusinessCard(text);
         setCardData(parsed);
         toast.success('명함 정보가 성공적으로 분석되었습니다.');
@@ -81,6 +92,21 @@ export function OcrScannerView() {
       toast.error('OCR 텍스트 인식에 실패했습니다.');
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleProcessImage = (file: File) => {
+    handleProcessSource(file);
+  };
+
+  const handleLoadSample = (type: 'receipt' | 'card' | 'table') => {
+    let sampleDataUrl = '';
+    if (type === 'receipt') sampleDataUrl = createSampleReceiptImage();
+    else if (type === 'card') sampleDataUrl = createSampleCardImage();
+    else if (type === 'table') sampleDataUrl = createSampleTableImage();
+
+    if (sampleDataUrl) {
+      handleProcessSource(sampleDataUrl, type);
     }
   };
 
@@ -217,7 +243,6 @@ export function OcrScannerView() {
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1.2fr' }, gap: 3 }}>
           {/* Left: Upload and Preview */}
           <Card
-            {...imageDrop.getRootProps()}
             sx={{
               p: 3,
               display: 'flex',
@@ -229,32 +254,98 @@ export function OcrScannerView() {
               bgcolor: imageDrop.isDragActive ? 'action.hover' : 'background.paper',
             }}
           >
-            <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
-              이미지 업로드 (드래그 & 드롭 / 붙여넣기 지원)
-            </Typography>
-
-            <Button
-              variant="outlined"
-              component="label"
-              startIcon={<CloudUploadRoundedIcon />}
+            {/* 1. Instant Sample Testing Preset Bar */}
+            <Box
               sx={{
-                py: 3,
-                borderStyle: 'dashed',
-                borderWidth: 2,
+                p: 2,
                 borderRadius: 2,
-                fontWeight: 700,
+                bgcolor: 'action.hover',
+                border: '1px solid',
+                borderColor: 'divider',
               }}
             >
-              사진 파일 선택 (JPG, PNG)
-              <input
-                type="file"
-                hidden
-                accept="image/*"
-                onChange={(e) => {
-                  if (e.target.files?.[0]) handleProcessImage(e.target.files[0]);
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 0.5 }}>
+                ⚡ 즉석 테스트 샘플 이미지 (1-클릭 분석)
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{ color: 'text.secondary', display: 'block', mb: 1.5 }}
+              >
+                원하는 샘플을 클릭하면 OCR 엔진이 즉시 텍스트를 인식하고 분석 결과를 표시합니다.
+              </Typography>
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+                  gap: 1,
                 }}
-              />
-            </Button>
+              >
+                <Button
+                  size="small"
+                  variant={currentTab === 'receipt' ? 'contained' : 'outlined'}
+                  color="primary"
+                  startIcon={<ReceiptLongRoundedIcon />}
+                  onClick={() => handleLoadSample('receipt')}
+                  disabled={isProcessing}
+                  sx={{ borderRadius: 1.5, py: 0.8, fontSize: '0.75rem', fontWeight: 700 }}
+                >
+                  영수증 샘플
+                </Button>
+                <Button
+                  size="small"
+                  variant={currentTab === 'card' ? 'contained' : 'outlined'}
+                  color="primary"
+                  startIcon={<ContactPageRoundedIcon />}
+                  onClick={() => handleLoadSample('card')}
+                  disabled={isProcessing}
+                  sx={{ borderRadius: 1.5, py: 0.8, fontSize: '0.75rem', fontWeight: 700 }}
+                >
+                  명함 샘플
+                </Button>
+                <Button
+                  size="small"
+                  variant={currentTab === 'table' ? 'contained' : 'outlined'}
+                  color="primary"
+                  startIcon={<TableViewRoundedIcon />}
+                  onClick={() => handleLoadSample('table')}
+                  disabled={isProcessing}
+                  sx={{ borderRadius: 1.5, py: 0.8, fontSize: '0.75rem', fontWeight: 700 }}
+                >
+                  표 데이터 샘플
+                </Button>
+              </Box>
+            </Box>
+
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, mt: 0.5 }}>
+              직접 파일 업로드 (드래그 & 드롭 / 붙여넣기 지원)
+            </Typography>
+
+            <Box {...imageDrop.getRootProps()}>
+              <Button
+                variant="outlined"
+                component="label"
+                fullWidth
+                startIcon={<CloudUploadRoundedIcon />}
+                disabled={isProcessing}
+                sx={{
+                  py: 3,
+                  borderStyle: 'dashed',
+                  borderWidth: 2,
+                  borderRadius: 2,
+                  fontWeight: 700,
+                }}
+              >
+                사진 파일 선택 (JPG, PNG)
+                <input
+                  type="file"
+                  hidden
+                  accept="image/*"
+                  onChange={(e) => {
+                    if (e.target.files?.[0]) handleProcessImage(e.target.files[0]);
+                  }}
+                />
+              </Button>
+            </Box>
 
             {isProcessing && (
               <Box sx={{ my: 2 }}>

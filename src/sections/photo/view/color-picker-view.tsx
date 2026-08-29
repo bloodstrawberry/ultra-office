@@ -8,22 +8,16 @@ import Card from '@mui/material/Card';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
-import CircularProgress from '@mui/material/CircularProgress';
-import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
-import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
+import ColorizeRoundedIcon from '@mui/icons-material/ColorizeRounded';
 import ColorLensRoundedIcon from '@mui/icons-material/ColorLensRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { PhotoUploadWorkspace, type SampleImageItem } from '../components';
-import { downloadDataUrl, shareToKakaoTalk } from '../utils/image-processor';
-import {
-  formatAllColors,
-  generateColorCardPng,
-  type FormattedColorData,
-} from '../utils/color-utils';
+import { formatAllColors, type FormattedColorData } from '../utils/color-utils';
 
 const COLOR_PICKER_SAMPLE_IMAGES: SampleImageItem[] = [
   {
@@ -65,8 +59,7 @@ export function ColorPickerView() {
   const [imageSrc, setImageSrc] = useState<string>('');
   const [currentColorHex, setCurrentColorHex] = useState<string>('#3B82F6');
   const [colorData, setColorData] = useState<FormattedColorData>(() => formatAllColors('#3B82F6'));
-  const [colorCardUrl, setColorCardUrl] = useState<string>('');
-  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [rightPanelWidth, setRightPanelWidth] = useState<number>(380);
 
   const isResizingRef = useRef<boolean>(false);
@@ -106,12 +99,6 @@ export function ColorPickerView() {
     setCurrentColorHex(hex);
     const data = formatAllColors(hex);
     setColorData(data);
-    try {
-      const card = generateColorCardPng(data);
-      setColorCardUrl(card);
-    } catch {
-      // card generation error
-    }
   }, []);
 
   const loadSampleImage = useCallback(
@@ -197,45 +184,29 @@ export function ColorPickerView() {
     const toHex = (n: number) => n.toString(16).padStart(2, '0');
     const hex = `#${toHex(pixel[0])}${toHex(pixel[1])}${toHex(pixel[2])}`;
     updateColor(hex);
-    toast.success(`스포이드 추출: ${hex.toUpperCase()}`);
+    toast.success(`색상 추출 완료: ${hex.toUpperCase()}`);
   };
 
   const handleCopy = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
+    setCopiedKey(label);
+    setTimeout(() => setCopiedKey(null), 1500);
     toast.success(`${label} 복사 완료: ${text}`);
   };
 
-  const handleDownloadCard = async () => {
-    if (!colorCardUrl) return;
-    setIsProcessing(true);
-    try {
-      const res = await downloadDataUrl(
-        colorCardUrl,
-        `color_card_${colorData.hexUpper.replace('#', '')}.png`
-      );
-      toast.success(res.message);
-    } catch {
-      toast.error('저장 중 오류가 발생했습니다.');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const handleShare = async () => {
-    if (!colorCardUrl) return;
-    setIsProcessing(true);
-    try {
-      const res = await shareToKakaoTalk(
-        colorCardUrl,
-        '컬러 팔레트 카드',
-        `color_${colorData.hexUpper}.png`
-      );
-      toast.success(res.message);
-    } catch {
-      toast.error('공유 중 오류가 발생했습니다.');
-    } finally {
-      setIsProcessing(false);
-    }
+  const handleCopyAll = () => {
+    const textSummary = [
+      `HEX: ${colorData.hexUpper}`,
+      `RGB: ${colorData.rgbStr}`,
+      `RGBA: ${colorData.rgbaStr}`,
+      `HSL: ${colorData.hslStr}`,
+      `HSV: ${colorData.hsvStr}`,
+      `CMYK: ${colorData.cmykStr}`,
+      `Name: ${colorData.nameEn} (${colorData.nameKo})`,
+      `CSS: ${colorData.cssBg}`,
+    ].join('\n');
+    navigator.clipboard.writeText(textSummary);
+    toast.success('전체 색상 코드가 클립보드에 복사되었습니다.');
   };
 
   return (
@@ -251,11 +222,11 @@ export function ColorPickerView() {
     >
       <Box sx={{ mb: 2, flexShrink: 0 }}>
         <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
-          스포이드 컬러 추출기 (Color Picker & Card)
+          Color Picker (색상 추출)
         </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          사진을 클릭하여 색상을 스포이드로 추출하고, HEX/RGB/HSL/HSV/CMYK 변환 및 고해상도 컬러
-          카드 PNG를 생성합니다.
+          사진을 클릭하여 원하는 픽셀의 색상을 즉시 추출하고, HEX / RGB / HSL / HSV / CMYK 코드를
+          확인 및 복사합니다.
         </Typography>
       </Box>
 
@@ -291,7 +262,6 @@ export function ColorPickerView() {
               minWidth: 0,
               minHeight: 0,
               height: '100%',
-              gap: 2,
               pr: { md: 1 },
             }}
           >
@@ -303,6 +273,7 @@ export function ColorPickerView() {
                 flexDirection: 'column',
                 flex: '1 1 auto',
                 minHeight: 0,
+                height: '100%',
               }}
             >
               <Box
@@ -314,12 +285,12 @@ export function ColorPickerView() {
                   flexShrink: 0,
                 }}
               >
-                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                  스포이드 추출 (사진의 원하는 픽셀 클릭)
-                </Typography>
-                <Button size="small" onClick={() => setImageSrc('')}>
-                  다른 사진
-                </Button>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <ColorizeRoundedIcon color="primary" sx={{ fontSize: 20 }} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                    스포이드 추출 (사진의 원하는 픽셀 클릭)
+                  </Typography>
+                </Box>
               </Box>
 
               <Box
@@ -349,38 +320,6 @@ export function ColorPickerView() {
                 />
               </Box>
             </Card>
-
-            {/* Color Card Preview */}
-            {colorCardUrl && (
-              <Card
-                sx={{
-                  p: 2,
-                  borderRadius: 3,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  flexShrink: 0,
-                }}
-              >
-                <Typography
-                  variant="subtitle2"
-                  sx={{ fontWeight: 700, mb: 1.5, alignSelf: 'flex-start' }}
-                >
-                  생성된 컬러 팔레트 카드 (High-Res PNG)
-                </Typography>
-                <img
-                  src={colorCardUrl}
-                  alt="Color Card"
-                  style={{
-                    maxHeight: 180,
-                    maxWidth: '100%',
-                    objectFit: 'contain',
-                    borderRadius: 8,
-                    boxShadow: '0 10px 15px -3px rgba(0,0,0,0.3)',
-                  }}
-                />
-              </Card>
-            )}
           </Box>
 
           {/* Draggable Divider (Desktop) */}
@@ -465,7 +404,7 @@ export function ColorPickerView() {
             </Box>
           </Box>
 
-          {/* Right: Color Values & Sliders */}
+          {/* Right: Color Values & Swatch */}
           <Box
             sx={{
               display: 'flex',
@@ -474,20 +413,21 @@ export function ColorPickerView() {
               minWidth: { md: `${rightPanelWidth}px` },
               maxWidth: { md: `${rightPanelWidth}px` },
               flexShrink: 0,
-              gap: 2,
+              gap: 1.5,
               minHeight: 0,
+              height: '100%',
               overflow: 'auto',
               pl: { md: 1 },
               pr: 0.5,
             }}
           >
-            {/* Main Swatch */}
-            <Card sx={{ p: 2.5, borderRadius: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+            {/* Main Swatch Card */}
+            <Card sx={{ p: 2, borderRadius: 2.5, flexShrink: 0 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.75, mb: 1.5 }}>
                 <Box
                   sx={{
-                    width: 64,
-                    height: 64,
+                    width: 56,
+                    height: 56,
                     borderRadius: 2,
                     bgcolor: currentColorHex,
                     border: '2px solid rgba(0,0,0,0.1)',
@@ -495,11 +435,11 @@ export function ColorPickerView() {
                     flexShrink: 0,
                   }}
                 />
-                <Box sx={{ flexGrow: 1 }}>
+                <Box sx={{ flexGrow: 1, minWidth: 0 }}>
                   <Typography variant="h6" sx={{ fontWeight: 800, fontFamily: 'monospace' }}>
                     {colorData.hexUpper}
                   </Typography>
-                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.82rem' }}>
                     {colorData.nameEn} ({colorData.nameKo})
                   </Typography>
                 </Box>
@@ -508,11 +448,12 @@ export function ColorPickerView() {
                   value={currentColorHex}
                   onChange={(e) => updateColor(e.target.value)}
                   style={{
-                    width: 44,
-                    height: 44,
+                    width: 40,
+                    height: 40,
                     borderRadius: 8,
                     border: 'none',
                     cursor: 'pointer',
+                    flexShrink: 0,
                   }}
                 />
               </Box>
@@ -520,18 +461,18 @@ export function ColorPickerView() {
               {/* Presets */}
               <Typography
                 variant="caption"
-                sx={{ fontWeight: 700, color: 'text.secondary', mb: 1, display: 'block' }}
+                sx={{ fontWeight: 700, color: 'text.secondary', mb: 0.75, display: 'block' }}
               >
                 프리셋 색상
               </Typography>
-              <Box sx={{ display: 'flex', gap: 0.8, flexWrap: 'wrap' }}>
+              <Box sx={{ display: 'flex', gap: 0.6, flexWrap: 'wrap' }}>
                 {PRESET_PALETTES.map((hex) => (
                   <Box
                     key={hex}
                     onClick={() => updateColor(hex)}
                     sx={{
-                      width: 26,
-                      height: 26,
+                      width: 24,
+                      height: 24,
                       borderRadius: 1,
                       bgcolor: hex,
                       cursor: 'pointer',
@@ -548,17 +489,56 @@ export function ColorPickerView() {
             </Card>
 
             {/* Format Table & Copy */}
-            <Card sx={{ p: 2.5, borderRadius: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5 }}>
-                색상 포맷 변환 & 복사
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2 }}>
+            <Card
+              sx={{
+                p: 2,
+                borderRadius: 2.5,
+                display: 'flex',
+                flexDirection: 'column',
+                flex: '1 1 auto',
+                minHeight: 0,
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  mb: 1.25,
+                  flexShrink: 0,
+                }}
+              >
+                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                  색상 포맷 변환 & 복사
+                </Typography>
+                <Button
+                  size="small"
+                  variant="text"
+                  onClick={handleCopyAll}
+                  sx={{ fontSize: '0.75rem', fontWeight: 600, py: 0.2 }}
+                >
+                  전체 복사
+                </Button>
+              </Box>
+
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 0.8,
+                  flex: '1 1 auto',
+                  overflowY: 'auto',
+                  pr: 0.5,
+                }}
+              >
                 {[
                   { label: 'HEX', val: colorData.hexUpper },
                   { label: 'RGB', val: colorData.rgbStr },
+                  { label: 'RGBA', val: colorData.rgbaStr },
                   { label: 'HSL', val: colorData.hslStr },
                   { label: 'HSV', val: colorData.hsvStr },
                   { label: 'CMYK', val: colorData.cmykStr },
+                  { label: 'CSS Background', val: colorData.cssBg },
                 ].map((item) => (
                   <Box
                     key={item.label}
@@ -566,24 +546,46 @@ export function ColorPickerView() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      p: 1.2,
+                      p: '8px 12px',
                       borderRadius: 1.5,
                       bgcolor: 'action.hover',
+                      flexShrink: 0,
                     }}
                   >
-                    <Box>
+                    <Box sx={{ minWidth: 0, flex: 1, mr: 1 }}>
                       <Typography
                         variant="caption"
-                        sx={{ fontWeight: 700, color: 'primary.main', display: 'block' }}
+                        sx={{
+                          fontWeight: 700,
+                          color: 'primary.main',
+                          display: 'block',
+                          fontSize: '0.72rem',
+                        }}
                       >
                         {item.label}
                       </Typography>
-                      <Typography variant="body2" sx={{ fontWeight: 600, fontFamily: 'monospace' }}>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontWeight: 600,
+                          fontFamily: 'monospace',
+                          fontSize: '0.82rem',
+                          wordBreak: 'break-all',
+                        }}
+                      >
                         {item.val}
                       </Typography>
                     </Box>
-                    <IconButton size="small" onClick={() => handleCopy(item.val, item.label)}>
-                      <ContentCopyRoundedIcon fontSize="small" />
+                    <IconButton
+                      size="small"
+                      onClick={() => handleCopy(item.val, item.label)}
+                      color={copiedKey === item.label ? 'primary' : 'default'}
+                    >
+                      {copiedKey === item.label ? (
+                        <CheckRoundedIcon sx={{ fontSize: 18 }} />
+                      ) : (
+                        <ContentCopyRoundedIcon sx={{ fontSize: 18 }} />
+                      )}
                     </IconButton>
                   </Box>
                 ))}
@@ -595,11 +597,21 @@ export function ColorPickerView() {
               sx={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 1.25,
-                mt: 'auto',
-                pt: 0.5,
+                gap: 1,
+                flexShrink: 0,
               }}
             >
+              <Button
+                fullWidth
+                variant="contained"
+                color="primary"
+                onClick={() => handleCopy(colorData.hexUpper, 'HEX')}
+                startIcon={<ContentCopyRoundedIcon />}
+                sx={{ py: 1.1, borderRadius: 2, fontWeight: 700, fontSize: '0.9rem' }}
+              >
+                {colorData.hexUpper} HEX 복사
+              </Button>
+
               <Button
                 fullWidth
                 variant="outlined"
@@ -609,37 +621,9 @@ export function ColorPickerView() {
                   updateColor('#3B82F6');
                 }}
                 startIcon={<RefreshRoundedIcon />}
-                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+                sx={{ py: 0.9, borderRadius: 1.5, fontWeight: 600, fontSize: '0.82rem' }}
               >
-                다른 사진
-              </Button>
-              <Button
-                fullWidth
-                variant="contained"
-                color="primary"
-                onClick={handleDownloadCard}
-                disabled={isProcessing || !colorCardUrl}
-                startIcon={
-                  isProcessing ? (
-                    <CircularProgress size={18} color="inherit" />
-                  ) : (
-                    <DownloadRoundedIcon />
-                  )
-                }
-                sx={{ py: 1.4, borderRadius: 2, fontWeight: 700, fontSize: '0.95rem' }}
-              >
-                저장
-              </Button>
-              <Button
-                fullWidth
-                variant="contained"
-                color="secondary"
-                onClick={handleShare}
-                disabled={isProcessing || !colorCardUrl}
-                startIcon={<ShareRoundedIcon />}
-                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
-              >
-                공유
+                다른 사진 업로드
               </Button>
             </Box>
           </Box>

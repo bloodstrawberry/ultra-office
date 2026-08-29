@@ -630,20 +630,6 @@ export function MosaicView() {
                       </IconButton>
                     </span>
                   </Tooltip>
-
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    color="inherit"
-                    onClick={() => {
-                      setImageSrc('');
-                      setHistory([]);
-                    }}
-                    startIcon={<RefreshRoundedIcon />}
-                    sx={{ ml: 1 }}
-                  >
-                    다른 사진
-                  </Button>
                 </Box>
               </Box>
 

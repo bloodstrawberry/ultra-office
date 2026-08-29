@@ -25,6 +25,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import { SafeNumberInput } from '../components/safe-number-input';
 import { downloadZipFile, type ZipFileEntry } from '../utils/zip-exporter';
+import { PhotoUploadWorkspace, type SampleImageItem } from '../components/photo-upload-workspace';
 import {
   downloadDataUrl,
   shareToKakaoTalk,
@@ -36,6 +37,27 @@ import {
   saveVerticalCropSettings,
   DEFAULT_VERTICAL_SETTINGS,
 } from '../utils/thumbnail-storage';
+
+const SERO_SAMPLE_IMAGES: SampleImageItem[] = [
+  {
+    id: 'sample-banking-app',
+    label: '📱 모바일 금융 & 뱅킹 UI',
+    url: 'https://images.unsplash.com/photo-1551650975-87deedd944c3?w=800&auto=format&fit=crop&q=80',
+    subLabel: '모바일 앱 세로 캡처',
+  },
+  {
+    id: 'sample-shortform-feed',
+    label: '🎬 숏폼/릴스 비디오 피드',
+    url: 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=800&auto=format&fit=crop&q=80',
+    subLabel: '9:16 모바일 세로 캡처',
+  },
+  {
+    id: 'sample-ecommerce-detail',
+    label: '🛍️ 모바일 커머스 상품 상세',
+    url: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=800&auto=format&fit=crop&q=80',
+    subLabel: '쇼핑몰 세로 스크린샷',
+  },
+];
 
 interface UploadedFile {
   id: string;
@@ -179,6 +201,16 @@ export function SeroView() {
     setFiles((prev) => prev.filter((file) => file.id !== id));
   };
 
+  const handleSelectSample = (sampleUrl: string) => {
+    const sampleFile: UploadedFile = {
+      id: Math.random().toString(36).substring(2, 9),
+      name: 'sample_sero_screenshot.jpg',
+      src: sampleUrl,
+    };
+    setFiles((prev) => [...prev, sampleFile]);
+    toast.success('샘플 세로 스크린샷 이미지를 불러왔습니다.');
+  };
+
   const handleResetSettings = () => {
     updateCropSettings(DEFAULT_VERTICAL_SETTINGS);
     toast.info('기본값(636x1048)으로 복원되었습니다.');
@@ -253,61 +285,14 @@ export function SeroView() {
       />
 
       {files.length === 0 ? (
-        <Card
-          {...getRootProps({
-            onClick: () => fileInputRef.current?.click(),
-          })}
-          sx={{
-            p: 4,
-            flex: '1 1 auto',
-            minHeight: 0,
-            width: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            border: '2px dashed',
-            borderColor: isDragActive ? 'primary.main' : 'divider',
-            bgcolor: isDragActive ? 'action.hover' : 'transparent',
-            borderRadius: 3,
-            transition: (theme) => theme.transitions.create(['border-color', 'background-color']),
-            '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
-          }}
-        >
-          <Box
-            sx={{
-              width: { xs: 64, sm: 80 },
-              height: { xs: 64, sm: 80 },
-              borderRadius: '50%',
-              bgcolor: 'primary.lighter',
-              color: 'primary.main',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              mb: 2.5,
-            }}
-          >
-            <PhoneAndroidRoundedIcon sx={{ fontSize: { xs: 36, sm: 44 } }} />
-          </Box>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 1, textAlign: 'center' }}>
-            이미지 업로드
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{ color: 'text.secondary', mb: 3, textAlign: 'center', maxWidth: 480 }}
-          >
-            다중 선택으로 여러 장을 한 번에 올릴 수 있습니다.
-          </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            size="large"
-            startIcon={<CloudUploadRoundedIcon />}
-          >
-            사진 선택하기
-          </Button>
-        </Card>
+        <PhotoUploadWorkspace
+          sampleImages={SERO_SAMPLE_IMAGES}
+          onSelectSample={handleSelectSample}
+          onFileSelect={(file) => addFiles([file])}
+          title="세로 스크린샷 생성할 이미지 업로드"
+          subtitle="스마트폰 화면 캡처나 긴 세로 사진을 드래그하거나 다중 선택하세요."
+          icon={<PhoneAndroidRoundedIcon sx={{ fontSize: 36 }} />}
+        />
       ) : (
         <Box
           sx={{

@@ -768,17 +768,6 @@ export function ShapeCropView() {
               splitEnd={splitEnd}
               onSplitEndChange={setSplitEnd}
               bgStyle="transparent"
-              extraTopActions={
-                <Button
-                  variant="outlined"
-                  size="small"
-                  color="inherit"
-                  onClick={() => setImageSrc('')}
-                  startIcon={<RefreshRoundedIcon />}
-                >
-                  다른 사진
-                </Button>
-              }
             >
               <Box
                 onPointerDown={handlePointerDownDrag}

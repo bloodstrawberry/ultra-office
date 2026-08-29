@@ -101,7 +101,6 @@ export const paths = {
     garo: `/photo/garo`,
     weathering: `/photo/weathering`,
     memeLab: `/photo/meme-lab`,
-    doodle: `/photo/doodle`,
     aiWatermark: `/photo/ai-watermark`,
   },
 };

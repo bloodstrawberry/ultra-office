@@ -26,6 +26,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import { downloadDataUrl } from '../utils/image-processor';
 import { downloadZipFile, type ZipFileEntry } from '../utils/zip-exporter';
+import { PhotoUploadWorkspace, type SampleImageItem } from '../components/photo-upload-workspace';
 import {
   SCAN_PRESETS,
   type ScanConfig,
@@ -42,6 +43,27 @@ interface ScannedImageItem {
   origUrl: string;
   resultUrl?: string;
 }
+
+const SCAN_SAMPLE_IMAGES: SampleImageItem[] = [
+  {
+    id: 'sample-contract-doc',
+    label: '📑 계약서 & 비즈니스 공문',
+    url: 'https://images.unsplash.com/photo-1450133064473-71024230f91b?w=1200&auto=format&fit=crop&q=80',
+    subLabel: '흑백 정밀 스캔 보정',
+  },
+  {
+    id: 'sample-handwritten-notes',
+    label: '✍️ 손글씨 노트 & 회의록',
+    url: 'https://images.unsplash.com/photo-1517842645767-c639042777db?w=1200&auto=format&fit=crop&q=80',
+    subLabel: '그림자 제거 & 대비 강화',
+  },
+  {
+    id: 'sample-receipt-expense',
+    label: '🧾 영수증 & 지출 증빙 서류',
+    url: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=1200&auto=format&fit=crop&q=80',
+    subLabel: '문서 스캐너 PDF 변환',
+  },
+];
 
 export function ScanView() {
   const [items, setItems] = useState<ScannedImageItem[]>([]);
@@ -234,53 +256,26 @@ export function ScanView() {
       />
 
       {items.length === 0 ? (
-        <Card
-          {...getRootProps({
-            onClick: () => fileInputRef.current?.click(),
-          })}
-          sx={{
-            p: 6,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            border: '2px dashed',
-            borderColor: isDragActive ? 'primary.main' : 'divider',
-            bgcolor: isDragActive ? 'action.hover' : 'transparent',
-            borderRadius: 3,
-            flex: '1 1 auto',
-            minHeight: 0,
-            height: '100%',
-            transition: (theme) => theme.transitions.create(['border-color', 'background-color']),
-            '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
+        <PhotoUploadWorkspace
+          sampleImages={SCAN_SAMPLE_IMAGES}
+          onSelectSample={async (sampleUrl) => {
+            try {
+              const res = await fetch(sampleUrl);
+              const blob = await res.blob();
+              const file = new File([blob], 'sample_document.jpg', {
+                type: blob.type || 'image/jpeg',
+              });
+              addFiles([file]);
+              toast.success('문서 스캔 샘플 이미지를 불러왔습니다.');
+            } catch {
+              toast.error('샘플 이미지를 로드하지 못했습니다.');
+            }
           }}
-        >
-          <Box
-            sx={{
-              width: 68,
-              height: 68,
-              borderRadius: '50%',
-              bgcolor: 'primary.lighter',
-              color: 'primary.main',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              mb: 2,
-            }}
-          >
-            <DocumentScannerRoundedIcon sx={{ fontSize: 36 }} />
-          </Box>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
-            스캔할 문서나 사진 업로드
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-            스마트폰으로 촬영한 서류, 계약서, 영수증, 신분증, 필기 노트를 드래그해 놓으세요
-          </Typography>
-          <Button variant="contained" color="primary" startIcon={<CloudUploadRoundedIcon />}>
-            문서 사진 선택하기
-          </Button>
-        </Card>
+          onFileSelect={(file) => addFiles([file])}
+          title="스캔 효과를 적용할 문서/사진 업로드"
+          subtitle="스마트폰으로 촬영한 서류, 계약서, 영수증, 필기 노트를 드래그해 놓으세요."
+          icon={<DocumentScannerRoundedIcon sx={{ fontSize: 36 }} />}
+        />
       ) : (
         <Box
           sx={{
