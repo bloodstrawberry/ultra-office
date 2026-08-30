@@ -10,20 +10,22 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
-import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
+import CodeRoundedIcon from '@mui/icons-material/CodeRounded';
 import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
-import CodeRoundedIcon from '@mui/icons-material/CodeRounded';
+import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 
 import { ThemeSelector } from 'src/components/theme-selector';
+
 import {
   IDE_THEMES,
   getThemeById,
   DEFAULT_THEME_ID,
 } from 'src/sections/code-runner/core/editor-themes';
+
+import { type Step } from '../../lib/algorithms/types';
 import { useVisualizerStore } from '../../store/visualizerStore';
 import { SortingVisualizer } from '../visualizer/SortingVisualizer';
-import { type Step } from '../../lib/algorithms/types';
 import { playSwapSound, playSuccessFanfare } from '../../lib/sound';
 
 const MonacoEditor = dynamic(() => import('@monaco-editor/react').then((mod) => mod.Editor), {

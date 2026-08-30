@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -10,14 +10,14 @@ import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
-import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
+import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import CompareArrowsRoundedIcon from '@mui/icons-material/CompareArrowsRounded';
 
+import { type AlgorithmId } from '../../lib/algorithms/types';
 import { SortingVisualizer } from '../visualizer/SortingVisualizer';
 import { ALGORITHMS, DEFAULT_SORT_ARRAY } from '../../lib/algorithms/registry';
-import { type AlgorithmId } from '../../lib/algorithms/types';
 
 export function CompareTab() {
   const [algoAId, setAlgoAId] = useState<AlgorithmId>('quickSort');

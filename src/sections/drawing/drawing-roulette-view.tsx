@@ -69,7 +69,7 @@ const PRESETS = [
   },
 ];
 
-export function RouletteView() {
+export function DrawingRouletteView() {
   const theme = useTheme();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 

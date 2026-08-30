@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 import { CONFIG } from 'src/global-config';
 
-import { GifStudioView } from 'src/sections/gif-studio/view';
+import { GifStudioMergeView } from 'src/sections/gif-studio/view';
 
 // ----------------------------------------------------------------------
 
@@ -11,5 +11,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <GifStudioView initialTab="merge" />;
+  return <GifStudioMergeView />;
 }

@@ -8,15 +8,15 @@ import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
-import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import QuizRoundedIcon from '@mui/icons-material/QuizRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import MenuBookRoundedIcon from '@mui/icons-material/MenuBookRounded';
 import TouchAppRoundedIcon from '@mui/icons-material/TouchAppRounded';
 
-import { DATA_STRUCTURES } from '../../lib/data-structures/registry';
-import { type DataStructureId } from '../../lib/data-structures/types';
 import { DSQuizModal } from '../data-structures/DSQuizModal';
 import { DSConceptCard } from '../data-structures/DSConceptCard';
+import { DATA_STRUCTURES } from '../../lib/data-structures/registry';
+import { type DataStructureId } from '../../lib/data-structures/types';
 import { SetInteractiveView } from '../data-structures/SetInteractiveView';
 import { MapInteractiveView } from '../data-structures/MapInteractiveView';
 import { TrieInteractiveView } from '../data-structures/TrieInteractiveView';
@@ -27,8 +27,8 @@ import { DequeInteractiveView } from '../data-structures/DequeInteractiveView';
 import { GraphInteractiveView } from '../data-structures/GraphInteractiveView';
 import { HashTableInteractiveView } from '../data-structures/HashTableInteractiveView';
 import { LinkedListInteractiveView } from '../data-structures/LinkedListInteractiveView';
-import { DisjointSetInteractiveView } from '../data-structures/DisjointSetInteractiveView';
 import { StackQueueInteractiveView } from '../data-structures/StackQueueInteractiveView';
+import { DisjointSetInteractiveView } from '../data-structures/DisjointSetInteractiveView';
 import { PriorityQueueInteractiveView } from '../data-structures/PriorityQueueInteractiveView';
 
 export function DataStructuresTab({

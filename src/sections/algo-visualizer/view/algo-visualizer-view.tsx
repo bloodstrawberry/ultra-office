@@ -1,5 +1,7 @@
 'use client';
 
+import '../styles.css';
+
 import React, { Suspense, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
@@ -10,26 +12,26 @@ import CircularProgress from '@mui/material/CircularProgress';
 import SchemaRoundedIcon from '@mui/icons-material/SchemaRounded';
 import StorageRoundedIcon from '@mui/icons-material/StorageRounded';
 import BarChartRoundedIcon from '@mui/icons-material/BarChartRounded';
-import CompareArrowsRoundedIcon from '@mui/icons-material/CompareArrowsRounded';
-import SportsEsportsRoundedIcon from '@mui/icons-material/SportsEsportsRounded';
 import TerminalRoundedIcon from '@mui/icons-material/TerminalRounded';
 import TableChartRoundedIcon from '@mui/icons-material/TableChartRounded';
+import CompareArrowsRoundedIcon from '@mui/icons-material/CompareArrowsRounded';
+import SportsEsportsRoundedIcon from '@mui/icons-material/SportsEsportsRounded';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
+
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { ThemeSelector } from 'src/components/theme-selector';
-import { useVisualizerStore } from '../store/visualizerStore';
-import { VisualizerTab } from '../components/tabs/VisualizerTab';
-import { DataStructuresTab } from '../components/tabs/DataStructuresTab';
+
 import { CompareTab } from '../components/tabs/CompareTab';
-import { ChallengeTab } from '../components/tabs/ChallengeTab';
-import { PlaygroundTab } from '../components/tabs/PlaygroundTab';
 import { CatalogTab } from '../components/tabs/CatalogTab';
 import { type AlgorithmId } from '../lib/algorithms/types';
-
-import '../styles.css';
+import { useVisualizerStore } from '../store/visualizerStore';
+import { ChallengeTab } from '../components/tabs/ChallengeTab';
+import { VisualizerTab } from '../components/tabs/VisualizerTab';
+import { PlaygroundTab } from '../components/tabs/PlaygroundTab';
+import { DataStructuresTab } from '../components/tabs/DataStructuresTab';
 
 // ----------------------------------------------------------------------
 

@@ -2,10 +2,14 @@ import type { Metadata } from 'next';
 
 import { CONFIG } from 'src/global-config';
 
-import { PdfView } from 'src/sections/photo/view';
+import { PhotoPdfView } from 'src/sections/photo/view';
 
-export const metadata: Metadata = { title: `PDF 변환 & 분할 | Dashboard - ${CONFIG.appName}` };
+// ----------------------------------------------------------------------
+
+export const metadata: Metadata = {
+  title: `이미지 PDF 변환/병합 | Dashboard - ${CONFIG.appName}`,
+};
 
 export default function Page() {
-  return <PdfView />;
+  return <PhotoPdfView />;
 }

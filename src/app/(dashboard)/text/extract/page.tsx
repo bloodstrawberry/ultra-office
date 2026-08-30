@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 import { CONFIG } from 'src/global-config';
 
-import { TextExtractView } from 'src/sections/text/text-extract-view';
+import { TextExtractView } from 'src/sections/text/view';
 
 // ----------------------------------------------------------------------
 

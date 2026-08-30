@@ -1,7 +1,9 @@
 'use client';
 
+import type { HashBucket } from '../../lib/data-structures/types';
+
 import React, { useState } from 'react';
-import { HashBucket } from '../../lib/data-structures/types';
+
 import { playSwapSound, playFoundSound, playButtonClickSound } from '../../lib/sound';
 
 const BUCKET_SIZE = 7;

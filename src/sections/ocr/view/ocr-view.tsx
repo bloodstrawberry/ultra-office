@@ -38,7 +38,7 @@ import {
   createSampleReceiptImage,
 } from '../utils/ocr-parser-utils';
 
-export function OcrScannerView() {
+export function OcrView() {
   const [currentTab, setCurrentTab] = useState<'receipt' | 'card' | 'table'>('receipt');
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);

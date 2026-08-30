@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
+
 import {
-  playCompareSound,
   playSwapSound,
   playFoundSound,
+  playCompareSound,
   playButtonClickSound,
 } from '../../lib/sound';
 

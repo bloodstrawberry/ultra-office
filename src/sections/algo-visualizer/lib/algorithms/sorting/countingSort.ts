@@ -1,4 +1,4 @@
-import { Step } from '../types';
+import type { Step } from '../types';
 
 export const COUNTING_SORT_CODE = `function countingSort(arr: number[]): number[] {
   const max = Math.max(...arr);

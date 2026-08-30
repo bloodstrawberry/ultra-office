@@ -17,7 +17,7 @@ import AutoGraphRoundedIcon from '@mui/icons-material/AutoGraphRounded';
 import FullscreenRoundedIcon from '@mui/icons-material/FullscreenRounded';
 import FullscreenExitRoundedIcon from '@mui/icons-material/FullscreenExitRounded';
 
-import { DEFAULT_THEME_ID, getThemeById } from 'src/sections/code-runner/core/editor-themes';
+import { getThemeById, DEFAULT_THEME_ID } from 'src/sections/code-runner/core/editor-themes';
 
 // Dynamically import Plotly component with plotly.js-dist-min
 const Plot = dynamic(

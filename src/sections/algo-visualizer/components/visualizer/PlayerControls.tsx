@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
+
 import { useVisualizerStore } from '../../store/visualizerStore';
 
 export const PlayerControls: React.FC = () => {

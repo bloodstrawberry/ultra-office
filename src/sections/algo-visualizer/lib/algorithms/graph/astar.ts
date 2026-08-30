@@ -1,5 +1,7 @@
-import { Step, GridCell } from '../types';
-import { createDefaultGrid, GridConfig } from './gridUtils';
+import type { GridConfig } from './gridUtils';
+import type { Step, GridCell } from '../types';
+
+import { createDefaultGrid } from './gridUtils';
 
 export const ASTAR_CODE = `function aStar(grid: Cell[][], start: Cell, target: Cell): Cell[] {
   const openSet: Cell[] = [start];

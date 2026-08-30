@@ -15,7 +15,7 @@ import MemoryRoundedIcon from '@mui/icons-material/MemoryRounded';
 import ScienceRoundedIcon from '@mui/icons-material/ScienceRounded';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 
-import { DEFAULT_THEME_ID, getThemeById } from 'src/sections/code-runner/core/editor-themes';
+import { getThemeById, DEFAULT_THEME_ID } from 'src/sections/code-runner/core/editor-themes';
 
 // ----------------------------------------------------------------------
 

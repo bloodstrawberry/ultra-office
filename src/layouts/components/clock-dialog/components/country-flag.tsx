@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import Box from '@mui/material/Box';
 import { Icon } from '@iconify/react';
+
+import Box from '@mui/material/Box';
 
 interface CountryFlagProps {
   countryCode?: string;

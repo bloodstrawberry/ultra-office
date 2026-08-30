@@ -1,4 +1,4 @@
-import { Step } from '../types';
+import type { Step } from '../types';
 
 export const INSERTION_SORT_CODE = `function insertionSort(arr: number[]): number[] {
   const n = arr.length;

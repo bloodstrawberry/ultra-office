@@ -1,4 +1,4 @@
-import { Step } from '../types';
+import type { Step } from '../types';
 
 export const KMP_CODE = `// KMP (Knuth-Morris-Pratt) 문자열 패턴 매칭 알고리즘
 function kmpSearch(text: string, pattern: string): number[] {

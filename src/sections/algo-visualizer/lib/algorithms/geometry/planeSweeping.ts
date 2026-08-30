@@ -1,4 +1,4 @@
-import { Step, RectangleData } from '../types';
+import type { Step, RectangleData } from '../types';
 
 export const PLANE_SWEEPING_CODE = `// 평면 스위핑(Plane Sweeping)을 이용한 여러 직사각형의 합집합 총 면적 계산
 interface Rect { x1: number; y1: number; x2: number; y2: number; }

@@ -1,4 +1,4 @@
-import { Step } from '../types';
+import type { Step } from '../types';
 
 export const SLIDING_WINDOW_CODE = `// 고정 크기 K의 슬라이딩 윈도우 최대 부분 배열 합 (Max Subarray Sum of size K)
 function maxSubarraySum(arr: number[], k: number): number {

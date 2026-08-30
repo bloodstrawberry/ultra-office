@@ -1,1 +1,2 @@
-export * from './ai-agent-view';
+export * from './agent-view';
+export { AgentView as AiAgentView } from './agent-view';

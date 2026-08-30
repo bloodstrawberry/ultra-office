@@ -1,7 +1,8 @@
 'use client';
 
+import type { AlgorithmDefinition } from '../../lib/algorithms/types';
+
 import React from 'react';
-import { AlgorithmDefinition } from '../../lib/algorithms/types';
 
 interface ComplexityCardProps {
   algo: AlgorithmDefinition;

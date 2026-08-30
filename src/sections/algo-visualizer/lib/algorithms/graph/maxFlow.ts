@@ -1,4 +1,4 @@
-import { Step, NetworkNode, NetworkEdge } from '../types';
+import type { Step, NetworkNode, NetworkEdge } from '../types';
 
 export const MAX_FLOW_CODE = `// 에드몬드-카프(Edmonds-Karp) BFS 기반 최대 유량(Maximum Flow)
 function maxFlow(source: number, sink: number, capacity: number[][]): number {

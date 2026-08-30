@@ -1,4 +1,4 @@
-import { Step, NetworkNode, NetworkEdge } from '../types';
+import type { Step, NetworkNode, NetworkEdge } from '../types';
 
 export const MST_CODE = `// 크루스칼(Kruskal) 알고리즘을 이용한 최소 신장 트리(MST)
 interface Edge { u: number; v: number; weight: number; }

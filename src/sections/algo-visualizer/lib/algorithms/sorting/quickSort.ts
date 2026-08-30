@@ -1,4 +1,4 @@
-import { Step } from '../types';
+import type { Step } from '../types';
 
 export const QUICK_SORT_CODE = `function quickSort(arr: number[], low = 0, high = arr.length - 1): number[] {
   if (low < high) {

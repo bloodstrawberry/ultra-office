@@ -8,10 +8,10 @@ import { Box, Card, Tooltip, Typography, IconButton } from '@mui/material';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import { ImageViewerCard } from './common/image-viewer-card';
-import { useTextExtract } from './text-extract/use-text-extract';
-import { LineNumberTextField } from './common/line-number-text-field';
-import { TextExtractToolbar } from './text-extract/text-extract-toolbar';
+import { ImageViewerCard } from '../common/image-viewer-card';
+import { useTextExtract } from '../text-extract/use-text-extract';
+import { LineNumberTextField } from '../common/line-number-text-field';
+import { TextExtractToolbar } from '../text-extract/text-extract-toolbar';
 
 // ----------------------------------------------------------------------
 

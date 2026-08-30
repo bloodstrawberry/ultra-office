@@ -1,4 +1,4 @@
-import { GridCell } from '../types';
+import type { GridCell } from '../types';
 
 export const DEFAULT_GRID_ROWS = 15;
 export const DEFAULT_GRID_COLS = 25;

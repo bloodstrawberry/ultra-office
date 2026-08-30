@@ -23,7 +23,7 @@ import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import LibraryBooksRoundedIcon from '@mui/icons-material/LibraryBooksRounded';
 import InsertDriveFileRoundedIcon from '@mui/icons-material/InsertDriveFileRounded';
 
-import { DEFAULT_THEME_ID, getThemeById } from 'src/sections/code-runner/core/editor-themes';
+import { getThemeById, DEFAULT_THEME_ID } from 'src/sections/code-runner/core/editor-themes';
 
 // ----------------------------------------------------------------------
 

@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
-import { playButtonClickSound, playFoundSound } from '../../lib/sound';
+import React, { useRef, useState } from 'react';
+
+import { playFoundSound, playButtonClickSound } from '../../lib/sound';
 
 interface TreeItem {
   id: string;

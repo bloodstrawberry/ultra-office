@@ -2,12 +2,12 @@ import type { Metadata } from 'next';
 
 import { CONFIG } from 'src/global-config';
 
-import { AlgoVisualizerView } from 'src/sections/algo-visualizer/view';
+import { AlgoVisualizerChallengeView } from 'src/sections/algo-visualizer/view';
 
 export const metadata: Metadata = {
   title: `CS 챌린지 모드 | Dashboard - ${CONFIG.appName}`,
 };
 
 export default function Page() {
-  return <AlgoVisualizerView defaultTab="challenge" />;
+  return <AlgoVisualizerChallengeView />;
 }

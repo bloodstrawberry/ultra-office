@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useSyncExternalStore } from 'react';
+import type { Step } from '../../lib/algorithms/types';
+
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Text } from '@react-three/drei';
-import { Step } from '../../lib/algorithms/types';
+import React, { useSyncExternalStore } from 'react';
+import { Text, OrbitControls } from '@react-three/drei';
 
 interface ThreeDVisualizerProps {
   step: Step;

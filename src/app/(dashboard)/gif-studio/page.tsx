@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 import { CONFIG } from 'src/global-config';
 
-import { GifStudioView } from 'src/sections/gif-studio/view';
+import { GifStudioCreateView } from 'src/sections/gif-studio/view';
 
 // ----------------------------------------------------------------------
 
@@ -12,5 +12,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <GifStudioView initialTab="create" />;
+  return <GifStudioCreateView />;
 }

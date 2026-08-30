@@ -1,7 +1,9 @@
 'use client';
 
+import type { DSQuizQuestion } from '../../lib/data-structures/types';
+
 import React, { useState } from 'react';
-import { DSQuizQuestion } from '../../lib/data-structures/types';
+
 import { playFoundSound, playButtonClickSound } from '../../lib/sound';
 
 interface DSQuizModalProps {

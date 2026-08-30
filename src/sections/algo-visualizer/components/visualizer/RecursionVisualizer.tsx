@@ -1,7 +1,8 @@
 'use client';
 
+import type { Step } from '../../lib/algorithms/types';
+
 import React from 'react';
-import { Step } from '../../lib/algorithms/types';
 
 interface RecursionVisualizerProps {
   step: Step;

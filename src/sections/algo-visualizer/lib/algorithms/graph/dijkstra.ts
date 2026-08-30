@@ -1,5 +1,7 @@
-import { Step, GridCell } from '../types';
-import { createDefaultGrid, GridConfig } from './gridUtils';
+import type { GridConfig } from './gridUtils';
+import type { Step, GridCell } from '../types';
+
+import { createDefaultGrid } from './gridUtils';
 
 export const DIJKSTRA_CODE = `function dijkstra(grid: Cell[][], start: Cell, target: Cell): Cell[] {
   const unvisited: Cell[] = getAllCells(grid);

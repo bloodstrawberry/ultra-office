@@ -1,4 +1,4 @@
-import { Step } from '../types';
+import type { Step } from '../types';
 
 export const LCS_CODE = `// 최장 공통 부분 수열 (Longest Common Subsequence - LCS) 2D DP
 function lcs(text1: string, text2: string): number {

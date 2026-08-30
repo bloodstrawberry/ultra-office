@@ -74,7 +74,7 @@ const MODES: ModeConfig[] = [
   },
 ];
 
-export function SqlPracticeView() {
+export function PublicSqlView() {
   const {
     datasets,
     currentDatasetId,

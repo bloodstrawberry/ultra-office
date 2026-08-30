@@ -22,7 +22,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import { renderQrCodeToCanvas, renderCode128ToCanvas } from '../utils/barcode-renderer';
 
-export function BarcodeStudioView() {
+export function BarcodeView() {
   const [currentTab, setCurrentTab] = useState<'qr' | 'barcode' | 'label'>('qr');
 
   // --------------------------------------------------------------------

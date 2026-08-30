@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import type { WorldCity } from '../utils/timezones';
+
+import { useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
@@ -13,13 +15,13 @@ import Autocomplete from '@mui/material/Autocomplete';
 import InputAdornment from '@mui/material/InputAdornment';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
-import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
+import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import WbSunnyRoundedIcon from '@mui/icons-material/WbSunnyRounded';
 import NightsStayRoundedIcon from '@mui/icons-material/NightsStayRounded';
-import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
+import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 
-import { WorldCity, DEFAULT_WORLD_CITIES, ALL_AVAILABLE_CITIES } from '../utils/timezones';
 import { CountryFlag } from '../components/country-flag';
+import { DEFAULT_WORLD_CITIES, ALL_AVAILABLE_CITIES } from '../utils/timezones';
 
 // ----------------------------------------------------------------------
 
@@ -193,18 +195,20 @@ export function WorldClockTab() {
   );
 
   // 검색 및 대륙 필터링
-  const filteredCities = useMemo(() => {
-    return cities.filter((city) => {
-      const matchesContinent = activeContinent === 'all' || city.continent === activeContinent;
-      const q = searchQuery.trim().toLowerCase();
-      const matchesQuery =
-        !q ||
-        city.cityKo.toLowerCase().includes(q) ||
-        city.countryKo.toLowerCase().includes(q) ||
-        city.city.toLowerCase().includes(q);
-      return matchesContinent && matchesQuery;
-    });
-  }, [cities, activeContinent, searchQuery]);
+  const filteredCities = useMemo(
+    () =>
+      cities.filter((city) => {
+        const matchesContinent = activeContinent === 'all' || city.continent === activeContinent;
+        const q = searchQuery.trim().toLowerCase();
+        const matchesQuery =
+          !q ||
+          city.cityKo.toLowerCase().includes(q) ||
+          city.countryKo.toLowerCase().includes(q) ||
+          city.city.toLowerCase().includes(q);
+        return matchesContinent && matchesQuery;
+      }),
+    [cities, activeContinent, searchQuery]
+  );
 
   // Hydration 에러 방지
   if (!hasLoaded) {

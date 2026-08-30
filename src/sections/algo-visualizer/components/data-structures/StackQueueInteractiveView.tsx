@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { playSwapSound, playCompareSound, playPivotSound } from '../../lib/sound';
+
+import { playSwapSound, playPivotSound, playCompareSound } from '../../lib/sound';
 
 export const StackQueueInteractiveView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'stack' | 'queue' | 'deque'>('stack');

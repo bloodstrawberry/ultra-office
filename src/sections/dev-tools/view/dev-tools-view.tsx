@@ -1,6 +1,6 @@
 'use client';
 
-import type { HashAlgorithm, JwtDecoded, PasswordOptions } from '../utils/crypto-dev-utils';
+import type { JwtDecoded, PasswordOptions } from '../utils/crypto-dev-utils';
 
 import { toast } from 'sonner';
 import React, { useRef, useState, useEffect, useCallback } from 'react';
@@ -20,13 +20,13 @@ import IconButton from '@mui/material/IconButton';
 import ToggleButton from '@mui/material/ToggleButton';
 import CircularProgress from '@mui/material/CircularProgress';
 import FormControlLabel from '@mui/material/FormControlLabel';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import LockRoundedIcon from '@mui/icons-material/LockRounded';
 import CodeRoundedIcon from '@mui/icons-material/CodeRounded';
 import HttpRoundedIcon from '@mui/icons-material/HttpRounded';
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
 import SendRoundedIcon from '@mui/icons-material/SendRounded';
 import KeyRoundedIcon from '@mui/icons-material/VpnKeyRounded';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import CasinoRoundedIcon from '@mui/icons-material/CasinoRounded';
 import GridViewRoundedIcon from '@mui/icons-material/GridViewRounded';
 import HandymanRoundedIcon from '@mui/icons-material/HandymanRounded';
@@ -44,33 +44,32 @@ import { DashboardContent } from 'src/layouts/dashboard';
 import {
   decodeJwt,
   jsonToSql,
+  jsonToCsv,
   decryptAes,
   encryptAes,
   jsonToYaml,
-  jsonToCsv,
   formatJson,
   minifyJson,
   curlToAxios,
   curlToFetch,
   encodeBase64,
   decodeBase64,
+  generateCuid,
   calculateHash,
   calculateHmac,
-  generateCuid,
+  REGEX_PRESETS,
   generateUuidV4,
   generateUuidV7,
   generateNanoId,
-  REGEX_PRESETS,
   SAMPLE_SCHEMAS,
   jsonToZodSchema,
   timestampToDate,
-  jsonToTypeScript,
   dateToTimestamp,
+  jsonToTypeScript,
   SAMPLE_JWT_TOKENS,
   HTTP_STATUS_CODES,
   generateLoremIpsum,
   encodeUrlComponent,
-  decodeUrlComponent,
   generateRandomPassword,
 } from '../utils/crypto-dev-utils';
 

@@ -2,10 +2,14 @@ import type { Metadata } from 'next';
 
 import { CONFIG } from 'src/global-config';
 
-import { ConvertView } from 'src/sections/photo/view';
+import { PhotoConvertView } from 'src/sections/photo/view';
 
-export const metadata: Metadata = { title: `확장자 일괄 변환 | Dashboard - ${CONFIG.appName}` };
+// ----------------------------------------------------------------------
+
+export const metadata: Metadata = {
+  title: `포맷 변환 (PNG, JPG, WebP) | Dashboard - ${CONFIG.appName}`,
+};
 
 export default function Page() {
-  return <ConvertView />;
+  return <PhotoConvertView />;
 }

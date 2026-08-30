@@ -13,6 +13,8 @@ import React, { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 
+import { getThemeById, DEFAULT_THEME_ID } from 'src/sections/code-runner/core/editor-themes';
+
 import { MatlabRuntime } from '../engine/matlab-runtime';
 import { MatlabEditor } from '../components/matlab-editor';
 import { MatlabWorkspace } from '../components/matlab-workspace';
@@ -20,16 +22,11 @@ import { MatlabToolstrip } from '../components/matlab-toolstrip';
 import { MatlabAppsDialog } from '../components/matlab-apps-dialog';
 import { MatlabHelpDialog } from '../components/matlab-help-dialog';
 import { MatlabFigureViewer } from '../components/matlab-figure-viewer';
+import { MatlabSplitResizer } from '../components/matlab-split-resizer';
 import { MatlabCurrentFolder } from '../components/matlab-current-folder';
 import { MatlabCommandWindow } from '../components/matlab-command-window';
-import { MatlabSplitResizer } from '../components/matlab-split-resizer';
 import { MATLAB_TEMPLATES, type MatlabTemplate } from '../engine/templates';
 import { MatlabVariableEditorDialog } from '../components/matlab-variable-editor-dialog';
-import {
-  DEFAULT_THEME_ID,
-  IDE_THEMES,
-  getThemeById,
-} from 'src/sections/code-runner/core/editor-themes';
 
 // ----------------------------------------------------------------------
 

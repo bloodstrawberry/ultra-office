@@ -1,6 +1,6 @@
 'use client';
 
-import { getSoundSettingsSync, setSfxMutedStorage } from './storage';
+import { setSfxMutedStorage, getSoundSettingsSync } from './storage';
 
 // ============================================================
 // SFX State

@@ -12,7 +12,7 @@ import ClearRoundedIcon from '@mui/icons-material/ClearRounded';
 import TerminalRoundedIcon from '@mui/icons-material/TerminalRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 
-import { DEFAULT_THEME_ID, getThemeById } from 'src/sections/code-runner/core/editor-themes';
+import { getThemeById, DEFAULT_THEME_ID } from 'src/sections/code-runner/core/editor-themes';
 
 // ----------------------------------------------------------------------
 

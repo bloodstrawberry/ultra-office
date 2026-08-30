@@ -1,4 +1,4 @@
-import { Step } from '../types';
+import type { Step } from '../types';
 
 export const KADANE_CODE = `// 카데인 알고리즘 (Kadane's Algorithm) - O(N) 최대 부분 배열 합 (Maximum Subarray Sum)
 function maxSubArray(nums: number[]): number {

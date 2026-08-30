@@ -31,7 +31,8 @@ import HelpOutlineRoundedIcon from '@mui/icons-material/HelpOutlineRounded';
 import ScatterPlotRoundedIcon from '@mui/icons-material/ScatterPlotRounded';
 
 import { ThemeSelector } from 'src/components/theme-selector';
-import { DEFAULT_THEME_ID, getThemeById } from 'src/sections/code-runner/core/editor-themes';
+
+import { getThemeById, DEFAULT_THEME_ID } from 'src/sections/code-runner/core/editor-themes';
 
 // ----------------------------------------------------------------------
 

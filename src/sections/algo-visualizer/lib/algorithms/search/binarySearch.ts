@@ -1,4 +1,4 @@
-import { Step } from '../types';
+import type { Step } from '../types';
 
 export const BINARY_SEARCH_CODE = `function binarySearch(arr: number[], target: number): number {
   let low = 0;

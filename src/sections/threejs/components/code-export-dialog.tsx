@@ -1,7 +1,9 @@
 'use client';
 
-import dynamic from 'next/dynamic';
+import type { ExampleDefinition } from '../types';
+
 import { toast } from 'sonner';
+import dynamic from 'next/dynamic';
 import React, { useState, useCallback } from 'react';
 
 import Tab from '@mui/material/Tab';
@@ -19,13 +21,12 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 
 import { ThemeSelector } from 'src/components/theme-selector';
+
 import {
   IDE_THEMES,
   getThemeById,
   DEFAULT_THEME_ID,
 } from 'src/sections/code-runner/core/editor-themes';
-
-import type { ExampleDefinition } from '../types';
 
 // ----------------------------------------------------------------------
 

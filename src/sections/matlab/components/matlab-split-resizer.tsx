@@ -1,11 +1,11 @@
 'use client';
 
+import type { IDETheme } from 'src/sections/code-runner/core/editor-themes';
+
 import React from 'react';
 
 import Box from '@mui/material/Box';
 import Tooltip from '@mui/material/Tooltip';
-
-import type { IDETheme } from 'src/sections/code-runner/core/editor-themes';
 
 // ----------------------------------------------------------------------
 

@@ -1,10 +1,2 @@
-export * from './types';
-export * from './sqld-problems';
-export * from './sqlp-problems';
-export * from './schema-browser';
-export * from './use-sql-engine';
-export * from './sample-problems';
-export * from './sql-editor-panel';
-export * from './sql-result-table';
-export * from './sql-practice-view';
-export * from './sql-problem-panel';
+export * from './public-sql-view';
+export { PublicSqlView as SqlPracticeView } from './public-sql-view';

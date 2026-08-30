@@ -1,4 +1,4 @@
-import { Step, TreeNodeData } from '../types';
+import type { Step, TreeNodeData } from '../types';
 
 export const BST_CODE = `class BSTNode {
   value: number;

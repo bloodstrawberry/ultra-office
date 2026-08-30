@@ -1,4 +1,4 @@
-import { Step } from '../types';
+import type { Step } from '../types';
 
 export const LINEAR_SEARCH_CODE = `function linearSearch(arr: number[], target: number): number {
   const n = arr.length;

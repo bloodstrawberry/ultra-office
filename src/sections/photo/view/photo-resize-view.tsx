@@ -20,15 +20,15 @@ import InputLabel from '@mui/material/InputLabel';
 import IconButton from '@mui/material/IconButton';
 import FormControl from '@mui/material/FormControl';
 import LinearProgress from '@mui/material/LinearProgress';
-import CircularProgress from '@mui/material/CircularProgress';
 import InputAdornment from '@mui/material/InputAdornment';
+import CircularProgress from '@mui/material/CircularProgress';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import LinkRoundedIcon from '@mui/icons-material/LinkRounded';
 import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
-import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
 import LinkOffRoundedIcon from '@mui/icons-material/LinkOffRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
+import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
 import ViewModuleRoundedIcon from '@mui/icons-material/ViewModuleRounded';
 import AspectRatioRoundedIcon from '@mui/icons-material/AspectRatioRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
@@ -40,13 +40,13 @@ import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { downloadZipFile, type ZipFileEntry } from '../utils/zip-exporter';
+import { PhotoUploadWorkspace, type SampleImageItem } from '../components';
 import {
   formatBytes,
   downloadDataUrl,
   shareToKakaoTalk,
   calculateDataUrlByteSize,
 } from '../utils/image-processor';
-import { PhotoUploadWorkspace, type SampleImageItem } from '../components';
 
 // ----------------------------------------------------------------------
 

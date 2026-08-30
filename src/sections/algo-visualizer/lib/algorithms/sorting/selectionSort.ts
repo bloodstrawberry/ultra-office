@@ -1,4 +1,4 @@
-import { Step } from '../types';
+import type { Step } from '../types';
 
 export const SELECTION_SORT_CODE = `function selectionSort(arr: number[]): number[] {
   const n = arr.length;

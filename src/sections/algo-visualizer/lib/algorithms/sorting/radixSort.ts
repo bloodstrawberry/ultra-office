@@ -1,4 +1,4 @@
-import { Step } from '../types';
+import type { Step } from '../types';
 
 export const RADIX_SORT_CODE = `// 기수 정렬 (LSD Radix Sort) - 1의 자리부터 최상위 자리까지 버킷 정렬
 function radixSort(arr: number[]): number[] {

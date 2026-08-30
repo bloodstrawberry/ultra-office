@@ -15,6 +15,7 @@ import WhatshotRoundedIcon from '@mui/icons-material/WhatshotRounded';
 import ColorLensRoundedIcon from '@mui/icons-material/ColorLensRounded';
 import LaptopMacRoundedIcon from '@mui/icons-material/LaptopMacRounded';
 import TransformRoundedIcon from '@mui/icons-material/TransformRounded';
+import SwapHorizRoundedIcon from '@mui/icons-material/SwapHorizRounded';
 import CropRotateRoundedIcon from '@mui/icons-material/CropRotateRounded';
 import CropSquareRoundedIcon from '@mui/icons-material/CropSquareRounded';
 import TextFieldsRoundedIcon from '@mui/icons-material/TextFieldsRounded';
@@ -22,14 +23,13 @@ import ViewModuleRoundedIcon from '@mui/icons-material/ViewModuleRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import AutoFixHighRoundedIcon from '@mui/icons-material/AutoFixHighRounded';
 import PhotoFilterRoundedIcon from '@mui/icons-material/PhotoFilterRounded';
+import AspectRatioRoundedIcon from '@mui/icons-material/AspectRatioRounded';
 import InvertColorsRoundedIcon from '@mui/icons-material/InvertColorsRounded';
 import PhoneAndroidRoundedIcon from '@mui/icons-material/PhoneAndroidRounded';
 import PictureAsPdfRoundedIcon from '@mui/icons-material/PictureAsPdfRounded';
 import DocumentScannerRoundedIcon from '@mui/icons-material/DocumentScannerRounded';
 import HourglassBottomRoundedIcon from '@mui/icons-material/HourglassBottomRounded';
 import BrandingWatermarkRoundedIcon from '@mui/icons-material/BrandingWatermarkRounded';
-import SwapHorizRoundedIcon from '@mui/icons-material/SwapHorizRounded';
-import AspectRatioRoundedIcon from '@mui/icons-material/AspectRatioRounded';
 
 import { paths } from 'src/routes/paths';
 

@@ -42,7 +42,7 @@ import {
 
 const STORAGE_KEY = 'ultra_office_agent_sessions_v2';
 
-export function AiAgentView() {
+export function AgentView() {
   const [currentMode, setCurrentMode] = useState<AgentQueryMode>('talent');
   const [inputQuery, setInputQuery] = useState<string>('');
   const [isThinking] = useState<boolean>(false);

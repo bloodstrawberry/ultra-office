@@ -63,7 +63,7 @@ const LINE_COLORS = [
   '#FF2D55', // Pink
 ];
 
-export function LadderView() {
+export function DrawingLadderView() {
   const theme = useTheme();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 

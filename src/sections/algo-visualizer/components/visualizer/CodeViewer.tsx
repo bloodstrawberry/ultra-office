@@ -1,10 +1,13 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
-import { MULTI_LANG_CODES } from '../../lib/algorithms/multiLanguageCodes';
-import { AlgorithmId } from '../../lib/algorithms/types';
-import { useVisualizerStore } from '../../store/visualizerStore';
+import type { AlgorithmId } from '../../lib/algorithms/types';
+
+import React, { useRef, useState, useEffect } from 'react';
+
 import { getThemeById, DEFAULT_THEME_ID } from 'src/sections/code-runner/core/editor-themes';
+
+import { useVisualizerStore } from '../../store/visualizerStore';
+import { MULTI_LANG_CODES } from '../../lib/algorithms/multiLanguageCodes';
 
 interface CodeViewerProps {
   code: string;

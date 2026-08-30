@@ -1,4 +1,4 @@
-import { Step } from '../types';
+import type { Step } from '../types';
 
 export const FLOYD_WARSHALL_CODE = `// 모든 정점 쌍 간의 최단 경로 거리 행렬을 구하는 플로이드-워셜
 function floydWarshall(V: number, dist: number[][]): number[][] {

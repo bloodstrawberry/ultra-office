@@ -1,4 +1,4 @@
-import { Step, NetworkNode, NetworkEdge } from '../types';
+import type { Step, NetworkNode, NetworkEdge } from '../types';
 
 export const TOPOLOGICAL_SORT_CODE = `// Kahn 알고리즘을 이용한 방향 비순환 그래프(DAG) 위상 정렬
 function topologicalSort(V: number, adj: number[][], inDegree: number[]): number[] {

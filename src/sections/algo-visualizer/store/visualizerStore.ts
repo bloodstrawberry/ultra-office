@@ -1,7 +1,14 @@
-import { create } from 'zustand';
-
 import type { Step, AlgorithmId, AlgorithmDefinition } from '../lib/algorithms/types';
 
+import { create } from 'zustand';
+
+import { getVisualizerPrefsSync, setVisualizerPrefsSync } from '../lib/storage';
+import { ALGORITHMS, DEFAULT_BST_VALUES, DEFAULT_SORT_ARRAY } from '../lib/algorithms/registry';
+import {
+  type GridConfig,
+  generateRandomWalls,
+  generateMazeRecursive,
+} from '../lib/algorithms/graph/gridUtils';
 import {
   playSwapSound,
   playFoundSound,
@@ -11,13 +18,6 @@ import {
   playSuccessFanfare,
   playButtonClickSound,
 } from '../lib/sound';
-import {
-  type GridConfig,
-  generateRandomWalls,
-  generateMazeRecursive,
-} from '../lib/algorithms/graph/gridUtils';
-import { getVisualizerPrefsSync, setVisualizerPrefsSync } from '../lib/storage';
-import { ALGORITHMS, DEFAULT_BST_VALUES, DEFAULT_SORT_ARRAY } from '../lib/algorithms/registry';
 
 export interface VisualizerState {
   currentAlgoId: AlgorithmId;

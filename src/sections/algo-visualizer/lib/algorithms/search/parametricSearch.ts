@@ -1,4 +1,4 @@
-import { Step } from '../types';
+import type { Step } from '../types';
 
 export const PARAMETRIC_SEARCH_CODE = `// 문제: 길이 H로 나무를 절단하여 최소 M미터의 목재를 확보할 수 있는 절단기 최대 높이 H 구하기
 function parametricSearch(treeHeights: number[], targetM: number): number {

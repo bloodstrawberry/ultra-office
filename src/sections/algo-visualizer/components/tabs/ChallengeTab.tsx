@@ -8,17 +8,17 @@ import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
+import WhatshotRoundedIcon from '@mui/icons-material/WhatshotRounded';
 import SportsEsportsRoundedIcon from '@mui/icons-material/SportsEsportsRounded';
 import DirectionsRunRoundedIcon from '@mui/icons-material/DirectionsRunRounded';
-import WhatshotRoundedIcon from '@mui/icons-material/WhatshotRounded';
 
-import {
-  playCompareSound,
-  playSwapSound,
-  playSuccessFanfare,
-  playFoundSound,
-} from '../../lib/sound';
 import { DATA_STRUCTURES } from '../../lib/data-structures/registry';
+import {
+  playSwapSound,
+  playFoundSound,
+  playCompareSound,
+  playSuccessFanfare,
+} from '../../lib/sound';
 
 export function ChallengeTab() {
   const [activeGame, setActiveGame] = useState<'sortPuzzle' | 'mazeRunner' | 'dailyQuiz'>(

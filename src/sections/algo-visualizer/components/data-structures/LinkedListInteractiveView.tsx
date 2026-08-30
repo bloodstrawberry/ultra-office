@@ -1,12 +1,14 @@
 'use client';
 
+import type { LinkedListNode } from '../../lib/data-structures/types';
+
 import React, { useState } from 'react';
-import { LinkedListNode } from '../../lib/data-structures/types';
+
 import {
   playSwapSound,
   playFoundSound,
-  playButtonClickSound,
   playCompareSound,
+  playButtonClickSound,
 } from '../../lib/sound';
 
 export const LinkedListInteractiveView: React.FC = () => {

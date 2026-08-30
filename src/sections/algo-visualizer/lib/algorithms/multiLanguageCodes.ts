@@ -1,4 +1,4 @@
-import { AlgorithmId, MultiLanguageCode, ProblemRecommendation } from './types';
+import type { AlgorithmId, MultiLanguageCode, ProblemRecommendation } from './types';
 
 export const MULTI_LANG_CODES: Partial<Record<AlgorithmId, MultiLanguageCode>> = {
   quickSort: {

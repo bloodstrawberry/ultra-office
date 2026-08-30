@@ -22,7 +22,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 // ----------------------------------------------------------------------
 
-export function PostcodeView() {
+export function PublicPostcodeView() {
   const [open, setOpen] = useState(false);
   const [addressData, setAddressData] = useState({
     zonecode: '',

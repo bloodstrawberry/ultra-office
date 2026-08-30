@@ -11,10 +11,10 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Scrollbar } from 'src/components/scrollbar';
 
-import { useTextDiff } from './text-diff/use-text-diff';
-import { TextDiffToolbar } from './text-diff/text-diff-toolbar';
-import { LineNumberTextField } from './common/line-number-text-field';
-import { ResizeHandle, TextAreaPanel } from './common/shared-text-area';
+import { useTextDiff } from '../text-diff/use-text-diff';
+import { TextDiffToolbar } from '../text-diff/text-diff-toolbar';
+import { LineNumberTextField } from '../common/line-number-text-field';
+import { ResizeHandle, TextAreaPanel } from '../common/shared-text-area';
 
 // ----------------------------------------------------------------------
 

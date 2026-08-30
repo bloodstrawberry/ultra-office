@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { playCompareSound, playSwapSound } from '../../lib/sound';
+
+import { playSwapSound, playCompareSound } from '../../lib/sound';
 
 const NODE_LABELS = ['A', 'B', 'C', 'D', 'E'];
 const NODE_POSITIONS = [
@@ -177,7 +178,7 @@ export const GraphInteractiveView: React.FC = () => {
             <table className="w-full text-center text-xs font-mono">
               <thead>
                 <tr className="text-slate-500">
-                  <th className="p-1"></th>
+                  <th className="p-1" />
                   {NODE_LABELS.map((lbl) => (
                     <th key={lbl} className="p-1 font-bold text-slate-400">
                       {lbl}

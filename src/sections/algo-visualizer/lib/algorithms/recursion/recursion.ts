@@ -1,4 +1,4 @@
-import { Step, CallStackFrame, TreeNodeData } from '../types';
+import type { Step, TreeNodeData, CallStackFrame } from '../types';
 
 export const RECURSION_CODE = `// 팩토리얼(Factorial) & 피보나치 재귀 함수 (Call Stack 시각화)
 function factorial(n: number): number {

@@ -1,4 +1,4 @@
-import { Step, NetworkNode, NetworkEdge } from '../types';
+import type { Step, NetworkNode, NetworkEdge } from '../types';
 
 export const BIPARTITE_MATCH_CODE = `// 이분 그래프 최대 매칭 (Bipartite Matching using DFS)
 function bipartiteMatch(groupA: number[], adj: number[][]): number {

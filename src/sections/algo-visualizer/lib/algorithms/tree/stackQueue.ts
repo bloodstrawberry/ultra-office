@@ -1,4 +1,4 @@
-import { Step } from '../types';
+import type { Step } from '../types';
 
 export const STACK_QUEUE_CODE = `// 1. Stack (LIFO: Last In First Out)
 class Stack<T> {

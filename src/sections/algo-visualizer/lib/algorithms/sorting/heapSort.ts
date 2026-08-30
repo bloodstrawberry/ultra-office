@@ -1,4 +1,4 @@
-import { Step } from '../types';
+import type { Step } from '../types';
 
 export const HEAP_SORT_CODE = `function heapSort(arr: number[]): number[] {
   const n = arr.length;

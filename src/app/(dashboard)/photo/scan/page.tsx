@@ -2,12 +2,14 @@ import type { Metadata } from 'next';
 
 import { CONFIG } from 'src/global-config';
 
-import { ScanView } from 'src/sections/photo/view/scan-view';
+import { PhotoScanView } from 'src/sections/photo/view';
+
+// ----------------------------------------------------------------------
 
 export const metadata: Metadata = {
-  title: `스캔 효과 & 문서 스캐너 | Photo Studio - ${CONFIG.appName}`,
+  title: `문서 스캔 효과 | Dashboard - ${CONFIG.appName}`,
 };
 
 export default function Page() {
-  return <ScanView />;
+  return <PhotoScanView />;
 }

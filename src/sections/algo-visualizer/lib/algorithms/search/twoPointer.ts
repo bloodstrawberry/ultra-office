@@ -1,4 +1,4 @@
-import { Step } from '../types';
+import type { Step } from '../types';
 
 export const TWO_POINTER_CODE = `function twoPointerTargetSum(arr: number[], targetSum: number): [number, number] | null {
   // Array must be sorted

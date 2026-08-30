@@ -1,7 +1,9 @@
 'use client';
 
+import type { Step } from '../../lib/algorithms/types';
+
 import React, { useState } from 'react';
-import { Step } from '../../lib/algorithms/types';
+
 import { useVisualizerStore } from '../../store/visualizerStore';
 
 interface GridVisualizerProps {

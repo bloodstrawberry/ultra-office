@@ -1,7 +1,7 @@
 'use client';
 
 import { toast } from 'sonner';
-import React, { useRef, useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -42,8 +42,8 @@ import {
   BG_REMOVE_MODELS,
   applyBrushStroke,
   removeBackground,
-  checkIsModelCached,
   type BgStyleType,
+  checkIsModelCached,
   checkWebGPUSupport,
   type BgProgressInfo,
   type BgRemoveResult,

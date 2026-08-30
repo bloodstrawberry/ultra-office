@@ -1,7 +1,8 @@
 'use client';
 
+import type { Step, TreeNodeData } from '../../lib/algorithms/types';
+
 import React from 'react';
-import { Step, TreeNodeData } from '../../lib/algorithms/types';
 
 interface TreeVisualizerProps {
   step: Step;

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 import { CONFIG } from 'src/global-config';
 
-import { TextDiffView } from 'src/sections/text/text-diff-view';
+import { TextDiffView } from 'src/sections/text/view';
 
 // ----------------------------------------------------------------------
 

@@ -38,8 +38,10 @@ import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
 import FullscreenRoundedIcon from '@mui/icons-material/FullscreenRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
+
 import { ThemeSelector } from 'src/components/theme-selector';
-import { DEFAULT_THEME_ID, IDE_THEMES } from 'src/sections/code-runner/core/editor-themes';
+
+import { IDE_THEMES, DEFAULT_THEME_ID } from 'src/sections/code-runner/core/editor-themes';
 
 import { ParameterPanel } from '../components/parameter-panel';
 import { CodeExportDialog } from '../components/code-export-dialog';

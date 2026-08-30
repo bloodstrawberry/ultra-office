@@ -1,4 +1,4 @@
-import { Step } from '../types';
+import type { Step } from '../types';
 
 export const BUBBLE_SORT_CODE = `function bubbleSort(arr: number[]): number[] {
   const n = arr.length;

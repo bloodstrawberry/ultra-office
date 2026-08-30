@@ -2,10 +2,14 @@ import type { Metadata } from 'next';
 
 import { CONFIG } from 'src/global-config';
 
-import { GifStudioView } from 'src/sections/gif-studio/view';
+import { PhotoGifView } from 'src/sections/photo/view';
 
-export const metadata: Metadata = { title: `GIF 편집 스튜디오 | Dashboard - ${CONFIG.appName}` };
+// ----------------------------------------------------------------------
+
+export const metadata: Metadata = {
+  title: `움짤 (GIF) 만들기 | Dashboard - ${CONFIG.appName}`,
+};
 
 export default function Page() {
-  return <GifStudioView />;
+  return <PhotoGifView />;
 }

@@ -1,4 +1,4 @@
-import { Step, CallStackFrame } from '../types';
+import type { Step, CallStackFrame } from '../types';
 
 export const N_QUEENS_CODE = `// N-Queen 문제 백트래킹 (N×N 체스판에 N개의 퀸 배치)
 function solveNQueens(n: number): number[][] {

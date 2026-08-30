@@ -1,5 +1,7 @@
 'use client';
 
+import type { Theme, SxProps } from '@mui/material/styles';
+
 import React from 'react';
 
 import Box from '@mui/material/Box';
@@ -8,7 +10,6 @@ import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
 import FormControl from '@mui/material/FormControl';
 import PaletteRoundedIcon from '@mui/icons-material/PaletteRounded';
-import type { SxProps, Theme } from '@mui/material/styles';
 
 import {
   IDE_THEMES,

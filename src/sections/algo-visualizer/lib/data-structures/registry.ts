@@ -1,4 +1,4 @@
-import { DataStructureDefinition, DataStructureId } from './types';
+import type { DataStructureId, DataStructureDefinition } from './types';
 
 export const DATA_STRUCTURES: Record<DataStructureId, DataStructureDefinition> = {
   array: {

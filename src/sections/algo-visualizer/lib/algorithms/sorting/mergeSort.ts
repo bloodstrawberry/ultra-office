@@ -1,4 +1,4 @@
-import { Step } from '../types';
+import type { Step } from '../types';
 
 export const MERGE_SORT_CODE = `function mergeSort(arr: number[], left = 0, right = arr.length - 1): number[] {
   if (left >= right) return arr;

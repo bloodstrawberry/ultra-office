@@ -1,4 +1,4 @@
-import { Step, CallStackFrame } from '../types';
+import type { Step, CallStackFrame } from '../types';
 
 export const PERMUTATION_COMBINATION_CODE = `// 순열(Permutation: nPr) & 조합(Combination: nCr) 백트래킹 생성
 function generatePermutations(items: number[], r: number): number[][] {

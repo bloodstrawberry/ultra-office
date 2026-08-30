@@ -1,4 +1,4 @@
-import { Step } from '../types';
+import type { Step } from '../types';
 
 export const DYNAMIC_PROGRAMMING_CODE = `// 0-1 배낭 문제 (0-1 Knapsack Problem) DP 테이블 채우기
 function knapsack(weights: number[], values: number[], maxCapacity: number): number {

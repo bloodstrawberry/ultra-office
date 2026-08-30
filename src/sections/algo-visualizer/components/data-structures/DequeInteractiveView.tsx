@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { playButtonClickSound, playSwapSound } from '../../lib/sound';
+
+import { playSwapSound, playButtonClickSound } from '../../lib/sound';
 
 export const DequeInteractiveView: React.FC = () => {
   const [items, setItems] = useState<number[]>([15, 30, 45, 60]);

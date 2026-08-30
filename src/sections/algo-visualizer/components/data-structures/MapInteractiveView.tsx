@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { playButtonClickSound, playFoundSound, playSwapSound } from '../../lib/sound';
+
+import { playSwapSound, playFoundSound, playButtonClickSound } from '../../lib/sound';
 
 export const MapInteractiveView: React.FC = () => {
   const [mapEntries, setMapEntries] = useState<Record<string, string>>({

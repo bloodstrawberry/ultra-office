@@ -103,7 +103,7 @@ function DroppableBreadcrumbItem({
 
 // ----------------------------------------------------------------------
 
-export function FileManagerView() {
+export function OpicDriveView() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();

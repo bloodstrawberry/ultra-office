@@ -5,19 +5,19 @@ import React, { useState } from 'react';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Table from '@mui/material/Table';
+import Button from '@mui/material/Button';
 import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
-import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 
-import { ALGORITHMS, CATEGORIES } from '../../lib/algorithms/registry';
 import { type AlgorithmCategory } from '../../lib/algorithms/types';
+import { ALGORITHMS, CATEGORIES } from '../../lib/algorithms/registry';
 
 export function CatalogTab({ onSelectAlgo }: { onSelectAlgo: (algoId: string) => void }) {
   const [searchQuery, setSearchQuery] = useState('');
