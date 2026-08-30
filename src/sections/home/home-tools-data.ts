@@ -344,19 +344,19 @@ export const TOOLS_DATA: ToolItem[] = [
   {
     id: 'gif-studio',
     title: 'GIF 편집 스튜디오',
-    subtitle: '움짤 제작, 동영상 ↔ GIF 상호 변환, 분할, 배경색 & 배속 편집',
+    subtitle: '움짤 제작(사진/다중 GIF 이어붙이기), 동영상 ↔ GIF 변환, 분할, 배경색 & 배속 편집',
     description:
-      '사진을 모아 움짤 제작, 동영상을 GIF로 변환, GIF를 MP4/WebM 동영상으로 변환, 프레임 분할/추출, 배경색 변경 및 속도/역재생을 지원하는 올인원 GIF 전문 스튜디오입니다.',
+      '사진과 여러 GIF를 필모라 스타일 타임라인에서 이어붙이고 자르고 늘리는 움짤 제작, 동영상 ↔ GIF 상호 변환, 프레임 분할/추출, 배경색 변경 및 속도/역재생을 지원하는 올인원 GIF 전문 스튜디오입니다.',
     category: 'media',
     path: paths.gifStudio.root,
-    tag: '6종 올인원',
+    tag: '5종 올인원',
     tagColor: 'primary',
     isFeatured: true,
     featuredRank: 4,
     accentColor: '#8B5CF6', // Purple
     iconKey: 'gif',
     features: [
-      '사진 다중 선택 고화질 움짤(GIF) 제작',
+      '필모라 스타일 타임라인 사진 & 다중 GIF 이어붙이기',
       '동영상 ↔ GIF 양방향(MP4/WebM) 상호 변환',
       'GIF 프레임 분할 분석 & ZIP 일괄 다운로드',
       'GIF 배경색 변경, 크로마키 투명화 & 속도 조절',

@@ -77,6 +77,64 @@ export interface GifSpeedOptions {
   progressCallback?: (progress: number) => void;
 }
 
+export interface StudioClipItem {
+  id: string;
+  type: 'image' | 'gif';
+  name: string;
+  src: string; // 이미지 원본 또는 GIF 첫 프레임 DataURL
+  originalWidth: number;
+  originalHeight: number;
+  duration: number; // 지속 시간 (초, 예: 1.0)
+  frames?: GifFrameItem[]; // GIF 프레임 목록 (GIF인 경우 필수)
+  trimStart: number; // 0-indexed 시작 프레임
+  trimEnd: number; // 0-indexed 끝 프레임 (inclusive)
+  speedMultiplier: number; // 0.25 to 10.0 배속
+  loopMode: 'normal' | 'reverse' | 'boomerang';
+  repeatCount: number; // 1 ~ 10회 반복
+  skipFrames: boolean; // 50% 프레임 건너뛰기 (압축)
+  rotation: number; // 0, 90, 180, 270
+  flipH: boolean;
+  flipV: boolean;
+  filter: string; // 'none' | 'grayscale' | 'sepia' | 'vintage' | 'cyberpunk' | 'invert' | 'warm' | 'cool'
+}
+
+export interface StudioTextItem {
+  id: string;
+  text: string;
+  startTime: number; // 시작 시간 (초, 예: 0.0)
+  duration: number; // 지속 시간 (초, 예: 2.0)
+  fontSize?: number;
+  fontColor?: string;
+  fontBgColor?: string;
+  position?: 'top' | 'center' | 'bottom' | 'top-left' | 'bottom-right';
+  xPercent?: number; // 0 ~ 100 (%) (기본값: 50)
+  yPercent?: number; // 0 ~ 100 (%) (기본값: 85)
+}
+
+export interface StudioCreateOptions {
+  clips: StudioClipItem[];
+  textClips?: StudioTextItem[];
+  width: number;
+  height: number;
+  fitMode?: 'contain' | 'cover' | 'stretch' | 'fill';
+  bgColor?: string;
+  fps?: number; // 1 to 30
+  sampleInterval?: number; // 1 to 20
+  globalLoopMode?: 'normal' | 'reverse' | 'boomerang';
+  textOverlay?: {
+    text: string;
+    fontSize?: number;
+    fontColor?: string;
+    fontBgColor?: string;
+    position?: 'top' | 'center' | 'bottom' | 'top-left' | 'bottom-right';
+    xPercent?: number;
+    yPercent?: number;
+    applyScope?: 'all' | 'selected';
+    selectedClipId?: string | null;
+  };
+  progressCallback?: (progress: number) => void;
+}
+
 export interface GifMergeClipItem {
   id: string;
   filename: string;
@@ -1539,6 +1597,365 @@ export async function mergeGifs(options: GifMergeOptions): Promise<string> {
           reject(
             new Error(obj.errorMsg || obj.errorCode || 'GIF 합치기 인코딩 중 오류가 발생했습니다.')
           );
+        } else {
+          resolve(obj.image);
+        }
+      }
+    );
+  });
+}
+
+// ----------------------------------------------------------------------
+
+/**
+ * 8. Filmora-style Studio GIF Creator: Unified Multi-Clip (Image + GIF) Renderer & Encoder
+ */
+export async function createStudioGif(options: StudioCreateOptions): Promise<string> {
+  const {
+    clips,
+    width,
+    height,
+    fitMode = 'contain',
+    bgColor = 'transparent',
+    fps = 10,
+    sampleInterval = 10,
+    globalLoopMode = 'normal',
+    textOverlay,
+    progressCallback,
+  } = options;
+
+  if (!clips || clips.length === 0) {
+    throw new Error('인코딩할 미디어 클립이 최소 1개 이상 필요합니다.');
+  }
+
+  // 1. Build Flattened Output Frame Specifications
+  interface StudioFrameSpec {
+    clipId: string;
+    rawSrc: string;
+    delayMs: number;
+    rotation: number;
+    flipH: boolean;
+    flipV: boolean;
+    filter: string;
+  }
+
+  const allFrames: StudioFrameSpec[] = [];
+  const safeMinIntervalMs = 30; // 30ms (~33.3 fps max safe GIF rate)
+  const defaultImageTickMs = Math.max(50, Math.round(1000 / Math.max(1, fps)));
+
+  for (let cIdx = 0; cIdx < clips.length; cIdx += 1) {
+    const clip = clips[cIdx];
+
+    if (clip.type === 'image' || !clip.frames || clip.frames.length === 0) {
+      // Single Static Image Clip
+      const durationSec = Math.max(0.05, clip.duration || 1.0);
+      const totalDurationMs = durationSec * 1000;
+      const speed = Math.max(0.1, clip.speedMultiplier || 1.0);
+      const effectiveDurationMs = totalDurationMs / speed;
+      const repeats = Math.max(1, clip.repeatCount || 1);
+
+      const frameCountPerRepeat = Math.max(1, Math.round(effectiveDurationMs / defaultImageTickMs));
+      const actualDelay = Math.max(
+        safeMinIntervalMs,
+        Math.round(effectiveDurationMs / frameCountPerRepeat)
+      );
+
+      for (let r = 0; r < repeats; r += 1) {
+        for (let k = 0; k < frameCountPerRepeat; k += 1) {
+          allFrames.push({
+            clipId: clip.id,
+            rawSrc: clip.src,
+            delayMs: actualDelay,
+            rotation: clip.rotation || 0,
+            flipH: !!clip.flipH,
+            flipV: !!clip.flipV,
+            filter: clip.filter || 'none',
+          });
+        }
+      }
+    } else {
+      // Animated GIF Clip
+      const start = Math.max(0, Math.min(clip.trimStart ?? 0, clip.frames.length - 1));
+      const end = Math.max(
+        start,
+        Math.min(clip.trimEnd ?? clip.frames.length - 1, clip.frames.length - 1)
+      );
+      let slicedFrames = clip.frames.slice(start, end + 1);
+      if (slicedFrames.length === 0) slicedFrames = [clip.frames[0]];
+
+      // Frame skipping (compression)
+      if (clip.skipFrames && slicedFrames.length > 4) {
+        slicedFrames = slicedFrames.filter((_, idx) => idx % 2 === 0);
+      }
+
+      // Loop direction for this clip
+      let sequence = [...slicedFrames];
+      if (clip.loopMode === 'reverse') {
+        sequence.reverse();
+      } else if (clip.loopMode === 'boomerang') {
+        const rev = [...sequence].reverse().slice(1, -1);
+        sequence = [...sequence, ...rev];
+      }
+
+      // Repeat count
+      const repeats = Math.max(1, Math.min(10, clip.repeatCount || 1));
+      let repeatedSequence: GifFrameItem[] = [];
+      for (let r = 0; r < repeats; r += 1) {
+        repeatedSequence = repeatedSequence.concat(sequence);
+      }
+
+      // Speed adjustment & interval calculation
+      const totalClipRawDurationMs = repeatedSequence.reduce((acc, f) => acc + (f.delay || 100), 0);
+      const speed = Math.max(0.1, clip.speedMultiplier || 1.0);
+      const targetClipDurationMs = totalClipRawDurationMs / speed;
+      const rawIntervalMs = targetClipDurationMs / repeatedSequence.length;
+
+      if (rawIntervalMs >= safeMinIntervalMs) {
+        const centisec = Math.max(3, Math.round(rawIntervalMs / 10));
+        for (const f of repeatedSequence) {
+          allFrames.push({
+            clipId: clip.id,
+            rawSrc: f.dataUrl,
+            delayMs: centisec * 10,
+            rotation: clip.rotation || 0,
+            flipH: !!clip.flipH,
+            flipV: !!clip.flipV,
+            filter: clip.filter || 'none',
+          });
+        }
+      } else {
+        const targetCount = Math.max(2, Math.round(targetClipDurationMs / safeMinIntervalMs));
+        for (let k = 0; k < targetCount; k += 1) {
+          const srcIdx = Math.min(
+            repeatedSequence.length - 1,
+            Math.floor((k / targetCount) * repeatedSequence.length)
+          );
+          allFrames.push({
+            clipId: clip.id,
+            rawSrc: repeatedSequence[srcIdx].dataUrl,
+            delayMs: safeMinIntervalMs,
+            rotation: clip.rotation || 0,
+            flipH: !!clip.flipH,
+            flipV: !!clip.flipV,
+            filter: clip.filter || 'none',
+          });
+        }
+      }
+    }
+
+    if (progressCallback) {
+      progressCallback(Math.round(((cIdx + 1) / clips.length) * 15)); // 0~15%
+    }
+  }
+
+  if (allFrames.length === 0) {
+    throw new Error('인코딩할 프레임이 생성되지 않았습니다.');
+  }
+
+  // 2. Global Sequence Direction
+  let finalFramesSequence = [...allFrames];
+  if (globalLoopMode === 'reverse') {
+    finalFramesSequence.reverse();
+  } else if (globalLoopMode === 'boomerang') {
+    const rev = [...finalFramesSequence].reverse().slice(1, -1);
+    finalFramesSequence = [...finalFramesSequence, ...rev];
+  }
+
+  // 3. Canvas Rendering with Transformations, Filters, and Subtitles
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  if (!ctx) throw new Error('Canvas 2D Context를 초기화할 수 없습니다.');
+
+  const renderedImageUrls: string[] = [];
+  let accumulatedTimeMs = 0;
+
+  for (let i = 0; i < finalFramesSequence.length; i += 1) {
+    const fSpec = finalFramesSequence[i];
+    const frameTimeSec = accumulatedTimeMs / 1000;
+    accumulatedTimeMs += fSpec.delayMs;
+
+    const img = await loadImage(fSpec.rawSrc);
+
+    ctx.save();
+
+    // A. Background
+    if (bgColor && bgColor !== 'transparent') {
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, width, height);
+    } else {
+      ctx.clearRect(0, 0, width, height);
+    }
+
+    // B. CSS Filter String
+    let filterStr = '';
+    if (fSpec.filter === 'grayscale') filterStr = 'grayscale(100%)';
+    else if (fSpec.filter === 'sepia') filterStr = 'sepia(80%)';
+    else if (fSpec.filter === 'vintage') filterStr = 'sepia(50%) contrast(120%)';
+    else if (fSpec.filter === 'cyberpunk') filterStr = 'hue-rotate(180deg) saturate(180%)';
+    else if (fSpec.filter === 'invert') filterStr = 'invert(100%)';
+    else if (fSpec.filter === 'warm') filterStr = 'sepia(30%) saturate(140%)';
+    else if (fSpec.filter === 'cool') filterStr = 'hue-rotate(190deg) saturate(120%)';
+    ctx.filter = filterStr || 'none';
+
+    // C. Rotation & Flip Transformations around Center
+    ctx.translate(width / 2, height / 2);
+    if (fSpec.rotation) {
+      ctx.rotate((fSpec.rotation * Math.PI) / 180);
+    }
+    const scaleX = fSpec.flipH ? -1 : 1;
+    const scaleY = fSpec.flipV ? -1 : 1;
+    ctx.scale(scaleX, scaleY);
+
+    // D. Fit Mode Calculation (drawing centered)
+    let dw = width;
+    let dh = height;
+    let dx = -width / 2;
+    let dy = -height / 2;
+
+    if (fitMode === 'stretch' || fitMode === 'fill') {
+      dw = width;
+      dh = height;
+      dx = -width / 2;
+      dy = -height / 2;
+      ctx.drawImage(img, dx, dy, dw, dh);
+    } else if (fitMode === 'cover') {
+      const imgRatio = img.width / img.height;
+      const targetRatio = width / height;
+      let sWidth = img.width;
+      let sHeight = img.height;
+      let sx = 0;
+      let sy = 0;
+      if (imgRatio > targetRatio) {
+        sWidth = img.height * targetRatio;
+        sx = (img.width - sWidth) / 2;
+      } else {
+        sHeight = img.width / targetRatio;
+        sy = (img.height - sHeight) / 2;
+      }
+      ctx.drawImage(img, sx, sy, sWidth, sHeight, -width / 2, -height / 2, width, height);
+    } else {
+      // contain (default)
+      const scale = Math.min(width / img.width, height / img.height);
+      dw = img.width * scale;
+      dh = img.height * scale;
+      dx = -dw / 2;
+      dy = -dh / 2;
+      ctx.drawImage(img, dx, dy, dw, dh);
+    }
+
+    ctx.restore();
+
+    // E. Subtitle Track Clips (T1 Track) or Legacy Text Overlay
+    const textsToDraw: Array<{
+      text: string;
+      fontSize?: number;
+      fontColor?: string;
+      fontBgColor?: string;
+      position?: string;
+      xPercent?: number;
+      yPercent?: number;
+    }> = [];
+
+    if (options.textClips && options.textClips.length > 0) {
+      const activeClips = options.textClips.filter(
+        (t) =>
+          t.text &&
+          t.text.trim() &&
+          frameTimeSec >= t.startTime &&
+          frameTimeSec < t.startTime + t.duration
+      );
+      textsToDraw.push(...activeClips);
+    } else if (textOverlay && textOverlay.text && textOverlay.text.trim()) {
+      const shouldDraw =
+        textOverlay.applyScope === 'all' ||
+        !textOverlay.selectedClipId ||
+        textOverlay.selectedClipId === fSpec.clipId;
+      if (shouldDraw) {
+        textsToDraw.push(textOverlay);
+      }
+    }
+
+    for (const tItem of textsToDraw) {
+      const fontSize = tItem.fontSize || Math.max(16, Math.round(height * 0.07));
+      const fontColor = tItem.fontColor || '#ffffff';
+      const fontBgColor = tItem.fontBgColor || 'rgba(0,0,0,0.6)';
+      const pos = tItem.position || 'bottom';
+
+      ctx.font = `bold ${fontSize}px sans-serif`;
+      ctx.textAlign = 'center';
+
+      let tx = width / 2;
+      let ty = height - fontSize * 0.8;
+
+      if (typeof tItem.xPercent === 'number' && typeof tItem.yPercent === 'number') {
+        tx = (width * tItem.xPercent) / 100;
+        ty = (height * tItem.yPercent) / 100;
+      } else if (pos === 'top') {
+        ty = fontSize * 1.3;
+      } else if (pos === 'center') {
+        ty = height / 2 + fontSize / 3;
+      } else if (pos === 'top-left') {
+        tx = fontSize * 1.2;
+        ty = fontSize * 1.3;
+        ctx.textAlign = 'left';
+      } else if (pos === 'bottom-right') {
+        tx = width - fontSize * 1.2;
+        ty = height - fontSize * 0.8;
+        ctx.textAlign = 'right';
+      }
+
+      const textMetrics = ctx.measureText(tItem.text);
+      const textW = textMetrics.width + fontSize;
+      const textH = fontSize * 1.4;
+
+      let bgX = tx - textW / 2;
+      if (ctx.textAlign === 'left') bgX = tx - fontSize * 0.3;
+      else if (ctx.textAlign === 'right') bgX = tx - textW + fontSize * 0.3;
+
+      ctx.fillStyle = fontBgColor;
+      ctx.fillRect(bgX, ty - fontSize * 1.05, textW, textH);
+
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = Math.max(2, Math.round(fontSize / 8));
+      ctx.strokeText(tItem.text, tx, ty);
+
+      ctx.fillStyle = fontColor;
+      ctx.fillText(tItem.text, tx, ty);
+    }
+
+    renderedImageUrls.push(canvas.toDataURL('image/png'));
+
+    if (progressCallback) {
+      progressCallback(15 + Math.round(((i + 1) / finalFramesSequence.length) * 45)); // 15~60%
+    }
+  }
+
+  // 4. Calculate Final Interval
+  const avgDelayMs =
+    finalFramesSequence.reduce((acc, f) => acc + f.delayMs, 0) / finalFramesSequence.length;
+  const finalIntervalSec = Math.max(0.03, Math.round(avgDelayMs / 10) / 100);
+
+  // 5. Final GIF Encoding via gifshot
+  return new Promise((resolve, reject) => {
+    gifshot.createGIF(
+      {
+        images: renderedImageUrls,
+        gifWidth: width,
+        gifHeight: height,
+        interval: finalIntervalSec,
+        sampleInterval,
+        numWorkers: 2,
+        progressCallback: (prog: number) => {
+          if (progressCallback) {
+            progressCallback(60 + Math.round(prog * 40)); // 60~100%
+          }
+        },
+      },
+      (obj: { error: boolean; errorCode?: string; errorMsg?: string; image: string }) => {
+        if (obj.error) {
+          reject(new Error(obj.errorMsg || obj.errorCode || 'GIF 인코딩 중 오류가 발생했습니다.'));
         } else {
           resolve(obj.image);
         }

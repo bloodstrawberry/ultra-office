@@ -6,14 +6,11 @@ import { GifStudioBgView } from './gif-studio-bg-view';
 import { GifStudioSplitView } from './gif-studio-split-view';
 import { GifStudioSpeedView } from './gif-studio-speed-view';
 import { GifStudioVideoView } from './gif-studio-video-view';
-import { GifStudioMergeView } from './gif-studio-merge-view';
-import { GifStudioCreateView, type CreateClipItem } from './gif-studio-create-view';
+import { GifStudioCreateView } from './gif-studio-create-view';
 
 // ----------------------------------------------------------------------
 
-export type GifStudioTabType = 'create' | 'video' | 'split' | 'bg' | 'speed' | 'merge';
-
-export type { CreateClipItem };
+export type GifStudioTabType = 'create' | 'video' | 'split' | 'bg' | 'speed';
 
 interface GifStudioViewProps {
   initialTab?: GifStudioTabType;
@@ -33,8 +30,6 @@ export function GifStudioView({ initialTab = 'create' }: GifStudioViewProps) {
       return <GifStudioBgView />;
     case 'speed':
       return <GifStudioSpeedView />;
-    case 'merge':
-      return <GifStudioMergeView />;
     case 'create':
     default:
       return <GifStudioCreateView />;

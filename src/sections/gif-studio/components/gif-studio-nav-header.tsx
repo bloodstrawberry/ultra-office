@@ -3,22 +3,18 @@
 import React from 'react';
 
 import Box from '@mui/material/Box';
-import Tab from '@mui/material/Tab';
-import Tabs from '@mui/material/Tabs';
 import Typography from '@mui/material/Typography';
 import GifRoundedIcon from '@mui/icons-material/GifRounded';
 import SpeedRoundedIcon from '@mui/icons-material/SpeedRounded';
-import LayersRoundedIcon from '@mui/icons-material/LayersRounded';
 import CallSplitRoundedIcon from '@mui/icons-material/CallSplitRounded';
 import ColorLensRoundedIcon from '@mui/icons-material/ColorLensRounded';
 import VideoLibraryRoundedIcon from '@mui/icons-material/VideoLibraryRounded';
 
 import { paths } from 'src/routes/paths';
-import { useRouter } from 'src/routes/hooks';
 
 // ----------------------------------------------------------------------
 
-export type GifStudioTabType = 'create' | 'video' | 'split' | 'bg' | 'speed' | 'merge';
+export type GifStudioTabType = 'create' | 'video' | 'split' | 'bg' | 'speed';
 
 export const GIF_STUDIO_TABS: {
   value: GifStudioTabType;
@@ -30,9 +26,10 @@ export const GIF_STUDIO_TABS: {
 }[] = [
   {
     value: 'create',
-    label: '1. 움짤 만들기',
-    title: '움짤 (GIF) 만들기',
-    description: '여러 장의 이미지로 고화질 애니메이션 움짤(GIF)을 제작합니다.',
+    label: '1. 움짤 만들기 (사진/GIF 이어붙이기)',
+    title: '움짤 (GIF) 만들기 & 멀티미디어 타임라인 스튜디오',
+    description:
+      '여러 장의 사진과 GIF 애니메이션을 필모라 스타일 타임라인에서 늘리고 줄이고 잘라서 고화질 움짤(GIF)을 제작합니다.',
     icon: <GifRoundedIcon sx={{ fontSize: 26 }} />,
     path: paths.gifStudio.create,
   },
@@ -70,41 +67,19 @@ export const GIF_STUDIO_TABS: {
     icon: <SpeedRoundedIcon sx={{ fontSize: 24 }} />,
     path: paths.gifStudio.speed,
   },
-  {
-    value: 'merge',
-    label: '6. 움짤 합치기',
-    title: 'GIF 합치기 · 이어붙이기',
-    description:
-      '여러 개의 GIF를 원하는 순서로 배치하고 구간 자르기, 배속, 역재생, 반복 횟수를 조절하여 하나로 병합합니다.',
-    icon: <LayersRoundedIcon sx={{ fontSize: 24 }} />,
-    path: paths.gifStudio.merge,
-  },
 ];
 
 interface GifStudioNavHeaderProps {
   currentTab: GifStudioTabType;
-  onTabChange?: (newTab: GifStudioTabType) => void;
 }
 
-export function GifStudioNavHeader({ currentTab, onTabChange }: GifStudioNavHeaderProps) {
-  const router = useRouter();
+export function GifStudioNavHeader({ currentTab }: GifStudioNavHeaderProps) {
   const currentTabInfo = GIF_STUDIO_TABS.find((t) => t.value === currentTab) || GIF_STUDIO_TABS[0];
-
-  const handleTabChange = (_: React.SyntheticEvent, newTab: GifStudioTabType) => {
-    if (onTabChange) {
-      onTabChange(newTab);
-    } else {
-      const target = GIF_STUDIO_TABS.find((t) => t.value === newTab);
-      if (target) {
-        router.push(target.path);
-      }
-    }
-  };
 
   return (
     <Box sx={{ mb: 2, flexShrink: 0 }}>
-      {/* 1. Header Info */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+      {/* Header Info */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
         <Box
           sx={{
             width: 40,
@@ -128,28 +103,6 @@ export function GifStudioNavHeader({ currentTab, onTabChange }: GifStudioNavHead
             {currentTabInfo.description}
           </Typography>
         </Box>
-      </Box>
-
-      {/* 2. Navigation Tabs */}
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs
-          value={currentTab}
-          onChange={handleTabChange}
-          variant="scrollable"
-          scrollButtons="auto"
-          sx={{ minHeight: 44 }}
-        >
-          {GIF_STUDIO_TABS.map((tab) => (
-            <Tab
-              key={tab.value}
-              value={tab.value}
-              label={tab.label}
-              icon={tab.icon}
-              iconPosition="start"
-              sx={{ fontWeight: 700, minHeight: 44, py: 0.5 }}
-            />
-          ))}
-        </Tabs>
       </Box>
     </Box>
   );

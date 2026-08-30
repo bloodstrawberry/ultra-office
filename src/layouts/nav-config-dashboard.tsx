@@ -174,7 +174,6 @@ export const navData: NavSectionProps['data'] = [
           { title: 'GIF 프레임 분할 · 추출', path: paths.gifStudio.split },
           { title: 'GIF 배경색 변경 · 투명화', path: paths.gifStudio.bg },
           { title: 'GIF 속도 조절 & 역재생', path: paths.gifStudio.speed },
-          { title: 'GIF 합치기 · 이어붙이기', path: paths.gifStudio.merge },
         ],
       },
       {

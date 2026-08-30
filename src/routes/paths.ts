@@ -76,7 +76,7 @@ export const paths = {
     split: `/gif-studio/split`,
     bg: `/gif-studio/bg`,
     speed: `/gif-studio/speed`,
-    merge: `/gif-studio/merge`,
+    merge: `/gif-studio/create`,
   },
   photo: {
     root: `/photo`,
