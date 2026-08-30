@@ -1190,7 +1190,7 @@ export function AiWatermarkView() {
                       sx={{
                         width: 42,
                         height: 42,
-                        borderRadius: 1.5,
+                        borderRadius: 0,
                         overflow: 'hidden',
                         bgcolor: '#090d16',
                         flexShrink: 0,

@@ -554,7 +554,7 @@ export function ColorView() {
                   flex: '1 1 auto',
                   minHeight: 0,
                   height: '100%',
-                  borderRadius: 2,
+                  borderRadius: 0,
                   overflow: 'auto',
                   display: 'flex',
                   alignItems: 'center',
@@ -578,7 +578,7 @@ export function ColorView() {
                     background:
                       'repeating-conic-gradient(#cbd5e1 0% 25%, #f1f5f9 0% 50%) 50% / 16px 16px',
                     boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
-                    borderRadius: 4,
+                    borderRadius: 0,
                     display: 'block',
                   }}
                 />

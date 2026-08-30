@@ -301,7 +301,7 @@ export function ColorPickerView() {
                   minHeight: 0,
                   height: '100%',
                   bgcolor: '#0f172a',
-                  borderRadius: 2,
+                  borderRadius: 0,
                   overflow: 'auto',
                   display: 'flex',
                   alignItems: 'center',

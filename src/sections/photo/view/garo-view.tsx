@@ -603,7 +603,7 @@ export function GaroView() {
                       sx={{
                         width: '100%',
                         aspectRatio: '1504/741',
-                        borderRadius: 2,
+                        borderRadius: 0,
                         overflow: 'hidden',
                         bgcolor: '#0f172a',
                         display: 'flex',
@@ -757,7 +757,7 @@ export function GaroView() {
                         sx={{
                           width: '100%',
                           aspectRatio: '1504/741',
-                          borderRadius: 2,
+                          borderRadius: 0,
                           overflow: 'hidden',
                           bgcolor: '#0f172a',
                           display: 'flex',

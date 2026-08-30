@@ -606,7 +606,7 @@ export function SeroView() {
                         flex: '1 1 0px',
                         minHeight: 0,
                         aspectRatio: '636/1048',
-                        borderRadius: 2,
+                        borderRadius: 0,
                         overflow: 'hidden',
                         bgcolor: '#0f172a',
                         display: 'flex',
@@ -760,7 +760,7 @@ export function SeroView() {
                         sx={{
                           width: '100%',
                           aspectRatio: '636/1048',
-                          borderRadius: 2,
+                          borderRadius: 0,
                           overflow: 'hidden',
                           bgcolor: '#0f172a',
                           display: 'flex',

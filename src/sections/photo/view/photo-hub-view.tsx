@@ -28,6 +28,8 @@ import PictureAsPdfRoundedIcon from '@mui/icons-material/PictureAsPdfRounded';
 import DocumentScannerRoundedIcon from '@mui/icons-material/DocumentScannerRounded';
 import HourglassBottomRoundedIcon from '@mui/icons-material/HourglassBottomRounded';
 import BrandingWatermarkRoundedIcon from '@mui/icons-material/BrandingWatermarkRounded';
+import SwapHorizRoundedIcon from '@mui/icons-material/SwapHorizRounded';
+import AspectRatioRoundedIcon from '@mui/icons-material/AspectRatioRounded';
 
 import { paths } from 'src/routes/paths';
 
@@ -179,6 +181,15 @@ const TOOL_SECTIONS: { category: string; desc: string; tools: PhotoToolItem[] }[
         tag: 'NEW',
         badgeColor: 'success',
       },
+      {
+        id: 'flip',
+        title: '상하 · 좌우 반전',
+        desc: '정밀 거울 대칭 좌우/상하 반전, 90° 각도 회전, 다중 일괄 반전 & 만화경 대칭 합성',
+        href: paths.photo.flip,
+        icon: <SwapHorizRoundedIcon sx={{ fontSize: 28, color: '#3b82f6' }} />,
+        tag: 'NEW',
+        badgeColor: 'success',
+      },
     ],
   },
   {
@@ -191,6 +202,15 @@ const TOOL_SECTIONS: { category: string; desc: string; tools: PhotoToolItem[] }[
         desc: '화질 손실 없는 고효율 용량 압축 및 Before/After 비교',
         href: paths.photo.compress,
         icon: <CompressRoundedIcon sx={{ fontSize: 28, color: '#10b981' }} />,
+      },
+      {
+        id: 'resize',
+        title: '이미지 크기 조절',
+        desc: '너비/높이 픽셀 지정, 비율 유지, 확대 방지, 25%/50%/75% 및 사용자 비율 조절',
+        href: paths.photo.resize,
+        icon: <AspectRatioRoundedIcon sx={{ fontSize: 28, color: '#6366f1' }} />,
+        tag: 'NEW',
+        badgeColor: 'primary',
       },
       {
         id: 'convert',

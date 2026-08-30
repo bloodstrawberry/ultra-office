@@ -27,7 +27,14 @@ import GridViewRoundedIcon from '@mui/icons-material/GridViewRounded';
 import TransformRoundedIcon from '@mui/icons-material/TransformRounded';
 import TextFieldsRoundedIcon from '@mui/icons-material/TextFieldsRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
+import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
+import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
+import SwapVertRoundedIcon from '@mui/icons-material/SwapVertRounded';
+import SwapHorizRoundedIcon from '@mui/icons-material/SwapHorizRounded';
+import RotateLeftRoundedIcon from '@mui/icons-material/RotateLeftRounded';
+import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
+import RotateRightRoundedIcon from '@mui/icons-material/RotateRightRounded';
 import AutoFixHighRoundedIcon from '@mui/icons-material/AutoFixHighRounded';
 
 import { paths } from 'src/routes/paths';
@@ -37,12 +44,14 @@ import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
+import { shareToKakaoTalk } from 'src/sections/photo/utils/image-processor';
+
 // ----------------------------------------------------------------------
 
 export function ImageToolView() {
-  const [currentTab, setCurrentTab] = useState<'anonymize' | 'ocr' | 'convert' | 'gif' | 'hub'>(
-    'anonymize'
-  );
+  const [currentTab, setCurrentTab] = useState<
+    'anonymize' | 'ocr' | 'convert' | 'gif' | 'flip' | 'hub'
+  >('anonymize');
 
   // Tab 1: Anonymize & Mosaic State
   const [anonImageSrc, setAnonImageSrc] = useState<string | null>(null);
@@ -69,6 +78,15 @@ export function ImageToolView() {
   const [gifInterval, setGifInterval] = useState<number>(0.3); // seconds per frame
   const [isGeneratingGif, setIsGeneratingGif] = useState<boolean>(false);
   const [generatedGifUrl, setGeneratedGifUrl] = useState<string | null>(null);
+
+  // Tab 5: Flip State
+  const [flipImageSrc, setFlipImageSrc] = useState<string | null>(null);
+  const [flipH, setFlipH] = useState<boolean>(false);
+  const [flipV, setFlipV] = useState<boolean>(false);
+  const [flipRotation, setFlipRotation] = useState<number>(0);
+  const [flipFormat, setFlipFormat] = useState<'png' | 'jpeg' | 'webp'>('png');
+  const [flipQuality, setFlipQuality] = useState<number>(92);
+  const flipCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // --------------------------------------------------------------------
   // Handlers for Tab 1 (Anonymize)
@@ -212,6 +230,60 @@ export function ImageToolView() {
     disabled: currentTab !== 'gif',
   });
 
+  const renderFlipCanvas = useCallback(
+    (src: string, isH: boolean, isV: boolean, rotation: number) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        const canvas = flipCanvasRef.current;
+        if (!canvas) return;
+        const normRot = ((rotation % 360) + 360) % 360;
+        const isSwap = normRot === 90 || normRot === 270;
+        const width = isSwap ? img.height : img.width;
+        const height = isSwap ? img.width : img.height;
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        ctx.clearRect(0, 0, width, height);
+        ctx.save();
+        ctx.translate(width / 2, height / 2);
+        ctx.rotate((normRot * Math.PI) / 180);
+        ctx.scale(isH ? -1 : 1, isV ? -1 : 1);
+        ctx.drawImage(img, -img.width / 2, -img.height / 2);
+        ctx.restore();
+      };
+      img.src = src;
+    },
+    []
+  );
+
+  const processFlipFile = useCallback(
+    (file: File) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const src = event.target?.result as string;
+        setFlipImageSrc(src);
+        setFlipH(false);
+        setFlipV(false);
+        setFlipRotation(0);
+        renderFlipCanvas(src, false, false, 0);
+      };
+      reader.readAsDataURL(file);
+    },
+    [renderFlipCanvas]
+  );
+
+  const flipDrop = useImageDropPaste({
+    onFiles: (files) => {
+      if (files[0]) processFlipFile(files[0]);
+    },
+    multiple: false,
+    disabled: currentTab !== 'flip',
+  });
+
   const runOcr = async () => {
     if (!ocrImageSrc) {
       toast.error('먼저 이미지를 업로드해 주세요.');
@@ -340,6 +412,100 @@ export function ImageToolView() {
     });
   };
 
+  const handleFlipUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    processFlipFile(file);
+    if (e.target) e.target.value = '';
+  };
+
+  const handleToggleFlipH = () => {
+    if (!flipImageSrc) return;
+    const nextH = !flipH;
+    setFlipH(nextH);
+    renderFlipCanvas(flipImageSrc, nextH, flipV, flipRotation);
+  };
+
+  const handleToggleFlipV = () => {
+    if (!flipImageSrc) return;
+    const nextV = !flipV;
+    setFlipV(nextV);
+    renderFlipCanvas(flipImageSrc, flipH, nextV, flipRotation);
+  };
+
+  const handleRotateCW = () => {
+    if (!flipImageSrc) return;
+    const nextRot = (flipRotation + 90) % 360;
+    setFlipRotation(nextRot);
+    renderFlipCanvas(flipImageSrc, flipH, flipV, nextRot);
+  };
+
+  const handleRotateCCW = () => {
+    if (!flipImageSrc) return;
+    const nextRot = (flipRotation - 90 + 360) % 360;
+    setFlipRotation(nextRot);
+    renderFlipCanvas(flipImageSrc, flipH, flipV, nextRot);
+  };
+
+  const handleResetFlip = () => {
+    if (!flipImageSrc) return;
+    setFlipH(false);
+    setFlipV(false);
+    setFlipRotation(0);
+    renderFlipCanvas(flipImageSrc, false, false, 0);
+    toast.info('반전 및 회전 상태가 초기화되었습니다.');
+  };
+
+  const handleClearFlip = () => {
+    setFlipImageSrc(null);
+    setFlipH(false);
+    setFlipV(false);
+    setFlipRotation(0);
+  };
+
+  const handleDownloadFlip = () => {
+    if (!flipCanvasRef.current) return;
+    const mime =
+      flipFormat === 'png' ? 'image/png' : flipFormat === 'webp' ? 'image/webp' : 'image/jpeg';
+    const ext = flipFormat === 'jpeg' ? 'jpg' : flipFormat;
+    const url = flipCanvasRef.current.toDataURL(mime, flipQuality / 100);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `flipped_image_${Date.now()}.${ext}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('반전 이미지가 다운로드되었습니다.');
+  };
+
+  const handleShareFlip = async () => {
+    if (!flipCanvasRef.current) return;
+    const mime =
+      flipFormat === 'png' ? 'image/png' : flipFormat === 'webp' ? 'image/webp' : 'image/jpeg';
+    const url = flipCanvasRef.current.toDataURL(mime, flipQuality / 100);
+    try {
+      await shareToKakaoTalk(url, '상하 · 좌우 반전 이미지', 'flipped_image.png');
+    } catch {
+      toast.error('공유하기 처리 중 오류가 발생했습니다.');
+    }
+  };
+
+  const handleCopyFlipToClipboard = async () => {
+    if (!flipCanvasRef.current) return;
+    try {
+      flipCanvasRef.current.toBlob(async (blob) => {
+        if (!blob) {
+          toast.error('클립보드 복사 실패');
+          return;
+        }
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        toast.success('이미지가 클립보드에 복사되었습니다.');
+      }, 'image/png');
+    } catch {
+      toast.error('클립보드 복사를 지원하지 않는 브라우저이거나 권한이 없습니다.');
+    }
+  };
+
   return (
     <DashboardContent>
       <Box sx={{ mb: 2, flexShrink: 0 }}>
@@ -347,8 +513,8 @@ export function ImageToolView() {
           이미지 도구 워크스테이션 (Image Tools)
         </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          익명화 모자이크, 다국어 OCR 텍스트 추출, 일괄 포맷 변환, 움직이는 GIF 애니메이션
-          스튜디오를 제공합니다.
+          익명화 모자이크, 다국어 OCR 텍스트 추출, 일괄 포맷 변환, 움직이는 GIF 애니메이션, 상하 ·
+          좌우 반전 스튜디오를 제공합니다.
         </Typography>
       </Box>
 
@@ -383,7 +549,13 @@ export function ImageToolView() {
             iconPosition="start"
           />
           <Tab
-            label="5. 포토 스튜디오 전체도구"
+            label="5. 상하 · 좌우 반전"
+            value="flip"
+            icon={<SwapHorizRoundedIcon />}
+            iconPosition="start"
+          />
+          <Tab
+            label="6. 포토 스튜디오 전체도구"
             value="hub"
             icon={<GridViewRoundedIcon />}
             iconPosition="start"
@@ -491,7 +663,7 @@ export function ImageToolView() {
               {anonImageSrc ? (
                 <canvas
                   ref={anonCanvasRef}
-                  style={{ maxWidth: '100%', maxHeight: '600px', borderRadius: 8 }}
+                  style={{ maxWidth: '100%', maxHeight: '600px', borderRadius: 0 }}
                 />
               ) : (
                 <Box sx={{ textAlign: 'center', color: 'text.secondary' }}>
@@ -573,7 +745,7 @@ export function ImageToolView() {
                       maxWidth: '100%',
                       maxHeight: 320,
                       objectFit: 'contain',
-                      borderRadius: 6,
+                      borderRadius: 0,
                     }}
                   />
                 </Box>
@@ -866,7 +1038,7 @@ export function ImageToolView() {
                   <img
                     src={generatedGifUrl}
                     alt="Generated GIF"
-                    style={{ maxWidth: '100%', borderRadius: 8, marginBottom: 16 }}
+                    style={{ maxWidth: '100%', borderRadius: 0, marginBottom: 16 }}
                   />
                   <br />
                   <Button
@@ -891,7 +1063,262 @@ export function ImageToolView() {
           </Box>
         )}
 
-        {/* TAB 5: PHOTO STUDIO HUB SHORTCUTS */}
+        {/* TAB 5: FLIP & ROTATE STUDIO */}
+        {currentTab === 'flip' && (
+          <Box
+            sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 380px' }, gap: 3 }}
+          >
+            {/* Left: Canvas Preview Area */}
+            <Card
+              {...flipDrop.getRootProps()}
+              sx={{
+                p: 2,
+                borderRadius: 2,
+                minHeight: 480,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                bgcolor: flipDrop.isDragActive ? 'action.hover' : 'background.neutral',
+                border: flipDrop.isDragActive ? '2px dashed' : 'none',
+                borderColor: 'primary.main',
+                transition: (theme) =>
+                  theme.transitions.create(['border-color', 'background-color']),
+              }}
+            >
+              {flipImageSrc ? (
+                <canvas
+                  ref={flipCanvasRef}
+                  style={{
+                    maxWidth: '100%',
+                    maxHeight: '620px',
+                    borderRadius: 0,
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                  }}
+                />
+              ) : (
+                <Box sx={{ textAlign: 'center', color: 'text.secondary', p: 3 }}>
+                  <SwapHorizRoundedIcon sx={{ fontSize: 56, mb: 1, opacity: 0.5 }} />
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 0.5 }}>
+                    사진을 업로드하면 상하/좌우 반전 미리보기가 표시됩니다.
+                  </Typography>
+                  <Typography variant="body2" sx={{ opacity: 0.7 }}>
+                    클릭하여 사진을 선택하거나 이미지를 드래그 & 붙여넣기(Ctrl+V)하세요.
+                  </Typography>
+                </Box>
+              )}
+            </Card>
+
+            {/* Right: Controls & Actions Panel */}
+            <Card
+              sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2.5 }}
+            >
+              <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+                상하 · 좌우 반전 & 회전 설정
+              </Typography>
+
+              <Button
+                variant="contained"
+                component="label"
+                startIcon={<CloudUploadRoundedIcon />}
+                sx={{ py: 1.2, fontWeight: 700 }}
+              >
+                사진 업로드
+                <input type="file" hidden accept="image/*" onChange={handleFlipUpload} />
+              </Button>
+
+              <Box>
+                <Typography variant="caption" sx={{ fontWeight: 700, mb: 1, display: 'block' }}>
+                  거울 대칭 반전 (Mirror Flip)
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Button
+                    fullWidth
+                    variant={flipH ? 'contained' : 'outlined'}
+                    color={flipH ? 'primary' : 'inherit'}
+                    size="small"
+                    startIcon={<SwapHorizRoundedIcon />}
+                    disabled={!flipImageSrc}
+                    onClick={handleToggleFlipH}
+                    sx={{ fontWeight: 700 }}
+                  >
+                    좌우 반전
+                  </Button>
+                  <Button
+                    fullWidth
+                    variant={flipV ? 'contained' : 'outlined'}
+                    color={flipV ? 'primary' : 'inherit'}
+                    size="small"
+                    startIcon={<SwapVertRoundedIcon />}
+                    disabled={!flipImageSrc}
+                    onClick={handleToggleFlipV}
+                    sx={{ fontWeight: 700 }}
+                  >
+                    상하 반전
+                  </Button>
+                </Box>
+              </Box>
+
+              <Box>
+                <Typography variant="caption" sx={{ fontWeight: 700, mb: 1, display: 'block' }}>
+                  방향 회전 (Rotate)
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    size="small"
+                    startIcon={<RotateLeftRoundedIcon />}
+                    disabled={!flipImageSrc}
+                    onClick={handleRotateCCW}
+                  >
+                    반시계 90°
+                  </Button>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    size="small"
+                    startIcon={<RotateRightRoundedIcon />}
+                    disabled={!flipImageSrc}
+                    onClick={handleRotateCW}
+                  >
+                    시계 90°
+                  </Button>
+                  <Tooltip title="초기화">
+                    <span>
+                      <IconButton
+                        size="small"
+                        color="error"
+                        disabled={!flipImageSrc}
+                        onClick={handleResetFlip}
+                      >
+                        <RestartAltRoundedIcon />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                </Box>
+              </Box>
+
+              {flipImageSrc && (
+                <Box sx={{ display: 'flex', gap: 0.8, flexWrap: 'wrap' }}>
+                  <Chip
+                    size="small"
+                    label={flipH ? '좌우 반전 ON' : '좌우 원본'}
+                    color={flipH ? 'primary' : 'default'}
+                    variant={flipH ? 'filled' : 'outlined'}
+                  />
+                  <Chip
+                    size="small"
+                    label={flipV ? '상하 반전 ON' : '상하 원본'}
+                    color={flipV ? 'primary' : 'default'}
+                    variant={flipV ? 'filled' : 'outlined'}
+                  />
+                  <Chip
+                    size="small"
+                    label={`회전 ${flipRotation}°`}
+                    color={flipRotation !== 0 ? 'secondary' : 'default'}
+                    variant={flipRotation !== 0 ? 'filled' : 'outlined'}
+                  />
+                </Box>
+              )}
+
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: flipFormat === 'png' ? '1fr' : '1fr 1fr',
+                  gap: 1.5,
+                }}
+              >
+                <FormControl fullWidth size="small">
+                  <InputLabel>저장 포맷</InputLabel>
+                  <Select
+                    value={flipFormat}
+                    label="저장 포맷"
+                    onChange={(e) => setFlipFormat(e.target.value as 'png' | 'jpeg' | 'webp')}
+                  >
+                    <MenuItem value="png">PNG (무손실)</MenuItem>
+                    <MenuItem value="jpeg">JPG (표준 압축)</MenuItem>
+                    <MenuItem value="webp">WebP (초경량)</MenuItem>
+                  </Select>
+                </FormControl>
+
+                {flipFormat !== 'png' && (
+                  <Box>
+                    <Typography
+                      variant="caption"
+                      sx={{ fontWeight: 700, mb: 0.5, display: 'block' }}
+                    >
+                      품질 ({flipQuality}%)
+                    </Typography>
+                    <Slider
+                      value={flipQuality}
+                      min={40}
+                      max={100}
+                      size="small"
+                      onChange={(_, v) => setFlipQuality(v as number)}
+                    />
+                  </Box>
+                )}
+              </Box>
+
+              {/* Action Buttons (AI 배경 제거 스타일) */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 1.25,
+                  mt: 'auto',
+                  pt: 0.5,
+                }}
+              >
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  color="inherit"
+                  onClick={handleClearFlip}
+                  disabled={!flipImageSrc}
+                  startIcon={<RefreshRoundedIcon />}
+                  sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+                >
+                  다른 사진
+                </Button>
+                <Button
+                  fullWidth
+                  variant="contained"
+                  color="primary"
+                  startIcon={<DownloadRoundedIcon />}
+                  disabled={!flipImageSrc}
+                  onClick={handleDownloadFlip}
+                  sx={{ py: 1.4, borderRadius: 2, fontWeight: 700, fontSize: '0.95rem' }}
+                >
+                  저장
+                </Button>
+                <Button
+                  fullWidth
+                  variant="contained"
+                  color="secondary"
+                  startIcon={<ShareRoundedIcon />}
+                  disabled={!flipImageSrc}
+                  onClick={handleShareFlip}
+                  sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+                >
+                  공유
+                </Button>
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  startIcon={<ContentCopyRoundedIcon />}
+                  disabled={!flipImageSrc}
+                  onClick={handleCopyFlipToClipboard}
+                  sx={{ py: 1, borderRadius: 2, fontWeight: 600 }}
+                >
+                  클립보드 복사
+                </Button>
+              </Box>
+            </Card>
+          </Box>
+        )}
+
+        {/* TAB 6: PHOTO STUDIO HUB SHORTCUTS */}
         {currentTab === 'hub' && (
           <Box
             sx={{
@@ -901,6 +1328,11 @@ export function ImageToolView() {
             }}
           >
             {[
+              {
+                title: '상하 · 좌우 반전 스튜디오',
+                desc: '정밀 좌우 대칭, 상하 반전, 90도 회전 & 다중 일괄 변환',
+                path: paths.photo.flip,
+              },
               {
                 title: '화풍 변환 스튜디오',
                 desc: '유화, 수채화, 사이버펑크 AI 스타일 변환',

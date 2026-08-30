@@ -433,7 +433,7 @@ export function PdfView() {
                             width: '100%',
                             aspectRatio: orientation === 'portrait' ? '210/297' : '297/210',
                             bgcolor: '#0f172a',
-                            borderRadius: 1.5,
+                            borderRadius: 0,
                             overflow: 'hidden',
                             display: 'flex',
                             alignItems: 'center',
@@ -873,7 +873,7 @@ export function PdfView() {
                             sx={{
                               width: '100%',
                               aspectRatio: '210/297',
-                              borderRadius: 1,
+                              borderRadius: 0,
                               overflow: 'hidden',
                               bgcolor: '#ffffff',
                               boxShadow: 1,

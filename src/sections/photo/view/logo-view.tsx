@@ -486,7 +486,7 @@ export function LogoView() {
                   flex: '1 1 auto',
                   minHeight: 0,
                   height: '100%',
-                  borderRadius: 2,
+                  borderRadius: 0,
                   overflow: 'hidden',
                   bgcolor: '#0f172a',
                 }}
@@ -739,7 +739,7 @@ export function LogoView() {
                 sx={{
                   width: '100%',
                   height: 180,
-                  borderRadius: 2,
+                  borderRadius: 0,
                   overflow: 'hidden',
                   bgcolor: '#0f172a',
                   boxShadow: '0 10px 25px -5px rgba(0,0,0,0.3)',
@@ -759,7 +759,7 @@ export function LogoView() {
                       maxWidth: '100%',
                       maxHeight: '100%',
                       objectFit: 'contain',
-                      borderRadius: 4,
+                      borderRadius: 0,
                     }}
                   />
                 ) : (

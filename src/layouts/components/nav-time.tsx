@@ -5,7 +5,10 @@ import type { BoxProps } from '@mui/material/Box';
 import { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
+
+import { ClockDialog } from './clock-dialog';
 
 // ----------------------------------------------------------------------
 
@@ -103,6 +106,7 @@ function SevenSegmentColon({ height = 28 }: SevenSegmentColonProps) {
 // ----------------------------------------------------------------------
 
 export function NavTime({ sx, ...other }: BoxProps) {
+  const [dialogOpen, setDialogOpen] = useState<boolean>(false);
   const [timeState, setTimeState] = useState({
     period: '오후',
     hours: '12',
@@ -138,75 +142,103 @@ export function NavTime({ sx, ...other }: BoxProps) {
   const digitHeight = 26;
 
   return (
-    <Box
-      sx={[
-        {
-          display: 'inline-flex',
-          alignItems: 'flex-end',
-          gap: 0.8,
-          color: 'text.primary',
-          userSelect: 'none',
-          visibility: mounted ? 'visible' : 'hidden',
-          lineHeight: 1,
-        },
-        ...(Array.isArray(sx) ? sx : [sx]),
-      ]}
-      {...other}
-    >
-      {/* 오전 / 오후 indicator */}
-      <Typography
-        component="span"
-        sx={{
-          fontSize: '0.875rem',
-          fontWeight: 600,
-          color: 'text.secondary',
-          letterSpacing: '-0.02em',
-          pb: '2px',
-          mr: 0.2,
-        }}
-      >
-        {timeState.period}
-      </Typography>
+    <>
+      <Tooltip title="시계 도구 (타이머 · 스톱워치 · 세계시간)" arrow placement="bottom">
+        <Box
+          role="button"
+          tabIndex={0}
+          onClick={() => setDialogOpen(true)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setDialogOpen(true);
+            }
+          }}
+          sx={[
+            {
+              display: 'inline-flex',
+              alignItems: 'flex-end',
+              gap: 0.8,
+              color: 'text.primary',
+              userSelect: 'none',
+              visibility: mounted ? 'visible' : 'hidden',
+              lineHeight: 1,
+              cursor: 'pointer',
+              p: 0.75,
+              borderRadius: 1.5,
+              transition: 'background-color 0.2s, color 0.2s',
+              '&:hover': {
+                bgcolor: 'action.hover',
+                color: 'primary.main',
+              },
+              '&:focus-visible': {
+                outline: '2px solid',
+                outlineColor: 'primary.main',
+              },
+            },
+            ...(Array.isArray(sx) ? sx : [sx]),
+          ]}
+          {...other}
+        >
+          {/* 오전 / 오후 indicator */}
+          <Typography
+            component="span"
+            sx={{
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              color: 'inherit',
+              opacity: 0.7,
+              letterSpacing: '-0.02em',
+              pb: '2px',
+              mr: 0.2,
+            }}
+          >
+            {timeState.period}
+          </Typography>
 
-      {/* 7-Segment Digital Clock: H(H) : MM : SS */}
-      <Box
-        sx={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 0.6,
-        }}
-      >
-        {/* Hours */}
-        <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.25 }}>
-          {timeState.hours.split('').map((digit, i) => (
-            <SevenSegmentDigit key={`h-${i}`} digit={digit} height={digitHeight} />
-          ))}
-        </Box>
+          {/* 7-Segment Digital Clock: H(H) : MM : SS */}
+          <Box
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 0.6,
+            }}
+          >
+            {/* Hours */}
+            <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.25 }}>
+              {timeState.hours.split('').map((digit, i) => (
+                <SevenSegmentDigit key={`h-${i}`} digit={digit} height={digitHeight} />
+              ))}
+            </Box>
 
-        {/* Colon 1 */}
-        <Box sx={{ display: 'inline-flex', alignItems: 'center', px: 0.2 }}>
-          <SevenSegmentColon height={digitHeight} />
-        </Box>
+            {/* Colon 1 */}
+            <Box sx={{ display: 'inline-flex', alignItems: 'center', px: 0.2 }}>
+              <SevenSegmentColon height={digitHeight} />
+            </Box>
 
-        {/* Minutes */}
-        <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.25 }}>
-          {timeState.minutes.split('').map((digit, i) => (
-            <SevenSegmentDigit key={`m-${i}`} digit={digit} height={digitHeight} />
-          ))}
-        </Box>
+            {/* Minutes */}
+            <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.25 }}>
+              {timeState.minutes.split('').map((digit, i) => (
+                <SevenSegmentDigit key={`m-${i}`} digit={digit} height={digitHeight} />
+              ))}
+            </Box>
 
-        {/* Colon 2 */}
-        <Box sx={{ display: 'inline-flex', alignItems: 'center', px: 0.2 }}>
-          <SevenSegmentColon height={digitHeight} />
-        </Box>
+            {/* Colon 2 */}
+            <Box sx={{ display: 'inline-flex', alignItems: 'center', px: 0.2 }}>
+              <SevenSegmentColon height={digitHeight} />
+            </Box>
 
-        {/* Seconds */}
-        <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.25 }}>
-          {timeState.seconds.split('').map((digit, i) => (
-            <SevenSegmentDigit key={`s-${i}`} digit={digit} height={digitHeight} />
-          ))}
+            {/* Seconds */}
+            <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.25 }}>
+              {timeState.seconds.split('').map((digit, i) => (
+                <SevenSegmentDigit key={`s-${i}`} digit={digit} height={digitHeight} />
+              ))}
+            </Box>
+          </Box>
         </Box>
-      </Box>
-    </Box>
+      </Tooltip>
+
+      <ClockDialog open={dialogOpen} onClose={() => setDialogOpen(false)} />
+    </>
   );
 }

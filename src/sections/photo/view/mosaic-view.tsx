@@ -641,7 +641,7 @@ export function MosaicView() {
                   minHeight: 0,
                   height: '100%',
                   bgcolor: '#0f172a',
-                  borderRadius: 2,
+                  borderRadius: 0,
                   overflow: 'auto',
                   display: 'flex',
                   alignItems: 'center',
@@ -685,7 +685,7 @@ export function MosaicView() {
                     objectFit: 'contain',
                     cursor: 'crosshair',
                     touchAction: 'none',
-                    borderRadius: 4,
+                    borderRadius: 0,
                   }}
                 />
               </Box>

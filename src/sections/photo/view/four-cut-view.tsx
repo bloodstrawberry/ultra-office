@@ -546,7 +546,7 @@ export function FourCutView() {
                   maxHeight: '100%',
                   maxWidth: '100%',
                   objectFit: 'contain',
-                  borderRadius: 12,
+                  borderRadius: 0,
                   boxShadow: '0 20px 25px -5px rgba(0,0,0,0.5)',
                 }}
               />

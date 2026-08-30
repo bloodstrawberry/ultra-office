@@ -591,7 +591,7 @@ export function WatermarkView() {
                     minHeight: 0,
                     height: '100%',
                     bgcolor: '#0f172a',
-                    borderRadius: 2,
+                    borderRadius: 0,
                     overflow: 'hidden',
                     display: 'flex',
                     alignItems: 'center',
@@ -658,7 +658,7 @@ export function WatermarkView() {
                         sx={{
                           width: 36,
                           height: 36,
-                          borderRadius: 1,
+                          borderRadius: 0,
                           overflow: 'hidden',
                           bgcolor: '#0f172a',
                           flexShrink: 0,

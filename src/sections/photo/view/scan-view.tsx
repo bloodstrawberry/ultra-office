@@ -357,7 +357,7 @@ export function ScanView() {
                     minHeight: 0,
                     height: '100%',
                     bgcolor: '#0f172a',
-                    borderRadius: 2,
+                    borderRadius: 0,
                     overflow: 'hidden',
                     display: 'flex',
                     alignItems: 'center',
@@ -433,7 +433,7 @@ export function ScanView() {
                         sx={{
                           width: 36,
                           height: 36,
-                          borderRadius: 1,
+                          borderRadius: 0,
                           overflow: 'hidden',
                           bgcolor: '#ffffff',
                           border: '1px solid #e2e8f0',

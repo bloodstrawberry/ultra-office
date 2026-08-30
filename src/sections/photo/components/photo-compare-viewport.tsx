@@ -2,7 +2,7 @@
 
 import type { Theme, SxProps } from '@mui/material/styles';
 
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useMemo, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -73,6 +73,57 @@ export function PhotoCompareViewport({
   const [internalSplitMode, setInternalSplitMode] = useState<SplitMode>('inside');
   const [internalSplitStart, setInternalSplitStart] = useState<number>(25);
   const [internalSplitEnd, setInternalSplitEnd] = useState<number>(75);
+
+  const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number }>({
+    width: 0,
+    height: 0,
+  });
+
+  useEffect(() => {
+    const targetSrc = resultSrc || originalSrc;
+    if (!targetSrc) return;
+    const img = new Image();
+    img.src = targetSrc;
+    img.onload = () => {
+      if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+        setImageDimensions({ width: img.naturalWidth, height: img.naturalHeight });
+      }
+    };
+  }, [originalSrc, resultSrc]);
+
+  const viewportAreaRef = useRef<HTMLDivElement | null>(null);
+  const [viewportSize, setViewportSize] = useState<{ width: number; height: number }>({
+    width: 0,
+    height: 0,
+  });
+
+  useEffect(() => {
+    const el = viewportAreaRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        if (width > 0 && height > 0) {
+          setViewportSize({ width, height });
+        }
+      }
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const photoBoxSize = useMemo(() => {
+    const imgW = imageDimensions.width;
+    const imgH = imageDimensions.height;
+    if (!imgW || !imgH || !viewportSize.width || !viewportSize.height) {
+      return { width: '100%', height: '100%' };
+    }
+    const scale = Math.min(viewportSize.width / imgW, viewportSize.height / imgH);
+    return {
+      width: Math.max(1, Math.round(imgW * scale)),
+      height: Math.max(1, Math.round(imgH * scale)),
+    };
+  }, [imageDimensions, viewportSize]);
 
   const previewMode = controlledPreviewMode ?? internalPreviewMode;
   const setPreviewMode = (mode: ComparePreviewMode) => {
@@ -269,30 +320,23 @@ export function PhotoCompareViewport({
         )}
       </Box>
 
-      {/* 2. Interactive Viewport Canvas */}
+      {/* 2. Interactive Viewport Canvas Area */}
       <Box
-        ref={splitContainerRef}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
+        ref={viewportAreaRef}
         sx={{
           position: 'relative',
           width: '100%',
           flex: '1 1 auto',
           minHeight: 0,
           height: '100%',
-          borderRadius: 2,
+          borderRadius: 0,
           overflow: 'hidden',
           userSelect: 'none',
-          touchAction: 'none',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background:
-            bgStyle === 'transparent' || previewMode === 'split'
-              ? 'repeating-conic-gradient(#cbd5e1 0% 25%, #f1f5f9 0% 50%) 50% / 20px 20px'
-              : bgStyle === 'none'
-                ? 'transparent'
-                : 'background.neutral',
+          bgcolor: 'background.neutral',
+          p: 0,
         }}
       >
         {isLoading ? (
@@ -327,390 +371,432 @@ export function PhotoCompareViewport({
               )}
             </Box>
           </Box>
-        ) : previewMode === 'mask' && maskSrc ? (
-          /* Mask Mode */
-          <Box
-            component="img"
-            src={maskSrc}
-            alt="Alpha Mask"
-            sx={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-            }}
-          />
-        ) : previewMode === 'single' ? (
-          /* Single Result Mode */
-          <Box
-            component="img"
-            src={resultSrc || originalSrc}
-            alt="Result"
-            sx={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-            }}
-          />
         ) : (
-          /* Split Comparison Mode */
-          <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
-            {/* Background Layer: Processed Result */}
-            <Box
-              component="img"
-              src={resultSrc || originalSrc}
-              alt="Result Layer"
-              sx={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                objectFit: 'contain',
-              }}
-            />
-
-            {/* Floating Quick Pill Toggle on Canvas */}
-            <Box
-              sx={{
-                position: 'absolute',
-                top: 12,
-                left: '50%',
-                transform: 'translateX(-50%)',
-                zIndex: 12,
-                bgcolor: 'background.paper',
-                color: 'text.primary',
-                border: '1.5px solid',
-                borderColor: 'primary.main',
-                borderRadius: 20,
-                px: 1.5,
-                py: 0.5,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-                boxShadow: 3,
-                userSelect: 'none',
-              }}
-            >
+          <Box
+            ref={splitContainerRef}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            sx={{
+              position: 'relative',
+              width: photoBoxSize.width,
+              height: photoBoxSize.height,
+              flexShrink: 0,
+              borderRadius: 0,
+              overflow: 'hidden',
+              userSelect: 'none',
+              touchAction: 'none',
+              background:
+                bgStyle === 'transparent' || previewMode === 'split'
+                  ? 'repeating-conic-gradient(#cbd5e1 0% 25%, #f1f5f9 0% 50%) 50% / 16px 16px'
+                  : 'background.neutral',
+            }}
+          >
+            {previewMode === 'mask' && maskSrc ? (
+              /* Mask Mode */
               <Box
-                onClick={() =>
-                  setSplitOrientation(splitOrientation === 'horizontal' ? 'vertical' : 'horizontal')
-                }
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.5,
-                  cursor: 'pointer',
-                  px: 0.8,
-                  py: 0.2,
-                  borderRadius: 1,
-                  bgcolor: 'action.hover',
-                  '&:hover': { bgcolor: 'primary.lighter' },
-                }}
-              >
-                {splitOrientation === 'horizontal' ? (
-                  <SwapHorizRoundedIcon sx={{ fontSize: 18, color: 'primary.main' }} />
-                ) : (
-                  <SwapVertRoundedIcon sx={{ fontSize: 18, color: 'primary.main' }} />
-                )}
-                <Typography variant="caption" sx={{ fontWeight: 800 }}>
-                  {splitOrientation === 'horizontal' ? '↔ 가로(좌우)' : '↕ 세로(상하)'}
-                </Typography>
-              </Box>
-
-              <Box
-                onClick={() => setSplitMode(splitMode === 'inside' ? 'outside' : 'inside')}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.5,
-                  cursor: 'pointer',
-                  px: 0.8,
-                  py: 0.2,
-                  borderRadius: 1,
-                  bgcolor: 'action.hover',
-                  '&:hover': { bgcolor: 'primary.lighter' },
-                }}
-              >
-                <Typography variant="caption" sx={{ fontWeight: 800, whiteSpace: 'nowrap' }}>
-                  {splitOrientation === 'horizontal'
-                    ? splitMode === 'inside'
-                      ? '→ [중앙 적용] ←'
-                      : '← [양끝 적용] →'
-                    : splitMode === 'inside'
-                      ? '↓ [중앙 적용] ↑'
-                      : '↑ [상하 적용] ↓'}
-                </Typography>
-                <Chip
-                  label="방향 전환"
-                  size="small"
-                  color="primary"
-                  variant="filled"
-                  sx={{ height: 18, fontSize: '0.65rem', fontWeight: 700 }}
-                />
-              </Box>
-            </Box>
-
-            {/* Foreground Layer: Original Image Clipped */}
-            {splitOrientation === 'horizontal' ? (
-              splitMode === 'inside' ? (
-                <>
-                  {/* Left (0 to splitStart%) */}
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: '100%',
-                      overflow: 'hidden',
-                      clipPath: `polygon(0 0, ${splitStart}% 0, ${splitStart}% 100%, 0 100%)`,
-                    }}
-                  >
-                    <Box
-                      component="img"
-                      src={originalSrc}
-                      alt="Original Left"
-                      sx={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                    />
-                  </Box>
-
-                  {/* Right (splitEnd% to 100%) */}
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: '100%',
-                      overflow: 'hidden',
-                      clipPath: `polygon(${splitEnd}% 0, 100% 0, 100% 100%, ${splitEnd}% 100%)`,
-                    }}
-                  >
-                    <Box
-                      component="img"
-                      src={originalSrc}
-                      alt="Original Right"
-                      sx={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                    />
-                  </Box>
-                </>
-              ) : (
-                /* Center (splitStart% to splitEnd%) */
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    overflow: 'hidden',
-                    clipPath: `polygon(${splitStart}% 0, ${splitEnd}% 0, ${splitEnd}% 100%, ${splitStart}% 100%)`,
-                  }}
-                >
-                  <Box
-                    component="img"
-                    src={originalSrc}
-                    alt="Original Center"
-                    sx={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                  />
-                </Box>
-              )
-            ) : splitMode === 'inside' ? (
-              <>
-                {/* Top (0 to splitStart%) */}
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    overflow: 'hidden',
-                    clipPath: `polygon(0 0, 100% 0, 100% ${splitStart}%, 0 ${splitStart}%)`,
-                  }}
-                >
-                  <Box
-                    component="img"
-                    src={originalSrc}
-                    alt="Original Top"
-                    sx={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                  />
-                </Box>
-
-                {/* Bottom (splitEnd% to 100%) */}
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    overflow: 'hidden',
-                    clipPath: `polygon(0 ${splitEnd}%, 100% ${splitEnd}%, 100% 100%, 0 100%)`,
-                  }}
-                >
-                  <Box
-                    component="img"
-                    src={originalSrc}
-                    alt="Original Bottom"
-                    sx={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                  />
-                </Box>
-              </>
-            ) : (
-              /* Middle (splitStart% to splitEnd%) */
-              <Box
+                component="img"
+                src={maskSrc}
+                alt="Alpha Mask"
                 sx={{
                   position: 'absolute',
-                  top: 0,
-                  left: 0,
+                  inset: 0,
                   width: '100%',
                   height: '100%',
-                  overflow: 'hidden',
-                  clipPath: `polygon(0 ${splitStart}%, 100% ${splitStart}%, 100% ${splitEnd}%, 0 ${splitEnd}%)`,
+                  objectFit: 'cover',
+                  borderRadius: 0,
+                  display: 'block',
                 }}
-              >
+              />
+            ) : previewMode === 'single' ? (
+              /* Single Result Mode */
+              <Box
+                component="img"
+                src={resultSrc || originalSrc}
+                alt="Result"
+                sx={{
+                  position: 'absolute',
+                  inset: 0,
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  borderRadius: 0,
+                  display: 'block',
+                }}
+              />
+            ) : previewMode === 'split' ? (
+              /* Split Comparison Mode */
+              <Box sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
+                {/* Background Layer: Processed Result */}
                 <Box
                   component="img"
-                  src={originalSrc}
-                  alt="Original Middle"
-                  sx={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                  src={resultSrc || originalSrc}
+                  alt="Result Layer"
+                  sx={{
+                    position: 'absolute',
+                    inset: 0,
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    borderRadius: 0,
+                  }}
                 />
-              </Box>
-            )}
 
-            {/* Split Handle 1: Start (Blue) */}
-            <Box
-              onPointerDown={handlePointerDown('start')}
-              sx={
-                splitOrientation === 'horizontal'
-                  ? {
+                {/* Floating Quick Pill Toggle on Canvas */}
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: 12,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    zIndex: 12,
+                    bgcolor: 'background.paper',
+                    color: 'text.primary',
+                    border: '1.5px solid',
+                    borderColor: 'primary.main',
+                    borderRadius: 20,
+                    px: 1.5,
+                    py: 0.5,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    boxShadow: 3,
+                    userSelect: 'none',
+                  }}
+                >
+                  <Box
+                    onClick={() =>
+                      setSplitOrientation(
+                        splitOrientation === 'horizontal' ? 'vertical' : 'horizontal'
+                      )
+                    }
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.5,
+                      cursor: 'pointer',
+                      px: 0.8,
+                      py: 0.2,
+                      borderRadius: 1,
+                      bgcolor: 'action.hover',
+                      '&:hover': { bgcolor: 'primary.lighter' },
+                    }}
+                  >
+                    {splitOrientation === 'horizontal' ? (
+                      <SwapHorizRoundedIcon sx={{ fontSize: 18, color: 'primary.main' }} />
+                    ) : (
+                      <SwapVertRoundedIcon sx={{ fontSize: 18, color: 'primary.main' }} />
+                    )}
+                    <Typography variant="caption" sx={{ fontWeight: 800 }}>
+                      {splitOrientation === 'horizontal' ? '↔ 가로(좌우)' : '↕ 세로(상하)'}
+                    </Typography>
+                  </Box>
+
+                  <Box
+                    onClick={() => setSplitMode(splitMode === 'inside' ? 'outside' : 'inside')}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.5,
+                      cursor: 'pointer',
+                      px: 0.8,
+                      py: 0.2,
+                      borderRadius: 1,
+                      bgcolor: 'action.hover',
+                      '&:hover': { bgcolor: 'primary.lighter' },
+                    }}
+                  >
+                    <Typography variant="caption" sx={{ fontWeight: 800, whiteSpace: 'nowrap' }}>
+                      {splitOrientation === 'horizontal'
+                        ? splitMode === 'inside'
+                          ? '→ [중앙 적용] ←'
+                          : '← [양끝 적용] →'
+                        : splitMode === 'inside'
+                          ? '↓ [중앙 적용] ↑'
+                          : '↑ [상하 적용] ↓'}
+                    </Typography>
+                    <Chip
+                      label="방향 전환"
+                      size="small"
+                      color="primary"
+                      variant="filled"
+                      sx={{ height: 18, fontSize: '0.65rem', fontWeight: 700 }}
+                    />
+                  </Box>
+                </Box>
+
+                {/* Foreground Layer: Original Image Clipped */}
+                {splitOrientation === 'horizontal' ? (
+                  splitMode === 'inside' ? (
+                    <>
+                      {/* Left (0 to splitStart%) */}
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          height: '100%',
+                          overflow: 'hidden',
+                          clipPath: `polygon(0 0, ${splitStart}% 0, ${splitStart}% 100%, 0 100%)`,
+                        }}
+                      >
+                        <Box
+                          component="img"
+                          src={originalSrc}
+                          alt="Original Left"
+                          sx={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            borderRadius: 0,
+                          }}
+                        />
+                      </Box>
+
+                      {/* Right (splitEnd% to 100%) */}
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          height: '100%',
+                          overflow: 'hidden',
+                          clipPath: `polygon(${splitEnd}% 0, 100% 0, 100% 100%, ${splitEnd}% 100%)`,
+                        }}
+                      >
+                        <Box
+                          component="img"
+                          src={originalSrc}
+                          alt="Original Right"
+                          sx={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            borderRadius: 0,
+                          }}
+                        />
+                      </Box>
+                    </>
+                  ) : (
+                    /* Center (splitStart% to splitEnd%) */
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        overflow: 'hidden',
+                        clipPath: `polygon(${splitStart}% 0, ${splitEnd}% 0, ${splitEnd}% 100%, ${splitStart}% 100%)`,
+                      }}
+                    >
+                      <Box
+                        component="img"
+                        src={originalSrc}
+                        alt="Original Center"
+                        sx={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 0 }}
+                      />
+                    </Box>
+                  )
+                ) : splitMode === 'inside' ? (
+                  <>
+                    {/* Top (0 to splitStart%) */}
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        overflow: 'hidden',
+                        clipPath: `polygon(0 0, 100% 0, 100% ${splitStart}%, 0 ${splitStart}%)`,
+                      }}
+                    >
+                      <Box
+                        component="img"
+                        src={originalSrc}
+                        alt="Original Top"
+                        sx={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 0 }}
+                      />
+                    </Box>
+
+                    {/* Bottom (splitEnd% to 100%) */}
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        overflow: 'hidden',
+                        clipPath: `polygon(0 ${splitEnd}%, 100% ${splitEnd}%, 100% 100%, 0 100%)`,
+                      }}
+                    >
+                      <Box
+                        component="img"
+                        src={originalSrc}
+                        alt="Original Bottom"
+                        sx={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 0 }}
+                      />
+                    </Box>
+                  </>
+                ) : (
+                  /* Middle (splitStart% to splitEnd%) */
+                  <Box
+                    sx={{
                       position: 'absolute',
                       top: 0,
-                      bottom: 0,
-                      left: `${splitStart}%`,
-                      width: 3,
-                      bgcolor: '#3b82f6',
-                      boxShadow: '0 0 8px rgba(59,130,246,0.6)',
-                      cursor: 'ew-resize',
-                      zIndex: 10,
-                      transform: 'translateX(-50%)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }
-                  : {
-                      position: 'absolute',
                       left: 0,
-                      right: 0,
-                      top: `${splitStart}%`,
-                      height: 3,
-                      bgcolor: '#3b82f6',
-                      boxShadow: '0 0 8px rgba(59,130,246,0.6)',
-                      cursor: 'ns-resize',
-                      zIndex: 10,
-                      transform: 'translateY(-50%)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }
-              }
-            >
-              <Box
-                sx={{
-                  width: splitOrientation === 'horizontal' ? 36 : 48,
-                  height: splitOrientation === 'horizontal' ? 48 : 36,
-                  borderRadius: 2,
-                  bgcolor: '#1d4ed8',
-                  color: '#ffffff',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: 3,
-                  border: '2px solid #ffffff',
-                  userSelect: 'none',
-                }}
-              >
-                {splitOrientation === 'horizontal' ? (
-                  <SwapHorizRoundedIcon sx={{ fontSize: 16 }} />
-                ) : (
-                  <SwapVertRoundedIcon sx={{ fontSize: 16 }} />
+                      width: '100%',
+                      height: '100%',
+                      overflow: 'hidden',
+                      clipPath: `polygon(0 ${splitStart}%, 100% ${splitStart}%, 100% ${splitEnd}%, 0 ${splitEnd}%)`,
+                    }}
+                  >
+                    <Box
+                      component="img"
+                      src={originalSrc}
+                      alt="Original Middle"
+                      sx={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 0 }}
+                    />
+                  </Box>
                 )}
-                <Typography sx={{ fontSize: '0.625rem', fontWeight: 800, lineHeight: 1 }}>
-                  {Math.round(splitStart)}%
-                </Typography>
-              </Box>
-            </Box>
 
-            {/* Split Handle 2: End (Green) */}
-            <Box
-              onPointerDown={handlePointerDown('end')}
-              sx={
-                splitOrientation === 'horizontal'
-                  ? {
-                      position: 'absolute',
-                      top: 0,
-                      bottom: 0,
-                      left: `${splitEnd}%`,
-                      width: 3,
-                      bgcolor: '#10b981',
-                      boxShadow: '0 0 8px rgba(16,185,129,0.6)',
-                      cursor: 'ew-resize',
-                      zIndex: 10,
-                      transform: 'translateX(-50%)',
+                {/* Split Handle 1: Start (Blue) */}
+                <Box
+                  onPointerDown={handlePointerDown('start')}
+                  sx={
+                    splitOrientation === 'horizontal'
+                      ? {
+                          position: 'absolute',
+                          top: 0,
+                          bottom: 0,
+                          left: `${splitStart}%`,
+                          width: 3,
+                          bgcolor: '#3b82f6',
+                          boxShadow: '0 0 8px rgba(59,130,246,0.6)',
+                          cursor: 'ew-resize',
+                          zIndex: 10,
+                          transform: 'translateX(-50%)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }
+                      : {
+                          position: 'absolute',
+                          left: 0,
+                          right: 0,
+                          top: `${splitStart}%`,
+                          height: 3,
+                          bgcolor: '#3b82f6',
+                          boxShadow: '0 0 8px rgba(59,130,246,0.6)',
+                          cursor: 'ns-resize',
+                          zIndex: 10,
+                          transform: 'translateY(-50%)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }
+                  }
+                >
+                  <Box
+                    sx={{
+                      width: splitOrientation === 'horizontal' ? 36 : 48,
+                      height: splitOrientation === 'horizontal' ? 48 : 36,
+                      borderRadius: 2,
+                      bgcolor: '#1d4ed8',
+                      color: '#ffffff',
                       display: 'flex',
+                      flexDirection: 'column',
                       alignItems: 'center',
                       justifyContent: 'center',
-                    }
-                  : {
-                      position: 'absolute',
-                      left: 0,
-                      right: 0,
-                      top: `${splitEnd}%`,
-                      height: 3,
-                      bgcolor: '#10b981',
-                      boxShadow: '0 0 8px rgba(16,185,129,0.6)',
-                      cursor: 'ns-resize',
-                      zIndex: 10,
-                      transform: 'translateY(-50%)',
+                      boxShadow: 3,
+                      border: '2px solid #ffffff',
+                      userSelect: 'none',
+                    }}
+                  >
+                    {splitOrientation === 'horizontal' ? (
+                      <SwapHorizRoundedIcon sx={{ fontSize: 16 }} />
+                    ) : (
+                      <SwapVertRoundedIcon sx={{ fontSize: 16 }} />
+                    )}
+                    <Typography sx={{ fontSize: '0.625rem', fontWeight: 800, lineHeight: 1 }}>
+                      {Math.round(splitStart)}%
+                    </Typography>
+                  </Box>
+                </Box>
+
+                {/* Split Handle 2: End (Green) */}
+                <Box
+                  onPointerDown={handlePointerDown('end')}
+                  sx={
+                    splitOrientation === 'horizontal'
+                      ? {
+                          position: 'absolute',
+                          top: 0,
+                          bottom: 0,
+                          left: `${splitEnd}%`,
+                          width: 3,
+                          bgcolor: '#10b981',
+                          boxShadow: '0 0 8px rgba(16,185,129,0.6)',
+                          cursor: 'ew-resize',
+                          zIndex: 10,
+                          transform: 'translateX(-50%)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }
+                      : {
+                          position: 'absolute',
+                          left: 0,
+                          right: 0,
+                          top: `${splitEnd}%`,
+                          height: 3,
+                          bgcolor: '#10b981',
+                          boxShadow: '0 0 8px rgba(16,185,129,0.6)',
+                          cursor: 'ns-resize',
+                          zIndex: 10,
+                          transform: 'translateY(-50%)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }
+                  }
+                >
+                  <Box
+                    sx={{
+                      width: splitOrientation === 'horizontal' ? 36 : 48,
+                      height: splitOrientation === 'horizontal' ? 48 : 36,
+                      borderRadius: 2,
+                      bgcolor: '#047857',
+                      color: '#ffffff',
                       display: 'flex',
+                      flexDirection: 'column',
                       alignItems: 'center',
                       justifyContent: 'center',
-                    }
-              }
-            >
-              <Box
-                sx={{
-                  width: splitOrientation === 'horizontal' ? 36 : 48,
-                  height: splitOrientation === 'horizontal' ? 48 : 36,
-                  borderRadius: 2,
-                  bgcolor: '#047857',
-                  color: '#ffffff',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: 3,
-                  border: '2px solid #ffffff',
-                  userSelect: 'none',
-                }}
-              >
-                {splitOrientation === 'horizontal' ? (
-                  <SwapHorizRoundedIcon sx={{ fontSize: 16 }} />
-                ) : (
-                  <SwapVertRoundedIcon sx={{ fontSize: 16 }} />
-                )}
-                <Typography sx={{ fontSize: '0.625rem', fontWeight: 800, lineHeight: 1 }}>
-                  {Math.round(splitEnd)}%
-                </Typography>
+                      boxShadow: 3,
+                      border: '2px solid #ffffff',
+                      userSelect: 'none',
+                    }}
+                  >
+                    {splitOrientation === 'horizontal' ? (
+                      <SwapHorizRoundedIcon sx={{ fontSize: 16 }} />
+                    ) : (
+                      <SwapVertRoundedIcon sx={{ fontSize: 16 }} />
+                    )}
+                    <Typography sx={{ fontSize: '0.625rem', fontWeight: 800, lineHeight: 1 }}>
+                      {Math.round(splitEnd)}%
+                    </Typography>
+                  </Box>
+                </Box>
               </Box>
-            </Box>
+            ) : null}
+
+            {/* Optional Overlay Children (e.g. Touchup canvas) */}
+            {children}
           </Box>
         )}
-
-        {/* Optional Overlay Children (e.g. Touchup canvas) */}
-        {children}
       </Box>
     </Card>
   );

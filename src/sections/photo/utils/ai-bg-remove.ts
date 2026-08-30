@@ -88,11 +88,83 @@ export async function checkWebGPUSupport(): Promise<{ supported: boolean; messag
 }
 
 // ----------------------------------------------------------------------
-// Singleton Cache for Segmenter Pipeline
+// Multi-Tier Cache for Segmenter Pipeline (In-Memory Map + Browser CacheStorage)
 // ----------------------------------------------------------------------
 
-let activeSegmenter: any = null;
-let activeModelId: string | null = null;
+const segmenterMap = new Map<string, any>();
+
+/**
+ * Check if the model is cached in browser CacheStorage (transformers-cache)
+ */
+export async function checkIsModelCached(modelId: string): Promise<boolean> {
+  if (typeof window === 'undefined') return false;
+  if (segmenterMap.has(modelId)) return true;
+  if (!('caches' in window)) return false;
+  try {
+    const cache = await caches.open('transformers-cache');
+    const keys = await cache.keys();
+    const normalized = modelId.toLowerCase();
+    return keys.some((req) => req.url.toLowerCase().includes(normalized));
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Preload and cache a model in background
+ */
+export async function preloadModel(
+  modelId: string = 'briaai/RMBG-1.4',
+  onProgress?: (p: BgProgressInfo) => void
+): Promise<any> {
+  const notify = (status: BgProgressInfo['status'], text: string, progress: number) => {
+    if (onProgress) onProgress({ status, text, progress });
+  };
+
+  if (segmenterMap.has(modelId)) {
+    notify('ready', '모델이 메모리에 준비되어 있습니다.', 1);
+    return segmenterMap.get(modelId);
+  }
+
+  notify('init', 'AI 모델 엔진 초기화 중...', 0.05);
+
+  const { pipeline, env } = (await import('@huggingface/transformers')) as any;
+
+  if (typeof window !== 'undefined') {
+    env.useBrowserCache = true;
+    env.allowLocalModels = false;
+    env.allowRemoteModels = true;
+  }
+
+  const gpuCheck = await checkWebGPUSupport();
+  const device = gpuCheck.supported ? 'webgpu' : 'wasm';
+
+  notify('downloading', `[${modelId}] 모델 로드 및 캐시 중...`, 0.1);
+
+  const segmenter = await pipeline('image-segmentation', modelId, {
+    device,
+    progress_callback: (prog: any) => {
+      if (prog?.status === 'progress' && typeof prog?.progress === 'number') {
+        const ratio = Math.min(Math.max(prog.progress / 100, 0), 1);
+        const loadedMB = prog.loaded ? Math.round((prog.loaded / (1024 * 1024)) * 10) / 10 : 0;
+        const totalMB = prog.total ? Math.round((prog.total / (1024 * 1024)) * 10) / 10 : 0;
+        const mbText = totalMB > 0 ? ` (${loadedMB}MB / ${totalMB}MB)` : '';
+
+        notify(
+          'downloading',
+          `모델 가중치 다운로드 중...${mbText}`,
+          Math.min(0.1 + ratio * 0.75, 0.85)
+        );
+      } else if (prog?.status === 'ready') {
+        notify('compiling', '신경망 텐서 컴파일 중...', 0.9);
+      }
+    },
+  });
+
+  segmenterMap.set(modelId, segmenter);
+  notify('ready', '모델 로드 완료!', 1);
+  return segmenter;
+}
 
 /**
  * Remove background from an image URL or Data URL using Transformers.js RMBG / MODNet
@@ -107,23 +179,26 @@ export async function removeBackground(
   };
 
   try {
-    notify('init', 'AI 모델 엔진 초기화 중...', 0.05);
+    // 1. Get or initialize segmenter pipeline from in-memory / browser cache
+    let segmenter = segmenterMap.get(modelId);
 
-    // Dynamic import to prevent SSR bundling issues
+    if (!segmenter) {
+      notify('init', 'AI 모델 엔진 초기화 중...', 0.05);
 
-    const { pipeline, env } = (await import('@huggingface/transformers')) as any;
+      const { pipeline, env } = (await import('@huggingface/transformers')) as any;
 
-    // Configure env to download from HuggingFace Hub CDN
-    env.allowLocalModels = false;
+      if (typeof window !== 'undefined') {
+        env.useBrowserCache = true;
+        env.allowLocalModels = false;
+        env.allowRemoteModels = true;
+      }
 
-    const gpuCheck = await checkWebGPUSupport();
-    const device = gpuCheck.supported ? 'webgpu' : 'wasm';
+      const gpuCheck = await checkWebGPUSupport();
+      const device = gpuCheck.supported ? 'webgpu' : 'wasm';
 
-    // Load or reuse pipeline
-    if (!activeSegmenter || activeModelId !== modelId) {
       notify('downloading', `[${modelId}] 모델 가중치 로드 중...`, 0.1);
 
-      activeSegmenter = await pipeline('image-segmentation', modelId, {
+      segmenter = await pipeline('image-segmentation', modelId, {
         device,
         progress_callback: (prog: any) => {
           if (prog?.status === 'progress' && typeof prog?.progress === 'number') {
@@ -134,15 +209,16 @@ export async function removeBackground(
 
             notify(
               'downloading',
-              `모델 가중치 다운로드 중...${mbText}`,
-              Math.min(0.1 + ratio * 0.7, 0.8)
+              `모델 가중치 로드 중...${mbText}`,
+              Math.min(0.1 + ratio * 0.75, 0.85)
             );
           } else if (prog?.status === 'ready') {
-            notify('compiling', '신경망 텐서 컴파일 중...', 0.85);
+            notify('compiling', '신경망 텐서 컴파일 중...', 0.9);
           }
         },
       });
-      activeModelId = modelId;
+
+      segmenterMap.set(modelId, segmenter);
     }
 
     notify('processing', 'AI 픽셀 세그멘테이션 및 배경 분리 분석 중...', 0.9);
@@ -160,7 +236,7 @@ export async function removeBackground(
     const h = originalImg.naturalHeight || originalImg.height;
 
     // Run segmentation pipeline
-    const output = await activeSegmenter(imageSrc);
+    const output = await segmenter(imageSrc);
 
     // Extract output RawImage mask
     let rawMask = output;

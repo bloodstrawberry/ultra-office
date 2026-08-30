@@ -102,5 +102,7 @@ export const paths = {
     weathering: `/photo/weathering`,
     memeLab: `/photo/meme-lab`,
     aiWatermark: `/photo/ai-watermark`,
+    flip: `/photo/flip`,
+    resize: `/photo/resize`,
   },
 };

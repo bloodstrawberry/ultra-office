@@ -428,7 +428,7 @@ export function CompressView() {
                       display: 'flex',
                       flexDirection: 'column',
                       bgcolor: '#0f172a',
-                      borderRadius: 2,
+                      borderRadius: 0,
                       overflow: 'hidden',
                       position: 'relative',
                       border: '1px solid',
@@ -487,6 +487,7 @@ export function CompressView() {
                           maxWidth: '100%',
                           maxHeight: '100%',
                           objectFit: 'contain',
+                          borderRadius: 0,
                         }}
                       />
                     </Box>
@@ -498,7 +499,7 @@ export function CompressView() {
                       display: 'flex',
                       flexDirection: 'column',
                       bgcolor: '#0f172a',
-                      borderRadius: 2,
+                      borderRadius: 0,
                       overflow: 'hidden',
                       position: 'relative',
                       border: '1px solid',
@@ -752,7 +753,7 @@ export function CompressView() {
                         sx={{
                           width: 32,
                           height: 32,
-                          borderRadius: 1,
+                          borderRadius: 0,
                           overflow: 'hidden',
                           bgcolor: '#0f172a',
                           flexShrink: 0,

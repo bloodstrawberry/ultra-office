@@ -164,7 +164,7 @@ export function ImageCropModal({
           sx={{
             width: '100%',
             height: 440,
-            borderRadius: 2,
+            borderRadius: 0,
             overflow: 'hidden',
             bgcolor: '#0f172a',
           }}

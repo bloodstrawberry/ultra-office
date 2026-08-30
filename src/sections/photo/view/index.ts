@@ -21,3 +21,5 @@ export * from './shape-crop-view';
 export * from './weathering-view';
 export * from './ai-watermark-view';
 export * from './color-picker-view';
+export * from './flip-view';
+export * from './resize-view';

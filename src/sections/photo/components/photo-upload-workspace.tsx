@@ -141,7 +141,7 @@ export function PhotoUploadWorkspace({
                   sx={{
                     width: 54,
                     height: 54,
-                    borderRadius: 1.5,
+                    borderRadius: 0,
                     objectFit: 'cover',
                     flexShrink: 0,
                   }}
