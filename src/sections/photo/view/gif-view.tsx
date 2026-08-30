@@ -6,12 +6,10 @@ import React, { useRef, useState, useEffect, useCallback } from 'react';
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
 import Card from '@mui/material/Card';
-import Chip from '@mui/material/Chip';
 import Menu from '@mui/material/Menu';
 import Tabs from '@mui/material/Tabs';
 import Button from '@mui/material/Button';
 import Slider from '@mui/material/Slider';
-import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
@@ -20,7 +18,6 @@ import ToggleButton from '@mui/material/ToggleButton';
 import GifRoundedIcon from '@mui/icons-material/GifRounded';
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
 import CircularProgress from '@mui/material/CircularProgress';
-import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
@@ -30,13 +27,17 @@ import CallSplitRoundedIcon from '@mui/icons-material/CallSplitRounded';
 import ColorLensRoundedIcon from '@mui/icons-material/ColorLensRounded';
 import FilterAltRoundedIcon from '@mui/icons-material/FilterAltRounded';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
-import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
+import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
 
 import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
 
 import { DashboardContent } from 'src/layouts/dashboard';
+
+import { GifSampleSection } from 'src/sections/gif-studio/components/gif-sample-section';
+import { GifBatchEffectModal } from 'src/sections/gif-studio/components/gif-batch-effect-modal';
+import { type GifSampleItem, fetchSampleGifFile } from 'src/sections/gif-studio/data/gif-samples';
 
 import { downloadDataUrl } from '../utils/image-processor';
 import {
@@ -81,17 +82,15 @@ export function GifView() {
   const [splitFile, setSplitFile] = useState<File | null>(null);
   const [splitFrames, setSplitFrames] = useState<GifFrameItem[]>([]);
   const [selectedFrameIds, setSelectedFrameIds] = useState<Set<string>>(new Set());
-  const [disabledFrameIds, setDisabledFrameIds] = useState<Set<string>>(new Set());
   const [isExtracting, setIsExtracting] = useState<boolean>(false);
   const [splitPlayerIndex, setSplitPlayerIndex] = useState<number>(0);
   const [isPlayingSplit, setIsPlayingSplit] = useState<boolean>(false);
+  const [isBatchModalOpen, setIsBatchModalOpen] = useState<boolean>(false);
   const [splitIntervalStep, setSplitIntervalStep] = useState<number>(2);
   const [splitMenuAnchorEl, setSplitMenuAnchorEl] = useState<null | HTMLElement>(null);
 
-  // Exclude disabled frames from playback and active selection
-  const selectedSplitFrames = splitFrames.filter(
-    (f) => selectedFrameIds.has(f.id) && !disabledFrameIds.has(f.id)
-  );
+  // Active selection for playback and export
+  const selectedSplitFrames = splitFrames.filter((f) => selectedFrameIds.has(f.id));
 
   // Tab 3: BgColor
   const [bgFile, setBgFile] = useState<File | null>(null);
@@ -247,7 +246,6 @@ export function GifView() {
       const res = await extractGifFrames(file);
       setSplitFrames(res.frames);
       setSelectedFrameIds(new Set(res.frames.map((f) => f.id)));
-      setDisabledFrameIds(new Set());
       setSplitPlayerIndex(0);
       toast.success(`총 ${res.frames.length}개 프레임이 추출되었습니다.`);
     } catch {
@@ -271,26 +269,6 @@ export function GifView() {
       else next.add(id);
       return next;
     });
-  };
-
-  const toggleDisableFrame = (id: string) => {
-    setDisabledFrameIds((prev) => {
-      const next = new Set(prev);
-      const wasDisabled = next.has(id);
-      if (wasDisabled) {
-        next.delete(id);
-        toast.info('프레임이 다시 활성화되었습니다.');
-      } else {
-        next.add(id);
-        toast.info('프레임이 비활성화(재생 및 추출에서 제외)되었습니다.');
-      }
-      return next;
-    });
-  };
-
-  const handleEnableAllSplitFrames = () => {
-    setDisabledFrameIds(new Set());
-    toast.success('모든 프레임이 활성화되었습니다.');
   };
 
   const handleSelectIntervalSplitFrames = (step: number, offset: number = 0) => {
@@ -317,7 +295,7 @@ export function GifView() {
   const handleTogglePlaySplit = () => {
     if (!isPlayingSplit) {
       if (selectedSplitFrames.length === 0) {
-        toast.warning('재생할 활성 프레임이 없습니다. 프레임을 활성화하거나 선택해주세요.');
+        toast.warning('재생할 선택 프레임이 없습니다. 프레임을 선택해주세요.');
         return;
       }
       setIsPlayingSplit(true);
@@ -327,11 +305,9 @@ export function GifView() {
   };
 
   const handleExportFramesZip = async () => {
-    const framesToExport = splitFrames.filter(
-      (f) => selectedFrameIds.has(f.id) && !disabledFrameIds.has(f.id)
-    );
+    const framesToExport = splitFrames.filter((f) => selectedFrameIds.has(f.id));
     if (framesToExport.length === 0) {
-      toast.error('내보낼 활성 프레임을 1개 이상 선택해주세요.');
+      toast.error('내보낼 프레임을 1개 이상 선택해주세요.');
       return;
     }
 
@@ -401,6 +377,56 @@ export function GifView() {
     disabled: currentTab !== 'bg',
   });
 
+  // Sample GIF handlers
+  const [loadingSampleId, setLoadingSampleId] = useState<string | null>(null);
+
+  const handleSelectCreateSample = async (sample: GifSampleItem) => {
+    setLoadingSampleId(sample.id);
+    toast.info(`'${sample.label}' 예시 파일의 프레임을 추출하고 있습니다...`);
+    try {
+      const file = await fetchSampleGifFile(sample);
+      const res = await extractGifFrames(file);
+      const newItems: UploadedImageItem[] = res.frames.map((frame, idx) => ({
+        id: `sample_${sample.id}_${Date.now()}_${idx}`,
+        name: `${sample.filename.replace(/\.[^/.]+$/, '')}_frame_${idx + 1}.png`,
+        src: frame.dataUrl,
+        delay: frame.delay,
+      }));
+      setCreateImages(newItems);
+      setCreateResultUrl('');
+      toast.success(`'${sample.label}'에서 ${newItems.length}개 프레임을 불러왔습니다!`);
+    } catch {
+      toast.error('예시 GIF 프레임 추출에 실패했습니다.');
+    } finally {
+      setLoadingSampleId(null);
+    }
+  };
+
+  const handleSelectSplitSample = async (sample: GifSampleItem) => {
+    setLoadingSampleId(sample.id);
+    try {
+      const file = await fetchSampleGifFile(sample);
+      await processSplitFile(file);
+    } catch {
+      toast.error('예시 GIF 파일을 불러오지 못했습니다.');
+    } finally {
+      setLoadingSampleId(null);
+    }
+  };
+
+  const handleSelectBgSample = async (sample: GifSampleItem) => {
+    setLoadingSampleId(sample.id);
+    try {
+      const file = await fetchSampleGifFile(sample);
+      processBgFile(file);
+      toast.success(`'${sample.label}' 예시 파일을 불러왔습니다.`);
+    } catch {
+      toast.error('예시 GIF 파일을 불러오지 못했습니다.');
+    } finally {
+      setLoadingSampleId(null);
+    }
+  };
+
   return (
     <DashboardContent
       sx={{
@@ -460,51 +486,72 @@ export function GifView() {
           />
 
           {createImages.length === 0 ? (
-            <Card
-              {...createDrop.getRootProps({
-                onClick: () => fileInputRef.current?.click(),
-              })}
+            <Box
               sx={{
-                p: 6,
                 display: 'flex',
                 flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                border: '2px dashed',
-                borderColor: 'divider',
-                borderRadius: 3,
+                gap: { xs: 2, sm: 2.5 },
                 flex: '1 1 auto',
                 minHeight: 0,
                 height: '100%',
-                '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
+                overflowY: 'auto',
               }}
             >
-              <Box
+              <GifSampleSection
+                onSelectSample={handleSelectCreateSample}
+                loadingSampleId={loadingSampleId}
+                isLoading={isCreating || !!loadingSampleId}
+                title="⚡ 즉석 테스트 예시 GIF 파일"
+                subtitle="클릭 한 번으로 3종의 고화질 예시 움짤을 분해하여 프레임 편집을 즉시 시작하세요."
+                actionLabel="프레임 불러오기 ➜"
+              />
+
+              <Card
+                {...createDrop.getRootProps({
+                  onClick: () => fileInputRef.current?.click(),
+                })}
                 sx={{
-                  width: 64,
-                  height: 64,
-                  borderRadius: '50%',
-                  bgcolor: 'primary.lighter',
-                  color: 'primary.main',
+                  p: { xs: 3, sm: 5 },
                   display: 'flex',
+                  flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  mb: 2,
+                  cursor: 'pointer',
+                  border: '2px dashed',
+                  borderColor: 'divider',
+                  borderRadius: 3,
+                  flex: '1 1 auto',
+                  minHeight: 180,
+                  transition: 'all 0.2s',
+                  '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
                 }}
               >
-                <GifRoundedIcon sx={{ fontSize: 40 }} />
-              </Box>
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
-                GIF로 만들 여러 장의 사진 업로드
-              </Typography>
-              <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-                2장 이상의 사진을 순서대로 업로드하여 애니메이션으로 합성합니다
-              </Typography>
-              <Button variant="contained" color="primary" startIcon={<CloudUploadRoundedIcon />}>
-                사진 선택하기
-              </Button>
-            </Card>
+                <Box
+                  sx={{
+                    width: 60,
+                    height: 60,
+                    borderRadius: '50%',
+                    bgcolor: 'primary.lighter',
+                    color: 'primary.main',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    mb: 2,
+                  }}
+                >
+                  <GifRoundedIcon sx={{ fontSize: 40 }} />
+                </Box>
+                <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
+                  GIF로 만들 여러 장의 사진 업로드
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
+                  2장 이상의 사진을 순서대로 업로드하여 애니메이션으로 합성합니다
+                </Typography>
+                <Button variant="contained" color="primary" startIcon={<CloudUploadRoundedIcon />}>
+                  사진 선택하기
+                </Button>
+              </Card>
+            </Box>
           ) : (
             <Box
               sx={{
@@ -959,65 +1006,83 @@ export function GifView() {
           />
 
           {!splitFile ? (
-            <Card
-              {...splitDrop.getRootProps({
-                onClick: () => splitInputRef.current?.click(),
-              })}
+            <Box
               sx={{
-                p: 6,
                 display: 'flex',
                 flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                border: '2px dashed',
-                borderColor: splitDrop.isDragActive ? 'primary.main' : 'divider',
-                bgcolor: splitDrop.isDragActive ? 'action.hover' : 'transparent',
-                borderRadius: 3,
+                gap: { xs: 2, sm: 2.5 },
                 flex: '1 1 auto',
                 minHeight: 0,
                 height: '100%',
-                transition: (theme) =>
-                  theme.transitions.create(['border-color', 'background-color']),
-                '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
+                overflowY: 'auto',
               }}
             >
-              <Box
+              <GifSampleSection
+                onSelectSample={handleSelectSplitSample}
+                loadingSampleId={loadingSampleId}
+                isLoading={isExtracting || !!loadingSampleId}
+                title="⚡ 즉석 테스트 예시 GIF 파일"
+                subtitle="클릭 한 번으로 3종의 고화질 예시 움짤을 불러와 프레임 분할 및 추출을 테스트해 보세요."
+                actionLabel="프레임 분할 ➜"
+              />
+
+              <Card
+                {...splitDrop.getRootProps({
+                  onClick: () => splitInputRef.current?.click(),
+                })}
                 sx={{
-                  width: 64,
-                  height: 64,
-                  borderRadius: '50%',
-                  bgcolor: 'primary.lighter',
-                  color: 'primary.main',
+                  p: { xs: 3, sm: 5 },
                   display: 'flex',
+                  flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  mb: 2,
+                  cursor: 'pointer',
+                  border: '2px dashed',
+                  borderColor: 'divider',
+                  borderRadius: 3,
+                  flex: '1 1 auto',
+                  minHeight: 180,
+                  transition: 'all 0.2s',
+                  '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
                 }}
               >
-                <CallSplitRoundedIcon sx={{ fontSize: 32 }} />
-              </Box>
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
-                분할할 GIF 파일 업로드
-              </Typography>
-              <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-                GIF 애니메이션을 개별 프레임 PNG 이미지들로 분할합니다
-              </Typography>
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={
-                  isExtracting ? (
-                    <CircularProgress size={18} color="inherit" />
-                  ) : (
-                    <CloudUploadRoundedIcon />
-                  )
-                }
-                disabled={isExtracting}
-              >
-                GIF 파일 선택
-              </Button>
-            </Card>
+                <Box
+                  sx={{
+                    width: 60,
+                    height: 60,
+                    borderRadius: '50%',
+                    bgcolor: 'primary.lighter',
+                    color: 'primary.main',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    mb: 2,
+                  }}
+                >
+                  <CallSplitRoundedIcon sx={{ fontSize: 36 }} />
+                </Box>
+                <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
+                  분할할 GIF 파일 업로드
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
+                  GIF 애니메이션을 개별 프레임 PNG 이미지들로 분할합니다
+                </Typography>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={
+                    isExtracting ? (
+                      <CircularProgress size={18} color="inherit" />
+                    ) : (
+                      <CloudUploadRoundedIcon />
+                    )
+                  }
+                  disabled={isExtracting}
+                >
+                  GIF 파일 선택
+                </Button>
+              </Card>
+            </Box>
           ) : (
             <Box
               sx={{
@@ -1071,13 +1136,23 @@ export function GifView() {
                         variant="caption"
                         sx={{ color: 'text.secondary', fontWeight: 600 }}
                       >
-                        재생/내보내기: {selectedSplitFrames.length}개
-                        {disabledFrameIds.size > 0 && ` (비활성 ${disabledFrameIds.size}개 제외)`}
+                        선택됨: {selectedSplitFrames.length} / {splitFrames.length}개
                       </Typography>
                     </Box>
 
                     {/* Toolbar Controls */}
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
+                      <Button
+                        size="small"
+                        variant="contained"
+                        color="secondary"
+                        startIcon={<AutoAwesomeRoundedIcon />}
+                        onClick={() => setIsBatchModalOpen(true)}
+                        disabled={selectedSplitFrames.length === 0}
+                        sx={{ fontWeight: 800 }}
+                      >
+                        🎨 효과 일괄 적용
+                      </Button>
                       <Button
                         size="small"
                         variant={isPlayingSplit ? 'contained' : 'outlined'}
@@ -1106,18 +1181,6 @@ export function GifView() {
                       >
                         전체 해제
                       </Button>
-                      {disabledFrameIds.size > 0 && (
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          color="warning"
-                          startIcon={<RestartAltRoundedIcon />}
-                          onClick={handleEnableAllSplitFrames}
-                          sx={{ fontWeight: 700 }}
-                        >
-                          제외 초기화 ({disabledFrameIds.size})
-                        </Button>
-                      )}
                       <Button
                         size="small"
                         variant="outlined"
@@ -1166,7 +1229,6 @@ export function GifView() {
                   >
                     {splitFrames.map((frame, idx) => {
                       const isSelected = selectedFrameIds.has(frame.id);
-                      const isDisabled = disabledFrameIds.has(frame.id);
                       const isCurrentPlaying =
                         isPlayingSplit &&
                         selectedSplitFrames.length > 0 &&
@@ -1183,18 +1245,12 @@ export function GifView() {
                             cursor: 'pointer',
                             position: 'relative',
                             border: '2px solid',
-                            borderColor: isDisabled
-                              ? 'rgba(239, 68, 68, 0.4)'
-                              : isCurrentPlaying
-                                ? 'primary.main'
-                                : isSelected
-                                  ? 'primary.light'
-                                  : 'transparent',
-                            bgcolor: isDisabled
-                              ? 'action.disabledBackground'
+                            borderColor: isCurrentPlaying
+                              ? 'primary.main'
                               : isSelected
-                                ? 'action.selected'
-                                : 'action.hover',
+                                ? 'primary.light'
+                                : 'divider',
+                            bgcolor: isSelected ? 'action.selected' : 'background.paper',
                             boxShadow: isCurrentPlaying
                               ? '0 0 12px rgba(32, 101, 209, 0.6)'
                               : 'none',
@@ -1202,45 +1258,6 @@ export function GifView() {
                             flexShrink: 0,
                           }}
                         >
-                          {/* Top Right Disable (X) / Restore Toggle Button */}
-                          <Tooltip
-                            title={
-                              isDisabled
-                                ? '프레임 다시 포함하기'
-                                : '프레임 제외하기 (재생/다운로드에서 제외)'
-                            }
-                          >
-                            <IconButton
-                              size="small"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleDisableFrame(frame.id);
-                              }}
-                              sx={{
-                                position: 'absolute',
-                                top: 4,
-                                right: 4,
-                                zIndex: 5,
-                                width: 22,
-                                height: 22,
-                                bgcolor: isDisabled
-                                  ? 'rgba(239, 68, 68, 0.85)'
-                                  : 'rgba(0, 0, 0, 0.55)',
-                                color: '#ffffff',
-                                backdropFilter: 'blur(2px)',
-                                '&:hover': {
-                                  bgcolor: isDisabled ? '#ef4444' : 'rgba(239, 68, 68, 0.9)',
-                                },
-                              }}
-                            >
-                              {isDisabled ? (
-                                <RestartAltRoundedIcon sx={{ fontSize: 13 }} />
-                              ) : (
-                                <CloseRoundedIcon sx={{ fontSize: 13 }} />
-                              )}
-                            </IconButton>
-                          </Tooltip>
-
                           <Box
                             sx={{
                               width: '100%',
@@ -1259,35 +1276,10 @@ export function GifView() {
                                 width: '100%',
                                 height: '100%',
                                 objectFit: 'contain',
-                                filter: isDisabled ? 'grayscale(100%)' : 'none',
-                                opacity: isDisabled ? 0.45 : 1,
-                                transition: 'filter 0.2s ease, opacity 0.2s ease',
+                                opacity: isSelected ? 1 : 0.45,
+                                transition: 'opacity 0.2s ease',
                               }}
                             />
-                            {isDisabled && (
-                              <Box
-                                sx={{
-                                  position: 'absolute',
-                                  inset: 0,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  pointerEvents: 'none',
-                                }}
-                              >
-                                <Chip
-                                  label="제외됨"
-                                  size="small"
-                                  color="error"
-                                  sx={{
-                                    height: 20,
-                                    fontSize: '0.65rem',
-                                    fontWeight: 800,
-                                    boxShadow: '0 2px 6px rgba(0,0,0,0.4)',
-                                  }}
-                                />
-                              </Box>
-                            )}
                           </Box>
                           <Box
                             sx={{
@@ -1300,8 +1292,7 @@ export function GifView() {
                               variant="caption"
                               sx={{
                                 fontWeight: 800,
-                                color: isDisabled ? 'text.disabled' : 'text.primary',
-                                textDecoration: isDisabled ? 'line-through' : 'none',
+                                color: isSelected ? 'text.primary' : 'text.disabled',
                               }}
                             >
                               #{idx + 1}
@@ -1655,8 +1646,7 @@ export function GifView() {
                     총 프레임: {splitFrames.length}개
                   </Typography>
                   <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                    재생/내보내기 프레임: {selectedSplitFrames.length}개
-                    {disabledFrameIds.size > 0 && ` (비활성 ${disabledFrameIds.size}개 제외)`}
+                    선택된 프레임: {selectedSplitFrames.length} / {splitFrames.length}개
                   </Typography>
                 </Card>
 
@@ -1673,11 +1663,22 @@ export function GifView() {
                   <Button
                     fullWidth
                     variant="contained"
+                    color="secondary"
+                    onClick={() => setIsBatchModalOpen(true)}
+                    disabled={selectedSplitFrames.length === 0}
+                    startIcon={<AutoAwesomeRoundedIcon />}
+                    sx={{ py: 1.4, borderRadius: 2, fontWeight: 800, fontSize: '0.95rem' }}
+                  >
+                    🎨 스튜디오 효과 일괄 적용 ({selectedSplitFrames.length}개)
+                  </Button>
+                  <Button
+                    fullWidth
+                    variant="contained"
                     color="primary"
                     startIcon={<ArchiveRoundedIcon />}
                     onClick={handleExportFramesZip}
                     disabled={selectedSplitFrames.length === 0}
-                    sx={{ py: 1.4, borderRadius: 2, fontWeight: 700, fontSize: '0.95rem' }}
+                    sx={{ py: 1.2, borderRadius: 2, fontWeight: 700, fontSize: '0.9rem' }}
                   >
                     선택 프레임 ZIP 다운로드 ({selectedSplitFrames.length}개)
                   </Button>
@@ -1699,7 +1700,6 @@ export function GifView() {
                       setSplitFile(null);
                       setSplitFrames([]);
                       setSelectedFrameIds(new Set());
-                      setDisabledFrameIds(new Set());
                       setIsPlayingSplit(false);
                     }}
                     sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
@@ -1725,54 +1725,72 @@ export function GifView() {
           />
 
           {!bgFile ? (
-            <Card
-              {...bgDrop.getRootProps({
-                onClick: () => bgInputRef.current?.click(),
-              })}
+            <Box
               sx={{
-                p: 6,
                 display: 'flex',
                 flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                border: '2px dashed',
-                borderColor: bgDrop.isDragActive ? 'primary.main' : 'divider',
-                bgcolor: bgDrop.isDragActive ? 'action.hover' : 'transparent',
-                borderRadius: 3,
+                gap: { xs: 2, sm: 2.5 },
                 flex: '1 1 auto',
                 minHeight: 0,
                 height: '100%',
-                transition: (theme) =>
-                  theme.transitions.create(['border-color', 'background-color']),
-                '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
+                overflowY: 'auto',
               }}
             >
-              <Box
+              <GifSampleSection
+                onSelectSample={handleSelectBgSample}
+                loadingSampleId={loadingSampleId}
+                isLoading={isModifyingBg || !!loadingSampleId}
+                title="⚡ 즉석 테스트 예시 GIF 파일"
+                subtitle="클릭 한 번으로 3종의 고화질 예시 움짤을 불러와 배경색 변경 및 투명화를 테스트해 보세요."
+                actionLabel="배경 편집 ➜"
+              />
+
+              <Card
+                {...bgDrop.getRootProps({
+                  onClick: () => bgInputRef.current?.click(),
+                })}
                 sx={{
-                  width: 64,
-                  height: 64,
-                  borderRadius: '50%',
-                  bgcolor: 'primary.lighter',
-                  color: 'primary.main',
+                  p: { xs: 3, sm: 5 },
                   display: 'flex',
+                  flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  mb: 2,
+                  cursor: 'pointer',
+                  border: '2px dashed',
+                  borderColor: 'divider',
+                  borderRadius: 3,
+                  flex: '1 1 auto',
+                  minHeight: 180,
+                  transition: 'all 0.2s',
+                  '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
                 }}
               >
-                <ColorLensRoundedIcon sx={{ fontSize: 32 }} />
-              </Box>
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
-                배경색을 수정할 GIF 파일 업로드
-              </Typography>
-              <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-                투명 배경을 흰색/단색으로 채우거나 특정 배경색을 변경합니다
-              </Typography>
-              <Button variant="contained" color="primary" startIcon={<CloudUploadRoundedIcon />}>
-                GIF 파일 선택
-              </Button>
-            </Card>
+                <Box
+                  sx={{
+                    width: 60,
+                    height: 60,
+                    borderRadius: '50%',
+                    bgcolor: 'primary.lighter',
+                    color: 'primary.main',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    mb: 2,
+                  }}
+                >
+                  <ColorLensRoundedIcon sx={{ fontSize: 38 }} />
+                </Box>
+                <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
+                  배경색을 수정할 GIF 파일 업로드
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
+                  투명 배경을 흰색/단색으로 채우거나 특정 배경색을 변경합니다
+                </Typography>
+                <Button variant="contained" color="primary" startIcon={<CloudUploadRoundedIcon />}>
+                  GIF 파일 선택
+                </Button>
+              </Card>
+            </Box>
           ) : (
             <Box
               sx={{
@@ -2034,6 +2052,13 @@ export function GifView() {
           )}
         </>
       )}
+
+      {/* GIF Batch Studio Effect Modal */}
+      <GifBatchEffectModal
+        open={isBatchModalOpen}
+        onClose={() => setIsBatchModalOpen(false)}
+        frames={selectedSplitFrames}
+      />
     </DashboardContent>
   );
 }
