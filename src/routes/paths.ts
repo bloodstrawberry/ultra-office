@@ -17,6 +17,7 @@ export const paths = {
     ladder: `/drawing/ladder`,
     roulette: `/drawing/roulette`,
   },
+  morse: '/morse',
   compare: '/compare',
   imageTool: '/image-tool',
   fileConvert: '/file-convert',

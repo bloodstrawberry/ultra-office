@@ -46,6 +46,7 @@ import QrCodeScannerRoundedIcon from '@mui/icons-material/QrCodeScannerRounded';
 import MovieCreationRoundedIcon from '@mui/icons-material/MovieCreationRounded';
 import DocumentScannerRoundedIcon from '@mui/icons-material/DocumentScannerRounded';
 import SwapHorizontalCircleRoundedIcon from '@mui/icons-material/SwapHorizontalCircleRounded';
+import HandymanRoundedIcon from '@mui/icons-material/HandymanRounded';
 
 import { paths } from 'src/routes/paths';
 
@@ -97,6 +98,7 @@ const ICONS = {
   matlab: <CalculateRoundedIcon fontSize="small" />,
   blackHole: <TrackChangesRoundedIcon fontSize="small" />,
   threejs: <ViewInArRoundedIcon fontSize="small" />,
+  etc: <HandymanRoundedIcon fontSize="small" />,
 };
 
 // ----------------------------------------------------------------------
@@ -215,6 +217,23 @@ export const navData: NavSectionProps['data'] = [
           { title: 'Big-O 마스터 & 카탈로그', path: paths.algo.catalog },
         ],
       },
+      {
+        title: '기타 도구',
+        path: paths.morse,
+        icon: ICONS.etc,
+        children: [
+          { title: '모스 부호 변환기', path: paths.morse },
+          { title: '주소 검색', path: paths.public.postcode },
+          {
+            title: '추첨 & 게임',
+            path: paths.drawing.root,
+            children: [
+              { title: '사다리타기', path: paths.drawing.ladder },
+              { title: '룰렛 게임', path: paths.drawing.roulette },
+            ],
+          },
+        ],
+      },
     ],
   },
 
@@ -322,16 +341,6 @@ export const navData: NavSectionProps['data'] = [
     items: [
       { title: '일정 & 간트차트', path: paths.schedule, icon: ICONS.schedule },
       { title: 'QR & 바코드', path: paths.barcode, icon: ICONS.barcode },
-      { title: '주소 검색', path: paths.public.postcode, icon: ICONS.search },
-      {
-        title: '추첨 & 게임',
-        path: paths.drawing.root,
-        icon: ICONS.drawing,
-        children: [
-          { title: '사다리타기', path: paths.drawing.ladder },
-          { title: '룰렛 게임', path: paths.drawing.roulette },
-        ],
-      },
     ],
   },
 
