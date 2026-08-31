@@ -94,12 +94,7 @@ export function MorseMnemonicCard({ item, onSelect }: MorseMnemonicCardProps) {
           border: (theme) => `1px dashed ${theme.palette.divider}`,
         }}
       >
-        <svg
-          viewBox="0 0 100 100"
-          width="100%"
-          height="100%"
-          style={{ overflow: 'visible' }}
-        >
+        <svg viewBox="0 0 100 100" width="100%" height="100%" style={{ overflow: 'visible' }}>
           {/* Background Text Glyph Outline */}
           <text
             x="50"

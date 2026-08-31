@@ -8,35 +8,21 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Chip from '@mui/material/Chip';
 import Typography from '@mui/material/Typography';
-import GraphicEqRoundedIcon from '@mui/icons-material/GraphicEqRounded';
-import RadioRoundedIcon from '@mui/icons-material/RadioRounded';
+import TouchAppRoundedIcon from '@mui/icons-material/TouchAppRounded';
 import MenuBookRoundedIcon from '@mui/icons-material/MenuBookRounded';
-import FlashOnRoundedIcon from '@mui/icons-material/FlashOnRounded';
-import LightbulbRoundedIcon from '@mui/icons-material/LightbulbRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
-import { MorseConverterTab } from '../components/morse-converter-tab';
-import { MorseMnemonicsTab } from '../components/morse-mnemonics-tab';
-import { MorseKeyerTab } from '../components/morse-keyer-tab';
-import { MorseChartTab } from '../components/morse-chart-tab';
+import { BrailleConverterTab } from '../components/braille-converter-tab';
+import { BrailleChartTab } from '../components/braille-chart-tab';
 
 // ----------------------------------------------------------------------
 
-export function MorseView() {
-  const [currentTab, setCurrentTab] = useState<'converter' | 'mnemonic' | 'keyer' | 'chart'>(
-    'converter'
-  );
+export function BrailleView() {
+  const [currentTab, setCurrentTab] = useState<'converter' | 'chart'>('converter');
 
   return (
     <DashboardContent maxWidth="xl">
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100%',
-          minHeight: 0,
-        }}
-      >
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
         {/* Header Bar */}
         <Box
           sx={{
@@ -52,29 +38,27 @@ export function MorseView() {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
               <Typography variant="h4" sx={{ fontWeight: 800 }}>
-                모스 부호 변환기 & 스튜디오
+                훈맹정음 점자(Braille) 스튜디오
               </Typography>
               <Chip
-                label="국문/영문 표준 지원"
+                label="국문 표준 훈맹정음 & 영문 6점자"
                 size="small"
                 color="primary"
                 variant="soft"
                 sx={{ fontWeight: 700 }}
               />
               <Chip
-                icon={<FlashOnRoundedIcon sx={{ fontSize: 16 }} />}
-                label="소리 · 불빛 동시 송신"
+                label="3D 엠보싱 촉각 시각화"
                 size="small"
-                color="warning"
+                color="info"
                 variant="soft"
                 sx={{ fontWeight: 700 }}
               />
             </Box>
 
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              한국어(한글 자모 자동 분해/조합), 영어, 숫자, 특수기호를 모스 부호로 양방향 변환하고,
-              Web Audio 사운드 및 광학 불빛 스트로브로 실시간 재생·저장하며 글자 형상 연상 암기법을
-              제공합니다.
+              한국어(한글 표준 훈맹정음 약자 포함), 영어, 숫자, 특수기호를 표준 6점식 점자로
+              변환하고 3D 촉각 보드로 시각화합니다.
             </Typography>
           </Box>
         </Box>
@@ -105,45 +89,23 @@ export function MorseView() {
           >
             <Tab
               value="converter"
-              icon={<GraphicEqRoundedIcon />}
+              icon={<TouchAppRoundedIcon />}
               iconPosition="start"
-              label="양방향 변환 & 플레이어"
-            />
-            <Tab
-              value="mnemonic"
-              icon={<LightbulbRoundedIcon />}
-              iconPosition="start"
-              label="💡 시각적 연상 암기법 & 원리"
-            />
-            <Tab
-              value="keyer"
-              icon={<RadioRoundedIcon />}
-              iconPosition="start"
-              label="인터랙티브 탭 키어"
+              label="점자 양방향 변환 & 3D 촉각 보드"
             />
             <Tab
               value="chart"
               icon={<MenuBookRoundedIcon />}
               iconPosition="start"
-              label="모스 부호 사전 / 도감"
+              label="훈맹정음 점자 일람표 / 도감"
             />
           </Tabs>
         </Card>
 
-        {/* Scrollable Content Viewport */}
-        <Box
-          sx={{
-            flex: '1 1 auto',
-            minHeight: 0,
-            overflowY: 'auto',
-            pr: { xs: 0, md: 1 },
-            pb: 4,
-          }}
-        >
-          {currentTab === 'converter' && <MorseConverterTab />}
-          {currentTab === 'mnemonic' && <MorseMnemonicsTab />}
-          {currentTab === 'keyer' && <MorseKeyerTab />}
-          {currentTab === 'chart' && <MorseChartTab />}
+        {/* Scrollable Viewport */}
+        <Box sx={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', pr: { xs: 0, md: 1 }, pb: 4 }}>
+          {currentTab === 'converter' && <BrailleConverterTab />}
+          {currentTab === 'chart' && <BrailleChartTab />}
         </Box>
       </Box>
     </DashboardContent>

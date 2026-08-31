@@ -223,6 +223,14 @@ export const navData: NavSectionProps['data'] = [
         icon: ICONS.etc,
         children: [
           { title: '모스 부호 변환기', path: paths.morse },
+          { title: '점자(Braille) 스튜디오', path: paths.braille },
+          { title: 'NATO 무선 통화표', path: paths.natoPhonetic },
+          { title: '고전 암호학 스튜디오', path: paths.cipher },
+          { title: '한영 타자 오타 복원기', path: paths.hangulTypo },
+          { title: '금액 한글/한자 표기기', path: paths.numberWords },
+          { title: '로마자 표기 변환기', path: paths.romanize },
+          { title: '유닉스 타임스탬프', path: paths.timestamp },
+          { title: '해군 수기 & 해상 신호기', path: paths.semaphore },
           { title: '주소 검색', path: paths.public.postcode },
           {
             title: '추첨 & 게임',

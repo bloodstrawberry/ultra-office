@@ -36,7 +36,11 @@ export const MORSE_MNEMONICS: MorseMnemonicItem[] = [
     explanation: 'B의 좌측 긴 수직 기둥 선(━)과 우측 3개 꼭짓점의 점(•••)',
     dotCount: 3,
     dashCount: 1,
-    dots: [{ x: 74, y: 18 }, { x: 74, y: 50 }, { x: 74, y: 82 }],
+    dots: [
+      { x: 74, y: 18 },
+      { x: 74, y: 50 },
+      { x: 74, y: 82 },
+    ],
     dashes: [{ x1: 25, y1: 15, x2: 25, y2: 85, width: 10 }],
   },
   {
@@ -47,7 +51,10 @@ export const MORSE_MNEMONICS: MorseMnemonicItem[] = [
     explanation: 'C의 상단 호 선(━), 중앙 점(•), 하단 호 선(━), 끝점(•)',
     dotCount: 2,
     dashCount: 2,
-    dots: [{ x: 26, y: 35 }, { x: 75, y: 78 }],
+    dots: [
+      { x: 26, y: 35 },
+      { x: 75, y: 78 },
+    ],
     dashes: [
       { x1: 40, y1: 18, x2: 78, y2: 18, width: 8 },
       { x1: 26, y1: 56, x2: 60, y2: 82, width: 8 },
@@ -61,7 +68,10 @@ export const MORSE_MNEMONICS: MorseMnemonicItem[] = [
     explanation: 'D의 좌측 긴 수직선(━)과 우측 반원의 상·하단 2개 점(••)',
     dotCount: 2,
     dashCount: 1,
-    dots: [{ x: 72, y: 22 }, { x: 72, y: 78 }],
+    dots: [
+      { x: 72, y: 22 },
+      { x: 72, y: 78 },
+    ],
     dashes: [{ x1: 25, y1: 15, x2: 25, y2: 85, width: 10 }],
   },
   {
@@ -83,7 +93,11 @@ export const MORSE_MNEMONICS: MorseMnemonicItem[] = [
     explanation: 'F의 상단 2개 점(••)과 수직 기둥 선(━), 하단 끝점(•)',
     dotCount: 3,
     dashCount: 1,
-    dots: [{ x: 72, y: 18 }, { x: 58, y: 50 }, { x: 28, y: 82 }],
+    dots: [
+      { x: 72, y: 18 },
+      { x: 58, y: 50 },
+      { x: 28, y: 82 },
+    ],
     dashes: [{ x1: 28, y1: 18, x2: 28, y2: 65, width: 9 }],
   },
   {
@@ -108,7 +122,12 @@ export const MORSE_MNEMONICS: MorseMnemonicItem[] = [
     explanation: 'H의 4개 꼭짓점에 각각 놓인 4개의 점(••••)',
     dotCount: 4,
     dashCount: 0,
-    dots: [{ x: 25, y: 20 }, { x: 75, y: 20 }, { x: 25, y: 80 }, { x: 75, y: 80 }],
+    dots: [
+      { x: 25, y: 20 },
+      { x: 75, y: 20 },
+      { x: 25, y: 80 },
+      { x: 75, y: 80 },
+    ],
     dashes: [],
   },
   {
@@ -119,7 +138,10 @@ export const MORSE_MNEMONICS: MorseMnemonicItem[] = [
     explanation: 'I의 상단과 하단 꼭짓점에 위치한 2개의 점(••)',
     dotCount: 2,
     dashCount: 0,
-    dots: [{ x: 50, y: 22 }, { x: 50, y: 78 }],
+    dots: [
+      { x: 50, y: 22 },
+      { x: 50, y: 78 },
+    ],
     dashes: [],
   },
   {
@@ -159,7 +181,11 @@ export const MORSE_MNEMONICS: MorseMnemonicItem[] = [
     explanation: 'L의 상단 점(•), 수직 기둥 선(━), 하단 받침대의 2개 점(••)',
     dotCount: 3,
     dashCount: 1,
-    dots: [{ x: 28, y: 18 }, { x: 55, y: 82 }, { x: 78, y: 82 }],
+    dots: [
+      { x: 28, y: 18 },
+      { x: 55, y: 82 },
+      { x: 78, y: 82 },
+    ],
     dashes: [{ x1: 28, y1: 26, x2: 28, y2: 75, width: 9 }],
   },
   {
@@ -210,7 +236,10 @@ export const MORSE_MNEMONICS: MorseMnemonicItem[] = [
     explanation: 'P의 좌측 시작점(•), 상단 루프의 2개 선(━━), 하단 끝점(•)',
     dotCount: 2,
     dashCount: 2,
-    dots: [{ x: 28, y: 18 }, { x: 28, y: 82 }],
+    dots: [
+      { x: 28, y: 18 },
+      { x: 28, y: 82 },
+    ],
     dashes: [
       { x1: 35, y1: 18, x2: 70, y2: 18, width: 8 },
       { x1: 72, y1: 20, x2: 72, y2: 50, width: 8 },
@@ -239,7 +268,10 @@ export const MORSE_MNEMONICS: MorseMnemonicItem[] = [
     explanation: 'R의 좌상단 점(•), 중앙 수평선(━), 우하단 다리의 점(•)',
     dotCount: 2,
     dashCount: 1,
-    dots: [{ x: 28, y: 18 }, { x: 74, y: 82 }],
+    dots: [
+      { x: 28, y: 18 },
+      { x: 74, y: 82 },
+    ],
     dashes: [{ x1: 28, y1: 50, x2: 72, y2: 50, width: 8 }],
   },
   {
@@ -250,7 +282,11 @@ export const MORSE_MNEMONICS: MorseMnemonicItem[] = [
     explanation: 'S의 상단, 중앙, 하단 곡선 위에 차례로 놓인 3개의 점(•••)',
     dotCount: 3,
     dashCount: 0,
-    dots: [{ x: 68, y: 22 }, { x: 50, y: 50 }, { x: 32, y: 78 }],
+    dots: [
+      { x: 68, y: 22 },
+      { x: 50, y: 50 },
+      { x: 32, y: 78 },
+    ],
     dashes: [],
   },
   {
@@ -272,7 +308,10 @@ export const MORSE_MNEMONICS: MorseMnemonicItem[] = [
     explanation: 'U의 상단 양쪽 2개 꼭짓점(••)과 바닥을 받치는 수평선(━)',
     dotCount: 2,
     dashCount: 1,
-    dots: [{ x: 25, y: 20 }, { x: 75, y: 20 }],
+    dots: [
+      { x: 25, y: 20 },
+      { x: 75, y: 20 },
+    ],
     dashes: [{ x1: 25, y1: 85, x2: 75, y2: 85, width: 9 }],
   },
   {
@@ -283,7 +322,11 @@ export const MORSE_MNEMONICS: MorseMnemonicItem[] = [
     explanation: 'V의 상단 2개 점(••)과 중앙 점(•), 바닥을 받치는 수평선(━)',
     dotCount: 3,
     dashCount: 1,
-    dots: [{ x: 25, y: 20 }, { x: 75, y: 20 }, { x: 50, y: 60 }],
+    dots: [
+      { x: 25, y: 20 },
+      { x: 75, y: 20 },
+      { x: 50, y: 60 },
+    ],
     dashes: [{ x1: 25, y1: 85, x2: 75, y2: 85, width: 9 }],
   },
   {
@@ -308,7 +351,10 @@ export const MORSE_MNEMONICS: MorseMnemonicItem[] = [
     explanation: 'X의 상단 대각선(━), 중앙 2개 점(••), 하단 대각선(━)',
     dotCount: 2,
     dashCount: 2,
-    dots: [{ x: 42, y: 38 }, { x: 58, y: 62 }],
+    dots: [
+      { x: 42, y: 38 },
+      { x: 58, y: 62 },
+    ],
     dashes: [
       { x1: 22, y1: 22, x2: 45, y2: 45, width: 8 },
       { x1: 55, y1: 55, x2: 78, y2: 78, width: 8 },
@@ -337,7 +383,10 @@ export const MORSE_MNEMONICS: MorseMnemonicItem[] = [
     explanation: 'Z의 상단 수평선(━), 대각선(━), 하단 양 끝 2개 점(••)',
     dotCount: 2,
     dashCount: 2,
-    dots: [{ x: 25, y: 82 }, { x: 75, y: 82 }],
+    dots: [
+      { x: 25, y: 82 },
+      { x: 75, y: 82 },
+    ],
     dashes: [
       { x1: 25, y1: 18, x2: 75, y2: 18, width: 8 },
       { x1: 75, y1: 22, x2: 30, y2: 78, width: 8 },

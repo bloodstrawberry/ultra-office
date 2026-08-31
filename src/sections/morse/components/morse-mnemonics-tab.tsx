@@ -66,8 +66,8 @@ export function MorseMnemonicsTab() {
         </Box>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
           모스 부호는 무작위로 만든 기호가 아닙니다. 알파벳의 <strong>글자 형태(Shape)</strong>,{' '}
-          <strong>사용 빈도수(Frequency)</strong>, 그리고 <strong>소리 리듬(Rhythm)</strong>에 기초한
-          정교한 정보 설계 시스템입니다.
+          <strong>사용 빈도수(Frequency)</strong>, 그리고 <strong>소리 리듬(Rhythm)</strong>에
+          기초한 정교한 정보 설계 시스템입니다.
         </Typography>
 
         <Grid container spacing={2.5}>
@@ -92,9 +92,9 @@ export function MorseMnemonicsTab() {
                 </Typography>
               </Box>
               <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.6 }}>
-                알파벳의 획과 모서리에 <strong>점(•)</strong>과 <strong>선(━)</strong>을 오버레이하여
-                시각적으로 기억합니다. (예: <strong>A</strong>는 상단 꼭짓점 점 1개 + 가로선 1개 ={' '}
-                <code>.-</code>)
+                알파벳의 획과 모서리에 <strong>점(•)</strong>과 <strong>선(━)</strong>을
+                오버레이하여 시각적으로 기억합니다. (예: <strong>A</strong>는 상단 꼭짓점 점 1개 +
+                가로선 1개 = <code>.-</code>)
               </Typography>
             </Card>
           </Grid>
@@ -120,8 +120,9 @@ export function MorseMnemonicsTab() {
                 </Typography>
               </Box>
               <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.6 }}>
-                영어에서 가장 많이 쓰이는 <strong>E</strong>는 가장 짧은 <code>.</code>(점 1개), 두 번째로
-                많은 <strong>T</strong>는 <code>-</code>(선 1개)를 배정하여 전신 송신 속도를 극대화했습니다.
+                영어에서 가장 많이 쓰이는 <strong>E</strong>는 가장 짧은 <code>.</code>(점 1개), 두
+                번째로 많은 <strong>T</strong>는 <code>-</code>(선 1개)를 배정하여 전신 송신 속도를
+                극대화했습니다.
               </Typography>
             </Card>
           </Grid>
@@ -147,8 +148,9 @@ export function MorseMnemonicsTab() {
                 </Typography>
               </Box>
               <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.6 }}>
-                모스 부호는 눈이 아닌 귀로 익힙니다. 단점은 <strong>디(di)</strong>/<strong>돈</strong>,
-                장점은 <strong>다(dah)</strong>/<strong>쓰-</strong>로 발음하여 음악적 리듬으로 기억합니다.
+                모스 부호는 눈이 아닌 귀로 익힙니다. 단점은 <strong>디(di)</strong>/
+                <strong>돈</strong>, 장점은 <strong>다(dah)</strong>/<strong>쓰-</strong>로 발음하여
+                음악적 리듬으로 기억합니다.
               </Typography>
             </Card>
           </Grid>
@@ -174,8 +176,9 @@ export function MorseMnemonicsTab() {
                 </Typography>
               </Box>
               <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.6 }}>
-                단점 길이(1단위: t)를 기준으로, 장점은 <strong>3t</strong>, 글자 간격은 <strong>3t</strong>,
-                단어 간격은 <strong>7t</strong>의 완벽한 정수 비례 규칙을 준수합니다.
+                단점 길이(1단위: t)를 기준으로, 장점은 <strong>3t</strong>, 글자 간격은{' '}
+                <strong>3t</strong>, 단어 간격은 <strong>7t</strong>의 완벽한 정수 비례 규칙을
+                준수합니다.
               </Typography>
             </Card>
           </Grid>
@@ -244,7 +247,14 @@ export function MorseMnemonicsTab() {
         }}
       >
         {selectedItem && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              textAlign: 'center',
+            }}
+          >
             <IconButton
               size="small"
               onClick={() => setSelectedItem(null)}
@@ -322,11 +332,24 @@ export function MorseMnemonicsTab() {
             </Typography>
 
             <Box sx={{ display: 'flex', gap: 1, my: 1 }}>
-              <Chip label={`영문 발음: ${selectedItem.phoneticEn}`} color="info" variant="soft" sx={{ fontWeight: 700 }} />
-              <Chip label={`국문 구음: ${selectedItem.phoneticKo}`} color="warning" variant="soft" sx={{ fontWeight: 700 }} />
+              <Chip
+                label={`영문 발음: ${selectedItem.phoneticEn}`}
+                color="info"
+                variant="soft"
+                sx={{ fontWeight: 700 }}
+              />
+              <Chip
+                label={`국문 구음: ${selectedItem.phoneticKo}`}
+                color="warning"
+                variant="soft"
+                sx={{ fontWeight: 700 }}
+              />
             </Box>
 
-            <Typography variant="body1" sx={{ mt: 2, mb: 3, color: 'text.secondary', fontWeight: 600 }}>
+            <Typography
+              variant="body1"
+              sx={{ mt: 2, mb: 3, color: 'text.secondary', fontWeight: 600 }}
+            >
               {selectedItem.explanation}
             </Typography>
 
