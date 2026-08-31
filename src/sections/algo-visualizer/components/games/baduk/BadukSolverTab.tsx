@@ -264,6 +264,14 @@ export function BadukSolverTab() {
     setAiAnalysis(analysis);
   };
 
+  const handleAutoPlaySolution = () => {
+    if (isSolved || isAIMoving || turn !== 'B' || currentNodeTree.length === 0) return;
+    const targetNode = currentNodeTree[0];
+    if (targetNode) {
+      handlePlayMove(targetNode.move.r, targetNode.move.c);
+    }
+  };
+
   // Filtered problem list for catalog dialog
   const filteredProblems = useMemo(() => {
     return BADUK_PUZZLE_LIST.filter((p) => {
@@ -361,6 +369,18 @@ export function BadukSolverTab() {
           <IconButton onClick={handleRandomProblem} sx={{ color: '#d97706' }} title="랜덤 문제">
             <ShuffleRoundedIcon />
           </IconButton>
+
+          <Button
+            size="small"
+            variant="contained"
+            color="success"
+            startIcon={<CheckCircleRoundedIcon />}
+            onClick={handleAutoPlaySolution}
+            disabled={isSolved || isAIMoving || turn !== 'B' || currentNodeTree.length === 0}
+            sx={{ fontWeight: 700 }}
+          >
+            정답 한 수
+          </Button>
 
           <Button
             size="small"
@@ -496,6 +516,18 @@ export function BadukSolverTab() {
             </Typography>
 
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              <Button
+                variant="contained"
+                color="success"
+                size="small"
+                startIcon={<CheckCircleRoundedIcon />}
+                onClick={handleAutoPlaySolution}
+                disabled={isSolved || isAIMoving || turn !== 'B' || currentNodeTree.length === 0}
+                sx={{ fontWeight: 700 }}
+              >
+                정답 한 수 두기
+              </Button>
+
               <Button
                 variant="outlined"
                 color="inherit"

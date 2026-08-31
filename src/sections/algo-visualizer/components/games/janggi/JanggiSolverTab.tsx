@@ -293,6 +293,14 @@ export function JanggiSolverTab() {
     }, 500);
   };
 
+  const handleAutoPlaySolution = () => {
+    if (isSolved || isAIMoving || turn !== 'CHO' || currentNodeTree.length === 0) return;
+    const targetNode = currentNodeTree[0];
+    if (targetNode) {
+      handleMovePiece(targetNode.from, targetNode.to);
+    }
+  };
+
   const filteredProblems = useMemo(() => {
     return JANGGI_BAKBO_LIST.filter((p) => {
       const matchSearch =
@@ -388,6 +396,18 @@ export function JanggiSolverTab() {
           <IconButton onClick={handleRandomProblem} sx={{ color: '#d97706' }} title="랜덤 박보">
             <ShuffleRoundedIcon />
           </IconButton>
+
+          <Button
+            size="small"
+            variant="contained"
+            color="success"
+            startIcon={<CheckCircleRoundedIcon />}
+            onClick={handleAutoPlaySolution}
+            disabled={isSolved || isAIMoving || turn !== 'CHO' || currentNodeTree.length === 0}
+            sx={{ fontWeight: 700 }}
+          >
+            정답 한 수
+          </Button>
 
           <Button
             size="small"
@@ -495,6 +515,18 @@ export function JanggiSolverTab() {
             </Typography>
 
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              <Button
+                variant="contained"
+                color="success"
+                size="small"
+                startIcon={<CheckCircleRoundedIcon />}
+                onClick={handleAutoPlaySolution}
+                disabled={isSolved || isAIMoving || turn !== 'CHO' || currentNodeTree.length === 0}
+                sx={{ fontWeight: 700 }}
+              >
+                정답 한 수 두기
+              </Button>
+
               <Button
                 variant="outlined"
                 color="inherit"

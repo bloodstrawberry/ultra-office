@@ -542,6 +542,20 @@ export const REGEX_PRESETS = [
 // ----------------------------------------------------------------------
 // 6. Random Generators (Password / UUID / NanoID / CUID / Lorem)
 // ----------------------------------------------------------------------
+function getRandomBytes(size: number): Uint8Array {
+  const bytes = new Uint8Array(size);
+  if (typeof window !== 'undefined' && window.crypto && typeof window.crypto.getRandomValues === 'function') {
+    window.crypto.getRandomValues(bytes);
+  } else if (typeof globalThis !== 'undefined' && globalThis.crypto && typeof globalThis.crypto.getRandomValues === 'function') {
+    globalThis.crypto.getRandomValues(bytes);
+  } else {
+    for (let i = 0; i < size; i += 1) {
+      bytes[i] = Math.floor(Math.random() * 256);
+    }
+  }
+  return bytes;
+}
+
 export interface PasswordOptions {
   length: number;
   upper: boolean;
@@ -581,9 +595,8 @@ export function generateRandomPassword(
 
   if (!pool) pool = lowerChars + digitChars;
 
-  const cryptoObj = window.crypto;
-  const values = new Uint32Array(options.length);
-  cryptoObj.getRandomValues(values);
+  const randBytes = getRandomBytes(options.length * 4);
+  const values = new Uint32Array(randBytes.buffer, randBytes.byteOffset, options.length);
 
   let pwd = '';
   for (let i = 0; i < options.length; i += 1) {
@@ -614,8 +627,7 @@ export function generateUuidV7(): string {
   const part1 = hexTime.slice(0, 8);
   const part2 = hexTime.slice(8, 12);
 
-  const randBytes = new Uint8Array(10);
-  window.crypto.getRandomValues(randBytes);
+  const randBytes = getRandomBytes(10);
   const toHex = (b: number) => b.toString(16).padStart(2, '0');
 
   const randHex = Array.from(randBytes, toHex).join('');
@@ -628,8 +640,7 @@ export function generateUuidV7(): string {
 
 export function generateNanoId(size: number = 21): string {
   const urlAlphabet = 'useandom-26T1983_40STOpfunkgjqhkZLTXRnp_A-E0123456789';
-  const bytes = new Uint8Array(size);
-  window.crypto.getRandomValues(bytes);
+  const bytes = getRandomBytes(size);
   let id = '';
   for (let i = 0; i < size; i += 1) {
     id += urlAlphabet[bytes[i] % urlAlphabet.length];

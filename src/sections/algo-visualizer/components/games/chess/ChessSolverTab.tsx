@@ -257,6 +257,14 @@ export function ChessSolverTab() {
     setAiAnalysis(analysis);
   };
 
+  const handleAutoPlaySolution = () => {
+    if (isSolved || isAIMoving || currentNodeTree.length === 0) return;
+    const targetNode = currentNodeTree[0];
+    if (targetNode) {
+      handleMovePiece(targetNode.from, targetNode.to);
+    }
+  };
+
   const filteredPuzzles = useMemo(() => {
     return CHESS_PUZZLE_LIST.filter((p) => {
       const matchSearch =
@@ -352,6 +360,18 @@ export function ChessSolverTab() {
           <IconButton onClick={handleRandomPuzzle} sx={{ color: '#d97706' }} title="랜덤 퍼즐">
             <ShuffleRoundedIcon />
           </IconButton>
+
+          <Button
+            size="small"
+            variant="contained"
+            color="success"
+            startIcon={<CheckCircleRoundedIcon />}
+            onClick={handleAutoPlaySolution}
+            disabled={isSolved || isAIMoving || currentNodeTree.length === 0}
+            sx={{ fontWeight: 700 }}
+          >
+            정답 한 수
+          </Button>
 
           <Button
             size="small"
@@ -486,6 +506,18 @@ export function ChessSolverTab() {
             </Typography>
 
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              <Button
+                variant="contained"
+                color="success"
+                size="small"
+                startIcon={<CheckCircleRoundedIcon />}
+                onClick={handleAutoPlaySolution}
+                disabled={isSolved || isAIMoving || currentNodeTree.length === 0}
+                sx={{ fontWeight: 700 }}
+              >
+                정답 한 수 두기
+              </Button>
+
               <Button
                 variant="outlined"
                 color="inherit"

@@ -47,6 +47,7 @@ import MovieCreationRoundedIcon from '@mui/icons-material/MovieCreationRounded';
 import DocumentScannerRoundedIcon from '@mui/icons-material/DocumentScannerRounded';
 import SwapHorizontalCircleRoundedIcon from '@mui/icons-material/SwapHorizontalCircleRounded';
 import HandymanRoundedIcon from '@mui/icons-material/HandymanRounded';
+import SportsEsportsRoundedIcon from '@mui/icons-material/SportsEsportsRounded';
 
 import { paths } from 'src/routes/paths';
 
@@ -59,6 +60,7 @@ const ICONS = {
   photo: <PhotoLibraryRoundedIcon fontSize="small" />,
   gif: <GifRoundedIcon fontSize="small" />,
   drawing: <CasinoRoundedIcon fontSize="small" />,
+  boardGame: <SportsEsportsRoundedIcon fontSize="small" />,
   compare: <CompareArrowsRoundedIcon fontSize="small" />,
   imageTool: <PhotoFilterRoundedIcon fontSize="small" />,
   agent: <AutoAwesomeRoundedIcon fontSize="small" />,
@@ -211,13 +213,20 @@ export const navData: NavSectionProps['data'] = [
         children: [
           { title: '알고리즘 시각화 랩', path: paths.algo.visualizer },
           { title: '자료구조 도감 & 실습실', path: paths.algo.dataStructures },
-          { title: '바둑 사활 & 묘수풀이', path: paths.algo.baduk },
-          { title: '장기 박보 & 묘수풀이', path: paths.algo.janggi },
-          { title: '체스 전술 & 퍼즐풀이', path: paths.algo.chess },
           { title: '1:1 알고리즘 비교', path: paths.algo.compare },
           { title: 'CS 챌린지 모드', path: paths.algo.challenge },
           { title: '커스텀 코드 샌드박스', path: paths.algo.playground },
           { title: 'Big-O 마스터 & 카탈로그', path: paths.algo.catalog },
+        ],
+      },
+      {
+        title: '보드게임',
+        path: paths.algo.baduk,
+        icon: ICONS.boardGame,
+        children: [
+          { title: '바둑 사활 & 묘수풀이', path: paths.algo.baduk },
+          { title: '장기 박보 & 묘수풀이', path: paths.algo.janggi },
+          { title: '체스 전술 & 퍼즐풀이', path: paths.algo.chess },
         ],
       },
       {
