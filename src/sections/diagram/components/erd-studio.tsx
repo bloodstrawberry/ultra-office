@@ -26,6 +26,8 @@ import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 
+import { ResizablePanel, ResizableHandle, ResizablePanelGroup } from 'src/components/resizable';
+
 import { ERD_SCHEMAS } from '../data/example-templates';
 
 // ----------------------------------------------------------------------
@@ -255,280 +257,289 @@ export function ErdStudio() {
       </Card>
 
       {/* 2. Main ERD Canvas & Relations List */}
-      <Box
-        sx={{
-          flex: '1 1 auto',
-          minHeight: 0,
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', lg: '1fr 280px' },
-          gap: 2,
-        }}
-      >
+      <ResizablePanelGroup orientation="horizontal" autoSaveId="erd-studio-split">
         {/* ERD Interactive Visual Canvas */}
-        <Card
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            p: 2,
-            minHeight: 0,
-            overflow: 'hidden',
-          }}
-        >
-          <Box
+        <ResizablePanel id="erd-canvas" defaultSize={72} minSize={30}>
+          <Card
             sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              mb: 1.5,
-              flexShrink: 0,
-            }}
-          >
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 0.5 }}
-            >
-              <TableViewRoundedIcon sx={{ fontSize: 18, color: 'warning.main' }} />
-              엔터티 다이어그램 뷰 ({tables.length}개 테이블)
-            </Typography>
-            {currentSchema && (
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                {currentSchema.description}
-              </Typography>
-            )}
-          </Box>
-
-          {/* Tables Flow Grid */}
-          <Box
-            sx={{
-              flex: '1 1 auto',
-              minHeight: 0,
-              overflow: 'auto',
-              p: 2.5,
-              bgcolor: 'background.neutral',
-              borderRadius: 2,
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-              gap: 2.5,
-              alignContent: 'flex-start',
-            }}
-          >
-            {tables.map((tbl) => (
-              <Card
-                key={tbl.id}
-                sx={{
-                  bgcolor: 'background.paper',
-                  borderRadius: 2,
-                  boxShadow: 2,
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  borderTop: `4px solid ${tbl.color || '#1976d2'}`,
-                  overflow: 'hidden',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-              >
-                {/* Table Header */}
-                <Box
-                  sx={{
-                    p: 1.2,
-                    px: 1.5,
-                    bgcolor: `${tbl.color || '#1976d2'}10`,
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    borderBottom: '1px solid',
-                    borderColor: 'divider',
-                  }}
-                >
-                  <Box>
-                    <Typography
-                      variant="subtitle2"
-                      sx={{ fontWeight: 800, color: tbl.color || 'primary.main' }}
-                    >
-                      {tbl.name}
-                    </Typography>
-                    {tbl.comment && (
-                      <Typography
-                        variant="caption"
-                        sx={{ color: 'text.secondary', display: 'block', fontSize: '0.68rem' }}
-                      >
-                        {tbl.comment}
-                      </Typography>
-                    )}
-                  </Box>
-                  <IconButton
-                    size="small"
-                    color="error"
-                    onClick={() => handleDeleteTable(tbl.id)}
-                    sx={{ opacity: 0.6, '&:hover': { opacity: 1 } }}
-                    title="테이블 삭제"
-                  >
-                    <DeleteOutlineRoundedIcon sx={{ fontSize: 16 }} />
-                  </IconButton>
-                </Box>
-
-                {/* Columns List */}
-                <Box sx={{ p: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                  {tbl.columns.map((col, cIdx) => (
-                    <Box
-                      key={cIdx}
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        py: 0.4,
-                        px: 0.8,
-                        borderRadius: 1,
-                        fontSize: '0.78rem',
-                        '&:hover': { bgcolor: 'action.hover' },
-                      }}
-                    >
-                      <Box
-                        sx={{ display: 'flex', alignItems: 'center', gap: 0.6, overflow: 'hidden' }}
-                      >
-                        {col.isPk && (
-                          <Chip
-                            label="PK"
-                            size="small"
-                            sx={{
-                              height: 16,
-                              fontSize: '0.62rem',
-                              fontWeight: 800,
-                              bgcolor: 'warning.lighter',
-                              color: 'warning.dark',
-                            }}
-                          />
-                        )}
-                        {col.isFk && (
-                          <Chip
-                            label="FK"
-                            size="small"
-                            sx={{
-                              height: 16,
-                              fontSize: '0.62rem',
-                              fontWeight: 800,
-                              bgcolor: 'info.lighter',
-                              color: 'info.dark',
-                            }}
-                          />
-                        )}
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            fontWeight: col.isPk ? 700 : 500,
-                            color: col.isPk ? 'text.primary' : 'text.secondary',
-                            fontFamily: 'Consolas, Monaco, monospace',
-                          }}
-                        >
-                          {col.name}
-                        </Typography>
-                      </Box>
-
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            color: 'text.disabled',
-                            fontFamily: 'Consolas, Monaco, monospace',
-                            fontSize: '0.7rem',
-                          }}
-                        >
-                          {col.type}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  ))}
-                </Box>
-              </Card>
-            ))}
-          </Box>
-        </Card>
-
-        {/* Right Sidebar: Relations (Foreign Keys) List */}
-        <Card
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            p: 2,
-            minHeight: 0,
-            overflow: 'hidden',
-          }}
-        >
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 0.5,
-              mb: 1.5,
-              pb: 1,
-              borderBottom: '1px solid',
-              borderColor: 'divider',
-              flexShrink: 0,
-            }}
-          >
-            <LinkRoundedIcon sx={{ fontSize: 18, color: 'info.main' }} />
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-              외래키 관계 ({relations.length}개)
-            </Typography>
-          </Box>
-
-          <Box
-            sx={{
-              flex: '1 1 auto',
-              overflowY: 'auto',
               display: 'flex',
               flexDirection: 'column',
-              gap: 1,
+              p: 2,
+              height: '100%',
+              minHeight: 0,
+              overflow: 'hidden',
             }}
           >
-            {relations.map((rel, rIdx) => (
-              <Box
-                key={rIdx}
-                sx={{
-                  p: 1.2,
-                  bgcolor: 'background.neutral',
-                  borderRadius: 1.5,
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 0.4,
-                }}
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mb: 1.5,
+                flexShrink: 0,
+              }}
+            >
+              <Typography
+                variant="subtitle2"
+                sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 0.5 }}
               >
-                <Box
-                  sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                <TableViewRoundedIcon sx={{ fontSize: 18, color: 'warning.main' }} />
+                엔터티 다이어그램 뷰 ({tables.length}개 테이블)
+              </Typography>
+              {currentSchema && (
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                  {currentSchema.description}
+                </Typography>
+              )}
+            </Box>
+
+            {/* Tables Flow Grid */}
+            <Box
+              sx={{
+                flex: '1 1 auto',
+                minHeight: 0,
+                overflow: 'auto',
+                p: 2.5,
+                bgcolor: 'background.neutral',
+                borderRadius: 2,
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+                gap: 2.5,
+                alignContent: 'flex-start',
+              }}
+            >
+              {tables.map((tbl) => (
+                <Card
+                  key={tbl.id}
+                  sx={{
+                    bgcolor: 'background.paper',
+                    borderRadius: 2,
+                    boxShadow: 2,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderTop: `4px solid ${tbl.color || '#1976d2'}`,
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column',
+                  }}
                 >
-                  <Chip
-                    label={rel.type}
-                    size="small"
-                    color="primary"
-                    variant="outlined"
-                    sx={{ height: 18, fontSize: '0.65rem', fontWeight: 700 }}
-                  />
+                  {/* Table Header */}
+                  <Box
+                    sx={{
+                      p: 1.2,
+                      px: 1.5,
+                      bgcolor: `${tbl.color || '#1976d2'}10`,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      borderBottom: '1px solid',
+                      borderColor: 'divider',
+                    }}
+                  >
+                    <Box>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{ fontWeight: 800, color: tbl.color || 'primary.main' }}
+                      >
+                        {tbl.name}
+                      </Typography>
+                      {tbl.comment && (
+                        <Typography
+                          variant="caption"
+                          sx={{ color: 'text.secondary', display: 'block', fontSize: '0.68rem' }}
+                        >
+                          {tbl.comment}
+                        </Typography>
+                      )}
+                    </Box>
+                    <IconButton
+                      size="small"
+                      color="error"
+                      onClick={() => handleDeleteTable(tbl.id)}
+                      sx={{ opacity: 0.6, '&:hover': { opacity: 1 } }}
+                      title="테이블 삭제"
+                    >
+                      <DeleteOutlineRoundedIcon sx={{ fontSize: 16 }} />
+                    </IconButton>
+                  </Box>
+
+                  {/* Columns List */}
+                  <Box sx={{ p: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                    {tbl.columns.map((col, cIdx) => (
+                      <Box
+                        key={cIdx}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          py: 0.4,
+                          px: 0.8,
+                          borderRadius: 1,
+                          fontSize: '0.78rem',
+                          '&:hover': { bgcolor: 'action.hover' },
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 0.6,
+                            overflow: 'hidden',
+                          }}
+                        >
+                          {col.isPk && (
+                            <Chip
+                              label="PK"
+                              size="small"
+                              sx={{
+                                height: 16,
+                                fontSize: '0.62rem',
+                                fontWeight: 800,
+                                bgcolor: 'warning.lighter',
+                                color: 'warning.dark',
+                              }}
+                            />
+                          )}
+                          {col.isFk && (
+                            <Chip
+                              label="FK"
+                              size="small"
+                              sx={{
+                                height: 16,
+                                fontSize: '0.62rem',
+                                fontWeight: 800,
+                                bgcolor: 'info.lighter',
+                                color: 'info.dark',
+                              }}
+                            />
+                          )}
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              fontWeight: col.isPk ? 700 : 500,
+                              color: col.isPk ? 'text.primary' : 'text.secondary',
+                              fontFamily: 'Consolas, Monaco, monospace',
+                            }}
+                          >
+                            {col.name}
+                          </Typography>
+                        </Box>
+
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: 'text.disabled',
+                              fontFamily: 'Consolas, Monaco, monospace',
+                              fontSize: '0.7rem',
+                            }}
+                          >
+                            {col.type}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    ))}
+                  </Box>
+                </Card>
+              ))}
+            </Box>
+          </Card>
+        </ResizablePanel>
+
+        {/* Resizable Divider Handle */}
+        <ResizableHandle direction="horizontal" tooltipText="좌우 너비 조절" />
+
+        {/* Right Sidebar: Relations (Foreign Keys) List */}
+        <ResizablePanel id="erd-relations" defaultSize={28} minSize={18}>
+          <Card
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              p: 2,
+              height: '100%',
+              minHeight: 0,
+              overflow: 'hidden',
+            }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.5,
+                mb: 1.5,
+                pb: 1,
+                borderBottom: '1px solid',
+                borderColor: 'divider',
+                flexShrink: 0,
+              }}
+            >
+              <LinkRoundedIcon sx={{ fontSize: 18, color: 'info.main' }} />
+              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                외래키 관계 ({relations.length}개)
+              </Typography>
+            </Box>
+
+            <Box
+              sx={{
+                flex: '1 1 auto',
+                overflowY: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1,
+              }}
+            >
+              {relations.map((rel, rIdx) => (
+                <Box
+                  key={rIdx}
+                  sx={{
+                    p: 1.2,
+                    bgcolor: 'background.neutral',
+                    borderRadius: 1.5,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 0.4,
+                  }}
+                >
+                  <Box
+                    sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                  >
+                    <Chip
+                      label={rel.type}
+                      size="small"
+                      color="primary"
+                      variant="outlined"
+                      sx={{ height: 18, fontSize: '0.65rem', fontWeight: 700 }}
+                    />
+                    <Typography
+                      variant="caption"
+                      sx={{ color: 'text.disabled', fontSize: '0.65rem' }}
+                    >
+                      FK 연동
+                    </Typography>
+                  </Box>
+                  <Typography variant="caption" sx={{ fontWeight: 700, fontFamily: 'monospace' }}>
+                    {rel.fromTable}.{rel.fromColumn}
+                  </Typography>
                   <Typography
                     variant="caption"
-                    sx={{ color: 'text.disabled', fontSize: '0.65rem' }}
+                    sx={{ color: 'text.secondary', fontSize: '0.7rem' }}
                   >
-                    FK 연동
+                    ⬇ 참조(Reference)
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    sx={{ fontWeight: 700, fontFamily: 'monospace', color: 'info.main' }}
+                  >
+                    {rel.toTable}.{rel.toColumn}
                   </Typography>
                 </Box>
-                <Typography variant="caption" sx={{ fontWeight: 700, fontFamily: 'monospace' }}>
-                  {rel.fromTable}.{rel.fromColumn}
-                </Typography>
-                <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
-                  ⬇ 참조(Reference)
-                </Typography>
-                <Typography
-                  variant="caption"
-                  sx={{ fontWeight: 700, fontFamily: 'monospace', color: 'info.main' }}
-                >
-                  {rel.toTable}.{rel.toColumn}
-                </Typography>
-              </Box>
-            ))}
-          </Box>
-        </Card>
-      </Box>
+              ))}
+            </Box>
+          </Card>
+        </ResizablePanel>
+      </ResizablePanelGroup>
 
       {/* SQL DDL Generator Modal */}
       <Dialog

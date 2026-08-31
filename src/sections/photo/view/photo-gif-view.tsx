@@ -30,6 +30,7 @@ import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
+import ContentPasteRoundedIcon from '@mui/icons-material/ContentPasteRounded';
 
 import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
 
@@ -196,6 +197,51 @@ export function GifView() {
     addCreateFiles(files);
     if (e.target) e.target.value = '';
   };
+
+  const handlePasteFromClipboard = useCallback(async () => {
+    try {
+      if (!navigator.clipboard?.read) {
+        toast.error(
+          '현재 브라우저에서 클립보드 읽기 API를 지원하지 않습니다. Ctrl+V 단축키를 이용해 주세요.'
+        );
+        return;
+      }
+
+      const clipboardItems = await navigator.clipboard.read();
+      const imageFiles: File[] = [];
+
+      for (let i = 0; i < clipboardItems.length; i += 1) {
+        const item = clipboardItems[i];
+        for (const type of item.types) {
+          if (type.startsWith('image/')) {
+            const blob = await item.getType(type);
+            const ext = type.split('/')[1] || 'png';
+            const fileName = `스크린샷_${Date.now()}_${i + 1}.${ext}`;
+            imageFiles.push(new File([blob], fileName, { type }));
+          }
+        }
+      }
+
+      if (imageFiles.length > 0) {
+        addCreateFiles(imageFiles);
+        toast.success(
+          `📋 클립보드에서 ${imageFiles.length}개 이미지(Print Screen 캡처 등)를 추가했습니다!`
+        );
+      } else {
+        toast.info(
+          '클립보드에 이미지 데이터가 없습니다. Print Screen(스크린샷) 또는 이미지를 복사한 후 시도해주세요.'
+        );
+      }
+    } catch (err: any) {
+      if (err.name === 'NotAllowedError' || err.name === 'SecurityError') {
+        toast.error(
+          '클립보드 접근 권한이 허용되지 않았습니다. 화면을 클릭 후 Ctrl+V 단축키로 붙여넣어 보세요.'
+        );
+      } else {
+        toast.error('클립보드에서 이미지를 불러오지 못했습니다. Ctrl+V 단축키를 이용해주세요.');
+      }
+    }
+  }, [addCreateFiles]);
 
   const handleGenerateGif = async () => {
     if (createImages.length < 2) {
@@ -547,9 +593,31 @@ export function GifView() {
                 <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
                   2장 이상의 사진을 순서대로 업로드하여 애니메이션으로 합성합니다
                 </Typography>
-                <Button variant="contained" color="primary" startIcon={<CloudUploadRoundedIcon />}>
-                  사진 선택하기
-                </Button>
+                <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', justifyContent: 'center' }}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<CloudUploadRoundedIcon />}
+                  >
+                    사진 선택하기
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    startIcon={<ContentPasteRoundedIcon />}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePasteFromClipboard();
+                    }}
+                    sx={{ bgcolor: 'background.paper' }}
+                  >
+                    클립보드 붙여넣기 (Ctrl+V)
+                  </Button>
+                </Box>
+                <Typography variant="caption" sx={{ color: 'text.disabled', mt: 1.5 }}>
+                  💡 Print Screen(스크린샷 캡처) 후 어디서든 <strong>Ctrl+V</strong>를 누르면 바로
+                  추가됩니다.
+                </Typography>
               </Card>
             </Box>
           ) : (

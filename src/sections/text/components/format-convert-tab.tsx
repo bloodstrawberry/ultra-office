@@ -17,6 +17,8 @@ import SwapHorizRoundedIcon from '@mui/icons-material/SwapHorizRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import DeleteSweepRoundedIcon from '@mui/icons-material/DeleteSweepRounded';
 
+import { ResizablePanel, ResizableHandle, ResizablePanelGroup } from 'src/components/resizable';
+
 import { TextAreaPanel } from '../../util/components/shared-text-area';
 import { LineNumberTextField } from '../../util/components/line-number-text-field';
 import {
@@ -148,148 +150,148 @@ export function FormatConvertTab() {
         />
       </Box>
 
-      {/* Editors Grid */}
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-          gap: 2,
-          flex: '1 1 auto',
-          minHeight: 0,
-          height: '100%',
-        }}
-      >
-        <TextAreaPanel
-          title="원본 데이터"
-          headerContent={
-            <FormControl size="small" sx={{ width: 140 }}>
-              <InputLabel>원본 포맷</InputLabel>
-              <Select
-                value={sourceFormat}
-                label="원본 포맷"
-                onChange={(e) => setSourceFormat(e.target.value as SupportedDataFormat | 'auto')}
-              >
-                <MenuItem value="auto">자동 감지 (Auto)</MenuItem>
-                <MenuItem value="json">JSON</MenuItem>
-                <MenuItem value="csv">CSV</MenuItem>
-                <MenuItem value="xml">XML</MenuItem>
-                <MenuItem value="yaml">YAML</MenuItem>
-              </Select>
-            </FormControl>
-          }
-          actions={
-            <Box sx={{ display: 'flex', gap: 0.5 }}>
-              <Tooltip title="클립보드 복사">
-                <IconButton size="small" onClick={() => handleCopy(formatSourceText)}>
-                  <ContentCopyRoundedIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="스왑">
-                <IconButton
-                  size="small"
-                  onClick={() => {
-                    const temp = formatSourceText;
-                    setFormatSourceText(convertedText);
-                    setConvertedText(temp);
-                    const tempFmt =
-                      sourceFormat === 'auto' ? detectFormat(formatSourceText) : sourceFormat;
-                    setSourceFormat(targetFormat);
-                    setTargetFormat(tempFmt);
-                  }}
-                >
-                  <SwapHorizRoundedIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="지우기">
-                <IconButton size="small" color="error" onClick={() => setFormatSourceText('')}>
-                  <DeleteSweepRoundedIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            </Box>
-          }
-        >
-          <LineNumberTextField
-            value={formatSourceText}
-            onChange={setFormatSourceText}
-            placeholder="변환할 원본 JSON, CSV, XML, YAML 데이터를 입력하세요..."
-          />
-        </TextAreaPanel>
-
-        <TextAreaPanel
-          title="변환된 결과"
-          headerContent={
-            <Box sx={{ display: 'flex', gap: 1 }}>
+      {/* Editors Resizable Panels */}
+      <ResizablePanelGroup orientation="horizontal" autoSaveId="format-convert-split">
+        {/* Left: Source Data */}
+        <ResizablePanel id="source-format" defaultSize={50} minSize={25}>
+          <TextAreaPanel
+            title="원본 데이터"
+            headerContent={
               <FormControl size="small" sx={{ width: 140 }}>
-                <InputLabel>목표 포맷</InputLabel>
+                <InputLabel>원본 포맷</InputLabel>
                 <Select
-                  value={targetFormat}
-                  label="목표 포맷"
-                  onChange={(e) => setTargetFormat(e.target.value as SupportedDataFormat)}
+                  value={sourceFormat}
+                  label="원본 포맷"
+                  onChange={(e) => setSourceFormat(e.target.value as SupportedDataFormat | 'auto')}
                 >
+                  <MenuItem value="auto">자동 감지 (Auto)</MenuItem>
                   <MenuItem value="json">JSON</MenuItem>
                   <MenuItem value="csv">CSV</MenuItem>
                   <MenuItem value="xml">XML</MenuItem>
                   <MenuItem value="yaml">YAML</MenuItem>
                 </Select>
               </FormControl>
-
-              {(targetFormat === 'json' || targetFormat === 'yaml') && (
-                <FormControl size="small" sx={{ width: 110 }}>
-                  <InputLabel>들여쓰기</InputLabel>
-                  <Select
-                    value={indentSize}
-                    label="들여쓰기"
-                    onChange={(e) => setIndentSize(Number(e.target.value))}
+            }
+            actions={
+              <Box sx={{ display: 'flex', gap: 0.5 }}>
+                <Tooltip title="클립보드 복사">
+                  <IconButton size="small" onClick={() => handleCopy(formatSourceText)}>
+                    <ContentCopyRoundedIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="스왑">
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      const temp = formatSourceText;
+                      setFormatSourceText(convertedText);
+                      setConvertedText(temp);
+                      const tempFmt =
+                        sourceFormat === 'auto' ? detectFormat(formatSourceText) : sourceFormat;
+                      setSourceFormat(targetFormat);
+                      setTargetFormat(tempFmt);
+                    }}
                   >
-                    <MenuItem value={2}>2칸 공백</MenuItem>
-                    <MenuItem value={4}>4칸 공백</MenuItem>
+                    <SwapHorizRoundedIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="지우기">
+                  <IconButton size="small" color="error" onClick={() => setFormatSourceText('')}>
+                    <DeleteSweepRoundedIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+            }
+          >
+            <LineNumberTextField
+              value={formatSourceText}
+              onChange={setFormatSourceText}
+              placeholder="변환할 원본 JSON, CSV, XML, YAML 데이터를 입력하세요..."
+            />
+          </TextAreaPanel>
+        </ResizablePanel>
+
+        {/* Resizable Divider Handle */}
+        <ResizableHandle direction="horizontal" tooltipText="좌우 너비 조절" />
+
+        {/* Right: Target Converted Result */}
+        <ResizablePanel id="target-format" defaultSize={50} minSize={25}>
+          <TextAreaPanel
+            title="변환된 결과"
+            headerContent={
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <FormControl size="small" sx={{ width: 140 }}>
+                  <InputLabel>목표 포맷</InputLabel>
+                  <Select
+                    value={targetFormat}
+                    label="목표 포맷"
+                    onChange={(e) => setTargetFormat(e.target.value as SupportedDataFormat)}
+                  >
+                    <MenuItem value="json">JSON</MenuItem>
+                    <MenuItem value="csv">CSV</MenuItem>
+                    <MenuItem value="xml">XML</MenuItem>
+                    <MenuItem value="yaml">YAML</MenuItem>
                   </Select>
                 </FormControl>
-              )}
 
-              {targetFormat === 'csv' && (
-                <FormControl size="small" sx={{ width: 110 }}>
-                  <InputLabel>구분자</InputLabel>
-                  <Select
-                    value={csvDelimiter}
-                    label="구분자"
-                    onChange={(e) => setCsvDelimiter(e.target.value as ',' | '\t' | ';' | '|')}
+                {(targetFormat === 'json' || targetFormat === 'yaml') && (
+                  <FormControl size="small" sx={{ width: 110 }}>
+                    <InputLabel>들여쓰기</InputLabel>
+                    <Select
+                      value={indentSize}
+                      label="들여쓰기"
+                      onChange={(e) => setIndentSize(Number(e.target.value))}
+                    >
+                      <MenuItem value={2}>2칸 공백</MenuItem>
+                      <MenuItem value={4}>4칸 공백</MenuItem>
+                    </Select>
+                  </FormControl>
+                )}
+
+                {targetFormat === 'csv' && (
+                  <FormControl size="small" sx={{ width: 110 }}>
+                    <InputLabel>구분자</InputLabel>
+                    <Select
+                      value={csvDelimiter}
+                      label="구분자"
+                      onChange={(e) => setCsvDelimiter(e.target.value as ',' | '\t' | ';' | '|')}
+                    >
+                      <MenuItem value=",">콤마 (,)</MenuItem>
+                      <MenuItem value="\t">탭 (Tab)</MenuItem>
+                      <MenuItem value=";">세미콜론 (;)</MenuItem>
+                      <MenuItem value="|">파이프 (|)</MenuItem>
+                    </Select>
+                  </FormControl>
+                )}
+              </Box>
+            }
+            actions={
+              <Box sx={{ display: 'flex', gap: 0.5 }}>
+                <Tooltip title="클립보드 복사">
+                  <IconButton size="small" onClick={() => handleCopy(convertedText)}>
+                    <ContentCopyRoundedIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="파일 다운로드">
+                  <IconButton
+                    size="small"
+                    onClick={() => handleDownload(convertedText, targetFormat)}
                   >
-                    <MenuItem value=",">콤마 (,)</MenuItem>
-                    <MenuItem value="\t">탭 (Tab)</MenuItem>
-                    <MenuItem value=";">세미콜론 (;)</MenuItem>
-                    <MenuItem value="|">파이프 (|)</MenuItem>
-                  </Select>
-                </FormControl>
-              )}
-            </Box>
-          }
-          actions={
-            <Box sx={{ display: 'flex', gap: 0.5 }}>
-              <Tooltip title="클립보드 복사">
-                <IconButton size="small" onClick={() => handleCopy(convertedText)}>
-                  <ContentCopyRoundedIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="파일 다운로드">
-                <IconButton
-                  size="small"
-                  onClick={() => handleDownload(convertedText, targetFormat)}
-                >
-                  <DownloadRoundedIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            </Box>
-          }
-        >
-          <LineNumberTextField
-            value={convertedText}
-            readOnly
-            error={convertedText.startsWith('변환 실패')}
-            placeholder="변환된 결과가 여기에 표시됩니다..."
-          />
-        </TextAreaPanel>
-      </Box>
+                    <DownloadRoundedIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+            }
+          >
+            <LineNumberTextField
+              value={convertedText}
+              readOnly
+              error={convertedText.startsWith('변환 실패')}
+              placeholder="변환된 결과가 여기에 표시됩니다..."
+            />
+          </TextAreaPanel>
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </Box>
   );
 }

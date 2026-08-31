@@ -48,10 +48,17 @@ export function NumberWordsConverter() {
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: '1 1 auto', minHeight: 0 }}>
       {/* Input Number Card */}
-      <Card sx={{ p: 3, borderRadius: 2, border: (theme) => `1px solid ${theme.palette.divider}` }}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 1.5 }}>
+      <Card
+        sx={{
+          p: 2,
+          borderRadius: 2,
+          border: (theme) => `1px solid ${theme.palette.divider}`,
+          flexShrink: 0,
+        }}
+      >
+        <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1 }}>
           💰 금액 / 숫자 입력 (원화 기준)
         </Typography>
 
@@ -74,40 +81,80 @@ export function NumberWordsConverter() {
           }}
           sx={{
             '& .MuiOutlinedInput-root': {
-              fontSize: '1.4rem',
+              fontSize: '1.3rem',
               fontWeight: 800,
             },
           }}
         />
 
         {/* Quick Amount Buttons */}
-        <Box sx={{ display: 'flex', gap: 1, mt: 2, flexWrap: 'wrap' }}>
-          <Button size="small" variant="outlined" onClick={() => handleAddAmount(10000)}>
+        <Box sx={{ display: 'flex', gap: 0.8, mt: 1.5, flexWrap: 'wrap' }}>
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={() => handleAddAmount(10000)}
+            sx={{ py: 0.2 }}
+          >
             +1만
           </Button>
-          <Button size="small" variant="outlined" onClick={() => handleAddAmount(100000)}>
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={() => handleAddAmount(100000)}
+            sx={{ py: 0.2 }}
+          >
             +10만
           </Button>
-          <Button size="small" variant="outlined" onClick={() => handleAddAmount(1000000)}>
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={() => handleAddAmount(1000000)}
+            sx={{ py: 0.2 }}
+          >
             +100만
           </Button>
-          <Button size="small" variant="outlined" onClick={() => handleAddAmount(10000000)}>
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={() => handleAddAmount(10000000)}
+            sx={{ py: 0.2 }}
+          >
             +1,000만
           </Button>
-          <Button size="small" variant="outlined" onClick={() => handleAddAmount(100000000)}>
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={() => handleAddAmount(100000000)}
+            sx={{ py: 0.2 }}
+          >
             +1억
           </Button>
-          <Button size="small" variant="outlined" onClick={() => handleAddAmount(1000000000)}>
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={() => handleAddAmount(1000000000)}
+            sx={{ py: 0.2 }}
+          >
             +10억
           </Button>
-          <Button size="small" variant="soft" color="error" onClick={() => setNumValue('0')}>
+          <Button
+            size="small"
+            variant="soft"
+            color="error"
+            onClick={() => setNumValue('0')}
+            sx={{ py: 0.2 }}
+          >
             초기화
           </Button>
         </Box>
       </Card>
 
       {/* Result Cards Grid */}
-      <Grid container spacing={2.5}>
+      <Grid
+        container
+        spacing={2}
+        sx={{ flex: '1 1 0px', minHeight: 0, overflowY: 'auto', alignContent: 'flex-start' }}
+      >
         {/* Card 1: Korean Words */}
         <Grid size={{ xs: 12, md: 6 }}>
           <Card
@@ -130,7 +177,11 @@ export function NumberWordsConverter() {
               </Box>
 
               <IconButton size="small" onClick={() => handleCopy(koreanWords, 'kor')}>
-                {copiedKey === 'kor' ? <CheckRoundedIcon color="success" /> : <ContentCopyRoundedIcon />}
+                {copiedKey === 'kor' ? (
+                  <CheckRoundedIcon color="success" />
+                ) : (
+                  <ContentCopyRoundedIcon />
+                )}
               </IconButton>
             </Box>
 
@@ -167,7 +218,11 @@ export function NumberWordsConverter() {
               </Box>
 
               <IconButton size="small" onClick={() => handleCopy(hanjaWords, 'hanja')}>
-                {copiedKey === 'hanja' ? <CheckRoundedIcon color="success" /> : <ContentCopyRoundedIcon />}
+                {copiedKey === 'hanja' ? (
+                  <CheckRoundedIcon color="success" />
+                ) : (
+                  <ContentCopyRoundedIcon />
+                )}
               </IconButton>
             </Box>
 
@@ -177,7 +232,8 @@ export function NumberWordsConverter() {
               </Typography>
             </Box>
             <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-              획을 더해 숫자를 변조하지 못하도록 壹(일), 貳(이), 參(삼), 阡(천) 등의 갖은자를 사용합니다.
+              획을 더해 숫자를 변조하지 못하도록 壹(일), 貳(이), 參(삼), 阡(천) 등의 갖은자를
+              사용합니다.
             </Typography>
           </Card>
         </Grid>
@@ -204,7 +260,11 @@ export function NumberWordsConverter() {
               </Box>
 
               <IconButton size="small" onClick={() => handleCopy(englishWords, 'eng')}>
-                {copiedKey === 'eng' ? <CheckRoundedIcon color="success" /> : <ContentCopyRoundedIcon />}
+                {copiedKey === 'eng' ? (
+                  <CheckRoundedIcon color="success" />
+                ) : (
+                  <ContentCopyRoundedIcon />
+                )}
               </IconButton>
             </Box>
 
@@ -251,7 +311,16 @@ export function NumberWordsConverter() {
               </Button>
             </Box>
 
-            <Box sx={{ p: 2, borderRadius: 1.5, bgcolor: 'background.neutral', display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+            <Box
+              sx={{
+                p: 2,
+                borderRadius: 1.5,
+                bgcolor: 'background.neutral',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 0.5,
+              }}
+            >
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                   공급가액:
@@ -268,7 +337,14 @@ export function NumberWordsConverter() {
                   ₩{vatAmount.toLocaleString()}
                 </Typography>
               </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', pt: 0.5, borderTop: (theme) => `1px dashed ${theme.palette.divider}` }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  pt: 0.5,
+                  borderTop: (theme) => `1px dashed ${theme.palette.divider}`,
+                }}
+              >
                 <Typography variant="body2" sx={{ fontWeight: 800 }}>
                   합계 금액:
                 </Typography>

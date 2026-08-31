@@ -20,6 +20,8 @@ import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import LockRoundedIcon from '@mui/icons-material/LockRounded';
 import LockOpenRoundedIcon from '@mui/icons-material/LockOpenRounded';
 
+import { ResizablePanel, ResizableHandle, ResizablePanelGroup } from 'src/components/resizable';
+
 import {
   caesarCipher,
   rot13Cipher,
@@ -70,7 +72,10 @@ export function CipherConverterTab() {
         result = vigenereCipher(inputText, vigenereKey, mode);
         break;
       case 'railfence':
-        result = mode === 'encrypt' ? railFenceEncrypt(inputText, railCount) : railFenceDecrypt(inputText, railCount);
+        result =
+          mode === 'encrypt'
+            ? railFenceEncrypt(inputText, railCount)
+            : railFenceDecrypt(inputText, railCount);
         break;
       default:
         result = inputText;
@@ -92,7 +97,7 @@ export function CipherConverterTab() {
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: '1 1 auto', minHeight: 0 }}>
       {/* Cipher Method Tabs */}
       <Tabs
         value={cipherType}
@@ -126,11 +131,27 @@ export function CipherConverterTab() {
       </Box>
 
       {/* Settings Bar */}
-      <Card sx={{ p: 2.5, borderRadius: 2, border: (theme) => `1px solid ${theme.palette.divider}` }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+      <Card
+        sx={{
+          p: 1.5,
+          borderRadius: 2,
+          border: (theme) => `1px solid ${theme.palette.divider}`,
+          flexShrink: 0,
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 1.5,
+          }}
+        >
           {/* Mode Switch (Encrypt / Decrypt) */}
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Button
+              size="small"
               variant={mode === 'encrypt' ? 'contained' : 'outlined'}
               color="primary"
               startIcon={<LockRoundedIcon />}
@@ -140,6 +161,7 @@ export function CipherConverterTab() {
               암호화 (Encrypt)
             </Button>
             <Button
+              size="small"
               variant={mode === 'decrypt' ? 'contained' : 'outlined'}
               color="warning"
               startIcon={<LockOpenRoundedIcon />}
@@ -152,23 +174,24 @@ export function CipherConverterTab() {
 
           {/* Cipher Specific Controls */}
           {cipherType === 'caesar' && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, minWidth: 260 }}>
-              <Typography variant="body2" sx={{ fontWeight: 700 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, minWidth: 240 }}>
+              <Typography variant="body2" sx={{ fontWeight: 700, fontSize: '0.85rem' }}>
                 시프트 키: <strong>+{caesarShift}</strong>
               </Typography>
               <Slider
+                size="small"
                 value={caesarShift}
                 min={1}
                 max={25}
                 onChange={(_, val) => setCaesarShift(val as number)}
-                sx={{ width: 140 }}
+                sx={{ width: 120 }}
               />
             </Box>
           )}
 
           {cipherType === 'vigenere' && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <Typography variant="body2" sx={{ fontWeight: 700 }}>
+              <Typography variant="body2" sx={{ fontWeight: 700, fontSize: '0.85rem' }}>
                 암호 키워드:
               </Typography>
               <TextField
@@ -176,43 +199,58 @@ export function CipherConverterTab() {
                 value={vigenereKey}
                 onChange={(e) => setVigenereKey(e.target.value.toUpperCase())}
                 placeholder="예: SECRET"
-                sx={{ width: 140 }}
+                sx={{ width: 130 }}
               />
             </Box>
           )}
 
           {cipherType === 'railfence' && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, minWidth: 240 }}>
-              <Typography variant="body2" sx={{ fontWeight: 700 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, minWidth: 220 }}>
+              <Typography variant="body2" sx={{ fontWeight: 700, fontSize: '0.85rem' }}>
                 울타리 레일 수: <strong>{railCount}줄</strong>
               </Typography>
               <Slider
+                size="small"
                 value={railCount}
                 min={2}
                 max={8}
                 onChange={(_, val) => setRailCount(val as number)}
-                sx={{ width: 120 }}
+                sx={{ width: 100 }}
               />
             </Box>
           )}
         </Box>
       </Card>
 
-      {/* Dual Input/Output Cards */}
-      <Grid container spacing={3}>
-        <Grid size={{ xs: 12, md: 6 }}>
+      {/* Dual Input/Output Resizable Panels */}
+      <ResizablePanelGroup
+        orientation="horizontal"
+        autoSaveId="cipher-converter-split"
+        sx={{ flex: '1 1 0px', minHeight: 0 }}
+      >
+        {/* Left: Plaintext / Ciphertext Input */}
+        <ResizablePanel id="cipher-input" defaultSize={50} minSize={25}>
           <Card
             sx={{
-              p: 3,
+              p: 2,
               borderRadius: 2,
+              flex: '1 1 auto',
               height: '100%',
+              minHeight: 0,
               display: 'flex',
               flexDirection: 'column',
               border: (theme) => `1px solid ${theme.palette.divider}`,
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                mb: 1,
+              }}
+            >
+              <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
                 {mode === 'encrypt' ? '📝 평문 (Plaintext 입력)' : '🔒 암호문 (Ciphertext 입력)'}
               </Typography>
               <IconButton size="small" onClick={() => setInputText('')} disabled={!inputText}>
@@ -223,40 +261,68 @@ export function CipherConverterTab() {
             <TextField
               fullWidth
               multiline
-              rows={6}
+              minRows={2}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder="암호화 또는 복호화할 텍스트를 입력하세요."
               variant="outlined"
-              sx={{ flexGrow: 1 }}
+              sx={{
+                flexGrow: 1,
+                '& .MuiInputBase-root': { height: '100%', alignItems: 'flex-start' },
+              }}
             />
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1.5 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mt: 1,
+              }}
+            >
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                 {inputText.length} 글자
               </Typography>
-              <Button size="small" variant="outlined" startIcon={<SwapVertRoundedIcon />} onClick={handleSwap}>
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<SwapVertRoundedIcon />}
+                onClick={handleSwap}
+              >
                 입력 ⇄ 출력 전환
               </Button>
             </Box>
           </Card>
-        </Grid>
+        </ResizablePanel>
 
-        <Grid size={{ xs: 12, md: 6 }}>
+        {/* Resizable Divider Handle */}
+        <ResizableHandle direction="horizontal" tooltipText="좌우 너비 조절" />
+
+        {/* Right: Cipher Result */}
+        <ResizablePanel id="cipher-output" defaultSize={50} minSize={25}>
           <Card
             sx={{
-              p: 3,
+              p: 2,
               borderRadius: 2,
+              flex: '1 1 auto',
               height: '100%',
+              minHeight: 0,
               display: 'flex',
               flexDirection: 'column',
               bgcolor: 'background.neutral',
               border: (theme) => `1px solid ${theme.palette.divider}`,
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                mb: 1,
+              }}
+            >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
                   {mode === 'encrypt' ? '🔒 암호화 결과' : '🔓 복호화 결과'}
                 </Typography>
                 <Chip
@@ -264,6 +330,7 @@ export function CipherConverterTab() {
                   size="small"
                   color={mode === 'encrypt' ? 'primary' : 'success'}
                   variant="soft"
+                  sx={{ height: 22 }}
                 />
               </Box>
 
@@ -282,14 +349,16 @@ export function CipherConverterTab() {
             <TextField
               fullWidth
               multiline
-              rows={6}
+              minRows={2}
               value={outputText}
               slotProps={{ input: { readOnly: true } }}
               placeholder="변환 결과가 여기에 표시됩니다."
               variant="outlined"
               sx={{
                 flexGrow: 1,
-                '& .MuiOutlinedInput-root': {
+                '& .MuiInputBase-root': {
+                  height: '100%',
+                  alignItems: 'flex-start',
                   bgcolor: 'background.paper',
                   fontFamily: 'monospace',
                   fontSize: '1.05rem',
@@ -298,12 +367,19 @@ export function CipherConverterTab() {
               }}
             />
           </Card>
-        </Grid>
-      </Grid>
+        </ResizablePanel>
+      </ResizablePanelGroup>
 
       {/* Visual Caesar Wheel if Caesar cipher */}
       {cipherType === 'caesar' && (
-        <Card sx={{ p: 2, borderRadius: 2, border: (theme) => `1px solid ${theme.palette.divider}` }}>
+        <Card
+          sx={{
+            p: 1.5,
+            borderRadius: 2,
+            border: (theme) => `1px solid ${theme.palette.divider}`,
+            flexShrink: 0,
+          }}
+        >
           <CipherWheelVisualizer shift={caesarShift} />
         </Card>
       )}

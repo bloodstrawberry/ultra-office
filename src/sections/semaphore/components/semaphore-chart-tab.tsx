@@ -14,17 +14,22 @@ import { SemaphoreFlagCanvas } from './semaphore-flag-canvas';
 
 export function SemaphoreChartTab() {
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, flex: '1 1 auto', minHeight: 0 }}>
       <Box>
         <Typography variant="h6" sx={{ fontWeight: 800 }}>
           해군 수기 신호(Semaphore) 및 국제 해상 신호기 도감
         </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          8방위 깃발 각도 조합으로 표현하는 수기 신호와 각 알파벳 신호기가 지닌 대표 해상 의미입니다.
+          8방위 깃발 각도 조합으로 표현하는 수기 신호와 각 알파벳 신호기가 지닌 대표 해상
+          의미입니다.
         </Typography>
       </Box>
 
-      <Grid container spacing={2}>
+      <Grid
+        container
+        spacing={2}
+        sx={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', alignContent: 'flex-start' }}
+      >
         {Object.values(SEMAPHORE_MAP).map((item) => (
           <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={`sem-${item.char}`}>
             <Card
@@ -45,7 +50,15 @@ export function SemaphoreChartTab() {
             >
               <SemaphoreFlagCanvas item={item} size={76} />
 
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.2, minWidth: 0, flexGrow: 1 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 0.2,
+                  minWidth: 0,
+                  flexGrow: 1,
+                }}
+              >
                 <Typography variant="h5" sx={{ fontWeight: 900, color: 'primary.main' }}>
                   {item.char}
                 </Typography>

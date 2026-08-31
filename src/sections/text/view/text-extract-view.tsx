@@ -7,6 +7,7 @@ import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import { Box, Card, Tooltip, Typography, IconButton } from '@mui/material';
 
 import { DashboardContent } from 'src/layouts/dashboard';
+import { ResizablePanel, ResizableHandle, ResizablePanelGroup } from 'src/components/resizable';
 
 import { ImageViewerCard } from '../common/image-viewer-card';
 import { useTextExtract } from '../text-extract/use-text-extract';
@@ -75,10 +76,12 @@ export function TextExtractView() {
         uiState={{ showOverlays, setShowOverlays, showProcessed, setShowProcessed }}
       />
 
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'row', gap: 2, minHeight: 0 }}>
-        <Box
-          sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100%' }}
-        >
+      <ResizablePanelGroup
+        orientation="horizontal"
+        autoSaveId="text-extract-split"
+        style={{ flex: 1 }}
+      >
+        <ResizablePanel id="extract-image" defaultSize={50} minSize={25}>
           <ImageViewerCard
             title="원본 이미지"
             zoom={ocr.viewer.zoom}
@@ -123,40 +126,40 @@ export function TextExtractView() {
                       ? ocr.originalSize.width
                       : ocr.originalSize.height
                     : ocr.originalSize.height;
-                  const { x0, y0, x1, y1 } = targetBbox;
+
+                  const leftPct = (targetBbox.x0 / divW) * 100;
+                  const topPct = (targetBbox.y0 / divH) * 100;
+                  const widthPct = ((targetBbox.x1 - targetBbox.x0) / divW) * 100;
+                  const heightPct = ((targetBbox.y1 - targetBbox.y0) / divH) * 100;
+
                   return (
-                    <Tooltip
+                    <Box
                       key={idx}
-                      title={`${word.text} (${Math.round(word.confidence)}%)`}
-                      arrow
-                    >
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          left: `${(x0 / divW) * 100}%`,
-                          top: `${(y0 / divH) * 100}%`,
-                          width: `${((x1 - x0) / divW) * 100}%`,
-                          height: `${((y1 - y0) / divH) * 100}%`,
-                          border: '2px solid #FF5630',
-                          backgroundColor: 'rgba(255,86,48,0.08)',
-                          pointerEvents: 'auto',
-                          '&:hover': { backgroundColor: 'rgba(255,86,48,0.25)', zIndex: 10 },
-                        }}
-                      />
-                    </Tooltip>
+                      sx={{
+                        position: 'absolute',
+                        left: `${leftPct}%`,
+                        top: `${topPct}%`,
+                        width: `${widthPct}%`,
+                        height: `${heightPct}%`,
+                        border: '1px solid rgba(255, 0, 0, 0.6)',
+                        backgroundColor: 'rgba(255, 0, 0, 0.1)',
+                        boxSizing: 'border-box',
+                      }}
+                    />
                   );
                 })}
               </Box>
             )}
           </ImageViewerCard>
-        </Box>
+        </ResizablePanel>
 
-        <Box
-          sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100%' }}
-        >
+        <ResizableHandle direction="horizontal" tooltipText="좌우 너비 조절" />
+
+        <ResizablePanel id="extract-text" defaultSize={50} minSize={25}>
           <Card
             sx={{
               flex: 1,
+              height: '100%',
               display: 'flex',
               flexDirection: 'column',
               overflow: 'hidden',
@@ -206,8 +209,8 @@ export function TextExtractView() {
               sx={{ flex: 1, minHeight: 0 }}
             />
           </Card>
-        </Box>
-      </Box>
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </DashboardContent>
   );
 }

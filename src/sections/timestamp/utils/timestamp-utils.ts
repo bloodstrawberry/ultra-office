@@ -23,7 +23,10 @@ export const WORLD_CITIES: TimeZoneCity[] = [
   { city: 'UTC (협정세계시)', country: '표준시', zone: 'UTC', flag: '🌐' },
 ];
 
-export function formatTimeInZone(date: Date, timeZone: string): { dateStr: string; timeStr: string; fullStr: string } {
+export function formatTimeInZone(
+  date: Date,
+  timeZone: string
+): { dateStr: string; timeStr: string; fullStr: string } {
   try {
     const formatterDate = new Intl.DateTimeFormat('ko-KR', {
       timeZone,
@@ -44,7 +47,11 @@ export function formatTimeInZone(date: Date, timeZone: string): { dateStr: strin
     const timeStr = formatterTime.format(date);
     return { dateStr, timeStr, fullStr: `${dateStr} ${timeStr}` };
   } catch {
-    return { dateStr: date.toDateString(), timeStr: date.toTimeString(), fullStr: date.toISOString() };
+    return {
+      dateStr: date.toDateString(),
+      timeStr: date.toTimeString(),
+      fullStr: date.toISOString(),
+    };
   }
 }
 

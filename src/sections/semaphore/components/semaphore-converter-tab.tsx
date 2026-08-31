@@ -15,6 +15,8 @@ import StopRoundedIcon from '@mui/icons-material/StopRounded';
 import ClearRoundedIcon from '@mui/icons-material/ClearRounded';
 import FlagRoundedIcon from '@mui/icons-material/FlagRounded';
 
+import { ResizablePanel, ResizableHandle, ResizablePanelGroup } from 'src/components/resizable';
+
 import { textToSemaphore, REST_SEMAPHORE, type SemaphoreItem } from '../utils/semaphore-data';
 import { SemaphoreFlagCanvas } from './semaphore-flag-canvas';
 
@@ -72,10 +74,11 @@ export function SemaphoreConverterTab() {
     setActivePlayIndex(null);
   };
 
-  const currentActiveFlag = activePlayIndex !== null && flags[activePlayIndex] ? flags[activePlayIndex] : REST_SEMAPHORE;
+  const currentActiveFlag =
+    activePlayIndex !== null && flags[activePlayIndex] ? flags[activePlayIndex] : REST_SEMAPHORE;
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: '1 1 auto', minHeight: 0 }}>
       {/* Quick Presets Bar */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
         <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.secondary', mr: 0.5 }}>
@@ -97,11 +100,18 @@ export function SemaphoreConverterTab() {
       </Box>
 
       {/* Input Card */}
-      <Card sx={{ p: 3, borderRadius: 2, border: (theme) => `1px solid ${theme.palette.divider}` }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+      <Card
+        sx={{
+          p: 1.5,
+          borderRadius: 2,
+          border: (theme) => `1px solid ${theme.palette.divider}`,
+          flexShrink: 0,
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <FlagRoundedIcon sx={{ color: 'primary.main' }} />
-            <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+            <FlagRoundedIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+            <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
               문자열 입력 (A-Z 알파벳)
             </Typography>
           </Box>
@@ -112,6 +122,7 @@ export function SemaphoreConverterTab() {
 
         <TextField
           fullWidth
+          size="small"
           value={inputText}
           onChange={(e) => setInputText(e.target.value.toUpperCase())}
           placeholder="수기 신호로 변환할 영문 단어를 입력하세요 (예: HELP, SOS)"
@@ -119,101 +130,169 @@ export function SemaphoreConverterTab() {
         />
       </Card>
 
-      {/* Live Animated Signalman Display Card */}
-      <Card
-        sx={{
-          p: 3,
-          borderRadius: 2,
-          border: (theme) => `1px solid ${theme.palette.divider}`,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 2,
-          bgcolor: 'background.paper',
-        }}
+      {/* Vertical Resizable Panels: Live Stage & Sequence Cards */}
+      <ResizablePanelGroup
+        orientation="vertical"
+        autoSaveId="semaphore-converter-split"
+        sx={{ flex: '1 1 0px', minHeight: 0 }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', flexWrap: 'wrap', gap: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
-              🚩 실시간 수기 신호병 애니메이션 (Signalman Stage)
-            </Typography>
-            <Chip
-              label={isPlaying ? '송신 중...' : '대기'}
-              size="small"
-              color={isPlaying ? 'warning' : 'default'}
-              variant="soft"
-            />
-          </Box>
-
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button
-              variant="contained"
-              color={isPlaying ? 'warning' : 'primary'}
-              startIcon={isPlaying ? <PauseRoundedIcon /> : <PlayArrowRoundedIcon />}
-              onClick={handlePlay}
-              disabled={flags.length === 0}
-              sx={{ fontWeight: 700 }}
+        {/* Top: Live Animated Signalman Display Card */}
+        <ResizablePanel id="semaphore-stage" defaultSize={45} minSize={30}>
+          <Card
+            sx={{
+              p: 2,
+              borderRadius: 2,
+              border: (theme) => `1px solid ${theme.palette.divider}`,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 1,
+              height: '100%',
+              bgcolor: 'background.paper',
+              overflowY: 'auto',
+            }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                width: '100%',
+                flexWrap: 'wrap',
+                gap: 1,
+                flexShrink: 0,
+              }}
             >
-              {isPlaying ? '일시정지' : '수기 신호 재생'}
-            </Button>
-            <Button variant="outlined" startIcon={<StopRoundedIcon />} onClick={handleStop} disabled={!isPlaying && activePlayIndex === null}>
-              정지
-            </Button>
-          </Box>
-        </Box>
-
-        {/* Big Animated Center Stage */}
-        <Box sx={{ my: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <SemaphoreFlagCanvas item={currentActiveFlag} size={180} />
-          <Typography variant="h4" sx={{ fontWeight: 900, mt: 1.5, color: 'primary.main' }}>
-            {currentActiveFlag.char}
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            {currentActiveFlag.description}
-          </Typography>
-          {currentActiveFlag.flagMeaning && (
-            <Chip label={`국제 해상 의미: ${currentActiveFlag.flagMeaning}`} color="info" variant="soft" sx={{ mt: 1, fontWeight: 700 }} />
-          )}
-        </Box>
-      </Card>
-
-      {/* Sequence of Flag Cards */}
-      <Card sx={{ p: 3, borderRadius: 2, border: (theme) => `1px solid ${theme.palette.divider}` }}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 2 }}>
-          전체 수기 신호 시퀀스
-        </Typography>
-
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-          {flags.map((item, idx) => {
-            const isCurrent = activePlayIndex === idx;
-
-            return (
-              <Box
-                key={`flag-${idx}`}
-                onClick={() => {
-                  setActivePlayIndex(idx);
-                  setIsPlaying(false);
-                }}
-                sx={{
-                  cursor: 'pointer',
-                  transform: isCurrent ? 'scale(1.08)' : 'none',
-                  transition: 'all 0.15s ease',
-                  border: (theme) => (isCurrent ? `2px solid ${theme.palette.warning.main}` : 'none'),
-                  borderRadius: 2,
-                }}
-              >
-                <SemaphoreFlagCanvas item={item} size={90} />
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+                  🚩 실시간 수기 신호병 애니메이션 (Signalman Stage)
+                </Typography>
+                <Chip
+                  label={isPlaying ? '송신 중...' : '대기'}
+                  size="small"
+                  color={isPlaying ? 'warning' : 'default'}
+                  variant="soft"
+                  sx={{ height: 22 }}
+                />
               </Box>
-            );
-          })}
 
-          {flags.length === 0 && (
-            <Typography variant="body2" sx={{ color: 'text.disabled', fontStyle: 'italic' }}>
-              영문 단어를 입력하면 깃발 수기 신호가 여기에 표시됩니다.
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button
+                  size="small"
+                  variant="contained"
+                  color={isPlaying ? 'warning' : 'primary'}
+                  startIcon={isPlaying ? <PauseRoundedIcon /> : <PlayArrowRoundedIcon />}
+                  onClick={handlePlay}
+                  disabled={flags.length === 0}
+                  sx={{ fontWeight: 700 }}
+                >
+                  {isPlaying ? '일시정지' : '수기 신호 재생'}
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={<StopRoundedIcon />}
+                  onClick={handleStop}
+                  disabled={!isPlaying && activePlayIndex === null}
+                >
+                  정지
+                </Button>
+              </Box>
+            </Box>
+
+            {/* Big Animated Center Stage */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5, my: 0.5 }}>
+              <SemaphoreFlagCanvas item={currentActiveFlag} size={120} />
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25 }}>
+                <Typography
+                  variant="h4"
+                  sx={{ fontWeight: 900, color: 'primary.main', lineHeight: 1 }}
+                >
+                  {currentActiveFlag.char}
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                  {currentActiveFlag.description}
+                </Typography>
+                {currentActiveFlag.flagMeaning && (
+                  <Chip
+                    label={`국제 해상 의미: ${currentActiveFlag.flagMeaning}`}
+                    color="info"
+                    variant="soft"
+                    size="small"
+                    sx={{ mt: 0.5, fontWeight: 700, height: 24 }}
+                  />
+                )}
+              </Box>
+            </Box>
+          </Card>
+        </ResizablePanel>
+
+        {/* Resizable Divider Handle */}
+        <ResizableHandle direction="vertical" tooltipText="상하 높이 조절" />
+
+        {/* Bottom: Sequence of Flag Cards */}
+        <ResizablePanel id="semaphore-sequence" defaultSize={55} minSize={30}>
+          <Card
+            sx={{
+              p: 2,
+              borderRadius: 2,
+              border: (theme) => `1px solid ${theme.palette.divider}`,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 1,
+              height: '100%',
+              minHeight: 0,
+            }}
+          >
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, flexShrink: 0 }}>
+              전체 수기 신호 시퀀스 ({flags.length}자)
             </Typography>
-          )}
-        </Box>
-      </Card>
+
+            <Box
+              sx={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 1.2,
+                flex: '1 1 auto',
+                minHeight: 0,
+                overflowY: 'auto',
+                alignContent: 'flex-start',
+              }}
+            >
+              {flags.map((item, idx) => {
+                const isCurrent = activePlayIndex === idx;
+
+                return (
+                  <Box
+                    key={`flag-${idx}`}
+                    onClick={() => {
+                      setActivePlayIndex(idx);
+                      setIsPlaying(false);
+                    }}
+                    sx={{
+                      cursor: 'pointer',
+                      transform: isCurrent ? 'scale(1.06)' : 'none',
+                      transition: 'all 0.15s ease',
+                      border: (theme) =>
+                        isCurrent ? `2px solid ${theme.palette.warning.main}` : 'none',
+                      borderRadius: 2,
+                    }}
+                  >
+                    <SemaphoreFlagCanvas item={item} size={76} />
+                  </Box>
+                );
+              })}
+
+              {flags.length === 0 && (
+                <Typography variant="body2" sx={{ color: 'text.disabled', fontStyle: 'italic' }}>
+                  영문 단어를 입력하면 깃발 수기 신호가 여기에 표시됩니다.
+                </Typography>
+              )}
+            </Box>
+          </Card>
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </Box>
   );
 }

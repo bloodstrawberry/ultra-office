@@ -25,7 +25,7 @@ export function DocSplitResizer({
   const isVertical = direction === 'vertical';
 
   return (
-    <Tooltip title={tooltipText} placement={isVertical ? 'right' : 'bottom'} enterDelay={600}>
+    <Tooltip title={tooltipText} placement={isVertical ? 'right' : 'bottom'} enterDelay={800}>
       <Box
         onMouseDown={onMouseDown}
         onDoubleClick={onDoubleClick}
@@ -38,66 +38,61 @@ export function DocSplitResizer({
           touchAction: 'none',
           position: 'relative',
           zIndex: 5,
-          transition: 'background-color 0.15s ease, box-shadow 0.15s ease',
+          background: 'transparent',
           ...(isVertical
             ? {
-                width: 8,
+                width: 6,
+                margin: '0 -2px',
                 cursor: 'col-resize',
-                bgcolor: isDragging ? 'primary.main' : 'divider',
-                '&:hover': {
-                  bgcolor: 'primary.main',
-                  boxShadow: (theme) => `0 0 8px ${theme.palette.primary.main}`,
-                },
-                '&::after': {
+                '&::before': {
                   content: '""',
                   position: 'absolute',
                   top: 0,
                   bottom: 0,
-                  left: -4,
-                  right: -4,
-                  cursor: 'col-resize',
+                  width: '1px',
+                  bgcolor: isDragging ? 'primary.main' : 'divider',
+                  boxShadow: isDragging
+                    ? (theme) => `0 0 6px ${theme.palette.primary.main}80`
+                    : 'none',
+                  transition: (theme) =>
+                    theme.transitions.create(['background-color', 'width', 'box-shadow'], {
+                      duration: 150,
+                    }),
+                },
+                '&:hover::before': {
+                  bgcolor: 'primary.main',
+                  width: '2px',
+                  boxShadow: (theme) => `0 0 6px ${theme.palette.primary.main}80`,
                 },
               }
             : {
-                height: 8,
+                height: 6,
                 width: '100%',
+                margin: '-2px 0',
                 cursor: 'row-resize',
-                bgcolor: isDragging ? 'primary.main' : 'divider',
-                '&:hover': {
-                  bgcolor: 'primary.main',
-                  boxShadow: (theme) => `0 0 8px ${theme.palette.primary.main}`,
-                },
-                '&::after': {
+                '&::before': {
                   content: '""',
                   position: 'absolute',
                   left: 0,
                   right: 0,
-                  top: -4,
-                  bottom: -4,
-                  cursor: 'row-resize',
+                  height: '1px',
+                  bgcolor: isDragging ? 'primary.main' : 'divider',
+                  boxShadow: isDragging
+                    ? (theme) => `0 0 6px ${theme.palette.primary.main}80`
+                    : 'none',
+                  transition: (theme) =>
+                    theme.transitions.create(['background-color', 'height', 'box-shadow'], {
+                      duration: 150,
+                    }),
+                },
+                '&:hover::before': {
+                  bgcolor: 'primary.main',
+                  height: '2px',
+                  boxShadow: (theme) => `0 0 6px ${theme.palette.primary.main}80`,
                 },
               }),
         }}
-      >
-        {/* Subtle Grip Handle Bar */}
-        <Box
-          sx={{
-            borderRadius: 1,
-            bgcolor: isDragging ? '#ffffff' : 'text.disabled',
-            opacity: isDragging ? 1 : 0.7,
-            transition: 'all 0.15s ease',
-            ...(isVertical
-              ? {
-                  width: 3,
-                  height: 32,
-                }
-              : {
-                  width: 32,
-                  height: 3,
-                }),
-          }}
-        />
-      </Box>
+      />
     </Tooltip>
   );
 }

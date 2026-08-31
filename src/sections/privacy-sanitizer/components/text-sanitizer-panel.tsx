@@ -18,6 +18,7 @@ import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import AutoFixHighRoundedIcon from '@mui/icons-material/AutoFixHighRounded';
 
 import { sanitizeAllText, scanPrivacyInText } from '../utils/privacy-utils';
+import { ResizablePanel, ResizableHandle, ResizablePanelGroup } from 'src/components/resizable';
 
 // ----------------------------------------------------------------------
 
@@ -165,58 +166,83 @@ export function TextSanitizerPanel() {
         />
       </Box>
 
-      {/* 3. Side by Side Text Comparison */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+      {/* 3. Side by Side Resizable Text Comparison */}
+      <ResizablePanelGroup orientation="horizontal" autoSaveId="text-sanitizer-split">
         {/* Left: Input Text */}
-        <Card sx={{ p: 3, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
-            원본 문서 / 텍스트 입력
-          </Typography>
-          <TextField
-            multiline
-            rows={14}
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            placeholder="마스킹할 텍스트를 붙여넣으세요..."
-            fullWidth
-            InputProps={{ sx: { fontFamily: 'monospace', fontSize: '13px', lineHeight: 1.6 } }}
-          />
-        </Card>
+        <ResizablePanel id="sanitizer-input" defaultSize={50} minSize={25}>
+          <Card
+            sx={{
+              p: 3,
+              borderRadius: 2,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 1.5,
+              height: '100%',
+            }}
+          >
+            <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+              원본 문서 / 텍스트 입력
+            </Typography>
+            <TextField
+              multiline
+              rows={14}
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              placeholder="마스킹할 텍스트를 붙여넣으세요..."
+              fullWidth
+              InputProps={{ sx: { fontFamily: 'monospace', fontSize: '13px', lineHeight: 1.6 } }}
+            />
+          </Card>
+        </ResizablePanel>
+
+        {/* Resizable Divider Handle */}
+        <ResizableHandle direction="horizontal" tooltipText="좌우 너비 조절" />
 
         {/* Right: Masked Clean Text */}
-        <Card sx={{ p: 3, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: 'success.main' }}>
-              마스킹 완료 안전 텍스트 (Sanitized)
-            </Typography>
-            <Button
-              size="small"
-              variant="contained"
-              color="success"
-              startIcon={<ContentCopyRoundedIcon />}
-              onClick={handleCopy}
-              sx={{ fontWeight: 800 }}
-            >
-              결과 복사
-            </Button>
-          </Box>
-          <TextField
-            multiline
-            rows={14}
-            value={sanitizedText}
-            fullWidth
-            InputProps={{
-              readOnly: true,
-              sx: {
-                fontFamily: 'monospace',
-                fontSize: '13px',
-                lineHeight: 1.6,
-                bgcolor: 'background.neutral',
-              },
+        <ResizablePanel id="sanitizer-output" defaultSize={50} minSize={25}>
+          <Card
+            sx={{
+              p: 3,
+              borderRadius: 2,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 1.5,
+              height: '100%',
             }}
-          />
-        </Card>
-      </Box>
+          >
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 800, color: 'success.main' }}>
+                마스킹 완료 안전 텍스트 (Sanitized)
+              </Typography>
+              <Button
+                size="small"
+                variant="contained"
+                color="success"
+                startIcon={<ContentCopyRoundedIcon />}
+                onClick={handleCopy}
+                sx={{ fontWeight: 800 }}
+              >
+                결과 복사
+              </Button>
+            </Box>
+            <TextField
+              multiline
+              rows={14}
+              value={sanitizedText}
+              fullWidth
+              InputProps={{
+                readOnly: true,
+                sx: {
+                  fontFamily: 'monospace',
+                  fontSize: '13px',
+                  lineHeight: 1.6,
+                  bgcolor: 'background.neutral',
+                },
+              }}
+            />
+          </Card>
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </Box>
   );
 }

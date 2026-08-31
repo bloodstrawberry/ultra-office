@@ -23,7 +23,9 @@ import { BrailleTactileCell } from './braille-tactile-cell';
 // ----------------------------------------------------------------------
 
 export function BrailleChartTab() {
-  const [activeCategory, setActiveCategory] = useState<'chosung' | 'jungsung' | 'jongsung' | 'abbr' | 'english' | 'number' | 'punct'>('chosung');
+  const [activeCategory, setActiveCategory] = useState<
+    'chosung' | 'jungsung' | 'jongsung' | 'abbr' | 'english' | 'number' | 'punct'
+  >('chosung');
 
   const getCategoryData = () => {
     switch (activeCategory) {
@@ -49,7 +51,7 @@ export function BrailleChartTab() {
   const data = getCategoryData();
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, flex: '1 1 auto', minHeight: 0 }}>
       {/* Category Tabs */}
       <Tabs
         value={activeCategory}
@@ -68,7 +70,11 @@ export function BrailleChartTab() {
       </Tabs>
 
       {/* Grid of Braille Cells */}
-      <Grid container spacing={2}>
+      <Grid
+        container
+        spacing={2}
+        sx={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', alignContent: 'flex-start' }}
+      >
         {data.map(([label, brailleChars]) => (
           <Grid size={{ xs: 4, sm: 3, md: 2, lg: 1.5 }} key={`item-${label}`}>
             <Card

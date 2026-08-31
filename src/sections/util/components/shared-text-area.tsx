@@ -101,25 +101,32 @@ export function ResizeHandle({ onDrag }: { onDrag: (deltaY: number) => void }) {
     <Box
       onMouseDown={handleMouseDown}
       sx={{
-        height: 10,
+        height: 6,
+        margin: '-2px 0',
         flexShrink: 0,
         cursor: 'row-resize',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        my: 0.5,
-        borderRadius: 1,
-        transition: 'background-color 0.15s',
-        '&:hover': { bgcolor: 'action.hover' },
-        '&::after': {
+        position: 'relative',
+        background: 'transparent',
+        '&::before': {
           content: '""',
-          width: 48,
-          height: 4,
-          borderRadius: 2,
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          height: '1px',
           bgcolor: 'divider',
-          transition: 'background-color 0.15s',
+          transition: (theme) =>
+            theme.transitions.create(['background-color', 'height', 'box-shadow'], {
+              duration: 150,
+            }),
         },
-        '&:hover::after': { bgcolor: 'primary.main' },
+        '&:hover::before, &:active::before': {
+          bgcolor: 'primary.main',
+          height: '2px',
+          boxShadow: (theme) => `0 0 6px ${theme.palette.primary.main}80`,
+        },
       }}
     />
   );

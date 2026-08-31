@@ -7,8 +7,12 @@
 // 1. Caesar & ROT13
 // ----------------------------------------------------------------------
 
-export function caesarCipher(text: string, shift: number, mode: 'encrypt' | 'decrypt' = 'encrypt'): string {
-  const effectiveShift = mode === 'encrypt' ? (shift % 26 + 26) % 26 : ((-shift % 26) + 26) % 26;
+export function caesarCipher(
+  text: string,
+  shift: number,
+  mode: 'encrypt' | 'decrypt' = 'encrypt'
+): string {
+  const effectiveShift = mode === 'encrypt' ? ((shift % 26) + 26) % 26 : ((-shift % 26) + 26) % 26;
 
   return text
     .split('')
@@ -26,7 +30,10 @@ export function caesarCipher(text: string, shift: number, mode: 'encrypt' | 'dec
       // Korean Hangul Syllable shift (0xAC00 ~ 0xD7A3, 11,172 characters)
       if (code >= 0xac00 && code <= 0xd7a3) {
         const total = 11172;
-        const hangulShift = mode === 'encrypt' ? (shift % total + total) % total : ((-shift % total) + total) % total;
+        const hangulShift =
+          mode === 'encrypt'
+            ? ((shift % total) + total) % total
+            : ((-shift % total) + total) % total;
         return String.fromCharCode(((code - 0xac00 + hangulShift) % total) + 0xac00);
       }
 
@@ -66,7 +73,11 @@ export function atbashCipher(text: string): string {
 // 3. Vigenère Cipher (다중 치환 암호)
 // ----------------------------------------------------------------------
 
-export function vigenereCipher(text: string, key: string, mode: 'encrypt' | 'decrypt' = 'encrypt'): string {
+export function vigenereCipher(
+  text: string,
+  key: string,
+  mode: 'encrypt' | 'decrypt' = 'encrypt'
+): string {
   const cleanKey = key.toUpperCase().replace(/[^A-Z]/g, '');
   if (!cleanKey) return text;
 

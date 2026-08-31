@@ -4,7 +4,8 @@ import type { SqlProblem, QueryResult, VerificationResult } from './types';
 
 import { toast } from 'sonner';
 import React, { useState, useCallback } from 'react';
-import { Group, Panel, Separator } from 'react-resizable-panels';
+import { Group, Panel } from 'react-resizable-panels';
+import { ResizableHandle } from 'src/components/resizable';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -435,63 +436,8 @@ export function PublicSqlView() {
                 </Box>
               </Panel>
 
-              {/* Horizontal Separator (----------) */}
-              <Separator
-                style={{
-                  height: 10,
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'row-resize',
-                  position: 'relative',
-                  zIndex: 5,
-                  outline: 'none',
-                  flexShrink: 0,
-                }}
-              >
-                <Box
-                  sx={{
-                    width: '100%',
-                    height: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    position: 'relative',
-                    '&::before': {
-                      content: '""',
-                      position: 'absolute',
-                      left: 0,
-                      right: 0,
-                      height: '1px',
-                      bgcolor: 'divider',
-                      transition: (theme) =>
-                        theme.transitions.create(['background-color', 'height']),
-                    },
-                    '&:hover::before, &:active::before': {
-                      bgcolor: 'primary.main',
-                      height: '2px',
-                    },
-                  }}
-                >
-                  <Box
-                    sx={{
-                      width: 40,
-                      height: 4,
-                      borderRadius: 2,
-                      bgcolor: 'text.disabled',
-                      opacity: 0.4,
-                      transition: (theme) =>
-                        theme.transitions.create(['background-color', 'opacity', 'width']),
-                      '&:hover, &:active': {
-                        bgcolor: 'primary.main',
-                        opacity: 1,
-                        width: 52,
-                      },
-                    }}
-                  />
-                </Box>
-              </Separator>
+              {/* Horizontal Separator */}
+              <ResizableHandle direction="vertical" tooltipText="상하 높이 조절" />
 
               {/* Bottom: Result Table */}
               <Panel
@@ -527,62 +473,8 @@ export function PublicSqlView() {
             </Group>
           </Panel>
 
-          {/* Vertical Separator (|) */}
-          <Separator
-            style={{
-              width: 10,
-              height: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'col-resize',
-              position: 'relative',
-              zIndex: 5,
-              outline: 'none',
-              flexShrink: 0,
-            }}
-          >
-            <Box
-              sx={{
-                width: '100%',
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                position: 'relative',
-                '&::before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: 0,
-                  bottom: 0,
-                  width: '1px',
-                  bgcolor: 'divider',
-                  transition: (theme) => theme.transitions.create(['background-color', 'width']),
-                },
-                '&:hover::before, &:active::before': {
-                  bgcolor: 'primary.main',
-                  width: '2px',
-                },
-              }}
-            >
-              <Box
-                sx={{
-                  height: 40,
-                  width: 4,
-                  borderRadius: 2,
-                  bgcolor: 'text.disabled',
-                  opacity: 0.4,
-                  transition: (theme) =>
-                    theme.transitions.create(['background-color', 'opacity', 'height']),
-                  '&:hover, &:active': {
-                    bgcolor: 'primary.main',
-                    opacity: 1,
-                    height: 52,
-                  },
-                }}
-              />
-            </Box>
-          </Separator>
+          {/* Vertical Separator */}
+          <ResizableHandle direction="horizontal" tooltipText="좌우 너비 조절" />
 
           {/* Right Column: Problem List or Schema Browser */}
           <Panel

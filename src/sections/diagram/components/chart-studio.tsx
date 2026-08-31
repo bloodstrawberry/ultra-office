@@ -23,6 +23,8 @@ import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 
+import { ResizablePanel, ResizableHandle, ResizablePanelGroup } from 'src/components/resizable';
+
 import { CHART_EXAMPLES } from '../data/example-templates';
 
 // Dynamically import ReactApexChart to prevent SSR window is not defined error
@@ -251,86 +253,106 @@ export function ChartStudio() {
         </Box>
       </Card>
 
-      {/* 2. Main Studio Grid (JSON Data Editor & Live Chart Preview) */}
-      <Box
-        sx={{
-          flex: '1 1 auto',
-          minHeight: 0,
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: '1fr 1.3fr' },
-          gap: 2,
-        }}
-      >
+      {/* 2. Main Studio Resizable Panels (JSON Data Editor & Live Chart Preview) */}
+      <ResizablePanelGroup orientation="horizontal" autoSaveId="chart-studio-split">
         {/* Left Column: Data & Configuration Editor */}
-        <Card
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            p: 2,
-            minHeight: 0,
-            overflow: 'hidden',
-          }}
-        >
-          <Box
+        <ResizablePanel id="chart-editor" defaultSize={45} minSize={20}>
+          <Card
             sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              mb: 1.5,
-              flexShrink: 0,
-            }}
-          >
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 0.5 }}
-            >
-              <EditNoteRoundedIcon sx={{ fontSize: 18, color: 'info.main' }} />
-              차트 데이터 및 옵션 (JSON)
-            </Typography>
-            {currentExample && (
-              <Chip
-                label={currentExample.category}
-                size="small"
-                variant="outlined"
-                color="success"
-                sx={{ fontSize: '0.7rem', height: 20 }}
-              />
-            )}
-          </Box>
-
-          <TextField
-            label="차트 제목"
-            size="small"
-            fullWidth
-            value={chartTitle}
-            onChange={(e) => setChartTitle(e.target.value)}
-            sx={{ mb: 1.5, flexShrink: 0 }}
-          />
-
-          <Box
-            sx={{
-              flex: '1 1 auto',
-              minHeight: 0,
               display: 'flex',
               flexDirection: 'column',
-              gap: 1.5,
-              overflowY: 'auto',
+              p: 2,
+              height: '100%',
+              minHeight: 0,
+              overflow: 'hidden',
             }}
           >
-            {chartType !== 'donut' && (
-              <Box>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mb: 1.5,
+                flexShrink: 0,
+              }}
+            >
+              <Typography
+                variant="subtitle2"
+                sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 0.5 }}
+              >
+                <EditNoteRoundedIcon sx={{ fontSize: 18, color: 'info.main' }} />
+                차트 데이터 및 옵션 (JSON)
+              </Typography>
+              {currentExample && (
+                <Chip
+                  label={currentExample.category}
+                  size="small"
+                  variant="outlined"
+                  color="success"
+                  sx={{ fontSize: '0.7rem', height: 20 }}
+                />
+              )}
+            </Box>
+
+            <TextField
+              label="차트 제목"
+              size="small"
+              fullWidth
+              value={chartTitle}
+              onChange={(e) => setChartTitle(e.target.value)}
+              sx={{ mb: 1.5, flexShrink: 0 }}
+            />
+
+            <Box
+              sx={{
+                flex: '1 1 auto',
+                minHeight: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1.5,
+                overflowY: 'auto',
+              }}
+            >
+              {chartType !== 'donut' && (
+                <Box>
+                  <Typography
+                    variant="caption"
+                    sx={{ fontWeight: 700, color: 'text.secondary', mb: 0.5, display: 'block' }}
+                  >
+                    X축 카테고리 (Categories JSON):
+                  </Typography>
+                  <TextField
+                    multiline
+                    rows={3}
+                    fullWidth
+                    value={categoriesJson}
+                    onChange={(e) => handleUpdateJson(seriesJson, e.target.value)}
+                    sx={{
+                      '& .MuiInputBase-root': {
+                        fontFamily: 'Consolas, Monaco, monospace',
+                        fontSize: '0.8rem',
+                        bgcolor: 'background.neutral',
+                      },
+                    }}
+                  />
+                </Box>
+              )}
+
+              <Box sx={{ flex: '1 1 auto', display: 'flex', flexDirection: 'column' }}>
                 <Typography
                   variant="caption"
                   sx={{ fontWeight: 700, color: 'text.secondary', mb: 0.5, display: 'block' }}
                 >
-                  X축 카테고리 (Categories JSON):
+                  {chartType === 'donut'
+                    ? '도넛 데이터 배열 (Values JSON):'
+                    : '시리즈 데이터 (Series JSON):'}
                 </Typography>
                 <TextField
                   multiline
-                  rows={3}
+                  rows={chartType === 'donut' ? 6 : 8}
                   fullWidth
-                  value={categoriesJson}
-                  onChange={(e) => handleUpdateJson(seriesJson, e.target.value)}
+                  value={seriesJson}
+                  onChange={(e) => handleUpdateJson(e.target.value, categoriesJson)}
                   sx={{
                     '& .MuiInputBase-root': {
                       fontFamily: 'Consolas, Monaco, monospace',
@@ -340,144 +362,125 @@ export function ChartStudio() {
                   }}
                 />
               </Box>
-            )}
 
-            <Box sx={{ flex: '1 1 auto', display: 'flex', flexDirection: 'column' }}>
-              <Typography
-                variant="caption"
-                sx={{ fontWeight: 700, color: 'text.secondary', mb: 0.5, display: 'block' }}
-              >
-                {chartType === 'donut'
-                  ? '도넛 데이터 배열 (Values JSON):'
-                  : '시리즈 데이터 (Series JSON):'}
-              </Typography>
-              <TextField
-                multiline
-                rows={chartType === 'donut' ? 6 : 8}
-                fullWidth
-                value={seriesJson}
-                onChange={(e) => handleUpdateJson(e.target.value, categoriesJson)}
-                sx={{
-                  '& .MuiInputBase-root': {
-                    fontFamily: 'Consolas, Monaco, monospace',
-                    fontSize: '0.8rem',
-                    bgcolor: 'background.neutral',
-                  },
-                }}
-              />
+              {jsonError && (
+                <Box
+                  sx={{
+                    p: 1,
+                    borderRadius: 1,
+                    bgcolor: 'error.lighter',
+                    color: 'error.main',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                  }}
+                >
+                  ⚠️ JSON 문법 에러: {jsonError}
+                </Box>
+              )}
             </Box>
+          </Card>
+        </ResizablePanel>
 
-            {jsonError && (
-              <Box
-                sx={{
-                  p: 1,
-                  borderRadius: 1,
-                  bgcolor: 'error.lighter',
-                  color: 'error.main',
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                }}
-              >
-                ⚠️ JSON 문법 에러: {jsonError}
-              </Box>
-            )}
-          </Box>
-        </Card>
+        {/* Resizable Divider Handle */}
+        <ResizableHandle direction="horizontal" tooltipText="좌우 너비 조절" />
 
         {/* Right Column: Live Interactive ApexChart Preview */}
-        <Card
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            p: 2,
-            minHeight: 0,
-            overflow: 'hidden',
-          }}
-        >
-          <Box
+        <ResizablePanel id="chart-preview" defaultSize={55} minSize={25}>
+          <Card
             sx={{
               display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              mb: 1.5,
-              flexShrink: 0,
-            }}
-          >
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 0.5 }}
-            >
-              <CheckCircleRoundedIcon sx={{ fontSize: 18, color: 'success.main' }} />
-              실시간 인터랙티브 그래프 렌더링
-            </Typography>
-            <Chip
-              label={`${chartType.toUpperCase()} CHART`}
-              size="small"
-              color="primary"
-              variant="outlined"
-              sx={{ fontSize: '0.7rem', height: 20 }}
-            />
-          </Box>
-
-          <Box
-            sx={{
-              flex: '1 1 auto',
-              minHeight: 280,
-              overflow: 'hidden',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              bgcolor: 'background.neutral',
-              borderRadius: 2,
+              flexDirection: 'column',
               p: 2,
+              height: '100%',
+              minHeight: 0,
+              overflow: 'hidden',
             }}
           >
-            {!jsonError && parsedSeries ? (
-              <Box sx={{ width: '100%', height: '100%', minHeight: 280 }}>
-                <Chart
-                  options={apexOptions}
-                  series={parsedSeries}
-                  type={chartType}
-                  width="100%"
-                  height="100%"
-                />
-              </Box>
-            ) : (
-              <Typography variant="body2" sx={{ color: 'text.disabled' }}>
-                올바른 JSON 데이터를 입력하면 인터랙티브 차트가 시각화됩니다.
-              </Typography>
-            )}
-          </Box>
-
-          {/* Current Chart Description */}
-          {currentExample && (
             <Box
               sx={{
-                mt: 1.5,
-                p: 1.5,
-                bgcolor: 'background.paper',
-                borderRadius: 1.5,
-                border: '1px solid',
-                borderColor: 'divider',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mb: 1.5,
                 flexShrink: 0,
               }}
             >
               <Typography
                 variant="subtitle2"
-                sx={{ fontWeight: 800, color: 'success.main', mb: 0.3 }}
+                sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 0.5 }}
               >
-                {currentExample.title}
+                <CheckCircleRoundedIcon sx={{ fontSize: 18, color: 'success.main' }} />
+                실시간 인터랙티브 그래프 렌더링
               </Typography>
-              <Typography
-                variant="caption"
-                sx={{ color: 'text.secondary', display: 'block', lineHeight: 1.5 }}
-              >
-                {currentExample.description}
-              </Typography>
+              <Chip
+                label={`${chartType.toUpperCase()} CHART`}
+                size="small"
+                color="primary"
+                variant="outlined"
+                sx={{ fontSize: '0.7rem', height: 20 }}
+              />
             </Box>
-          )}
-        </Card>
-      </Box>
+
+            <Box
+              sx={{
+                flex: '1 1 auto',
+                minHeight: 280,
+                overflow: 'hidden',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                bgcolor: 'background.neutral',
+                borderRadius: 2,
+                p: 2,
+              }}
+            >
+              {!jsonError && parsedSeries ? (
+                <Box sx={{ width: '100%', height: '100%', minHeight: 280 }}>
+                  <Chart
+                    options={apexOptions}
+                    series={parsedSeries}
+                    type={chartType}
+                    width="100%"
+                    height="100%"
+                  />
+                </Box>
+              ) : (
+                <Typography variant="body2" sx={{ color: 'text.disabled' }}>
+                  올바른 JSON 데이터를 입력하면 인터랙티브 차트가 시각화됩니다.
+                </Typography>
+              )}
+            </Box>
+
+            {/* Current Chart Description */}
+            {currentExample && (
+              <Box
+                sx={{
+                  mt: 1.5,
+                  p: 1.5,
+                  bgcolor: 'background.paper',
+                  borderRadius: 1.5,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  flexShrink: 0,
+                }}
+              >
+                <Typography
+                  variant="subtitle2"
+                  sx={{ fontWeight: 800, color: 'success.main', mb: 0.3 }}
+                >
+                  {currentExample.title}
+                </Typography>
+                <Typography
+                  variant="caption"
+                  sx={{ color: 'text.secondary', display: 'block', lineHeight: 1.5 }}
+                >
+                  {currentExample.description}
+                </Typography>
+              </Box>
+            )}
+          </Card>
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </Box>
   );
 }

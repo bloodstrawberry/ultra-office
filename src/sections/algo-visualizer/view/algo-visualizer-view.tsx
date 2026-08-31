@@ -16,6 +16,9 @@ import TerminalRoundedIcon from '@mui/icons-material/TerminalRounded';
 import TableChartRoundedIcon from '@mui/icons-material/TableChartRounded';
 import CompareArrowsRoundedIcon from '@mui/icons-material/CompareArrowsRounded';
 import SportsEsportsRoundedIcon from '@mui/icons-material/SportsEsportsRounded';
+import LensRoundedIcon from '@mui/icons-material/LensRounded';
+import ShieldRoundedIcon from '@mui/icons-material/ShieldRounded';
+import MilitaryTechRoundedIcon from '@mui/icons-material/MilitaryTechRounded';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
@@ -32,12 +35,18 @@ import { ChallengeTab } from '../components/tabs/ChallengeTab';
 import { VisualizerTab } from '../components/tabs/VisualizerTab';
 import { PlaygroundTab } from '../components/tabs/PlaygroundTab';
 import { DataStructuresTab } from '../components/tabs/DataStructuresTab';
+import { BadukSolverTab } from '../components/games/baduk/BadukSolverTab';
+import { JanggiSolverTab } from '../components/games/janggi/JanggiSolverTab';
+import { ChessSolverTab } from '../components/games/chess/ChessSolverTab';
 
 // ----------------------------------------------------------------------
 
 export type VisualizerMainTab =
   | 'visualizer'
   | 'dataStructures'
+  | 'baduk'
+  | 'janggi'
+  | 'chess'
   | 'compare'
   | 'challenge'
   | 'playground'
@@ -113,8 +122,8 @@ function AlgoVisualizerMain({ defaultTab = 'visualizer' }: AlgoVisualizerViewPro
             인터랙티브 알고리즘 & 자료구조 스튜디오 (Algorithm Visualizer)
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            32종 알고리즘과 15종 핵심 자료구조의 동작 원리를 실시간 단계별(Step) 애니메이션, 다국어
-            코드 뷰어, 1:1 비교 및 CS 챌린지로 체화합니다.
+            알고리즘, 자료구조뿐만 아니라 바둑 사활, 장기 박보, 체스 전술 AI 묘수풀이까지 인터랙티브
+            시각화로 체화합니다.
           </Typography>
         </Box>
 
@@ -150,29 +159,50 @@ function AlgoVisualizerMain({ defaultTab = 'visualizer' }: AlgoVisualizerViewPro
             sx={{ fontWeight: 700 }}
           />
           <Tab
+            value="baduk"
+            label="3. 바둑 사활 & 묘수풀이"
+            icon={<LensRoundedIcon sx={{ color: '#38bdf8' }} />}
+            iconPosition="start"
+            sx={{ fontWeight: 700 }}
+          />
+          <Tab
+            value="janggi"
+            label="4. 장기 박보 & 묘수풀이"
+            icon={<ShieldRoundedIcon sx={{ color: '#34d399' }} />}
+            iconPosition="start"
+            sx={{ fontWeight: 700 }}
+          />
+          <Tab
+            value="chess"
+            label="5. 체스 전술 & 퍼즐풀이"
+            icon={<MilitaryTechRoundedIcon sx={{ color: '#c084fc' }} />}
+            iconPosition="start"
+            sx={{ fontWeight: 700 }}
+          />
+          <Tab
             value="compare"
-            label="3. 1:1 알고리즘 비교"
+            label="6. 1:1 알고리즘 비교"
             icon={<CompareArrowsRoundedIcon />}
             iconPosition="start"
             sx={{ fontWeight: 700 }}
           />
           <Tab
             value="challenge"
-            label="4. CS 챌린지 모드"
+            label="7. CS 챌린지 모드"
             icon={<SportsEsportsRoundedIcon />}
             iconPosition="start"
             sx={{ fontWeight: 700 }}
           />
           <Tab
             value="playground"
-            label="5. 커스텀 코드 샌드박스"
+            label="8. 커스텀 코드 샌드박스"
             icon={<TerminalRoundedIcon />}
             iconPosition="start"
             sx={{ fontWeight: 700 }}
           />
           <Tab
             value="catalog"
-            label="6. Big-O 마스터 & 카탈로그"
+            label="9. Big-O 마스터 & 카탈로그"
             icon={<TableChartRoundedIcon />}
             iconPosition="start"
             sx={{ fontWeight: 700 }}
@@ -186,6 +216,9 @@ function AlgoVisualizerMain({ defaultTab = 'visualizer' }: AlgoVisualizerViewPro
         {currentTab === 'dataStructures' && (
           <DataStructuresTab onNavigateToAlgo={handleNavigateToAlgo} />
         )}
+        {currentTab === 'baduk' && <BadukSolverTab />}
+        {currentTab === 'janggi' && <JanggiSolverTab />}
+        {currentTab === 'chess' && <ChessSolverTab />}
         {currentTab === 'compare' && <CompareTab />}
         {currentTab === 'challenge' && <ChallengeTab />}
         {currentTab === 'playground' && <PlaygroundTab />}

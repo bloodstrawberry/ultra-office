@@ -48,7 +48,12 @@ class WalkieTalkieAudio {
   /**
    * Speaks a sequence of phonetic words with SpeechSynthesis.
    */
-  public speakWords(words: string[], lang = 'en-US', onProgress?: (idx: number) => void, onComplete?: () => void) {
+  public speakWords(
+    words: string[],
+    lang = 'en-US',
+    onProgress?: (idx: number) => void,
+    onComplete?: () => void
+  ) {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
       onComplete?.();
       return;

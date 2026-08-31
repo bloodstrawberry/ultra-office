@@ -55,7 +55,17 @@ export function MorseMnemonicsTab() {
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 2.5,
+        flex: '1 1 auto',
+        minHeight: 0,
+        overflowY: 'auto',
+        pr: 0.5,
+      }}
+    >
       {/* Principle Explanation Hero Cards */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

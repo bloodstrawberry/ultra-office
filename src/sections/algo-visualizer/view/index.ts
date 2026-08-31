@@ -1,4 +1,7 @@
 export * from './algo-visualizer-view';
+export * from './algo-visualizer-baduk-view';
+export * from './algo-visualizer-janggi-view';
+export * from './algo-visualizer-chess-view';
 export * from './algo-visualizer-catalog-view';
 export * from './algo-visualizer-compare-view';
 export * from './algo-visualizer-challenge-view';

@@ -20,6 +20,8 @@ import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import DeleteSweepRoundedIcon from '@mui/icons-material/DeleteSweepRounded';
 import AutoFixHighRoundedIcon from '@mui/icons-material/AutoFixHighRounded';
 
+import { ResizablePanel, ResizableHandle, ResizablePanelGroup } from 'src/components/resizable';
+
 import { REGEX_PRESETS } from '../../util/utils/regex-library-utils';
 import { TextAreaPanel } from '../../util/components/shared-text-area';
 import { LineNumberTextField } from '../../util/components/line-number-text-field';
@@ -217,50 +219,50 @@ export function RegexStudioTab() {
           )}
         </Card>
 
-        {/* Target Text & Result Viewers */}
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-            gap: 2,
-            flex: '1 1 auto',
-            minHeight: 0,
-            height: '100%',
-          }}
-        >
-          <TextAreaPanel
-            title="대상 텍스트 (실시간 하이라이트)"
-            actions={
-              <IconButton size="small" color="error" onClick={() => setRegexTargetText('')}>
-                <DeleteSweepRoundedIcon fontSize="small" />
-              </IconButton>
-            }
-          >
-            <LineNumberTextField
-              value={regexTargetText}
-              onChange={setRegexTargetText}
-              highlightRegex={currentCompiledRegex}
-              placeholder="정규식을 테스트할 텍스트를 입력하세요..."
-            />
-          </TextAreaPanel>
+        {/* Target Text & Result Viewers Resizable Panels */}
+        <ResizablePanelGroup orientation="horizontal" autoSaveId="regex-studio-split">
+          {/* Left: Target Text */}
+          <ResizablePanel id="regex-target" defaultSize={50} minSize={25}>
+            <TextAreaPanel
+              title="대상 텍스트 (실시간 하이라이트)"
+              actions={
+                <IconButton size="small" color="error" onClick={() => setRegexTargetText('')}>
+                  <DeleteSweepRoundedIcon fontSize="small" />
+                </IconButton>
+              }
+            >
+              <LineNumberTextField
+                value={regexTargetText}
+                onChange={setRegexTargetText}
+                highlightRegex={currentCompiledRegex}
+                placeholder="정규식을 테스트할 텍스트를 입력하세요..."
+              />
+            </TextAreaPanel>
+          </ResizablePanel>
 
-          <TextAreaPanel
-            title={
-              regexMode === 'extract' ? '추출 결과 (Match List)' : '치환 결과 (Replaced Result)'
-            }
-            actions={
-              <IconButton size="small" onClick={() => handleCopy(regexResultText)}>
-                <ContentCopyRoundedIcon fontSize="small" />
-              </IconButton>
-            }
-          >
-            <LineNumberTextField
-              value={regexResultText}
-              readOnly
-              placeholder="정규식 실행 결과가 여기에 표시됩니다..."
-            />
-          </TextAreaPanel>
-        </Box>
+          {/* Resizable Divider Handle */}
+          <ResizableHandle direction="horizontal" tooltipText="좌우 너비 조절" />
+
+          {/* Right: Regex Result */}
+          <ResizablePanel id="regex-result" defaultSize={50} minSize={25}>
+            <TextAreaPanel
+              title={
+                regexMode === 'extract' ? '추출 결과 (Match List)' : '치환 결과 (Replaced Result)'
+              }
+              actions={
+                <IconButton size="small" onClick={() => handleCopy(regexResultText)}>
+                  <ContentCopyRoundedIcon fontSize="small" />
+                </IconButton>
+              }
+            >
+              <LineNumberTextField
+                value={regexResultText}
+                readOnly
+                placeholder="정규식 실행 결과가 여기에 표시됩니다..."
+              />
+            </TextAreaPanel>
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </Box>
 
       {/* Right Library Drawer */}

@@ -18,6 +18,8 @@ import ClearRoundedIcon from '@mui/icons-material/ClearRounded';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded';
 
+import { ResizablePanel, ResizableHandle, ResizablePanelGroup } from 'src/components/resizable';
+
 import { textToPhoneticList, type PhoneticItem } from '../utils/phonetic-data';
 import { walkieTalkie } from '../utils/walkie-talkie-audio';
 
@@ -80,7 +82,7 @@ export function NatoConverterTab() {
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: '1 1 auto', minHeight: 0 }}>
       {/* Quick Presets Bar */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
         <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.secondary', mr: 0.5 }}>
@@ -98,15 +100,21 @@ export function NatoConverterTab() {
         ))}
       </Box>
 
-      {/* Dual Inputs Grid */}
-      <Grid container spacing={3}>
+      {/* Dual Inputs Resizable Panels */}
+      <ResizablePanelGroup
+        orientation="horizontal"
+        autoSaveId="nato-converter-split"
+        sx={{ flex: '1 1 0px', minHeight: 0 }}
+      >
         {/* Input Card */}
-        <Grid size={{ xs: 12, md: 6 }}>
+        <ResizablePanel id="nato-input" defaultSize={50} minSize={25}>
           <Card
             sx={{
-              p: 3,
+              p: 2,
               borderRadius: 2,
+              flex: '1 1 auto',
               height: '100%',
+              minHeight: 0,
               display: 'flex',
               flexDirection: 'column',
               border: (theme) => `1px solid ${theme.palette.divider}`,
@@ -117,10 +125,10 @@ export function NatoConverterTab() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                mb: 1.5,
+                mb: 1,
               }}
             >
-              <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
                 📝 원본 문자열 입력 (영어 / 한국어 / 숫자)
               </Typography>
               <IconButton size="small" onClick={() => setInputText('')} disabled={!inputText}>
@@ -131,27 +139,35 @@ export function NatoConverterTab() {
             <TextField
               fullWidth
               multiline
-              rows={4}
+              minRows={2}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder="무선 통화표로 변환할 영문 단어, 한글, 숫자, 차량번호를 입력하세요."
               variant="outlined"
-              sx={{ flexGrow: 1 }}
+              sx={{
+                flexGrow: 1,
+                '& .MuiInputBase-root': { height: '100%', alignItems: 'flex-start' },
+              }}
             />
 
-            <Typography variant="caption" sx={{ color: 'text.secondary', mt: 1 }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.5 }}>
               {inputText.length} 글자
             </Typography>
           </Card>
-        </Grid>
+        </ResizablePanel>
+
+        {/* Resizable Divider Handle */}
+        <ResizableHandle direction="horizontal" tooltipText="좌우 너비 조절" />
 
         {/* Output Card */}
-        <Grid size={{ xs: 12, md: 6 }}>
+        <ResizablePanel id="nato-output" defaultSize={50} minSize={25}>
           <Card
             sx={{
-              p: 3,
+              p: 2,
               borderRadius: 2,
+              flex: '1 1 auto',
               height: '100%',
+              minHeight: 0,
               display: 'flex',
               flexDirection: 'column',
               bgcolor: 'background.neutral',
@@ -163,14 +179,20 @@ export function NatoConverterTab() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                mb: 1.5,
+                mb: 1,
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
                   📻 무선 통화표 스펠러 결과
                 </Typography>
-                <Chip label="NATO / 경찰·군 표준" size="small" color="primary" variant="soft" />
+                <Chip
+                  label="NATO / 경찰·군 표준"
+                  size="small"
+                  color="primary"
+                  variant="soft"
+                  sx={{ height: 22 }}
+                />
               </Box>
 
               <Box sx={{ display: 'flex', gap: 1 }}>
@@ -201,50 +223,69 @@ export function NatoConverterTab() {
             <TextField
               fullWidth
               multiline
-              rows={4}
+              minRows={2}
               value={formattedOutput}
               slotProps={{ input: { readOnly: true } }}
               placeholder="변환된 무선 통화 단어가 표시됩니다."
               variant="outlined"
               sx={{
                 flexGrow: 1,
-                '& .MuiOutlinedInput-root': {
+                '& .MuiInputBase-root': {
+                  height: '100%',
+                  alignItems: 'flex-start',
                   bgcolor: 'background.paper',
                   fontWeight: 700,
-                  fontSize: '1.1rem',
+                  fontSize: '1.05rem',
                   lineHeight: 1.6,
                 },
               }}
             />
           </Card>
-        </Grid>
-      </Grid>
+        </ResizablePanel>
+      </ResizablePanelGroup>
 
       {/* Phonetic Speller Timeline Cards Area */}
       <Card
         sx={{
-          p: 3,
+          p: 2,
           borderRadius: 2,
           border: (theme) => `1px solid ${theme.palette.divider}`,
           display: 'flex',
           flexDirection: 'column',
-          gap: 2,
+          gap: 1,
+          flex: '1 1 0px',
+          minHeight: 0,
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <VolumeUpRoundedIcon sx={{ color: 'primary.main', fontSize: 24 }} />
-          <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
+          <VolumeUpRoundedIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+          <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
             단어별 무선 교신 카드 (Phonetic Call-out Blocks)
           </Typography>
         </Box>
 
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 1.2,
+            flex: '1 1 auto',
+            minHeight: 0,
+            overflowY: 'auto',
+            alignContent: 'flex-start',
+          }}
+        >
           {phoneticList.map((item, idx) => {
             if (item.char === ' ') {
               return (
                 <Box
                   key={`space-${idx}`}
-                  sx={{ width: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  sx={{
+                    width: 20,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
                 >
                   <Typography variant="h6" sx={{ color: 'text.disabled' }}>
                     /
@@ -259,8 +300,8 @@ export function NatoConverterTab() {
               <Card
                 key={`item-${idx}`}
                 sx={{
-                  p: 1.5,
-                  minWidth: 90,
+                  p: 1.2,
+                  minWidth: 80,
                   borderRadius: 1.5,
                   border: (theme) =>
                     isSpeaking
@@ -268,26 +309,40 @@ export function NatoConverterTab() {
                       : `1px solid ${theme.palette.divider}`,
                   bgcolor: isSpeaking ? 'warning.lighter' : 'background.paper',
                   textAlign: 'center',
-                  transform: isSpeaking ? 'scale(1.08)' : 'none',
+                  transform: isSpeaking ? 'scale(1.05)' : 'none',
                   transition: 'all 0.15s ease',
                   boxShadow: isSpeaking ? (theme) => theme.customShadows?.z8 : 'none',
                 }}
               >
-                <Typography variant="h5" sx={{ fontWeight: 900, color: 'primary.main', lineHeight: 1 }}>
+                <Typography
+                  variant="h6"
+                  sx={{ fontWeight: 900, color: 'primary.main', lineHeight: 1 }}
+                >
                   {item.char}
                 </Typography>
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, mt: 0.5 }}>
+                <Typography
+                  variant="subtitle2"
+                  sx={{ fontWeight: 800, mt: 0.5, fontSize: '0.8rem' }}
+                >
                   {item.word}
                 </Typography>
                 {item.pronunciation && (
-                  <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                  <Typography
+                    variant="caption"
+                    sx={{ color: 'text.secondary', display: 'block', fontSize: '0.7rem' }}
+                  >
                     [{item.pronunciation}]
                   </Typography>
                 )}
                 {item.morse && (
                   <Typography
                     variant="caption"
-                    sx={{ fontFamily: 'monospace', color: 'info.main', fontWeight: 700 }}
+                    sx={{
+                      fontFamily: 'monospace',
+                      color: 'info.main',
+                      fontWeight: 700,
+                      fontSize: '0.7rem',
+                    }}
                   >
                     {item.morse}
                   </Typography>

@@ -34,6 +34,8 @@ import {
   generateMorseWavBlob,
   type MorseFormatOptions,
 } from '../utils/morse-core';
+import { ResizablePanel, ResizableHandle, ResizablePanelGroup } from 'src/components/resizable';
+
 import { MorseAudioPlayer } from '../utils/morse-audio';
 import { MorseSignalLamp, type LampColorTheme } from './morse-signal-lamp';
 import { MorseStrobeOverlay } from './morse-strobe-overlay';
@@ -233,7 +235,17 @@ export function MorseConverterTab() {
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 2,
+        flex: '1 1 auto',
+        minHeight: 0,
+        overflowY: 'auto',
+        pr: 0.5,
+      }}
+    >
       {/* Top Presets Bar */}
       <Box
         sx={{
@@ -268,10 +280,14 @@ export function MorseConverterTab() {
         ))}
       </Box>
 
-      {/* Main Conversion Cards Grid */}
-      <Grid container spacing={3}>
+      {/* Main Conversion Cards Resizable Panels */}
+      <ResizablePanelGroup
+        orientation="horizontal"
+        autoSaveId="morse-converter-split"
+        sx={{ minHeight: 320, flexShrink: 0 }}
+      >
         {/* Input Box */}
-        <Grid size={{ xs: 12, md: 6 }}>
+        <ResizablePanel id="morse-input" defaultSize={50} minSize={25}>
           <Card
             sx={{
               p: 3,
@@ -364,10 +380,13 @@ export function MorseConverterTab() {
               </Button>
             </Box>
           </Card>
-        </Grid>
+        </ResizablePanel>
+
+        {/* Resizable Divider Handle */}
+        <ResizableHandle direction="horizontal" tooltipText="좌우 너비 조절" />
 
         {/* Output Box */}
-        <Grid size={{ xs: 12, md: 6 }}>
+        <ResizablePanel id="morse-output" defaultSize={50} minSize={25}>
           <Card
             sx={{
               p: 3,
@@ -463,15 +482,15 @@ export function MorseConverterTab() {
                   : `${morseOutput.length} 글자`}
               </Typography>
 
-              {playbackProgress > 0 && playbackProgress < 100 && (
+              {playbackProgress > 0 && playbackProgress <= 99 && (
                 <Typography variant="caption" sx={{ fontWeight: 700, color: 'primary.main' }}>
                   재생 진행률: {playbackProgress}%
                 </Typography>
               )}
             </Box>
           </Card>
-        </Grid>
-      </Grid>
+        </ResizablePanel>
+      </ResizablePanelGroup>
 
       {/* Signal Lamp & Audio Player Control Station */}
       <Grid container spacing={3}>

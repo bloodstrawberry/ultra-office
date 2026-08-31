@@ -31,9 +31,16 @@ export function CipherBruteforceTab() {
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: '1 1 auto', minHeight: 0 }}>
       {/* Input Card */}
-      <Card sx={{ p: 3, borderRadius: 2, border: (theme) => `1px solid ${theme.palette.divider}` }}>
+      <Card
+        sx={{
+          p: 2,
+          borderRadius: 2,
+          border: (theme) => `1px solid ${theme.palette.divider}`,
+          flexShrink: 0,
+        }}
+      >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
           <KeyRoundedIcon sx={{ color: 'warning.main' }} />
           <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
@@ -43,7 +50,8 @@ export function CipherBruteforceTab() {
         </Box>
 
         <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-          암호 키(시프트 번호)를 알 수 없을 때 암호문을 붙여넣으면 1부터 25까지 모든 시프트 가능성을 즉시 계산합니다.
+          암호 키(시프트 번호)를 알 수 없을 때 암호문을 붙여넣으면 1부터 25까지 모든 시프트 가능성을
+          즉시 계산합니다.
         </Typography>
 
         <TextField
@@ -56,7 +64,11 @@ export function CipherBruteforceTab() {
       </Card>
 
       {/* Grid of 25 Shift Candidates */}
-      <Grid container spacing={2}>
+      <Grid
+        container
+        spacing={2}
+        sx={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', alignContent: 'flex-start' }}
+      >
         {results.map((item) => {
           const isCopied = copiedIndex === item.shift;
 
@@ -79,7 +91,9 @@ export function CipherBruteforceTab() {
                   },
                 }}
               >
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box
+                  sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                >
                   <Chip
                     label={item.shift === 0 ? '원본 (Shift 0)' : `Shift Key -${item.shift}`}
                     size="small"

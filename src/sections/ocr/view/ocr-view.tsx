@@ -26,6 +26,7 @@ import DocumentScannerRoundedIcon from '@mui/icons-material/DocumentScannerRound
 import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
 
 import { DashboardContent } from 'src/layouts/dashboard';
+import { ResizablePanel, ResizableHandle, ResizablePanelGroup } from 'src/components/resizable';
 
 import {
   performOcr,
@@ -238,10 +239,10 @@ export function OcrView() {
         </Tabs>
       </Box>
 
-      {/* Main Content Area */}
-      <Box sx={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', pb: 4 }}>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1.2fr' }, gap: 3 }}>
-          {/* Left: Upload and Preview */}
+      {/* Main Content Resizable Panels */}
+      <ResizablePanelGroup orientation="horizontal" autoSaveId="ocr-view-split" sx={{ pb: 4 }}>
+        {/* Left: Upload and Preview */}
+        <ResizablePanel id="ocr-upload" defaultSize={45} minSize={25}>
           <Card
             sx={{
               p: 3,
@@ -249,6 +250,8 @@ export function OcrView() {
               flexDirection: 'column',
               gap: 2,
               borderRadius: 2,
+              height: '100%',
+              overflowY: 'auto',
               border: imageDrop.isDragActive ? '2px dashed' : '1px solid',
               borderColor: imageDrop.isDragActive ? 'primary.main' : 'divider',
               bgcolor: imageDrop.isDragActive ? 'action.hover' : 'background.paper',
@@ -389,9 +392,22 @@ export function OcrView() {
               </Box>
             )}
           </Card>
+        </ResizablePanel>
 
-          {/* Right: Analysis Results */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {/* Resizable Divider Handle */}
+        <ResizableHandle direction="horizontal" tooltipText="좌우 너비 조절" />
+
+        {/* Right: Analysis Results */}
+        <ResizablePanel id="ocr-results" defaultSize={55} minSize={30}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 2,
+              height: '100%',
+              overflowY: 'auto',
+            }}
+          >
             {/* TAB 1: Receipt Results */}
             {currentTab === 'receipt' && (
               <Card
@@ -620,8 +636,8 @@ export function OcrView() {
               </Card>
             )}
           </Box>
-        </Box>
-      </Box>
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </DashboardContent>
   );
 }

@@ -180,7 +180,7 @@ export function MorseChartTab() {
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: '1 1 auto', minHeight: 0 }}>
       {/* Top Search & Filter Bar */}
       <Box
         sx={{
@@ -189,6 +189,7 @@ export function MorseChartTab() {
           justifyContent: 'space-between',
           flexWrap: 'wrap',
           gap: 2,
+          flexShrink: 0,
         }}
       >
         <Tabs
@@ -227,7 +228,11 @@ export function MorseChartTab() {
       </Box>
 
       {/* Grid of Morse Code Cards */}
-      <Grid container spacing={2}>
+      <Grid
+        container
+        spacing={2}
+        sx={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', alignContent: 'flex-start' }}
+      >
         {filteredItems.map((item) => {
           const isCopied = copiedKey === item.char;
 

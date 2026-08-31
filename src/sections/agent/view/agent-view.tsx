@@ -16,6 +16,7 @@ import AssessmentRoundedIcon from '@mui/icons-material/AssessmentRounded';
 import PersonSearchRoundedIcon from '@mui/icons-material/PersonSearchRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
+import { ResizablePanel, ResizableHandle, ResizablePanelGroup } from 'src/components/resizable';
 
 import { AgentChatArea } from '../components/agent-chat-area';
 import { AgentModelControl } from '../components/agent-model-control';
@@ -434,40 +435,44 @@ export function AgentView() {
         </Tabs>
       </Box>
 
-      {/* Main Grid: Sidebar Sessions + Chat Workstation */}
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: '280px 1fr' },
-          gap: 2.5,
-          flex: '1 1 auto',
-          minHeight: 0,
-          pb: 2,
-        }}
+      {/* Main Resizable Workspace: Sidebar Sessions + Chat Workstation */}
+      <ResizablePanelGroup
+        orientation="horizontal"
+        autoSaveId="agent-workspace-split"
+        sx={{ pb: 2 }}
       >
-        <AgentSessionSidebar
-          sessions={sessions}
-          activeSessionId={activeSessionId}
-          onSelectSession={(id, mode) => {
-            setActiveSessionId(id);
-            setCurrentMode(mode);
-          }}
-          onNewSession={handleNewSession}
-          onDeleteSession={handleDeleteSession}
-        />
+        {/* Left: Session History Sidebar */}
+        <ResizablePanel id="agent-sessions" defaultSize={24} minSize={15} maxSize={40}>
+          <AgentSessionSidebar
+            sessions={sessions}
+            activeSessionId={activeSessionId}
+            onSelectSession={(id, mode) => {
+              setActiveSessionId(id);
+              setCurrentMode(mode);
+            }}
+            onNewSession={handleNewSession}
+            onDeleteSession={handleDeleteSession}
+          />
+        </ResizablePanel>
 
-        <AgentChatArea
-          currentMode={currentMode}
-          activeSession={activeSession}
-          selectedModel={selectedModel}
-          inputQuery={inputQuery}
-          setInputQuery={setInputQuery}
-          isGenerating={isGenerating}
-          isModelLoading={isModelLoading}
-          onSendMessage={handleSendMessage}
-          onStopGenerating={handleStopGenerating}
-        />
-      </Box>
+        {/* Resizable Divider Handle */}
+        <ResizableHandle direction="horizontal" tooltipText="사이드바 너비 조절" />
+
+        {/* Right: Active Chat Workstation */}
+        <ResizablePanel id="agent-chat" defaultSize={76} minSize={40}>
+          <AgentChatArea
+            currentMode={currentMode}
+            activeSession={activeSession}
+            selectedModel={selectedModel}
+            inputQuery={inputQuery}
+            setInputQuery={setInputQuery}
+            isGenerating={isGenerating}
+            isModelLoading={isModelLoading}
+            onSendMessage={handleSendMessage}
+            onStopGenerating={handleStopGenerating}
+          />
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </DashboardContent>
   );
 }

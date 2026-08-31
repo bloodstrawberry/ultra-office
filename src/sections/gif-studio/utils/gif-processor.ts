@@ -106,6 +106,7 @@ export interface StudioTextItem {
   fontSize?: number;
   fontColor?: string;
   fontBgColor?: string;
+  fontFamily?: string;
   position?: 'top' | 'center' | 'bottom' | 'top-left' | 'bottom-right';
   xPercent?: number; // 0 ~ 100 (%) (기본값: 50)
   yPercent?: number; // 0 ~ 100 (%) (기본값: 85)
@@ -126,6 +127,7 @@ export interface StudioCreateOptions {
     fontSize?: number;
     fontColor?: string;
     fontBgColor?: string;
+    fontFamily?: string;
     position?: 'top' | 'center' | 'bottom' | 'top-left' | 'bottom-right';
     xPercent?: number;
     yPercent?: number;
@@ -1853,6 +1855,7 @@ export async function createStudioGif(options: StudioCreateOptions): Promise<str
       fontSize?: number;
       fontColor?: string;
       fontBgColor?: string;
+      fontFamily?: string;
       position?: string;
       xPercent?: number;
       yPercent?: number;
@@ -1881,9 +1884,10 @@ export async function createStudioGif(options: StudioCreateOptions): Promise<str
       const fontSize = tItem.fontSize || Math.max(16, Math.round(height * 0.07));
       const fontColor = tItem.fontColor || '#ffffff';
       const fontBgColor = tItem.fontBgColor || 'rgba(0,0,0,0.6)';
+      const fontFamily = tItem.fontFamily || "'Pretendard', 'Noto Sans KR', sans-serif";
       const pos = tItem.position || 'bottom';
 
-      ctx.font = `bold ${fontSize}px sans-serif`;
+      ctx.font = `bold ${fontSize}px ${fontFamily}`;
       ctx.textAlign = 'center';
 
       let tx = width / 2;

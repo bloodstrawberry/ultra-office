@@ -13,6 +13,8 @@ import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import DeleteSweepRoundedIcon from '@mui/icons-material/DeleteSweepRounded';
 
+import { ResizablePanel, ResizableHandle, ResizablePanelGroup } from 'src/components/resizable';
+
 import { TextAreaPanel } from '../../util/components/shared-text-area';
 import { LineNumberTextField } from '../../util/components/line-number-text-field';
 import {
@@ -247,52 +249,52 @@ export function ContentProcessorTab() {
         </Box>
       </Card>
 
-      {/* Editors Grid */}
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-          gap: 2,
-          flex: '1 1 auto',
-          minHeight: 0,
-          height: '100%',
-        }}
-      >
-        <TextAreaPanel
-          title="원본 텍스트"
-          actions={
-            <IconButton size="small" color="error" onClick={() => setContentText('')}>
-              <DeleteSweepRoundedIcon fontSize="small" />
-            </IconButton>
-          }
-        >
-          <LineNumberTextField
-            value={contentText}
-            onChange={setContentText}
-            placeholder="가공할 텍스트를 입력하세요..."
-          />
-        </TextAreaPanel>
+      {/* Editors Resizable Panels */}
+      <ResizablePanelGroup orientation="horizontal" autoSaveId="content-processor-split">
+        {/* Left: Source Text */}
+        <ResizablePanel id="source-text" defaultSize={50} minSize={25}>
+          <TextAreaPanel
+            title="원본 텍스트"
+            actions={
+              <IconButton size="small" color="error" onClick={() => setContentText('')}>
+                <DeleteSweepRoundedIcon fontSize="small" />
+              </IconButton>
+            }
+          >
+            <LineNumberTextField
+              value={contentText}
+              onChange={setContentText}
+              placeholder="가공할 텍스트를 입력하세요..."
+            />
+          </TextAreaPanel>
+        </ResizablePanel>
 
-        <TextAreaPanel
-          title="가공된 결과"
-          actions={
-            <Box sx={{ display: 'flex', gap: 0.5 }}>
-              <IconButton size="small" onClick={() => handleCopy(processedText)}>
-                <ContentCopyRoundedIcon fontSize="small" />
-              </IconButton>
-              <IconButton size="small" onClick={() => handleDownload(processedText, 'txt')}>
-                <DownloadRoundedIcon fontSize="small" />
-              </IconButton>
-            </Box>
-          }
-        >
-          <LineNumberTextField
-            value={processedText}
-            readOnly
-            placeholder="가공 결과가 여기에 표시됩니다..."
-          />
-        </TextAreaPanel>
-      </Box>
+        {/* Resizable Divider Handle */}
+        <ResizableHandle direction="horizontal" tooltipText="좌우 너비 조절" />
+
+        {/* Right: Processed Text */}
+        <ResizablePanel id="processed-text" defaultSize={50} minSize={25}>
+          <TextAreaPanel
+            title="가공된 결과"
+            actions={
+              <Box sx={{ display: 'flex', gap: 0.5 }}>
+                <IconButton size="small" onClick={() => handleCopy(processedText)}>
+                  <ContentCopyRoundedIcon fontSize="small" />
+                </IconButton>
+                <IconButton size="small" onClick={() => handleDownload(processedText, 'txt')}>
+                  <DownloadRoundedIcon fontSize="small" />
+                </IconButton>
+              </Box>
+            }
+          >
+            <LineNumberTextField
+              value={processedText}
+              readOnly
+              placeholder="가공 결과가 여기에 표시됩니다..."
+            />
+          </TextAreaPanel>
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </Box>
   );
 }

@@ -42,72 +42,51 @@ export function SplitResizer({
           touchAction: 'none',
           position: 'relative',
           zIndex: 10,
-          transition: 'background-color 0.15s ease, box-shadow 0.15s ease',
+          background: 'transparent',
           ...(isVertical
             ? {
                 width: 6,
+                margin: '0 -2px',
                 cursor: 'col-resize',
-                bgcolor: isDragging ? theme.previewAccent : theme.uiColors.surface,
-                borderLeft: `1px solid ${isDragging ? theme.previewAccent : theme.uiColors.border}`,
-                borderRight: `1px solid ${isDragging ? theme.previewAccent : theme.uiColors.border}`,
-                '&:hover': {
-                  bgcolor: theme.previewAccent,
-                  boxShadow: `0 0 6px ${theme.previewAccent}80`,
-                },
-                '&::after': {
+                '&::before': {
                   content: '""',
                   position: 'absolute',
                   top: 0,
                   bottom: 0,
-                  left: -3,
-                  right: -3,
-                  cursor: 'col-resize',
+                  width: '1px',
+                  bgcolor: isDragging ? theme.previewAccent : theme.uiColors.border,
+                  boxShadow: isDragging ? `0 0 6px ${theme.previewAccent}80` : 'none',
+                  transition: 'background-color 0.15s ease, box-shadow 0.15s ease',
+                },
+                '&:hover::before': {
+                  bgcolor: theme.previewAccent,
+                  width: '2px',
+                  boxShadow: `0 0 6px ${theme.previewAccent}80`,
                 },
               }
             : {
                 height: 6,
                 width: '100%',
+                margin: '-2px 0',
                 cursor: 'row-resize',
-                bgcolor: isDragging ? theme.previewAccent : theme.uiColors.surface,
-                borderTop: `1px solid ${isDragging ? theme.previewAccent : theme.uiColors.border}`,
-                borderBottom: `1px solid ${isDragging ? theme.previewAccent : theme.uiColors.border}`,
-                '&:hover': {
-                  bgcolor: theme.previewAccent,
-                  boxShadow: `0 0 6px ${theme.previewAccent}80`,
-                },
-                '&::after': {
+                '&::before': {
                   content: '""',
                   position: 'absolute',
                   left: 0,
                   right: 0,
-                  top: -3,
-                  bottom: -3,
-                  cursor: 'row-resize',
+                  height: '1px',
+                  bgcolor: isDragging ? theme.previewAccent : theme.uiColors.border,
+                  boxShadow: isDragging ? `0 0 6px ${theme.previewAccent}80` : 'none',
+                  transition: 'background-color 0.15s ease, box-shadow 0.15s ease',
+                },
+                '&:hover::before': {
+                  bgcolor: theme.previewAccent,
+                  height: '2px',
+                  boxShadow: `0 0 6px ${theme.previewAccent}80`,
                 },
               }),
         }}
-      >
-        {/* Subtle Grip Dots/Handle */}
-        <Box
-          sx={{
-            ...(isVertical
-              ? {
-                  width: 2,
-                  height: 24,
-                  borderRadius: '1px',
-                  bgcolor: isDragging ? '#ffffff' : theme.uiColors.textMuted,
-                  opacity: isDragging ? 1 : 0.6,
-                }
-              : {
-                  width: 24,
-                  height: 2,
-                  borderRadius: '1px',
-                  bgcolor: isDragging ? '#ffffff' : theme.uiColors.textMuted,
-                  opacity: isDragging ? 1 : 0.6,
-                }),
-          }}
-        />
-      </Box>
+      />
     </Tooltip>
   );
 }

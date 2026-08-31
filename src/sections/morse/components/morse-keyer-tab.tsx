@@ -154,7 +154,17 @@ export function MorseKeyerTab() {
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 2,
+        flex: '1 1 auto',
+        minHeight: 0,
+        overflowY: 'auto',
+        pr: 0.5,
+      }}
+    >
       {/* Top Header & Keyer Mode Select */}
       <Box
         sx={{

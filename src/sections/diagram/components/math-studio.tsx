@@ -16,6 +16,8 @@ import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 
+import { ResizablePanel, ResizableHandle, ResizablePanelGroup } from 'src/components/resizable';
+
 import { MATH_EXAMPLES, MATH_SYMBOLS_PALETTE } from '../data/example-templates';
 
 // ----------------------------------------------------------------------
@@ -241,245 +243,246 @@ export function MathStudio() {
         </Box>
       </Card>
 
-      {/* 2. Main Studio Grid (Editor & Live Preview) */}
-      <Box
-        sx={{
-          flex: '1 1 auto',
-          minHeight: 0,
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-          gap: 2,
-        }}
-      >
+      {/* 2. Main Studio Resizable Panels (Editor & Live Preview) */}
+      <ResizablePanelGroup orientation="horizontal" autoSaveId="math-studio-split">
         {/* Left Column: LaTeX Editor & Quick Symbol Palette */}
-        <Card
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            p: 2,
-            minHeight: 0,
-            overflow: 'hidden',
-          }}
-        >
-          <Box
+        <ResizablePanel id="math-editor" defaultSize={50} minSize={20}>
+          <Card
             sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              mb: 1.5,
-              flexShrink: 0,
-            }}
-          >
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 0.5 }}
-            >
-              <CalculateRoundedIcon sx={{ fontSize: 18, color: 'info.main' }} />
-              LaTeX 수식 코드 입력
-            </Typography>
-            {currentExample && (
-              <Chip
-                label={currentExample.categoryLabel}
-                size="small"
-                variant="outlined"
-                color="info"
-                sx={{ fontSize: '0.7rem', height: 20 }}
-              />
-            )}
-          </Box>
-
-          <TextField
-            inputRef={inputRef}
-            multiline
-            rows={7}
-            fullWidth
-            value={latexInput}
-            onChange={(e) => setLatexInput(e.target.value)}
-            placeholder="LaTeX 수식을 입력하세요... 예: x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}"
-            sx={{
-              flexShrink: 0,
-              mb: 1.5,
-              '& .MuiInputBase-root': {
-                fontFamily: 'Consolas, Monaco, monospace',
-                fontSize: '0.9rem',
-                bgcolor: 'background.neutral',
-              },
-            }}
-          />
-
-          {errorMessage && (
-            <Box
-              sx={{
-                mb: 1.5,
-                p: 1,
-                borderRadius: 1,
-                bgcolor: 'error.lighter',
-                color: 'error.main',
-                fontSize: '0.75rem',
-                fontWeight: 600,
-                flexShrink: 0,
-              }}
-            >
-              ⚠️ {errorMessage}
-            </Box>
-          )}
-
-          {/* Symbol Palette */}
-          <Box
-            sx={{
-              flex: '1 1 auto',
-              minHeight: 0,
               display: 'flex',
               flexDirection: 'column',
+              p: 2,
+              height: '100%',
+              minHeight: 0,
+              overflow: 'hidden',
             }}
           >
-            <Typography
-              variant="caption"
-              sx={{ fontWeight: 700, color: 'text.secondary', mb: 0.8, flexShrink: 0 }}
-            >
-              💡 자주 쓰는 수식 기호 팔레트 (클릭 시 자동 삽입)
-            </Typography>
             <Box
               sx={{
-                flex: '1 1 auto',
-                overflowY: 'auto',
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
-                gap: 0.8,
-                p: 0.5,
-                bgcolor: 'background.neutral',
-                borderRadius: 1.5,
-                border: '1px solid',
-                borderColor: 'divider',
-              }}
-            >
-              {MATH_SYMBOLS_PALETTE.map((sym, idx) => (
-                <Button
-                  key={idx}
-                  variant="outlined"
-                  size="small"
-                  onClick={() => handleInsertSymbol(sym.code)}
-                  sx={{
-                    justifyContent: 'flex-start',
-                    textTransform: 'none',
-                    fontSize: '0.72rem',
-                    py: 0.4,
-                    px: 0.8,
-                    bgcolor: 'background.paper',
-                    borderColor: 'divider',
-                    color: 'text.primary',
-                    '&:hover': {
-                      bgcolor: 'action.hover',
-                      borderColor: 'primary.main',
-                    },
-                  }}
-                >
-                  {sym.label}
-                </Button>
-              ))}
-            </Box>
-          </Box>
-        </Card>
-
-        {/* Right Column: Live Math Rendering Preview & Formula Info */}
-        <Card
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            p: 2,
-            minHeight: 0,
-            overflow: 'hidden',
-          }}
-        >
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              mb: 1.5,
-              flexShrink: 0,
-            }}
-          >
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 0.5 }}
-            >
-              <CheckCircleRoundedIcon sx={{ fontSize: 18, color: 'success.main' }} />
-              실시간 수식 렌더링 미리보기
-            </Typography>
-            <Chip
-              label={katexLoaded ? 'KaTeX 엔진 연결됨' : 'KaTeX 로딩 중...'}
-              size="small"
-              color={katexLoaded ? 'success' : 'warning'}
-              variant="outlined"
-              sx={{ fontSize: '0.7rem', height: 20 }}
-            />
-          </Box>
-
-          {/* Visual Formula Display Box */}
-          <Box
-            sx={{
-              flex: '1 1 auto',
-              minHeight: 180,
-              overflow: 'auto',
-              p: 3,
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              bgcolor: 'background.neutral',
-              borderRadius: 2,
-              border: '2px dashed',
-              borderColor: 'divider',
-              textAlign: 'center',
-            }}
-          >
-            {renderedHtml ? (
-              <Box
-                sx={{
-                  fontSize: { xs: '1.2rem', sm: '1.5rem', md: '1.8rem' },
-                  color: 'text.primary',
-                  overflowX: 'auto',
-                  maxWidth: '100%',
-                  py: 2,
-                }}
-                dangerouslySetInnerHTML={{ __html: renderedHtml }}
-              />
-            ) : (
-              <Typography variant="body2" sx={{ color: 'text.disabled' }}>
-                수식 코드를 입력하면 이곳에 고해상도 수식이 실시간 렌더링됩니다.
-              </Typography>
-            )}
-          </Box>
-
-          {/* Current Formula Description Card */}
-          {currentExample && (
-            <Box
-              sx={{
-                mt: 1.5,
-                p: 1.5,
-                bgcolor: 'background.paper',
-                borderRadius: 1.5,
-                border: '1px solid',
-                borderColor: 'divider',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mb: 1.5,
                 flexShrink: 0,
               }}
             >
               <Typography
                 variant="subtitle2"
-                sx={{ fontWeight: 800, color: 'primary.main', mb: 0.3 }}
+                sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 0.5 }}
               >
-                {currentExample.title}
+                <CalculateRoundedIcon sx={{ fontSize: 18, color: 'info.main' }} />
+                LaTeX 수식 코드 입력
               </Typography>
+              {currentExample && (
+                <Chip
+                  label={currentExample.categoryLabel}
+                  size="small"
+                  variant="outlined"
+                  color="info"
+                  sx={{ fontSize: '0.7rem', height: 20 }}
+                />
+              )}
+            </Box>
+
+            <TextField
+              inputRef={inputRef}
+              multiline
+              rows={7}
+              fullWidth
+              value={latexInput}
+              onChange={(e) => setLatexInput(e.target.value)}
+              placeholder="LaTeX 수식을 입력하세요... 예: x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}"
+              sx={{
+                flexShrink: 0,
+                mb: 1.5,
+                '& .MuiInputBase-root': {
+                  fontFamily: 'Consolas, Monaco, monospace',
+                  fontSize: '0.9rem',
+                  bgcolor: 'background.neutral',
+                },
+              }}
+            />
+
+            {errorMessage && (
+              <Box
+                sx={{
+                  mb: 1.5,
+                  p: 1,
+                  borderRadius: 1,
+                  bgcolor: 'error.lighter',
+                  color: 'error.main',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  flexShrink: 0,
+                }}
+              >
+                ⚠️ {errorMessage}
+              </Box>
+            )}
+
+            {/* Symbol Palette */}
+            <Box
+              sx={{
+                flex: '1 1 auto',
+                minHeight: 0,
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
               <Typography
                 variant="caption"
-                sx={{ color: 'text.secondary', display: 'block', lineHeight: 1.5 }}
+                sx={{ fontWeight: 700, color: 'text.secondary', mb: 0.8, flexShrink: 0 }}
               >
-                {currentExample.description}
+                💡 자주 쓰는 수식 기호 팔레트 (클릭 시 자동 삽입)
               </Typography>
+              <Box
+                sx={{
+                  flex: '1 1 auto',
+                  overflowY: 'auto',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
+                  gap: 0.8,
+                  p: 0.5,
+                  bgcolor: 'background.neutral',
+                  borderRadius: 1.5,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                }}
+              >
+                {MATH_SYMBOLS_PALETTE.map((sym, idx) => (
+                  <Button
+                    key={idx}
+                    variant="outlined"
+                    size="small"
+                    onClick={() => handleInsertSymbol(sym.code)}
+                    sx={{
+                      justifyContent: 'flex-start',
+                      textTransform: 'none',
+                      fontSize: '0.72rem',
+                      py: 0.4,
+                      px: 0.8,
+                      bgcolor: 'background.paper',
+                      borderColor: 'divider',
+                      color: 'text.primary',
+                      '&:hover': {
+                        bgcolor: 'action.hover',
+                        borderColor: 'primary.main',
+                      },
+                    }}
+                  >
+                    {sym.label}
+                  </Button>
+                ))}
+              </Box>
             </Box>
-          )}
-        </Card>
-      </Box>
+          </Card>
+        </ResizablePanel>
+
+        {/* Resizable Divider Handle */}
+        <ResizableHandle direction="horizontal" tooltipText="좌우 너비 조절" />
+
+        {/* Right Column: Live Math Rendering Preview & Formula Info */}
+        <ResizablePanel id="math-preview" defaultSize={50} minSize={20}>
+          <Card
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              p: 2,
+              height: '100%',
+              minHeight: 0,
+              overflow: 'hidden',
+            }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mb: 1.5,
+                flexShrink: 0,
+              }}
+            >
+              <Typography
+                variant="subtitle2"
+                sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 0.5 }}
+              >
+                <CheckCircleRoundedIcon sx={{ fontSize: 18, color: 'success.main' }} />
+                실시간 수식 렌더링 미리보기
+              </Typography>
+              <Chip
+                label={katexLoaded ? 'KaTeX 엔진 연결됨' : 'KaTeX 로딩 중...'}
+                size="small"
+                color={katexLoaded ? 'success' : 'warning'}
+                variant="outlined"
+                sx={{ fontSize: '0.7rem', height: 20 }}
+              />
+            </Box>
+
+            {/* Visual Formula Display Box */}
+            <Box
+              sx={{
+                flex: '1 1 auto',
+                minHeight: 180,
+                overflow: 'auto',
+                p: 3,
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                bgcolor: 'background.neutral',
+                borderRadius: 2,
+                border: '2px dashed',
+                borderColor: 'divider',
+                textAlign: 'center',
+              }}
+            >
+              {renderedHtml ? (
+                <Box
+                  sx={{
+                    fontSize: { xs: '1.2rem', sm: '1.5rem', md: '1.8rem' },
+                    color: 'text.primary',
+                    overflowX: 'auto',
+                    maxWidth: '100%',
+                    py: 2,
+                  }}
+                  dangerouslySetInnerHTML={{ __html: renderedHtml }}
+                />
+              ) : (
+                <Typography variant="body2" sx={{ color: 'text.disabled' }}>
+                  수식 코드를 입력하면 이곳에 고해상도 수식이 실시간 렌더링됩니다.
+                </Typography>
+              )}
+            </Box>
+
+            {/* Current Formula Description Card */}
+            {currentExample && (
+              <Box
+                sx={{
+                  mt: 1.5,
+                  p: 1.5,
+                  bgcolor: 'background.paper',
+                  borderRadius: 1.5,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  flexShrink: 0,
+                }}
+              >
+                <Typography
+                  variant="subtitle2"
+                  sx={{ fontWeight: 800, color: 'primary.main', mb: 0.3 }}
+                >
+                  {currentExample.title}
+                </Typography>
+                <Typography
+                  variant="caption"
+                  sx={{ color: 'text.secondary', display: 'block', lineHeight: 1.5 }}
+                >
+                  {currentExample.description}
+                </Typography>
+              </Box>
+            )}
+          </Card>
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </Box>
   );
 }

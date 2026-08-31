@@ -29,7 +29,7 @@ export function NatoChartTab() {
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, flex: '1 1 auto', minHeight: 0 }}>
       <Tabs
         value={activeTab}
         onChange={(_, val) => setActiveTab(val)}
@@ -42,7 +42,11 @@ export function NatoChartTab() {
         <Tab value="number" label="항공 및 군용 숫자 통화표 (0-9)" />
       </Tabs>
 
-      <Grid container spacing={2}>
+      <Grid
+        container
+        spacing={2}
+        sx={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', alignContent: 'flex-start' }}
+      >
         {activeTab === 'nato' &&
           Object.values(NATO_ALPHABET_MAP).map((item) => (
             <Grid size={{ xs: 6, sm: 4, md: 3, lg: 2.4 }} key={`nato-${item.char}`}>
@@ -62,7 +66,9 @@ export function NatoChartTab() {
                   },
                 }}
               >
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box
+                  sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                >
                   <Typography variant="h4" sx={{ fontWeight: 900, color: 'primary.main' }}>
                     {item.char}
                   </Typography>
@@ -106,7 +112,9 @@ export function NatoChartTab() {
                   },
                 }}
               >
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box
+                  sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                >
                   <Typography variant="h4" sx={{ fontWeight: 900, color: 'primary.main' }}>
                     {item.char}
                   </Typography>
@@ -150,7 +158,9 @@ export function NatoChartTab() {
                   },
                 }}
               >
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box
+                  sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                >
                   <Typography variant="h4" sx={{ fontWeight: 900, color: 'primary.main' }}>
                     {item.char}
                   </Typography>

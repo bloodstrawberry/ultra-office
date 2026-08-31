@@ -40,12 +40,15 @@ import ArrowUpwardRoundedIcon from '@mui/icons-material/ArrowUpwardRounded';
 import SkipPreviousRoundedIcon from '@mui/icons-material/SkipPreviousRounded';
 import MovieCreationRoundedIcon from '@mui/icons-material/MovieCreationRounded';
 import ArrowDownwardRoundedIcon from '@mui/icons-material/ArrowDownwardRounded';
-
-import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
+import ContentPasteRoundedIcon from '@mui/icons-material/ContentPasteRounded';
+import FormatSizeRoundedIcon from '@mui/icons-material/FormatSizeRounded';
+import OpenWithRoundedIcon from '@mui/icons-material/OpenWithRounded';
+import ImageRoundedIcon from '@mui/icons-material/ImageRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { GifSampleSection } from '../components/gif-sample-section';
+import { STUDIO_FONTS, ensureStudioFontsLoaded } from '../data/gif-fonts';
 import { GifStudioNavHeader } from '../components/gif-studio-nav-header';
 import { GIF_SAMPLE_LIST, type GifSampleItem, fetchSampleGifFile } from '../data/gif-samples';
 import {
@@ -129,6 +132,80 @@ export function GifStudioCreateView() {
   const [dropPosition, setDropPosition] = useState<'left' | 'right' | null>(null);
   const [isExternalDragOverTrack, setIsExternalDragOverTrack] = useState<boolean>(false);
   const [copiedClip, setCopiedClip] = useState<StudioClipItem | null>(null);
+  const [copiedTextClip, setCopiedTextClip] = useState<StudioTextItem | null>(null);
+
+  useEffect(() => {
+    ensureStudioFontsLoaded();
+  }, []);
+
+  useEffect(() => {
+    const handleGlobalWheel = (e: WheelEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        const el = timelineScrollRef.current;
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          const isOverTimeline =
+            e.clientX >= rect.left &&
+            e.clientX <= rect.right &&
+            e.clientY >= rect.top - 60 &&
+            e.clientY <= rect.bottom + 60;
+
+          if (isOverTimeline) {
+            e.preventDefault();
+            e.stopPropagation();
+            const zoomDelta = e.deltaY < 0 ? 0.15 : -0.15;
+            setTimelineZoom((prev) =>
+              Math.max(0.3, Math.min(5.0, parseFloat((prev + zoomDelta).toFixed(2))))
+            );
+          }
+        }
+      }
+    };
+
+    window.addEventListener('wheel', handleGlobalWheel, { passive: false });
+    return () => window.removeEventListener('wheel', handleGlobalWheel);
+  }, []);
+
+  const scissorDragStartRef = useRef<{
+    startX: number;
+    hasMoved: boolean;
+  }>({ startX: 0, hasMoved: false });
+
+  const handleScissorPointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    } catch {}
+    isScrubbingRef.current = true;
+    scissorDragStartRef.current = { startX: e.clientX, hasMoved: false };
+    handleTimelineScrub(e);
+  };
+
+  const handleScissorPointerMove = (e: React.PointerEvent) => {
+    if (!isScrubbingRef.current) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const dist = Math.abs(e.clientX - scissorDragStartRef.current.startX);
+    if (dist > 3) {
+      scissorDragStartRef.current.hasMoved = true;
+    }
+    handleTimelineScrub(e);
+  };
+
+  const handleScissorPointerUp = (e: React.PointerEvent) => {
+    if (!isScrubbingRef.current) return;
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    } catch {}
+    isScrubbingRef.current = false;
+
+    if (!scissorDragStartRef.current.hasMoved) {
+      handleSplitClipAtPlayhead();
+    }
+  };
 
   const [trimmingState, setTrimmingState] = useState<{
     clipId: string;
@@ -152,9 +229,21 @@ export function GifStudioCreateView() {
   const timelineTrackRef = useRef<HTMLDivElement>(null);
   const previewFrameRef = useRef<HTMLDivElement>(null);
   const [canvasDraggingTextId, setCanvasDraggingTextId] = useState<string | null>(null);
+  const [canvasTextInteractionMode, setCanvasTextInteractionMode] = useState<
+    'move' | 'resize' | null
+  >(null);
+  const canvasResizeStartRef = useRef<{
+    startX: number;
+    startY: number;
+    initialFontSize: number;
+  }>({ startX: 0, startY: 0, initialFontSize: 28 });
   const isScrubbingRef = useRef<boolean>(false);
 
-  const handleCanvasTextPointerDown = (e: React.PointerEvent, textId: string) => {
+  const handleCanvasTextPointerDown = (
+    e: React.PointerEvent,
+    textId: string,
+    mode: 'move' | 'resize' = 'move'
+  ) => {
     e.preventDefault();
     e.stopPropagation();
     try {
@@ -162,24 +251,48 @@ export function GifStudioCreateView() {
     } catch {}
     setSelectedTextId(textId);
     setCanvasDraggingTextId(textId);
+    setCanvasTextInteractionMode(mode);
     setInspectorTab('text');
+
+    const targetText = textClips.find((t) => t.id === textId);
+    canvasResizeStartRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      initialFontSize: targetText?.fontSize || 28,
+    };
   };
 
   const handleCanvasTextPointerMove = (e: React.PointerEvent) => {
     if (!canvasDraggingTextId || !previewFrameRef.current) return;
     e.preventDefault();
     e.stopPropagation();
-    const rect = previewFrameRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const xPct = Math.max(5, Math.min(95, parseFloat(((x / rect.width) * 100).toFixed(1))));
-    const yPct = Math.max(5, Math.min(95, parseFloat(((y / rect.height) * 100).toFixed(1))));
 
-    setTextClips((prev) =>
-      prev.map((t) =>
-        t.id === canvasDraggingTextId ? { ...t, xPercent: xPct, yPercent: yPct } : t
-      )
-    );
+    if (canvasTextInteractionMode === 'resize') {
+      const delta =
+        e.clientX -
+        canvasResizeStartRef.current.startX +
+        (e.clientY - canvasResizeStartRef.current.startY);
+      const newSize = Math.max(
+        12,
+        Math.min(140, Math.round(canvasResizeStartRef.current.initialFontSize + delta * 0.35))
+      );
+
+      setTextClips((prev) =>
+        prev.map((t) => (t.id === canvasDraggingTextId ? { ...t, fontSize: newSize } : t))
+      );
+    } else {
+      const rect = previewFrameRef.current.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const xPct = Math.max(5, Math.min(95, parseFloat(((x / rect.width) * 100).toFixed(1))));
+      const yPct = Math.max(5, Math.min(95, parseFloat(((y / rect.height) * 100).toFixed(1))));
+
+      setTextClips((prev) =>
+        prev.map((t) =>
+          t.id === canvasDraggingTextId ? { ...t, xPercent: xPct, yPercent: yPct } : t
+        )
+      );
+    }
   };
 
   const handleCanvasTextPointerUp = (e: React.PointerEvent) => {
@@ -190,9 +303,57 @@ export function GifStudioCreateView() {
       e.currentTarget.releasePointerCapture(e.pointerId);
     } catch {}
     setCanvasDraggingTextId(null);
+    setCanvasTextInteractionMode(null);
     setResultGifUrl('');
     setMp4Url('');
     setMp4Size(0);
+  };
+
+  const handleCanvasTextWheel = (e: React.WheelEvent, textId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const delta = e.deltaY < 0 ? 2 : -2;
+    setTextClips((prev) =>
+      prev.map((t) =>
+        t.id === textId
+          ? { ...t, fontSize: Math.max(12, Math.min(140, (t.fontSize || 28) + delta)) }
+          : t
+      )
+    );
+    setResultGifUrl('');
+    setMp4Url('');
+  };
+
+  const [timelineHeight, setTimelineHeight] = useState<number>(260);
+  const isTimelineResizingRef = useRef<boolean>(false);
+  const resizeStartYRef = useRef<number>(0);
+  const resizeStartHeightRef = useRef<number>(260);
+
+  const handleTimelineDividerPointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    isTimelineResizingRef.current = true;
+    resizeStartYRef.current = e.clientY;
+    resizeStartHeightRef.current = timelineHeight;
+  };
+
+  const handleTimelineDividerPointerMove = (e: React.PointerEvent) => {
+    if (!isTimelineResizingRef.current) return;
+    const deltaY = resizeStartYRef.current - e.clientY;
+    const newHeight = Math.max(180, Math.min(520, resizeStartHeightRef.current + deltaY));
+    setTimelineHeight(newHeight);
+  };
+
+  const handleTimelineDividerPointerUp = (e: React.PointerEvent) => {
+    if (isTimelineResizingRef.current) {
+      isTimelineResizingRef.current = false;
+      try {
+        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+      } catch {
+        // ignore
+      }
+    }
   };
 
   const handleDividerPointerDown = (e: React.PointerEvent) => {
@@ -360,17 +521,25 @@ export function GifStudioCreateView() {
     return () => clearTimeout(timer);
   }, [isPlaying, flattenedTimelineFrames, currentPlayheadFrameIdx]);
 
+  const isProcessingFilesRef = useRef<boolean>(false);
+
   const processAndAddFiles = useCallback(
     async (files: File[], insertAtIndex?: number) => {
-      if (!files || files.length === 0) return;
+      if (!files || files.length === 0 || isProcessingFilesRef.current) return;
+      isProcessingFilesRef.current = true;
       setIsExtracting(true);
       toast.info(`${files.length}개 미디어 파일을 타임라인에 분석/추가하고 있습니다...`);
 
       try {
         const newClips: StudioClipItem[] = [];
 
-        for (const file of files) {
+        for (let i = 0; i < files.length; i += 1) {
+          const file = files[i];
           const isGif = file.type === 'image/gif' || file.name.toLowerCase().endsWith('.gif');
+          const cleanName =
+            !file.name || file.name === 'image.png' || file.name === 'blob'
+              ? `스크린샷_${Date.now().toString().slice(-4)}_${i + 1}.png`
+              : file.name;
 
           if (isGif) {
             try {
@@ -380,7 +549,7 @@ export function GifStudioCreateView() {
                 newClips.push({
                   id: `clip_gif_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
                   type: 'gif',
-                  name: file.name,
+                  name: cleanName,
                   src: res.frames[0].dataUrl,
                   originalWidth: res.width,
                   originalHeight: res.height,
@@ -399,7 +568,7 @@ export function GifStudioCreateView() {
                 });
               }
             } catch {
-              toast.error(`'${file.name}' GIF 프레임 디코딩에 실패했습니다.`);
+              toast.error(`'${cleanName}' GIF 프레임 디코딩에 실패했습니다.`);
             }
           } else {
             const src = await new Promise<string>((resolve) => {
@@ -418,7 +587,7 @@ export function GifStudioCreateView() {
             newClips.push({
               id: `clip_img_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
               type: 'image',
-              name: file.name,
+              name: cleanName,
               src,
               originalWidth: img.naturalWidth || 480,
               originalHeight: img.naturalHeight || 480,
@@ -462,50 +631,190 @@ export function GifStudioCreateView() {
         toast.error('파일 처리 중 오류가 발생했습니다.');
       } finally {
         setIsExtracting(false);
+        isProcessingFilesRef.current = false;
       }
     },
     [selectedClipId]
   );
 
-  const createDrop = useImageDropPaste({
-    onFiles: (files) => processAndAddFiles(files),
-    multiple: true,
-    disabled: false,
-  });
-
-  useEffect(() => {
-    const handlePaste = (e: ClipboardEvent) => {
-      const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+  const handlePasteFromClipboard = useCallback(async () => {
+    try {
+      if (!navigator.clipboard?.read) {
+        toast.error(
+          '현재 브라우저에서 클립보드 읽기 API를 지원하지 않습니다. Ctrl+V 단축키를 이용해 주세요.'
+        );
         return;
       }
 
-      const items = e.clipboardData?.items;
-      if (!items || items.length === 0) return;
-
+      setIsExtracting(true);
+      const clipboardItems = await navigator.clipboard.read();
       const imageFiles: File[] = [];
-      for (let i = 0; i < items.length; i += 1) {
-        const item = items[i];
-        if (item.type.startsWith('image/')) {
-          const file = item.getAsFile();
-          if (file) {
-            imageFiles.push(file);
+
+      for (let i = 0; i < clipboardItems.length; i += 1) {
+        const item = clipboardItems[i];
+        for (const type of item.types) {
+          if (type.startsWith('image/')) {
+            const blob = await item.getType(type);
+            const ext = type.split('/')[1] || 'png';
+            const fileName = `스크린샷_${Date.now()}_${i + 1}.${ext}`;
+            imageFiles.push(new File([blob], fileName, { type }));
           }
         }
       }
 
       if (imageFiles.length > 0) {
+        await processAndAddFiles(imageFiles);
+        toast.success(
+          `📋 클립보드에서 ${imageFiles.length}개 이미지(Print Screen 캡처 등)를 불러와 타임라인에 추가했습니다!`
+        );
+      } else {
+        toast.info(
+          '클립보드에 이미지 데이터가 없습니다. Print Screen(스크린샷) 또는 이미지를 복사한 후 시도해주세요.'
+        );
+      }
+    } catch (err: any) {
+      if (err.name === 'NotAllowedError' || err.name === 'SecurityError') {
+        toast.error(
+          '클립보드 접근 권한이 허용되지 않았습니다. 화면을 클릭 후 Ctrl+V 단축키로 붙여넣어 보세요.'
+        );
+      } else {
+        toast.error('클립보드에서 이미지를 불러오지 못했습니다. Ctrl+V 단축키를 이용해주세요.');
+      }
+    } finally {
+      setIsExtracting(false);
+    }
+  }, [processAndAddFiles]);
+
+  useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+      ) {
+        const hasText = e.clipboardData?.getData('text');
+        if (hasText) return;
+      }
+
+      const imageFiles: File[] = [];
+
+      // 1. Direct files from clipboard
+      if (e.clipboardData?.files && e.clipboardData.files.length > 0) {
+        for (let i = 0; i < e.clipboardData.files.length; i += 1) {
+          const file = e.clipboardData.files[i];
+          if (file.type.startsWith('image/')) {
+            const cleanName =
+              !file.name || file.name === 'image.png' || file.name === 'blob'
+                ? `스크린샷_${Date.now()}_${i + 1}.${file.type.split('/')[1] || 'png'}`
+                : file.name;
+            const renamed =
+              cleanName === file.name ? file : new File([file], cleanName, { type: file.type });
+            imageFiles.push(renamed);
+          }
+        }
+      }
+
+      // 2. DataTransfer items (Print Screen screenshots, web copied images)
+      if (imageFiles.length === 0 && e.clipboardData?.items) {
+        for (let i = 0; i < e.clipboardData.items.length; i += 1) {
+          const item = e.clipboardData.items[i];
+          if (item.type.startsWith('image/')) {
+            const file = item.getAsFile();
+            if (file) {
+              const cleanName =
+                !file.name || file.name === 'image.png' || file.name === 'blob'
+                  ? `스크린샷_${Date.now()}_${i + 1}.${item.type.split('/')[1] || 'png'}`
+                  : file.name;
+              const renamed =
+                cleanName === file.name ? file : new File([file], cleanName, { type: file.type });
+              imageFiles.push(renamed);
+            }
+          }
+        }
+      }
+
+      // If system clipboard has image(s), add to timeline
+      if (imageFiles.length > 0) {
         e.preventDefault();
         processAndAddFiles(imageFiles);
         toast.success(
-          `📋 클립보드에서 ${imageFiles.length}개 이미지를 불러와 타임라인에 추가했습니다!`
+          `📋 클립보드(Print Screen 등)에서 ${imageFiles.length}개 이미지를 불러와 타임라인에 추가했습니다!`
         );
+        return;
+      }
+
+      // Fallback 1: If no system clipboard image exists, check if user copied a text subtitle clip
+      if (copiedTextClip && (selectedTextId || inspectorTab === 'text' || !copiedClip)) {
+        e.preventDefault();
+        const curPlayheadTime =
+          flattenedTimelineFrames
+            .slice(0, currentPlayheadFrameIdx)
+            .reduce((s, f) => s + f.delay, 0) / 1000;
+        const newStart = Math.max(
+          0,
+          parseFloat(
+            (selectedTextId
+              ? copiedTextClip.startTime + copiedTextClip.duration + 0.1
+              : curPlayheadTime
+            ).toFixed(2)
+          )
+        );
+        const newId = `text_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+        const newText: StudioTextItem = {
+          ...copiedTextClip,
+          id: newId,
+          startTime: newStart,
+          text: `${copiedTextClip.text} (복사본)`,
+        };
+        setTextClips((prev) => [...prev, newText]);
+        setSelectedTextId(newId);
+        setInspectorTab('text');
+        setResultGifUrl('');
+        setMp4Url('');
+        setMp4Size(0);
+        toast.success('📋 복사된 자막이 타임라인(T1)에 붙여넣기되었습니다.');
+        return;
+      }
+
+      // Fallback 2: If user copied an internal timeline clip
+      if (copiedClip) {
+        e.preventDefault();
+        const newId = `${copiedClip.id}_copy_${Date.now()}`;
+        const newClip: StudioClipItem = {
+          ...copiedClip,
+          id: newId,
+          name: `${copiedClip.name} (복사본)`,
+        };
+        setClips((prev) => {
+          const selIdx = prev.findIndex((c) => c.id === selectedClipId);
+          const copy = [...prev];
+          if (selIdx !== -1) {
+            copy.splice(selIdx + 1, 0, newClip);
+          } else {
+            copy.push(newClip);
+          }
+          return copy;
+        });
+        setSelectedClipId(newId);
+        setResultGifUrl('');
+        setMp4Url('');
+        setMp4Size(0);
+        toast.success(`📋 복사된 미디어 클립이 타임라인에 붙여넣기되었습니다.`);
       }
     };
 
     window.addEventListener('paste', handlePaste);
     return () => window.removeEventListener('paste', handlePaste);
-  }, [processAndAddFiles]);
+  }, [
+    processAndAddFiles,
+    copiedClip,
+    copiedTextClip,
+    selectedClipId,
+    selectedTextId,
+    inspectorTab,
+    flattenedTimelineFrames,
+    currentPlayheadFrameIdx,
+  ]);
 
   const handleDuplicateClip = (clipId: string) => {
     setClips((prev) => {
@@ -561,44 +870,26 @@ export function GifStudioCreateView() {
       }
 
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
+        if (selectedTextId && inspectorTab === 'text') {
+          const targetText = textClips.find((t) => t.id === selectedTextId);
+          if (targetText) {
+            e.preventDefault();
+            setCopiedTextClip({ ...targetText });
+            toast.success(`📋 자막 '${targetText.text}'이 복사되었습니다 (Ctrl+V로 붙여넣기)`);
+            return;
+          }
+        }
         if (selectedClip) {
           e.preventDefault();
           setCopiedClip({ ...selectedClip });
           toast.success(`📋 '${selectedClip.name}' 클립이 복사되었습니다 (Ctrl+V로 붙여넣기)`);
-        }
-        return;
-      }
-
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
-        if (copiedClip) {
-          e.preventDefault();
-          const newId = `${copiedClip.id}_copy_${Date.now()}`;
-          const newClip: StudioClipItem = {
-            ...copiedClip,
-            id: newId,
-            name: `${copiedClip.name} (복사본)`,
-          };
-          setClips((prev) => {
-            const selIdx = prev.findIndex((c) => c.id === selectedClipId);
-            const copy = [...prev];
-            if (selIdx !== -1) {
-              copy.splice(selIdx + 1, 0, newClip);
-            } else {
-              copy.push(newClip);
-            }
-            return copy;
-          });
-          setSelectedClipId(newId);
-          setResultGifUrl('');
-          setMp4Url('');
-          setMp4Size(0);
-          toast.success(`📋 복사된 클립이 타임라인에 붙여넣기되었습니다.`);
+          return;
         }
         return;
       }
 
       if (e.key === 'Delete' || e.key === 'Backspace') {
-        if (selectedTextId) {
+        if (selectedTextId && inspectorTab === 'text') {
           e.preventDefault();
           handleDeleteTextClip(selectedTextId);
         } else if (selectedClip && clips.length > 1) {
@@ -618,10 +909,11 @@ export function GifStudioCreateView() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [
     selectedClip,
-    copiedClip,
     selectedClipId,
     clips.length,
     selectedTextId,
+    inspectorTab,
+    textClips,
     handleDeleteClip,
     handleDeleteTextClip,
   ]);
@@ -674,69 +966,69 @@ export function GifStudioCreateView() {
   };
 
   const handleSplitClipAtPlayhead = () => {
-    if (clips.length === 0) return;
+    if (clips.length === 0 && textClips.length === 0) return;
 
+    const curTimeSec =
+      flattenedTimelineFrames.slice(0, currentPlayheadFrameIdx).reduce((s, f) => s + f.delay, 0) /
+      1000;
     const currentFrame = flattenedTimelineFrames[currentPlayheadFrameIdx];
-    let targetClip = currentFrame ? clips.find((c) => c.id === currentFrame.clipId) : selectedClip;
-    if (!targetClip) targetClip = selectedClip || clips[0];
-    if (!targetClip) return;
 
-    if (targetClip.type === 'gif' && targetClip.frames && targetClip.frames.length > 0) {
-      const clipStart = targetClip.trimStart;
-      const clipEnd = targetClip.trimEnd;
-      const length = clipEnd - clipStart + 1;
+    // Helper: Split Media Clip
+    const splitMediaClip = () => {
+      let targetClip = currentFrame
+        ? clips.find((c) => c.id === currentFrame.clipId)
+        : selectedClip;
+      if (!targetClip) targetClip = selectedClip || clips[0];
+      if (!targetClip) return false;
 
-      if (length <= 2) {
-        toast.error('클립이 너무 짧아 분할할 수 없습니다 (최소 3프레임 필요).');
-        return;
+      if (targetClip.type === 'gif' && targetClip.frames && targetClip.frames.length > 0) {
+        const clipStart = targetClip.trimStart;
+        const clipEnd = targetClip.trimEnd;
+        const length = clipEnd - clipStart + 1;
+
+        if (length <= 2) return false;
+
+        let splitPoint =
+          currentFrame && currentFrame.clipId === targetClip.id
+            ? clipStart + currentFrame.frameIndexInClip
+            : Math.floor((clipStart + clipEnd) / 2);
+
+        if (splitPoint <= clipStart) splitPoint = clipStart + 1;
+        if (splitPoint >= clipEnd) splitPoint = clipEnd - 1;
+
+        const part1Id = `${targetClip.id}_p1_${Date.now()}`;
+        const part2Id = `${targetClip.id}_p2_${Date.now()}`;
+
+        const part1: StudioClipItem = {
+          ...targetClip,
+          id: part1Id,
+          name: `${targetClip.name} (1/2)`,
+          trimStart: clipStart,
+          trimEnd: splitPoint,
+        };
+
+        const part2: StudioClipItem = {
+          ...targetClip,
+          id: part2Id,
+          name: `${targetClip.name} (2/2)`,
+          trimStart: splitPoint + 1,
+          trimEnd: clipEnd,
+        };
+
+        setClips((prev) => {
+          const targetIdx = prev.findIndex((c) => c.id === targetClip!.id);
+          if (targetIdx === -1) return prev;
+          const copy = [...prev];
+          copy.splice(targetIdx, 1, part1, part2);
+          return copy;
+        });
+
+        setSelectedClipId(part2Id);
+        return true;
       }
-
-      let splitPoint =
-        currentFrame && currentFrame.clipId === targetClip.id
-          ? clipStart + currentFrame.frameIndexInClip
-          : Math.floor((clipStart + clipEnd) / 2);
-
-      if (splitPoint <= clipStart) splitPoint = clipStart + 1;
-      if (splitPoint >= clipEnd) splitPoint = clipEnd - 1;
-
-      const part1Id = `${targetClip.id}_p1_${Date.now()}`;
-      const part2Id = `${targetClip.id}_p2_${Date.now()}`;
-
-      const part1: StudioClipItem = {
-        ...targetClip,
-        id: part1Id,
-        name: `${targetClip.name} (파트 1)`,
-        trimStart: clipStart,
-        trimEnd: splitPoint,
-      };
-
-      const part2: StudioClipItem = {
-        ...targetClip,
-        id: part2Id,
-        name: `${targetClip.name} (파트 2)`,
-        trimStart: splitPoint + 1,
-        trimEnd: clipEnd,
-      };
-
-      setClips((prev) => {
-        const targetIdx = prev.findIndex((c) => c.id === targetClip.id);
-        if (targetIdx === -1) return prev;
-        const copy = [...prev];
-        copy.splice(targetIdx, 1, part1, part2);
-        return copy;
-      });
-
-      setSelectedClipId(part2Id);
-      setResultGifUrl('');
-      setMp4Url('');
-      setMp4Size(0);
-      toast.success(`✂️ 클립이 #${splitPoint + 1}F 위치에서 2개로 분할되었습니다!`);
-    } else {
       const currentDur = targetClip.duration || 1.0;
-      if (currentDur <= 0.2) {
-        toast.error('이미지 지속시간이 너무 짧아 분할할 수 없습니다.');
-        return;
-      }
+      if (currentDur <= 0.2) return false;
+
       const halfDur = parseFloat((currentDur / 2).toFixed(2));
       const part1Id = `${targetClip.id}_p1_${Date.now()}`;
       const part2Id = `${targetClip.id}_p2_${Date.now()}`;
@@ -755,7 +1047,7 @@ export function GifStudioCreateView() {
       };
 
       setClips((prev) => {
-        const targetIdx = prev.findIndex((c) => c.id === targetClip.id);
+        const targetIdx = prev.findIndex((c) => c.id === targetClip!.id);
         if (targetIdx === -1) return prev;
         const copy = [...prev];
         copy.splice(targetIdx, 1, part1, part2);
@@ -763,10 +1055,89 @@ export function GifStudioCreateView() {
       });
 
       setSelectedClipId(part2Id);
+      return true;
+    };
+
+    // Helper: Split Text Clip(s)
+    const splitTextClip = (specificTextId?: string | null) => {
+      let splitCount = 0;
+      setTextClips((prev) => {
+        const updated: StudioTextItem[] = [];
+        for (const t of prev) {
+          const isTarget = specificTextId ? t.id === specificTextId : true;
+          const canSplit =
+            isTarget &&
+            curTimeSec > t.startTime + 0.05 &&
+            curTimeSec < t.startTime + t.duration - 0.05;
+
+          if (canSplit) {
+            splitCount += 1;
+            const part1Dur = parseFloat((curTimeSec - t.startTime).toFixed(2));
+            const part2Dur = parseFloat((t.duration - part1Dur).toFixed(2));
+            const part1Id = `${t.id}_p1_${Date.now()}`;
+            const part2Id = `${t.id}_p2_${Date.now()}`;
+
+            updated.push({
+              ...t,
+              id: part1Id,
+              duration: Math.max(0.1, part1Dur),
+            });
+            updated.push({
+              ...t,
+              id: part2Id,
+              startTime: parseFloat(curTimeSec.toFixed(2)),
+              duration: Math.max(0.1, part2Dur),
+            });
+          } else {
+            updated.push(t);
+          }
+        }
+        return updated;
+      });
+      return splitCount > 0;
+    };
+
+    // 1. If only subtitle is selected (inspector on text & selectedTextId exists)
+    if (selectedTextId && inspectorTab === 'text') {
+      const textSplitDone = splitTextClip(selectedTextId);
+      if (textSplitDone) {
+        setResultGifUrl('');
+        setMp4Url('');
+        setMp4Size(0);
+        toast.success('✂️ 선택된 자막이 현재 재생위치에서 분할되었습니다!');
+        return;
+      }
+    }
+
+    // 2. If only clip is selected (inspector on clip)
+    if (selectedClipId && inspectorTab === 'clip') {
+      const mediaSplitDone = splitMediaClip();
+      if (mediaSplitDone) {
+        setResultGifUrl('');
+        setMp4Url('');
+        setMp4Size(0);
+        toast.success('✂️ 선택된 미디어 클립이 분할되었습니다!');
+        return;
+      }
+    }
+
+    // 3. If nothing specifically isolated or all-split mode: split BOTH media and text
+    const mediaDone = splitMediaClip();
+    const textDone = splitTextClip();
+
+    if (mediaDone || textDone) {
       setResultGifUrl('');
       setMp4Url('');
       setMp4Size(0);
-      toast.success(`✂️ 이미지 클립이 각 ${halfDur}초로 2개 분할되었습니다!`);
+      toast.success(
+        mediaDone && textDone
+          ? '✂️ 현재 재생위치에서 미디어 클립과 자막이 모두 분할되었습니다!'
+          : mediaDone
+            ? '✂️ 미디어 클립이 분할되었습니다!'
+            : '✂️ 자막이 분할되었습니다!'
+      );
+    } else {
+      toast.info('현재 위치에서 분할할 수 있는 클립/자막이 없거나 구간이 너무 짧습니다.');
     }
   };
 
@@ -862,7 +1233,7 @@ export function GifStudioCreateView() {
     return clips.map((c) => {
       const width = getClipPixelWidth(c);
       const startX = currentX;
-      currentX += width + 8;
+      currentX += width;
       return { clipId: c.id, startX, width, endX: startX + width };
     });
   }, [clips, getClipPixelWidth]);
@@ -1262,6 +1633,7 @@ export function GifStudioCreateView() {
       onDrop={(e) => {
         if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
           e.preventDefault();
+          e.stopPropagation();
           processAndAddFiles(Array.from(e.dataTransfer.files));
         }
       }}
@@ -1284,8 +1656,9 @@ export function GifStudioCreateView() {
         style={{ display: 'none' }}
         onChange={(e) => {
           if (e.target.files && e.target.files.length > 0) {
-            processAndAddFiles(Array.from(e.target.files));
+            const selectedFiles = Array.from(e.target.files);
             e.target.value = '';
+            processAndAddFiles(selectedFiles);
           }
         }}
       />
@@ -1316,9 +1689,21 @@ export function GifStudioCreateView() {
 
           {/* 2. Bottom: Upload Dropzone Card */}
           <Card
-            {...createDrop.getRootProps({
-              onClick: () => fileInputRef.current?.click(),
-            })}
+            onClick={() => fileInputRef.current?.click()}
+            onDragOver={(e) => {
+              if (e.dataTransfer.types && Array.from(e.dataTransfer.types).includes('Files')) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.dataTransfer.dropEffect = 'copy';
+              }
+            }}
+            onDrop={(e) => {
+              if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                e.preventDefault();
+                e.stopPropagation();
+                processAndAddFiles(Array.from(e.dataTransfer.files));
+              }
+            }}
             sx={{
               p: { xs: 3, sm: 5 },
               display: 'flex',
@@ -1327,8 +1712,8 @@ export function GifStudioCreateView() {
               justifyContent: 'center',
               cursor: 'pointer',
               border: '2px dashed',
-              borderColor: createDrop.isDragActive ? 'primary.main' : 'divider',
-              bgcolor: createDrop.isDragActive ? 'action.hover' : 'background.paper',
+              borderColor: 'divider',
+              bgcolor: 'background.paper',
               borderRadius: 3,
               flex: '1 1 auto',
               minHeight: 200,
@@ -1361,20 +1746,43 @@ export function GifStudioCreateView() {
               여러 장의 사진(JPG, PNG, WebP)이나 <strong>여러 개의 GIF 파일</strong>을 드래그하거나
               선택하여 필모라 스타일 타임라인에서 늘리고, 줄이고, 자르고, 이어붙이세요.
             </Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={
-                isExtracting ? (
-                  <CircularProgress size={18} color="inherit" />
-                ) : (
-                  <CloudUploadRoundedIcon />
-                )
-              }
-              disabled={isExtracting}
-            >
-              {isExtracting ? '미디어 분석 중...' : '사진 & GIF 파일 선택하여 스튜디오 열기'}
-            </Button>
+            <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', justifyContent: 'center' }}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  fileInputRef.current?.click();
+                }}
+                startIcon={
+                  isExtracting ? (
+                    <CircularProgress size={18} color="inherit" />
+                  ) : (
+                    <CloudUploadRoundedIcon />
+                  )
+                }
+                disabled={isExtracting}
+              >
+                {isExtracting ? '미디어 분석 중...' : '사진 & GIF 파일 선택하여 스튜디오 열기'}
+              </Button>
+              <Button
+                variant="outlined"
+                color="primary"
+                startIcon={<ContentPasteRoundedIcon />}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handlePasteFromClipboard();
+                }}
+                disabled={isExtracting}
+                sx={{ bgcolor: 'background.paper' }}
+              >
+                클립보드 이미지 붙여넣기 (Ctrl+V)
+              </Button>
+            </Box>
+            <Typography variant="caption" sx={{ color: 'text.disabled', mt: 1.5 }}>
+              💡 Print Screen(스크린샷 캡처) 후 어디서든 <strong>Ctrl+V</strong>를 누르면 타임라인에
+              바로 추가됩니다.
+            </Typography>
           </Card>
         </Box>
       ) : (
@@ -1393,7 +1801,7 @@ export function GifStudioCreateView() {
               minHeight: 0,
               display: 'flex',
               flexDirection: { xs: 'column', lg: 'row' },
-              gap: 1.5,
+              gap: 1,
               position: 'relative',
             }}
           >
@@ -1405,8 +1813,10 @@ export function GifStudioCreateView() {
                 display: 'flex',
                 flexDirection: 'column',
                 borderRadius: 3,
-                bgcolor: '#0a0f1d',
-                borderColor: 'rgba(255,255,255,0.08)',
+                bgcolor: '#f0f9ff',
+                borderColor: '#bae6fd',
+                border: '1px solid #bae6fd',
+                boxShadow: '0 4px 16px rgba(186, 230, 253, 0.35)',
                 p: 1.5,
                 overflow: 'hidden',
               }}
@@ -1417,14 +1827,14 @@ export function GifStudioCreateView() {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   pb: 1.2,
-                  borderBottom: '1px solid rgba(255,255,255,0.08)',
+                  borderBottom: '1px solid #e0f2fe',
                   flexShrink: 0,
                 }}
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
                   <Typography
                     variant="caption"
-                    sx={{ color: '#cbd5e1', fontWeight: 800, fontSize: '0.78rem' }}
+                    sx={{ color: '#0369a1', fontWeight: 800, fontSize: '0.78rem' }}
                   >
                     비율:
                   </Typography>
@@ -1435,25 +1845,25 @@ export function GifStudioCreateView() {
                     onChange={(_, v) => v && handleChangeAspectRatio(v)}
                     sx={{
                       height: 30,
-                      bgcolor: 'rgba(255,255,255,0.06)',
+                      bgcolor: '#e0f2fe',
                       borderRadius: 1.5,
                       p: '2px',
-                      border: '1px solid rgba(255,255,255,0.12)',
+                      border: '1px solid #bae6fd',
                       '& .MuiToggleButton-root': {
                         py: 0,
                         px: 1.2,
                         fontSize: '0.75rem',
                         fontWeight: 700,
-                        color: '#94a3b8',
+                        color: '#0284c7',
                         border: 'none',
                         borderRadius: 1,
                         '&.Mui-selected': {
-                          bgcolor: 'primary.main',
+                          bgcolor: '#0284c7',
                           color: '#ffffff',
-                          boxShadow: '0 2px 8px rgba(0, 167, 111, 0.4)',
+                          boxShadow: '0 2px 8px rgba(2, 132, 199, 0.4)',
                         },
                         '&:hover': {
-                          bgcolor: 'rgba(255,255,255,0.12)',
+                          bgcolor: 'rgba(2, 132, 199, 0.15)',
                         },
                       },
                     }}
@@ -1471,8 +1881,9 @@ export function GifStudioCreateView() {
                     size="small"
                     sx={{
                       height: 24,
-                      bgcolor: 'rgba(56, 189, 248, 0.15)',
-                      color: '#38bdf8',
+                      bgcolor: '#e0f2fe',
+                      color: '#0284c7',
+                      border: '1px solid #bae6fd',
                       fontWeight: 800,
                       fontSize: '0.72rem',
                     }}
@@ -1486,8 +1897,8 @@ export function GifStudioCreateView() {
                     size="small"
                     sx={{
                       height: 24,
-                      bgcolor: 'rgba(255,255,255,0.08)',
-                      color: '#f8fafc',
+                      bgcolor: '#bae6fd',
+                      color: '#0369a1',
                       fontWeight: 800,
                       fontSize: '0.72rem',
                     }}
@@ -1503,11 +1914,11 @@ export function GifStudioCreateView() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  bgcolor: bgColor === 'transparent' ? '#050811' : bgColor,
+                  bgcolor: bgColor === 'transparent' ? '#ffffff' : bgColor,
                   borderRadius: 2,
                   my: 1,
                   overflow: 'hidden',
-                  boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.05)',
+                  boxShadow: 'inset 0 0 0 1px #bae6fd',
                   p: 1,
                 }}
               >
@@ -1652,9 +2063,10 @@ export function GifStudioCreateView() {
                         return (
                           <Box
                             key={t.id}
-                            onPointerDown={(e) => handleCanvasTextPointerDown(e, t.id)}
+                            onPointerDown={(e) => handleCanvasTextPointerDown(e, t.id, 'move')}
                             onPointerMove={handleCanvasTextPointerMove}
                             onPointerUp={handleCanvasTextPointerUp}
+                            onWheel={(e) => handleCanvasTextWheel(e, t.id)}
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedTextId(t.id);
@@ -1683,9 +2095,12 @@ export function GifStudioCreateView() {
                             }}
                           >
                             <Typography
+                              component="div"
                               sx={{
                                 color: t.fontColor || '#ffffff',
                                 bgcolor: t.fontBgColor || 'rgba(0,0,0,0.6)',
+                                fontFamily:
+                                  t.fontFamily || "'Pretendard', 'Noto Sans KR', sans-serif",
                                 px: 1.5,
                                 py: 0.5,
                                 borderRadius: 1,
@@ -1696,16 +2111,66 @@ export function GifStudioCreateView() {
                                 maxWidth: '90vw',
                                 wordBreak: 'break-word',
                                 border: isSelected
-                                  ? '2px dashed #38bdf8'
+                                  ? '2px dashed #0284c7'
                                   : '2px dashed transparent',
-                                boxShadow: isSelected ? '0 0 12px rgba(56, 189, 248, 0.8)' : 'none',
+                                boxShadow: isSelected ? '0 0 12px rgba(2, 132, 199, 0.6)' : 'none',
                                 transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+                                position: 'relative',
                                 '&:hover': {
-                                  borderColor: isSelected ? '#38bdf8' : 'rgba(255,255,255,0.4)',
+                                  borderColor: isSelected ? '#0284c7' : 'rgba(2,132,199,0.4)',
                                 },
                               }}
                             >
                               {t.text}
+
+                              {/* Interactive Resize Handle (Corner Drag & Size Badge) */}
+                              {isSelected && (
+                                <>
+                                  {/* Top Size Badge */}
+                                  <Box
+                                    sx={{
+                                      position: 'absolute',
+                                      top: -20,
+                                      left: '50%',
+                                      transform: 'translateX(-50%)',
+                                      bgcolor: '#0284c7',
+                                      color: '#ffffff',
+                                      px: 0.6,
+                                      py: 0.1,
+                                      borderRadius: 0.6,
+                                      fontSize: '0.62rem',
+                                      fontWeight: 900,
+                                      letterSpacing: 0.5,
+                                      pointerEvents: 'none',
+                                      whiteSpace: 'nowrap',
+                                      boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                                    }}
+                                  >
+                                    {t.fontSize || 28}px (드래그/휠로 조절)
+                                  </Box>
+
+                                  {/* Bottom-Right Corner Resize Drag Handle */}
+                                  <Box
+                                    onPointerDown={(e) =>
+                                      handleCanvasTextPointerDown(e, t.id, 'resize')
+                                    }
+                                    sx={{
+                                      position: 'absolute',
+                                      right: -6,
+                                      bottom: -6,
+                                      width: 14,
+                                      height: 14,
+                                      bgcolor: '#0284c7',
+                                      border: '2px solid #ffffff',
+                                      borderRadius: '50%',
+                                      cursor: 'nwse-resize',
+                                      zIndex: 30,
+                                      boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                                      '&:hover': { bgcolor: '#0369a1', transform: 'scale(1.2)' },
+                                    }}
+                                  />
+                                </>
+                              )}
                             </Typography>
                           </Box>
                         );
@@ -1759,7 +2224,7 @@ export function GifStudioCreateView() {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   pt: 1.2,
-                  borderTop: '1px solid rgba(255,255,255,0.08)',
+                  borderTop: '1px solid #e0f2fe',
                   flexShrink: 0,
                 }}
               >
@@ -1771,7 +2236,7 @@ export function GifStudioCreateView() {
                         setIsPlaying(false);
                         setCurrentPlayheadFrameIdx(0);
                       }}
-                      sx={{ color: '#cbd5e1', p: 0.8 }}
+                      sx={{ color: '#0369a1', p: 0.8 }}
                     >
                       <SkipPreviousRoundedIcon sx={{ fontSize: 18 }} />
                     </IconButton>
@@ -1785,7 +2250,7 @@ export function GifStudioCreateView() {
                           prev > 0 ? prev - 1 : flattenedTimelineFrames.length - 1
                         );
                       }}
-                      sx={{ color: '#cbd5e1', p: 0.8 }}
+                      sx={{ color: '#0369a1', p: 0.8 }}
                     >
                       <ArrowUpwardRoundedIcon sx={{ fontSize: 16, transform: 'rotate(-90deg)' }} />
                     </IconButton>
@@ -1809,7 +2274,7 @@ export function GifStudioCreateView() {
                           (prev) => (prev + 1) % flattenedTimelineFrames.length
                         );
                       }}
-                      sx={{ color: '#cbd5e1', p: 0.8 }}
+                      sx={{ color: '#0369a1', p: 0.8 }}
                     >
                       <ArrowDownwardRoundedIcon
                         sx={{ fontSize: 16, transform: 'rotate(-90deg)' }}
@@ -1823,7 +2288,7 @@ export function GifStudioCreateView() {
                         setIsPlaying(false);
                         setCurrentPlayheadFrameIdx(flattenedTimelineFrames.length - 1);
                       }}
-                      sx={{ color: '#cbd5e1', p: 0.8 }}
+                      sx={{ color: '#0369a1', p: 0.8 }}
                     >
                       <SkipNextRoundedIcon sx={{ fontSize: 18 }} />
                     </IconButton>
@@ -1838,25 +2303,25 @@ export function GifStudioCreateView() {
                     onChange={(_, v) => v && setGlobalLoopMode(v)}
                     sx={{
                       height: 32,
-                      bgcolor: 'rgba(255,255,255,0.06)',
+                      bgcolor: '#e0f2fe',
                       borderRadius: 1.5,
                       p: '2px',
-                      border: '1px solid rgba(255,255,255,0.12)',
+                      border: '1px solid #bae6fd',
                       '& .MuiToggleButton-root': {
                         px: 1.2,
                         py: 0,
                         fontSize: '0.75rem',
                         fontWeight: 700,
-                        color: '#94a3b8',
+                        color: '#0284c7',
                         border: 'none',
                         borderRadius: 1,
                         '&.Mui-selected': {
-                          bgcolor: 'primary.main',
+                          bgcolor: '#0284c7',
                           color: '#ffffff',
-                          boxShadow: '0 2px 8px rgba(0, 167, 111, 0.4)',
+                          boxShadow: '0 2px 8px rgba(2, 132, 199, 0.4)',
                         },
                         '&:hover': {
-                          bgcolor: 'rgba(255,255,255,0.12)',
+                          bgcolor: 'rgba(2, 132, 199, 0.15)',
                         },
                       },
                     }}
@@ -1869,6 +2334,38 @@ export function GifStudioCreateView() {
               </Box>
             </Card>
 
+            {/* ─── VERTICAL RESIZE DIVIDER (좌우 패널 너비 조절 바) ─── */}
+            <Box
+              onPointerDown={handleDividerPointerDown}
+              onPointerMove={handleDividerPointerMove}
+              onPointerUp={handleDividerPointerUp}
+              sx={{
+                width: 8,
+                cursor: 'col-resize',
+                display: { xs: 'none', lg: 'flex' },
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative',
+                zIndex: 20,
+                userSelect: 'none',
+                touchAction: 'none',
+                bgcolor: 'transparent',
+                borderRadius: 1,
+                transition: 'background-color 0.15s ease',
+                '&:hover': {
+                  bgcolor: 'rgba(56, 189, 248, 0.3)',
+                },
+                '&::after': {
+                  content: '""',
+                  width: 3.5,
+                  height: 36,
+                  borderRadius: 2,
+                  bgcolor: '#7dd3fc',
+                  boxShadow: '0 0 6px rgba(56, 189, 248, 0.6)',
+                },
+              }}
+            />
+
             <Card
               sx={{
                 width: { xs: '100%', lg: `${rightPanelWidth}px` },
@@ -1878,12 +2375,13 @@ export function GifStudioCreateView() {
                 display: 'flex',
                 flexDirection: 'column',
                 borderRadius: 3,
-                border: '1px solid',
-                borderColor: 'divider',
+                border: '1px solid #bae6fd',
+                bgcolor: '#f0f9ff',
+                boxShadow: '0 4px 16px rgba(186, 230, 253, 0.35)',
                 overflow: 'hidden',
               }}
             >
-              <Box sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: 'background.neutral' }}>
+              <Box sx={{ borderBottom: 1, borderColor: '#bae6fd', bgcolor: '#e0f2fe' }}>
                 <Tabs
                   value={inspectorTab}
                   onChange={(_, v) => setInspectorTab(v)}
@@ -2261,14 +2759,77 @@ export function GifStudioCreateView() {
                             />
                           </Box>
 
-                          <Box sx={{ display: 'flex', gap: 1.5 }}>
-                            <TextField
-                              size="small"
-                              type="number"
-                              label="글자 크기 (px)"
-                              value={curText.fontSize || 28}
+                          {/* Font Family Selector */}
+                          <FormControl size="small" fullWidth>
+                            <InputLabel>자막 폰트 (글꼴)</InputLabel>
+                            <Select
+                              value={
+                                curText.fontFamily ||
+                                "'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif"
+                              }
+                              label="자막 폰트 (글꼴)"
                               onChange={(e) => {
-                                const val = Number(e.target.value) || 28;
+                                const val = e.target.value;
+                                setTextClips((prev) =>
+                                  prev.map((t) =>
+                                    t.id === curText.id ? { ...t, fontFamily: val } : t
+                                  )
+                                );
+                                setResultGifUrl('');
+                                setMp4Url('');
+                              }}
+                            >
+                              {STUDIO_FONTS.map((font) => (
+                                <MenuItem
+                                  key={font.id}
+                                  value={font.family}
+                                  sx={{
+                                    fontFamily: font.family,
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    py: 1,
+                                  }}
+                                >
+                                  <Typography sx={{ fontFamily: font.family, fontSize: '0.85rem' }}>
+                                    {font.name}
+                                  </Typography>
+                                  <Typography
+                                    variant="caption"
+                                    sx={{
+                                      opacity: 0.6,
+                                      fontFamily: font.family,
+                                      fontSize: '0.75rem',
+                                    }}
+                                  >
+                                    {font.sampleText}
+                                  </Typography>
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+
+                          {/* Font Size Slider & Number Field */}
+                          <Box>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                              <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                                글자 크기: {curText.fontSize || 28}px
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                sx={{ color: 'text.secondary', fontSize: '0.7rem' }}
+                              >
+                                (캔버스에서 휠/모서리 드래그로도 조절)
+                              </Typography>
+                            </Box>
+                            <Slider
+                              size="small"
+                              min={12}
+                              max={100}
+                              step={1}
+                              value={curText.fontSize || 28}
+                              onChange={(_, v) => {
+                                const val = v as number;
                                 setTextClips((prev) =>
                                   prev.map((t) =>
                                     t.id === curText.id ? { ...t, fontSize: val } : t
@@ -2277,8 +2838,10 @@ export function GifStudioCreateView() {
                                 setResultGifUrl('');
                                 setMp4Url('');
                               }}
-                              sx={{ flex: 1 }}
                             />
+                          </Box>
+
+                          <Box sx={{ display: 'flex', gap: 1.5 }}>
                             <TextField
                               size="small"
                               label="글자 색상"
@@ -2289,6 +2852,24 @@ export function GifStudioCreateView() {
                                 setTextClips((prev) =>
                                   prev.map((t) =>
                                     t.id === curText.id ? { ...t, fontColor: val } : t
+                                  )
+                                );
+                                setResultGifUrl('');
+                                setMp4Url('');
+                              }}
+                              sx={{ flex: 1 }}
+                            />
+                            <TextField
+                              size="small"
+                              label="배경 색상"
+                              type="text"
+                              value={curText.fontBgColor || 'rgba(0,0,0,0.6)'}
+                              placeholder="rgba(0,0,0,0.6)"
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setTextClips((prev) =>
+                                  prev.map((t) =>
+                                    t.id === curText.id ? { ...t, fontBgColor: val } : t
                                   )
                                 );
                                 setResultGifUrl('');
@@ -2787,19 +3368,54 @@ export function GifStudioCreateView() {
             </Card>
           </Box>
 
+          {/* ─── HORIZONTAL RESIZE DIVIDER (타임라인 상하 높이 조절 바) ─── */}
+          <Box
+            onPointerDown={handleTimelineDividerPointerDown}
+            onPointerMove={handleTimelineDividerPointerMove}
+            onPointerUp={handleTimelineDividerPointerUp}
+            sx={{
+              height: 10,
+              cursor: 'row-resize',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'relative',
+              zIndex: 20,
+              userSelect: 'none',
+              touchAction: 'none',
+              bgcolor: 'transparent',
+              my: -0.2,
+              transition: 'background-color 0.15s ease',
+              '&:hover': {
+                bgcolor: 'rgba(56, 189, 248, 0.25)',
+              },
+              '&::after': {
+                content: '""',
+                width: 56,
+                height: 3.5,
+                borderRadius: 2,
+                bgcolor: '#7dd3fc',
+                boxShadow: '0 0 6px rgba(56, 189, 248, 0.6)',
+              },
+            }}
+          />
+
           <Card
             sx={{
               flex: '0 0 auto',
-              height: { xs: '240px', sm: '260px' },
+              height: `${timelineHeight}px`,
+              minHeight: 180,
               display: 'flex',
               flexDirection: 'column',
               borderRadius: 3,
-              bgcolor: '#0a0f1d',
-              borderColor: 'rgba(255,255,255,0.08)',
+              bgcolor: '#ffffff',
+              border: '1px solid #bae6fd',
+              boxShadow: '0 4px 20px rgba(2, 132, 199, 0.08)',
               overflow: 'hidden',
-              p: 1.25,
+              p: 1,
             }}
           >
+            {/* Timeline Toolbar (화이트 + 세련된 블루 테마) */}
             <Box
               sx={{
                 display: 'flex',
@@ -2808,7 +3424,7 @@ export function GifStudioCreateView() {
                 flexWrap: 'wrap',
                 gap: 1,
                 pb: 1,
-                borderBottom: '1px solid rgba(255,255,255,0.08)',
+                borderBottom: '1px solid #e2e8f0',
                 flexShrink: 0,
               }}
             >
@@ -2819,38 +3435,87 @@ export function GifStudioCreateView() {
                   color="primary"
                   startIcon={<AddRoundedIcon />}
                   onClick={() => fileInputRef.current?.click()}
-                  sx={{ fontWeight: 800, fontSize: '0.75rem', height: 28, borderRadius: 1.5 }}
+                  sx={{
+                    fontWeight: 800,
+                    fontSize: '0.75rem',
+                    height: 28,
+                    borderRadius: 0,
+                    bgcolor: '#0284c7',
+                    boxShadow: '0 2px 6px rgba(2, 132, 199, 0.3)',
+                    '&:hover': { bgcolor: '#0369a1' },
+                  }}
                 >
                   미디어 추가 (사진/GIF)
                 </Button>
+                <Tooltip title="📋 클립보드에 있는 이미지(Print Screen 캡처 등) 붙여넣기 (단축키: Ctrl+V)">
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    startIcon={<ContentPasteRoundedIcon />}
+                    onClick={handlePasteFromClipboard}
+                    disabled={isExtracting}
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: '0.75rem',
+                      height: 28,
+                      borderRadius: 0,
+                      bgcolor: '#ffffff',
+                      color: '#0f172a',
+                      borderColor: '#cbd5e1',
+                      '&:hover': {
+                        borderColor: '#0284c7',
+                        bgcolor: '#f0f9ff',
+                        color: '#0284c7',
+                      },
+                    }}
+                  >
+                    클립보드 붙여넣기
+                  </Button>
+                </Tooltip>
+                <Tooltip title="✂️ 현재 재생위치(플레이헤드)에서 분할 (자막 또는 클립 선택 시 해당 항목 분할, 선택 없으면 동시 분할)">
+                  <span>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      startIcon={<ContentCutRoundedIcon />}
+                      onClick={handleSplitClipAtPlayhead}
+                      disabled={clips.length === 0 && textClips.length === 0}
+                      sx={{
+                        fontSize: '0.72rem',
+                        height: 28,
+                        borderRadius: 0,
+                        bgcolor: '#ffffff',
+                        color: '#0f172a',
+                        borderColor: '#cbd5e1',
+                        '&:hover': {
+                          borderColor: '#0284c7',
+                          bgcolor: '#f0f9ff',
+                          color: '#0284c7',
+                        },
+                      }}
+                    >
+                      자르기 (Split)
+                    </Button>
+                  </span>
+                </Tooltip>
                 <Button
                   size="small"
                   variant="outlined"
-                  color="inherit"
-                  startIcon={<ContentCutRoundedIcon />}
-                  onClick={handleSplitClipAtPlayhead}
-                  disabled={!selectedClip}
-                  sx={{
-                    fontSize: '0.72rem',
-                    height: 28,
-                    color: '#cbd5e1',
-                    borderColor: 'rgba(255,255,255,0.15)',
-                  }}
-                >
-                  자르기 (Split)
-                </Button>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  color="inherit"
                   startIcon={<ContentCopyRoundedIcon />}
                   onClick={() => selectedClip && handleDuplicateClip(selectedClip.id)}
                   disabled={!selectedClip}
                   sx={{
                     fontSize: '0.72rem',
                     height: 28,
-                    color: '#cbd5e1',
-                    borderColor: 'rgba(255,255,255,0.15)',
+                    borderRadius: 0,
+                    bgcolor: '#ffffff',
+                    color: '#0f172a',
+                    borderColor: '#cbd5e1',
+                    '&:hover': {
+                      borderColor: '#0284c7',
+                      bgcolor: '#f0f9ff',
+                      color: '#0284c7',
+                    },
                   }}
                 >
                   복제
@@ -2862,20 +3527,37 @@ export function GifStudioCreateView() {
                   startIcon={<DeleteRoundedIcon />}
                   onClick={() => selectedClip && handleDeleteClip(selectedClip.id)}
                   disabled={clips.length <= 1}
-                  sx={{ fontSize: '0.72rem', height: 28 }}
+                  sx={{
+                    fontSize: '0.72rem',
+                    height: 28,
+                    borderRadius: 0,
+                    bgcolor: '#ffffff',
+                    borderColor: '#fca5a5',
+                    color: '#ef4444',
+                    '&:hover': {
+                      bgcolor: '#fef2f2',
+                      borderColor: '#dc2626',
+                    },
+                  }}
                 >
                   삭제
                 </Button>
                 <Button
                   size="small"
                   variant="outlined"
-                  color="inherit"
                   onClick={() => handleBatchSpeedMultiplier(2)}
                   sx={{
                     fontSize: '0.72rem',
                     height: 28,
-                    color: '#cbd5e1',
-                    borderColor: 'rgba(255,255,255,0.15)',
+                    borderRadius: 0,
+                    bgcolor: '#ffffff',
+                    color: '#0f172a',
+                    borderColor: '#cbd5e1',
+                    '&:hover': {
+                      borderColor: '#0284c7',
+                      bgcolor: '#f0f9ff',
+                      color: '#0284c7',
+                    },
                   }}
                 >
                   ⚡ 2x
@@ -2883,13 +3565,19 @@ export function GifStudioCreateView() {
                 <Button
                   size="small"
                   variant="outlined"
-                  color="inherit"
                   onClick={() => handleBatchSpeedMultiplier(0.5)}
                   sx={{
                     fontSize: '0.72rem',
                     height: 28,
-                    color: '#cbd5e1',
-                    borderColor: 'rgba(255,255,255,0.15)',
+                    borderRadius: 0,
+                    bgcolor: '#ffffff',
+                    color: '#0f172a',
+                    borderColor: '#cbd5e1',
+                    '&:hover': {
+                      borderColor: '#0284c7',
+                      bgcolor: '#f0f9ff',
+                      color: '#0284c7',
+                    },
                   }}
                 >
                   🐢 0.5x
@@ -2901,19 +3589,24 @@ export function GifStudioCreateView() {
                     alignItems: 'center',
                     gap: 0.5,
                     ml: 1,
+                    bgcolor: '#ffffff',
+                    px: 1,
+                    py: 0.3,
+                    borderRadius: 0,
+                    border: '1px solid #cbd5e1',
                   }}
                 >
-                  <ZoomOutRoundedIcon sx={{ fontSize: 16, color: '#94a3b8' }} />
+                  <ZoomOutRoundedIcon sx={{ fontSize: 16, color: '#0369a1' }} />
                   <Slider
                     size="small"
-                    min={0.5}
-                    max={3.0}
+                    min={0.3}
+                    max={5.0}
                     step={0.1}
                     value={timelineZoom}
                     onChange={(_, v) => setTimelineZoom(v as number)}
-                    sx={{ width: 80, height: 4 }}
+                    sx={{ width: 80, height: 4, color: '#0284c7' }}
                   />
-                  <ZoomInRoundedIcon sx={{ fontSize: 16, color: '#94a3b8' }} />
+                  <ZoomInRoundedIcon sx={{ fontSize: 16, color: '#0369a1' }} />
                 </Box>
               </Box>
 
@@ -2921,9 +3614,9 @@ export function GifStudioCreateView() {
                 <Typography
                   variant="caption"
                   sx={{
-                    color: '#94a3b8',
-                    fontWeight: 700,
-                    fontSize: '0.72rem',
+                    color: '#0369a1',
+                    fontWeight: 800,
+                    fontSize: '0.75rem',
                     fontFamily: 'monospace',
                   }}
                 >
@@ -2938,7 +3631,7 @@ export function GifStudioCreateView() {
                       color="success"
                       startIcon={<DownloadRoundedIcon />}
                       onClick={() => downloadDataUrl(resultGifUrl, `studio_gif_${Date.now()}.gif`)}
-                      sx={{ fontWeight: 800, fontSize: '0.75rem', height: 30 }}
+                      sx={{ fontWeight: 800, fontSize: '0.75rem', height: 30, borderRadius: 0 }}
                     >
                       GIF 다운로드 ({formatBytes(getDataUrlByteSize(resultGifUrl))})
                     </Button>
@@ -2953,7 +3646,7 @@ export function GifStudioCreateView() {
                           : handleConvertToMp4
                       }
                       disabled={isConvertingMp4}
-                      sx={{ fontWeight: 800, fontSize: '0.75rem', height: 30 }}
+                      sx={{ fontWeight: 800, fontSize: '0.75rem', height: 30, borderRadius: 0 }}
                     >
                       {isConvertingMp4
                         ? 'MP4 변환 중...'
@@ -2966,7 +3659,6 @@ export function GifStudioCreateView() {
                   <Button
                     size="small"
                     variant="contained"
-                    color="primary"
                     startIcon={
                       isEncoding ? (
                         <CircularProgress size={16} color="inherit" />
@@ -2976,7 +3668,19 @@ export function GifStudioCreateView() {
                     }
                     onClick={handleGenerateGif}
                     disabled={isEncoding || clips.length === 0}
-                    sx={{ fontWeight: 800, fontSize: '0.75rem', height: 30, px: 2 }}
+                    sx={{
+                      fontWeight: 800,
+                      fontSize: '0.75rem',
+                      height: 30,
+                      px: 2,
+                      borderRadius: 0,
+                      background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+                      color: '#ffffff',
+                      boxShadow: '0 2px 10px rgba(2, 132, 199, 0.4)',
+                      '&:hover': {
+                        background: 'linear-gradient(135deg, #0369a1 0%, #0c4a6e 100%)',
+                      },
+                    }}
                   >
                     {isEncoding ? `인코딩 (${encodeProgress}%)` : '✨ 고화질 GIF 만들기'}
                   </Button>
@@ -2984,24 +3688,43 @@ export function GifStudioCreateView() {
               </Box>
             </Box>
 
+            {/* Timeline Multi-track Container with Ultra-thin Scrollbar */}
             <Box
               ref={timelineScrollRef}
               sx={{
                 flex: '1 1 auto',
                 minHeight: 0,
                 overflowX: 'auto',
-                overflowY: 'hidden',
+                overflowY: 'auto',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 0.5,
-                bgcolor: '#050811',
-                borderRadius: 2,
-                p: 1,
-                my: 0.5,
+                bgcolor: '#f0f9ff',
+                borderRadius: 0,
+                p: 0.75,
+                pb: 1,
+                my: 0.25,
                 position: 'relative',
+                border: '1px solid #bae6fd',
+                '&::-webkit-scrollbar': {
+                  height: '4px',
+                  width: '4px',
+                },
+                '&::-webkit-scrollbar-track': {
+                  bgcolor: 'transparent',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  bgcolor: 'rgba(2, 132, 199, 0.35)',
+                  borderRadius: 0,
+                  '&:hover': {
+                    bgcolor: '#0284c7',
+                  },
+                },
+                scrollbarWidth: 'thin',
+                scrollbarColor: 'rgba(2, 132, 199, 0.35) transparent',
               }}
             >
-              {/* 1. Timecode Ruler with Click/Drag Scrubbing */}
+              {/* 1. Timecode Ruler with Precise Ticks & Scrubbing */}
               <Box
                 onPointerDown={(e) => {
                   isScrubbingRef.current = true;
@@ -3014,35 +3737,73 @@ export function GifStudioCreateView() {
                   isScrubbingRef.current = false;
                 }}
                 sx={{
-                  height: 20,
+                  height: 24,
                   display: 'flex',
-                  alignItems: 'center',
+                  alignItems: 'flex-end',
                   minWidth: 'max-content',
-                  borderBottom: '1px solid rgba(255,255,255,0.08)',
-                  pl: 5,
+                  borderBottom: '1px solid #bae6fd',
+                  pl: '44px',
                   cursor: 'pointer',
                   userSelect: 'none',
-                  bgcolor: 'rgba(255,255,255,0.01)',
+                  bgcolor: '#e0f2fe',
+                  borderRadius: 0,
+                  position: 'relative',
                 }}
               >
-                {Array.from({ length: Math.ceil(totalTimelineDurationSec) + 2 }).map((_, sec) => (
-                  <Box
-                    key={sec}
-                    sx={{
-                      width: `${100 * timelineZoom}px`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      fontSize: '0.62rem',
-                      fontFamily: 'monospace',
-                      color: '#64748b',
-                      borderLeft: '1px solid rgba(255,255,255,0.15)',
-                      pl: 0.5,
-                      flexShrink: 0,
-                    }}
-                  >
-                    {sec}s
-                  </Box>
-                ))}
+                {Array.from({ length: Math.ceil(totalTimelineDurationSec) + 3 }).map((_, sec) => {
+                  const secWidth = 100 * timelineZoom;
+                  const mm = String(Math.floor(sec / 60)).padStart(2, '0');
+                  const ss = String(sec % 60).padStart(2, '0');
+                  const timecode = `00:${mm}:${ss}:00`;
+
+                  return (
+                    <Box
+                      key={sec}
+                      sx={{
+                        width: `${secWidth}px`,
+                        height: '100%',
+                        position: 'relative',
+                        flexShrink: 0,
+                        borderLeft: '1px solid #bae6fd',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        pl: 0.5,
+                      }}
+                    >
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontSize: '0.62rem',
+                          fontFamily: 'monospace',
+                          color: '#0369a1',
+                          fontWeight: 700,
+                          lineHeight: 1.2,
+                          userSelect: 'none',
+                        }}
+                      >
+                        {timecode}
+                      </Typography>
+
+                      {/* Sub-second Ticks */}
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          width: '100%',
+                          height: 5,
+                          alignItems: 'flex-end',
+                          justifyContent: 'space-between',
+                          pr: '1px',
+                        }}
+                      >
+                        <Box sx={{ width: '1px', height: 4, bgcolor: 'rgba(3, 105, 161, 0.4)' }} />
+                        <Box sx={{ width: '1px', height: 2, bgcolor: 'rgba(3, 105, 161, 0.2)' }} />
+                        <Box sx={{ width: '1px', height: 3, bgcolor: 'rgba(3, 105, 161, 0.3)' }} />
+                        <Box sx={{ width: '1px', height: 2, bgcolor: 'rgba(3, 105, 161, 0.2)' }} />
+                      </Box>
+                    </Box>
+                  );
+                })}
               </Box>
 
               {/* 2. Track Lanes Container */}
@@ -3066,7 +3827,8 @@ export function GifStudioCreateView() {
                 onPointerDown={(e) => {
                   if (
                     (e.target as HTMLElement).closest('.trim-handle') ||
-                    (e.target as HTMLElement).closest('.clip-card-box')
+                    (e.target as HTMLElement).closest('.clip-card-box') ||
+                    (e.target as HTMLElement).closest('.scissor-btn-box')
                   ) {
                     return;
                   }
@@ -3085,74 +3847,80 @@ export function GifStudioCreateView() {
                   gap: '6px',
                   minWidth: 'max-content',
                   position: 'relative',
-                  py: 0.5,
-                  bgcolor: isExternalDragOverTrack ? 'rgba(56, 189, 248, 0.08)' : 'transparent',
+                  pt: 0.25,
+                  pb: 0.75,
+                  bgcolor: isExternalDragOverTrack ? 'rgba(56, 189, 248, 0.15)' : 'transparent',
                   borderRadius: 1.5,
                   transition: 'background-color 0.2s ease',
                 }}
               >
-                {/* ─── FILMORA SCISSOR PLAYHEAD LINE & BUTTON (자르기 선 & 가위) ─── */}
+                {/* ─── CORAL SCISSOR PLAYHEAD (레퍼런스 이미지 스타일 플레이헤드 & 가위) ─── */}
                 {flattenedTimelineFrames.length > 0 && (
                   <Box
                     sx={{
                       position: 'absolute',
                       left: `${playheadPixelLeft + 44}px`,
-                      top: 0,
+                      top: -24,
                       bottom: 0,
                       width: 0,
-                      zIndex: 35,
+                      zIndex: 40,
                       pointerEvents: 'none',
-                      transition: isPlaying ? 'none' : 'left 0.05s ease-out',
+                      transition: isPlaying ? 'none' : 'left 0.04s ease-out',
                     }}
                   >
-                    {/* Top Arrow Head */}
+                    {/* Top Coral Marker Cap on Ruler */}
                     <Box
                       sx={{
                         position: 'absolute',
                         top: 0,
                         left: '-6px',
                         width: 12,
-                        height: 10,
+                        height: 14,
                         bgcolor: '#ff4d4f',
-                        clipPath: 'polygon(0% 0%, 100% 0%, 100% 60%, 50% 100%, 0% 60%)',
+                        borderRadius: '3px 3px 0 0',
+                        boxShadow: '0 2px 6px rgba(255, 77, 79, 0.6)',
                       }}
                     />
 
-                    {/* Vertical Red Cut Line */}
+                    {/* Coral Vertical Needle Line */}
                     <Box
                       sx={{
                         position: 'absolute',
-                        top: 0,
+                        top: 14,
                         bottom: 0,
                         left: '-1px',
                         width: 2,
                         bgcolor: '#ff4d4f',
-                        boxShadow: '0 0 8px rgba(255, 77, 79, 0.9)',
+                        boxShadow: '0 0 6px rgba(255, 77, 79, 0.8)',
                       }}
                     />
 
-                    {/* Filmora Center Scissor Button (✂️ 가위 분할 버튼) */}
-                    <Tooltip title="✂️ 이 위치에서 클립 자르기 (Split)" arrow placement="top">
+                    {/* Circular Coral Scissor Button (✂️ 가위 분할 버튼 - 누른 채 좌우 이동 탐색 / 클릭 시 분할) */}
+                    <Tooltip
+                      title="✂️ 가위: 누른 채 좌우로 이동(탐색) / 클릭 시 자르기(Split)"
+                      arrow
+                      placement="top"
+                    >
                       <Box
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSplitClipAtPlayhead();
-                        }}
+                        className="scissor-btn-box"
+                        onPointerDown={handleScissorPointerDown}
+                        onPointerMove={handleScissorPointerMove}
+                        onPointerUp={handleScissorPointerUp}
                         sx={{
                           pointerEvents: 'auto',
                           position: 'absolute',
-                          top: '52px',
-                          left: '-14px',
-                          width: 28,
-                          height: 28,
+                          top: '20px',
+                          left: '-13px',
+                          width: 26,
+                          height: 26,
                           borderRadius: '50%',
                           bgcolor: '#ff4d4f',
                           color: '#ffffff',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          cursor: 'pointer',
-                          boxShadow: '0 2px 10px rgba(255, 77, 79, 0.75)',
+                          cursor: 'ew-resize',
+                          boxShadow: '0 2px 8px rgba(255, 77, 79, 0.8)',
                           border: '2px solid #ffffff',
                           transition: 'transform 0.15s ease, background-color 0.15s ease',
                           '&:hover': {
@@ -3160,11 +3928,12 @@ export function GifStudioCreateView() {
                             bgcolor: '#f5222d',
                           },
                           '&:active': {
-                            transform: 'scale(0.95)',
+                            transform: 'scale(1.1)',
+                            bgcolor: '#cf1322',
                           },
                         }}
                       >
-                        <ContentCutRoundedIcon sx={{ fontSize: 15 }} />
+                        <ContentCutRoundedIcon sx={{ fontSize: 14, pointerEvents: 'none' }} />
                       </Box>
                     </Tooltip>
                   </Box>
@@ -3175,40 +3944,42 @@ export function GifStudioCreateView() {
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '8px',
-                    height: 38,
+                    gap: 0,
+                    height: 32,
                     position: 'relative',
                   }}
                 >
-                  {/* T1 Track Label Box */}
+                  {/* T1 Track Label Box (직각 플랫 스타일) */}
                   <Box
                     sx={{
                       width: 36,
-                      height: 36,
+                      height: 30,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: '#a5b4fc',
+                      color: '#0284c7',
                       fontSize: '0.68rem',
                       fontWeight: 800,
-                      bgcolor: 'rgba(99, 102, 241, 0.12)',
-                      border: '1px solid rgba(99, 102, 241, 0.25)',
-                      borderRadius: 1.5,
+                      bgcolor: '#ffffff',
+                      border: '1.5px solid #bae6fd',
+                      borderRadius: 0,
                       flexShrink: 0,
+                      mr: '8px',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
                     }}
                   >
                     🔤 T1
                   </Box>
 
-                  {/* T1 Track Subtitle Clip Bars */}
+                  {/* T1 Track Subtitle Clip Bars (완전 플랫 직각 스타일) */}
                   <Box
                     sx={{
                       flex: '1 1 auto',
-                      height: 36,
+                      height: 30,
                       position: 'relative',
-                      bgcolor: 'rgba(255,255,255,0.02)',
-                      borderRadius: 1.5,
-                      border: '1px dashed rgba(255,255,255,0.08)',
+                      bgcolor: '#ffffff',
+                      borderRadius: 0,
+                      border: '1px dashed #7dd3fc',
                       overflow: 'visible',
                       minWidth: `${totalTimelineDurationSec * 100 * timelineZoom + 120}px`,
                     }}
@@ -3233,23 +4004,22 @@ export function GifStudioCreateView() {
                           sx={{
                             position: 'absolute',
                             left: `${leftPx}px`,
-                            top: 2,
+                            top: 1,
                             width: `${widthPx}px`,
-                            height: 32,
-                            borderRadius: 1.5,
-                            bgcolor: isSelected ? '#4338ca' : '#4f46e5',
-                            border: '1.5px solid',
-                            borderColor: isSelected ? '#a5b4fc' : '#6366f1',
-                            boxShadow: isSelected
-                              ? '0 0 12px rgba(99, 102, 241, 0.6)'
-                              : '0 2px 6px rgba(0,0,0,0.3)',
+                            height: 26,
+                            borderRadius: 0,
+                            bgcolor: isSelected ? '#0284c7' : 'rgba(2, 132, 199, 0.85)',
+                            outline: isSelected ? '2px solid #0369a1' : 'none',
+                            outlineOffset: '-2px',
+                            border: isSelected ? 'none' : '1px solid rgba(255,255,255,0.4)',
+                            boxShadow: '0 2px 6px rgba(2, 132, 199, 0.25)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
-                            px: 1,
+                            px: 0.8,
                             cursor: 'grab',
                             userSelect: 'none',
-                            transition: 'background-color 0.15s, border-color 0.15s',
+                            transition: 'background-color 0.15s, outline 0.15s',
                             zIndex: 10,
                             '&:active': { cursor: 'grabbing' },
                           }}
@@ -3265,20 +4035,16 @@ export function GifStudioCreateView() {
                               left: 0,
                               top: 0,
                               bottom: 0,
-                              width: 8,
+                              width: 6,
                               cursor: 'ew-resize',
-                              bgcolor: 'rgba(255,255,255,0.2)',
-                              borderTopLeftRadius: 5,
-                              borderBottomLeftRadius: 5,
+                              bgcolor: 'rgba(255,255,255,0.3)',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               '&:hover': { bgcolor: '#ffffff' },
                             }}
                           >
-                            <Box
-                              sx={{ width: 1.5, height: 12, bgcolor: '#ffffff', borderRadius: 1 }}
-                            />
+                            <Box sx={{ width: 1.5, height: 12, bgcolor: '#ffffff' }} />
                           </Box>
 
                           {/* Text Title & Label */}
@@ -3288,20 +4054,20 @@ export function GifStudioCreateView() {
                               alignItems: 'center',
                               gap: 0.6,
                               overflow: 'hidden',
-                              px: 0.8,
+                              px: 0.6,
                               flex: '1 1 auto',
                             }}
                           >
                             <Box
                               sx={{
-                                width: 16,
-                                height: 16,
-                                borderRadius: 0.8,
-                                bgcolor: 'rgba(255,255,255,0.2)',
+                                width: 14,
+                                height: 14,
+                                borderRadius: 0,
+                                bgcolor: 'rgba(255,255,255,0.3)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                fontSize: '0.62rem',
+                                fontSize: '0.6rem',
                                 fontWeight: 900,
                                 color: '#ffffff',
                                 flexShrink: 0,
@@ -3312,8 +4078,8 @@ export function GifStudioCreateView() {
                             <Typography
                               sx={{
                                 color: '#ffffff',
-                                fontSize: '0.72rem',
-                                fontWeight: 800,
+                                fontSize: '0.7rem',
+                                fontWeight: 700,
                                 whiteSpace: 'nowrap',
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',
@@ -3334,20 +4100,16 @@ export function GifStudioCreateView() {
                               right: 0,
                               top: 0,
                               bottom: 0,
-                              width: 8,
+                              width: 6,
                               cursor: 'ew-resize',
-                              bgcolor: 'rgba(255,255,255,0.2)',
-                              borderTopRightRadius: 5,
-                              borderBottomRightRadius: 5,
+                              bgcolor: 'rgba(255,255,255,0.3)',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               '&:hover': { bgcolor: '#ffffff' },
                             }}
                           >
-                            <Box
-                              sx={{ width: 1.5, height: 12, bgcolor: '#ffffff', borderRadius: 1 }}
-                            />
+                            <Box sx={{ width: 1.5, height: 12, bgcolor: '#ffffff' }} />
                           </Box>
                         </Box>
                       );
@@ -3370,312 +4132,419 @@ export function GifStudioCreateView() {
                                 100 *
                                 timelineZoom
                               }px`,
-                        top: 4,
-                        height: 28,
-                        px: 1.2,
-                        borderRadius: 1.5,
-                        bgcolor: 'rgba(99, 102, 241, 0.15)',
-                        border: '1px dashed #6366f1',
-                        color: '#a5b4fc',
+                        top: 2,
+                        height: 24,
+                        px: 1,
+                        borderRadius: 0,
+                        bgcolor: '#ffffff',
+                        border: '1px dashed #0284c7',
+                        color: '#0284c7',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: 0.5,
+                        gap: 0.4,
                         cursor: 'pointer',
-                        fontSize: '0.68rem',
+                        fontSize: '0.66rem',
                         fontWeight: 800,
                         transition: 'all 0.15s ease',
                         '&:hover': {
-                          bgcolor: 'rgba(99, 102, 241, 0.3)',
-                          transform: 'scale(1.04)',
+                          bgcolor: '#f0f9ff',
+                          borderColor: '#0369a1',
                         },
                       }}
                     >
-                      <AddRoundedIcon sx={{ fontSize: 14 }} /> 자막 추가
+                      <AddRoundedIcon sx={{ fontSize: 13 }} /> 자막 추가
                     </Box>
                   </Box>
                 </Box>
 
-                {/* ─── 2. V1 VIDEO / MEDIA TRACK LANE (비디오 트랙) ─── */}
+                {/* ─── 2. V1 VIDEO / MEDIA TRACK LANE (SEAMLESS 0px GAP 필름 스트립) ─── */}
                 <Box
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '8px',
-                    minHeight: 80,
+                    gap: 0,
+                    height: 82,
+                    minHeight: 82,
                     position: 'relative',
                   }}
                 >
-                  {/* V1 Track Label Box */}
+                  {/* V1 Track Label Box (직각 플랫 스타일) */}
                   <Box
                     sx={{
                       width: 36,
-                      height: 80,
+                      height: 82,
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: '#64748b',
+                      color: '#0284c7',
                       fontSize: '0.7rem',
                       fontWeight: 800,
-                      bgcolor: 'rgba(255,255,255,0.02)',
-                      borderRadius: 1.5,
+                      bgcolor: '#ffffff',
+                      border: '1.5px solid #bae6fd',
+                      borderRadius: 0,
                       flexShrink: 0,
+                      mr: '8px',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
                     }}
                   >
                     🎬 V1
                   </Box>
 
-                  {/* Clip Cards List with Drag & Drop Reordering */}
-                  {clips.map((clip, idx) => {
-                    const isSelected = selectedClipId === clip.id;
-                    const isCurrentPlaying =
-                      currentActiveFrame && currentActiveFrame.clipId === clip.id;
+                  {/* Clip Cards Strip with 0px Gap & Continuous Snapping (직각 플랫 스타일) */}
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0,
+                      height: 82,
+                      borderRadius: 0,
+                      overflow: 'hidden',
+                      bgcolor: '#ffffff',
+                      boxShadow: 'inset 0 0 0 1px #bae6fd',
+                    }}
+                  >
+                    {clips.map((clip, idx) => {
+                      const isSelected = selectedClipId === clip.id;
+                      const isCurrentPlaying =
+                        currentActiveFrame && currentActiveFrame.clipId === clip.id;
 
-                    const baseWidth = getClipPixelWidth(clip);
+                      const baseWidth = getClipPixelWidth(clip);
 
-                    const isBeingDragged = draggedClipIndex === idx;
-                    const isDropTarget = dragOverClipIndex === idx;
+                      const isBeingDragged = draggedClipIndex === idx;
+                      const isDropTarget = dragOverClipIndex === idx;
 
-                    return (
-                      <Box
-                        key={clip.id}
-                        className="clip-card-box"
-                        draggable
-                        onDragStart={(e) => handleClipDragStart(e, idx)}
-                        onDragOver={(e) => handleClipDragOver(e, idx)}
-                        onDrop={(e) => handleClipDrop(e, idx)}
-                        onDragEnd={handleClipDragEnd}
-                        onClick={() => {
-                          setSelectedClipId(clip.id);
-                          const frameIdx = flattenedTimelineFrames.findIndex(
-                            (f) => f.clipId === clip.id
-                          );
-                          if (frameIdx !== -1) setCurrentPlayheadFrameIdx(frameIdx);
-                        }}
-                        sx={{
-                          width: `${baseWidth}px`,
-                          minWidth: 24,
-                          height: 80,
-                          borderRadius: 2,
-                          overflow: 'hidden',
-                          position: 'relative',
-                          cursor: 'grab',
-                          bgcolor: '#1e293b',
-                          opacity: isBeingDragged ? 0.35 : 1,
-                          transform: isBeingDragged ? 'scale(0.96)' : 'none',
-                          border: '2px solid',
-                          borderColor: isCurrentPlaying
-                            ? 'primary.main'
-                            : isSelected
-                              ? '#38bdf8'
-                              : 'rgba(255,255,255,0.12)',
-                          borderLeft:
-                            isDropTarget && dropPosition === 'left'
-                              ? '4px solid #38bdf8'
-                              : undefined,
-                          borderRight:
-                            isDropTarget && dropPosition === 'right'
-                              ? '4px solid #38bdf8'
-                              : undefined,
-                          boxShadow: isCurrentPlaying ? '0 0 10px rgba(56, 189, 248, 0.5)' : 'none',
-                          transition:
-                            'border-color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          flexShrink: 0,
-                          userSelect: 'none',
-                        }}
-                      >
-                        {/* Left Trim Handle */}
+                      return (
                         <Box
-                          className="trim-handle"
-                          onPointerDown={(e) => handleTrimPointerDown(e, clip, 'start')}
-                          onPointerMove={handleTrimPointerMove}
-                          onPointerUp={handleTrimPointerUp}
-                          sx={{
-                            position: 'absolute',
-                            left: 0,
-                            top: 0,
-                            bottom: 0,
-                            width: 8,
-                            cursor: 'ew-resize',
-                            bgcolor: isSelected ? 'primary.main' : 'rgba(255,255,255,0.2)',
-                            zIndex: 5,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            '&:hover': { bgcolor: 'primary.light' },
+                          key={clip.id}
+                          className="clip-card-box"
+                          draggable
+                          onDragStart={(e) => handleClipDragStart(e, idx)}
+                          onDragOver={(e) => handleClipDragOver(e, idx)}
+                          onDrop={(e) => handleClipDrop(e, idx)}
+                          onDragEnd={handleClipDragEnd}
+                          onClick={() => {
+                            setSelectedClipId(clip.id);
+                            const frameIdx = flattenedTimelineFrames.findIndex(
+                              (f) => f.clipId === clip.id
+                            );
+                            if (frameIdx !== -1) setCurrentPlayheadFrameIdx(frameIdx);
                           }}
-                        >
-                          <Box
-                            sx={{ width: 1.5, height: 16, bgcolor: '#ffffff', borderRadius: 1 }}
-                          />
-                        </Box>
-
-                        {/* Right Trim Handle */}
-                        <Box
-                          className="trim-handle"
-                          onPointerDown={(e) => handleTrimPointerDown(e, clip, 'end')}
-                          onPointerMove={handleTrimPointerMove}
-                          onPointerUp={handleTrimPointerUp}
                           sx={{
-                            position: 'absolute',
-                            right: 0,
-                            top: 0,
-                            bottom: 0,
-                            width: 8,
-                            cursor: 'ew-resize',
-                            bgcolor: isSelected ? 'primary.main' : 'rgba(255,255,255,0.2)',
-                            zIndex: 5,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            '&:hover': { bgcolor: 'primary.light' },
-                          }}
-                        >
-                          <Box
-                            sx={{ width: 1.5, height: 16, bgcolor: '#ffffff', borderRadius: 1 }}
-                          />
-                        </Box>
-
-                        {/* Filmstrip / Thumbnail Image */}
-                        <Box
-                          sx={{
-                            flex: 1,
-                            position: 'relative',
+                            width: `${baseWidth}px`,
+                            minWidth: 24,
+                            height: 82,
+                            borderRadius: 0,
                             overflow: 'hidden',
+                            position: 'relative',
+                            cursor: 'grab',
+                            bgcolor: '#f8fafc',
+                            opacity: isBeingDragged ? 0.35 : 1,
+                            outline: isSelected
+                              ? '2px solid #0284c7'
+                              : isCurrentPlaying
+                                ? '2px solid #22c55e'
+                                : 'none',
+                            outlineOffset: '-2px',
+                            borderRight: '1px solid #bae6fd',
+                            borderLeft:
+                              isDropTarget && dropPosition === 'left'
+                                ? '4px solid #0284c7'
+                                : undefined,
+                            borderRightColor:
+                              isDropTarget && dropPosition === 'right' ? '#0284c7' : '#bae6fd',
+                            zIndex: isSelected ? 15 : 1,
+                            transition: 'opacity 0.15s ease',
                             display: 'flex',
+                            flexDirection: 'column',
+                            flexShrink: 0,
+                            userSelect: 'none',
                           }}
                         >
+                          {/* Left Trim Handle */}
                           <Box
-                            component="img"
-                            src={clip.src}
-                            alt="thumb"
+                            className="trim-handle"
+                            draggable={false}
+                            onPointerDown={(e) => {
+                              e.stopPropagation();
+                              handleTrimPointerDown(e, clip, 'start');
+                            }}
+                            onPointerMove={handleTrimPointerMove}
+                            onPointerUp={handleTrimPointerUp}
                             sx={{
-                              width: '100%',
-                              height: '100%',
-                              objectFit: 'cover',
-                              filter:
-                                clip.filter === 'grayscale'
-                                  ? 'grayscale(100%)'
-                                  : clip.filter === 'sepia'
-                                    ? 'sepia(80%)'
-                                    : 'none',
+                              position: 'absolute',
+                              left: 0,
+                              top: 0,
+                              bottom: 0,
+                              width: 6,
+                              cursor: 'ew-resize',
+                              bgcolor: isSelected ? '#0284c7' : 'rgba(2, 132, 199, 0.2)',
+                              zIndex: 5,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              '&:hover': { bgcolor: '#0284c7' },
                             }}
                           />
-                          {baseWidth >= 48 && (
+
+                          {/* Right Trim Handle */}
+                          <Box
+                            className="trim-handle"
+                            draggable={false}
+                            onPointerDown={(e) => {
+                              e.stopPropagation();
+                              handleTrimPointerDown(e, clip, 'end');
+                            }}
+                            onPointerMove={handleTrimPointerMove}
+                            onPointerUp={handleTrimPointerUp}
+                            sx={{
+                              position: 'absolute',
+                              right: 0,
+                              top: 0,
+                              bottom: 0,
+                              width: 6,
+                              cursor: 'ew-resize',
+                              bgcolor: isSelected ? '#0284c7' : 'rgba(2, 132, 199, 0.2)',
+                              zIndex: 5,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              '&:hover': { bgcolor: '#0284c7' },
+                            }}
+                          />
+
+                          {/* Filmstrip / Thumbnail Image */}
+                          <Box
+                            sx={{
+                              flex: 1,
+                              position: 'relative',
+                              overflow: 'hidden',
+                              display: 'flex',
+                              pointerEvents: 'none',
+                            }}
+                          >
+                            <Box
+                              component="img"
+                              src={clip.src}
+                              alt="thumb"
+                              draggable={false}
+                              sx={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                                filter:
+                                  clip.filter === 'grayscale'
+                                    ? 'grayscale(100%)'
+                                    : clip.filter === 'sepia'
+                                      ? 'sepia(80%)'
+                                      : 'none',
+                              }}
+                            />
+
+                            {/* Top Clip Info Overlay */}
                             <Box
                               sx={{
                                 position: 'absolute',
                                 top: 2,
-                                left: 10,
-                                bgcolor: 'rgba(0,0,0,0.7)',
-                                color: '#ffffff',
-                                px: 0.5,
-                                py: 0.1,
-                                borderRadius: 0.8,
-                                fontSize: '0.6rem',
-                                fontWeight: 800,
-                                whiteSpace: 'nowrap',
+                                left: 6,
+                                right: 6,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                pointerEvents: 'none',
                               }}
                             >
-                              #{idx + 1} {clip.type === 'gif' ? 'GIF' : 'IMG'}
-                            </Box>
-                          )}
-                        </Box>
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 0.4,
+                                  bgcolor: 'rgba(15, 23, 42, 0.8)',
+                                  px: 0.6,
+                                  py: 0.1,
+                                  borderRadius: 0,
+                                }}
+                              >
+                                {clip.type === 'gif' ? (
+                                  <MovieCreationRoundedIcon
+                                    sx={{ fontSize: 10, color: '#f43f5e' }}
+                                  />
+                                ) : (
+                                  <ImageRoundedIcon sx={{ fontSize: 10, color: '#38bdf8' }} />
+                                )}
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    fontSize: '0.62rem',
+                                    fontWeight: 700,
+                                    color: '#ffffff',
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    maxWidth: 75,
+                                  }}
+                                >
+                                  {clip.name}
+                                </Typography>
+                              </Box>
 
-                        {/* Clip Bottom Info Bar with Reorder Arrows */}
-                        <Box
-                          sx={{
-                            height: 20,
-                            bgcolor: isSelected ? 'primary.darker' : 'rgba(0,0,0,0.85)',
-                            px: baseWidth >= 60 ? 1.0 : 0.4,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            overflow: 'hidden',
-                          }}
-                        >
-                          <Typography
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  bgcolor: 'rgba(15, 23, 42, 0.8)',
+                                  color: '#e2e8f0',
+                                  fontSize: '0.58rem',
+                                  fontWeight: 800,
+                                  px: 0.5,
+                                  borderRadius: 0,
+                                  fontFamily: 'monospace',
+                                }}
+                              >
+                                {clip.type === 'gif'
+                                  ? `${
+                                      (clip.trimEnd ?? (clip.frames?.length || 1) - 1) -
+                                      (clip.trimStart || 0) +
+                                      1
+                                    }F`
+                                  : `${(clip.duration || 1.0).toFixed(1)}s`}
+                              </Typography>
+                            </Box>
+                          </Box>
+
+                          {/* Bottom Audio/Waveform Effect Line (스카이 블루 웨이브 바) */}
+                          <Box
                             sx={{
-                              color: '#38bdf8',
-                              fontSize: '0.58rem',
-                              fontWeight: 800,
-                              fontFamily: 'monospace',
-                              whiteSpace: 'nowrap',
+                              height: 15,
+                              bgcolor: '#f0f9ff',
+                              borderTop: '1px solid #e0f2fe',
+                              position: 'relative',
+                              overflow: 'hidden',
+                              display: 'flex',
+                              alignItems: 'center',
+                              px: 0.5,
                             }}
                           >
-                            {clip.type === 'gif' && clip.frames
-                              ? `${(
-                                  clip.frames
-                                    .slice(clip.trimStart, clip.trimEnd + 1)
-                                    .reduce((s, f) => s + (f.delay || 100), 0) / 1000
-                                ).toFixed(1)}s`
-                              : `${(clip.duration || 1.0).toFixed(1)}s`}
-                          </Typography>
-
-                          {baseWidth >= 75 && (
-                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                              <IconButton
-                                size="small"
-                                disabled={idx === 0}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleMoveClip(idx, -1);
-                                }}
-                                sx={{ p: 0.1, color: '#94a3b8' }}
-                              >
-                                <ArrowUpwardRoundedIcon
-                                  sx={{ fontSize: 10, transform: 'rotate(-90deg)' }}
-                                />
-                              </IconButton>
-                              <IconButton
-                                size="small"
-                                disabled={idx === clips.length - 1}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleMoveClip(idx, 1);
-                                }}
-                                sx={{ p: 0.1, color: '#94a3b8' }}
-                              >
-                                <ArrowDownwardRoundedIcon
-                                  sx={{ fontSize: 10, transform: 'rotate(-90deg)' }}
-                                />
-                              </IconButton>
-                            </Box>
-                          )}
+                            <Box
+                              sx={{
+                                width: '100%',
+                                height: 8,
+                                background:
+                                  'repeating-linear-gradient(90deg, #0284c7, #0284c7 2px, transparent 2px, transparent 4px)',
+                                opacity: 0.85,
+                              }}
+                            />
+                          </Box>
                         </Box>
-                      </Box>
-                    );
-                  })}
+                      );
+                    })}
+                  </Box>
 
-                  {/* + Add Media Box */}
+                  {/* + Add Media Box (직각 플랫 스타일) */}
                   <Box
                     onClick={() => fileInputRef.current?.click()}
                     sx={{
-                      width: 80,
-                      minWidth: 80,
-                      height: 80,
-                      borderRadius: 2,
-                      border: '2px dashed rgba(255,255,255,0.2)',
-                      bgcolor: 'rgba(255,255,255,0.02)',
+                      width: 82,
+                      minWidth: 82,
+                      height: 82,
+                      borderRadius: 0,
+                      border: '2px dashed #0284c7',
+                      bgcolor: '#ffffff',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
                       justifyContent: 'center',
                       cursor: 'pointer',
-                      gap: 0.5,
+                      gap: 0.25,
                       flexShrink: 0,
+                      ml: 1,
                       transition: 'all 0.15s ease',
                       '&:hover': {
-                        borderColor: 'primary.main',
-                        bgcolor: 'rgba(56, 189, 248, 0.08)',
+                        borderColor: '#0369a1',
+                        bgcolor: '#f0f9ff',
                       },
                     }}
                   >
-                    <AddRoundedIcon sx={{ color: '#94a3b8', fontSize: 20 }} />
-                    <Typography sx={{ color: '#94a3b8', fontSize: '0.65rem', fontWeight: 700 }}>
+                    <AddRoundedIcon sx={{ color: '#0284c7', fontSize: 20 }} />
+                    <Typography sx={{ color: '#0284c7', fontSize: '0.68rem', fontWeight: 800 }}>
                       + 추가
+                    </Typography>
+                  </Box>
+                </Box>
+
+                {/* ─── 3. TIMELINE SMART HUD & SHORTCUT BAR (비디오 트랙 아래 빈 공간 알뜰 활용 바) ─── */}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: 1,
+                    px: 1,
+                    py: 0.5,
+                    mt: 0.5,
+                    bgcolor: '#ffffff',
+                    border: '1px solid #bae6fd',
+                    borderRadius: 0,
+                    userSelect: 'none',
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: '#0369a1', fontWeight: 800, fontSize: '0.68rem' }}
+                    >
+                      💡 팁 & 단축키:
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: '#475569', fontSize: '0.66rem', fontWeight: 600 }}
+                    >
+                      🔍 <strong>Ctrl+휠</strong>: 트랙 줌
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: '#475569', fontSize: '0.66rem', fontWeight: 600 }}
+                    >
+                      ✂️ <strong>가위 드래그</strong>: 실시간 탐색/분할
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: '#475569', fontSize: '0.66rem', fontWeight: 600 }}
+                    >
+                      🖱️ <strong>클립 드래그</strong>: 순서 변경
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: '#475569', fontSize: '0.66rem', fontWeight: 600 }}
+                    >
+                      📋 <strong>Ctrl+C / Ctrl+V</strong>: 자막 복제
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: '#475569', fontSize: '0.66rem', fontWeight: 600 }}
+                    >
+                      📸 <strong>Ctrl+V</strong>: 캡처 이미지 추가
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: '#0284c7',
+                        fontWeight: 800,
+                        fontSize: '0.66rem',
+                        fontFamily: 'monospace',
+                        bgcolor: '#e0f2fe',
+                        px: 0.8,
+                        py: 0.1,
+                      }}
+                    >
+                      {selectedClip
+                        ? `선택 클립: ${selectedClip.name} (${(selectedClip.duration || 1.0).toFixed(1)}s)`
+                        : selectedTextId
+                          ? `선택 자막: "${(textClips.find((t) => t.id === selectedTextId)?.text || '자막').slice(0, 12)}..."`
+                          : `전체 ${clips.length}개 클립 (${totalTimelineDurationSec.toFixed(2)}s)`}
                     </Typography>
                   </Box>
                 </Box>

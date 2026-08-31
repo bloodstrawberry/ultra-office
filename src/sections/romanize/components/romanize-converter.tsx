@@ -17,13 +17,19 @@ import ClearRoundedIcon from '@mui/icons-material/ClearRounded';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import TranslateRoundedIcon from '@mui/icons-material/TranslateRounded';
 
+import { ResizablePanel, ResizableHandle, ResizablePanelGroup } from 'src/components/resizable';
+
 import { romanizeKorean, type RomanizeOptions } from '../utils/romanize-core';
 
 // ----------------------------------------------------------------------
 
 const ROMAN_PRESETS = [
   { label: '홍길동 (인명)', text: '홍길동', mode: 'name' as const },
-  { label: '서울특별시 종로구 세종대로', text: '서울특별시 종로구 세종대로', mode: 'standard' as const },
+  {
+    label: '서울특별시 종로구 세종대로',
+    text: '서울특별시 종로구 세종대로',
+    mode: 'standard' as const,
+  },
   { label: '국립국어원', text: '국립국어원', mode: 'standard' as const },
   { label: '신라 (유음화: Silla)', text: '신라', mode: 'standard' as const },
   { label: '대관령 (Daegwallyeong)', text: '대관령', mode: 'standard' as const },
@@ -56,7 +62,7 @@ export function RomanizeConverter() {
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: '1 1 auto', minHeight: 0 }}>
       {/* Quick Presets Bar */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
         <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.secondary', mr: 0.5 }}>
@@ -78,11 +84,26 @@ export function RomanizeConverter() {
       </Box>
 
       {/* Settings Options Card */}
-      <Card sx={{ p: 2, borderRadius: 2, border: (theme) => `1px solid ${theme.palette.divider}` }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+      <Card
+        sx={{
+          p: 1.5,
+          borderRadius: 2,
+          border: (theme) => `1px solid ${theme.palette.divider}`,
+          flexShrink: 0,
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 1.5,
+          }}
+        >
           {/* Mode Selector */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <TranslateRoundedIcon sx={{ color: 'primary.main' }} />
+            <TranslateRoundedIcon sx={{ color: 'primary.main', fontSize: 20 }} />
             <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
               표기 방식:
             </Typography>
@@ -108,7 +129,13 @@ export function RomanizeConverter() {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
             {mode === 'name' && (
               <FormControlLabel
-                control={<Switch checked={useHyphen} onChange={(e) => setUseHyphen(e.target.checked)} size="small" />}
+                control={
+                  <Switch
+                    checked={useHyphen}
+                    onChange={(e) => setUseHyphen(e.target.checked)}
+                    size="small"
+                  />
+                }
                 label="이름 음절 간 하이픈(-)"
                 sx={{ '& .MuiTypography-root': { fontSize: '0.85rem', fontWeight: 600 } }}
               />
@@ -139,22 +166,35 @@ export function RomanizeConverter() {
         </Box>
       </Card>
 
-      {/* Dual Inputs Grid */}
-      <Grid container spacing={3}>
+      {/* Dual Inputs Resizable Panels */}
+      <ResizablePanelGroup
+        orientation="horizontal"
+        autoSaveId="romanize-converter-split"
+        sx={{ flex: '1 1 0px', minHeight: 0 }}
+      >
         {/* Input Card */}
-        <Grid size={{ xs: 12, md: 6 }}>
+        <ResizablePanel id="romanize-input" defaultSize={50} minSize={25}>
           <Card
             sx={{
-              p: 3,
+              p: 2,
               borderRadius: 2,
+              flex: '1 1 auto',
               height: '100%',
+              minHeight: 0,
               display: 'flex',
               flexDirection: 'column',
               border: (theme) => `1px solid ${theme.palette.divider}`,
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                mb: 1,
+              }}
+            >
+              <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
                 🇰🇷 한글 원문 입력 (인명/지명/일반어)
               </Typography>
               <IconButton size="small" onClick={() => setInputText('')} disabled={!inputText}>
@@ -165,39 +205,60 @@ export function RomanizeConverter() {
             <TextField
               fullWidth
               multiline
-              rows={5}
+              minRows={2}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder="로마자로 변환할 한글 이름, 도로명 주소, 단어를 입력하세요."
               variant="outlined"
-              sx={{ flexGrow: 1 }}
+              sx={{
+                flexGrow: 1,
+                '& .MuiInputBase-root': { height: '100%', alignItems: 'flex-start' },
+              }}
             />
 
-            <Typography variant="caption" sx={{ color: 'text.secondary', mt: 1 }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.5 }}>
               {inputText.length} 글자
             </Typography>
           </Card>
-        </Grid>
+        </ResizablePanel>
+
+        {/* Resizable Divider Handle */}
+        <ResizableHandle direction="horizontal" tooltipText="좌우 너비 조절" />
 
         {/* Output Card */}
-        <Grid size={{ xs: 12, md: 6 }}>
+        <ResizablePanel id="romanize-output" defaultSize={50} minSize={25}>
           <Card
             sx={{
-              p: 3,
+              p: 2,
               borderRadius: 2,
+              flex: '1 1 auto',
               height: '100%',
+              minHeight: 0,
               display: 'flex',
               flexDirection: 'column',
               bgcolor: 'background.neutral',
               border: (theme) => `1px solid ${theme.palette.divider}`,
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                mb: 1,
+              }}
+            >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
                   🌐 표준 로마자 표기 결과 (Revised Romanization)
                 </Typography>
-                <Chip label="국립국어원 고시 표준" size="small" color="primary" variant="soft" />
+                <Chip
+                  label="국립국어원 고시 표준"
+                  size="small"
+                  color="primary"
+                  variant="soft"
+                  sx={{ height: 22 }}
+                />
               </Box>
 
               <Button
@@ -215,28 +276,33 @@ export function RomanizeConverter() {
             <TextField
               fullWidth
               multiline
-              rows={5}
+              minRows={2}
               value={outputText}
               slotProps={{ input: { readOnly: true } }}
               placeholder="로마자 변환 결과가 표시됩니다."
               variant="outlined"
               sx={{
                 flexGrow: 1,
-                '& .MuiOutlinedInput-root': {
+                '& .MuiInputBase-root': {
+                  height: '100%',
+                  alignItems: 'flex-start',
                   bgcolor: 'background.paper',
                   fontSize: '1.2rem',
                   fontWeight: 700,
+                  color: 'primary.main',
+                  fontFamily: 'monospace',
                   lineHeight: 1.6,
                 },
               }}
             />
 
-            <Typography variant="caption" sx={{ color: 'text.secondary', mt: 1 }}>
-              비음화(국물 ➔ Gungmul), 유음화(신라 ➔ Silla) 등 표준 자음동화 법칙이 자동으로 반영됩니다.
+            <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.5 }}>
+              비음화(국물 ➔ Gungmul), 유음화(신라 ➔ Silla) 등 표준 자음동화 법칙이 자동으로
+              반영됩니다.
             </Typography>
           </Card>
-        </Grid>
-      </Grid>
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </Box>
   );
 }

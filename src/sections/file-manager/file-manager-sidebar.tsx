@@ -56,46 +56,33 @@ const RootStyle = styled(Box, {
 
 const ResizeHandle = styled(Box)(({ theme }) => ({
   top: 0,
-  right: -8,
+  right: -3,
   bottom: 0,
-  width: 16,
+  width: 6,
   zIndex: 10,
   cursor: 'col-resize',
   position: 'absolute',
   touchAction: 'none',
-  '&:hover, &:active': {
-    '&::after': {
-      backgroundColor: theme.vars.palette.primary.main,
-    },
-    '&::before': {
-      backgroundColor: theme.vars.palette.primary.main,
-      opacity: 1,
-    },
-  },
+  background: 'transparent',
   // Vertical line
   '&::after': {
     content: '""',
     top: 0,
-    left: 7,
+    left: 2,
     bottom: 0,
-    width: 2,
+    width: 1,
     position: 'absolute',
     backgroundColor: theme.vars.palette.divider,
-    transition: theme.transitions.create(['background-color']),
+    transition: theme.transitions.create(['background-color', 'width', 'box-shadow'], {
+      duration: 150,
+    }),
   },
-  // Grabbable pill handle
-  '&::before': {
-    content: '""',
-    top: '50%',
-    left: 4,
-    width: 8,
-    height: 48,
-    borderRadius: 8,
-    position: 'absolute',
-    transform: 'translateY(-50%)',
-    backgroundColor: theme.vars.palette.text.disabled,
-    opacity: 0.3,
-    transition: theme.transitions.create(['background-color', 'opacity']),
+  '&:hover, &:active': {
+    '&::after': {
+      width: 2,
+      backgroundColor: theme.vars.palette.primary.main,
+      boxShadow: `0 0 6px ${theme.vars.palette.primary.main}80`,
+    },
   },
 }));
 

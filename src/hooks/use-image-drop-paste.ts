@@ -104,6 +104,16 @@ export function useImageDropPaste({
     if (disabled || !enablePaste) return undefined;
 
     const handleWindowPaste = (e: ClipboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+      ) {
+        // If user is pasting text into an input field, do not hijack unless no text and image only
+        const hasText = e.clipboardData?.getData('text');
+        if (hasText) return;
+      }
+
       // Extract image files from clipboard
       const clipboardFiles: File[] = [];
 
@@ -123,7 +133,14 @@ export function useImageDropPaste({
           if (item.type.startsWith('image/')) {
             const file = item.getAsFile();
             if (file && isAcceptedFile(file)) {
-              clipboardFiles.push(file);
+              // Ensure clean file name for screenshots
+              const cleanName =
+                !file.name || file.name === 'image.png' || file.name === 'blob'
+                  ? `clipboard_image_${Date.now()}_${i + 1}.${item.type.split('/')[1] || 'png'}`
+                  : file.name;
+              const renamedFile =
+                cleanName === file.name ? file : new File([file], cleanName, { type: file.type });
+              clipboardFiles.push(renamedFile);
             }
           }
         }

@@ -871,7 +871,8 @@ export function DevToolsView() {
             onPointerUp={handleDividerPointerUp}
             sx={{
               display: { xs: 'none', md: 'flex' },
-              width: 14,
+              width: 6,
+              margin: '0 -2px',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'col-resize',
@@ -882,13 +883,22 @@ export function DevToolsView() {
               position: 'relative',
               '&:hover .divider-bar, &:active .divider-bar': {
                 bgcolor: 'primary.main',
-                width: '3px',
+                width: '2px',
+                boxShadow: (theme) => `0 0 6px ${theme.palette.primary.main}80`,
               },
             }}
           >
             <Box
               className="divider-bar"
-              sx={{ width: '2px', height: '100%', bgcolor: 'divider', borderRadius: '1px' }}
+              sx={{
+                width: '1px',
+                height: '100%',
+                bgcolor: 'divider',
+                transition: (theme) =>
+                  theme.transitions.create(['background-color', 'width', 'box-shadow'], {
+                    duration: 150,
+                  }),
+              }}
             />
           </Box>
 
@@ -1510,7 +1520,8 @@ export function DevToolsView() {
             onPointerUp={handleDividerPointerUp}
             sx={{
               display: { xs: 'none', md: 'flex' },
-              width: 14,
+              width: 6,
+              margin: '0 -2px',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'col-resize',
@@ -1521,13 +1532,22 @@ export function DevToolsView() {
               position: 'relative',
               '&:hover .divider-bar, &:active .divider-bar': {
                 bgcolor: 'primary.main',
-                width: '3px',
+                width: '2px',
+                boxShadow: (theme) => `0 0 6px ${theme.palette.primary.main}80`,
               },
             }}
           >
             <Box
               className="divider-bar"
-              sx={{ width: '2px', height: '100%', bgcolor: 'divider', borderRadius: '1px' }}
+              sx={{
+                width: '1px',
+                height: '100%',
+                bgcolor: 'divider',
+                transition: (theme) =>
+                  theme.transitions.create(['background-color', 'width', 'box-shadow'], {
+                    duration: 150,
+                  }),
+              }}
             />
           </Box>
 

@@ -17,6 +17,8 @@ import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import TouchAppRoundedIcon from '@mui/icons-material/TouchAppRounded';
 import PrintRoundedIcon from '@mui/icons-material/PrintRounded';
 
+import { ResizablePanel, ResizableHandle, ResizablePanelGroup } from 'src/components/resizable';
+
 import { textToBraille, brailleCharToDots } from '../utils/braille-core';
 import { BrailleTactileCell } from './braille-tactile-cell';
 
@@ -55,7 +57,7 @@ export function BrailleConverterTab() {
   const brailleChars = Array.from(brailleOutput);
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: '1 1 auto', minHeight: 0 }}>
       {/* Quick Presets Bar */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
         <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.secondary', mr: 0.5 }}>
@@ -73,15 +75,21 @@ export function BrailleConverterTab() {
         ))}
       </Box>
 
-      {/* Dual Inputs Grid */}
-      <Grid container spacing={3}>
+      {/* Dual Inputs Resizable Panels */}
+      <ResizablePanelGroup
+        orientation="horizontal"
+        autoSaveId="braille-converter-split"
+        sx={{ flex: '1 1 0px', minHeight: 0 }}
+      >
         {/* Input Card */}
-        <Grid size={{ xs: 12, md: 6 }}>
+        <ResizablePanel id="braille-input" defaultSize={50} minSize={25}>
           <Card
             sx={{
-              p: 3,
+              p: 2,
               borderRadius: 2,
+              flex: '1 1 auto',
               height: '100%',
+              minHeight: 0,
               display: 'flex',
               flexDirection: 'column',
               border: (theme) => `1px solid ${theme.palette.divider}`,
@@ -92,10 +100,10 @@ export function BrailleConverterTab() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                mb: 1.5,
+                mb: 1,
               }}
             >
-              <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
                 📝 원본 텍스트 (한국어 / 영문 / 숫자)
               </Typography>
               <IconButton size="small" onClick={() => setInputText('')} disabled={!inputText}>
@@ -106,27 +114,35 @@ export function BrailleConverterTab() {
             <TextField
               fullWidth
               multiline
-              rows={5}
+              minRows={2}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder="점자로 변환할 한국어(한글), 영어, 숫자, 문장부호를 입력하세요."
               variant="outlined"
-              sx={{ flexGrow: 1 }}
+              sx={{
+                flexGrow: 1,
+                '& .MuiInputBase-root': { height: '100%', alignItems: 'flex-start' },
+              }}
             />
 
-            <Typography variant="caption" sx={{ color: 'text.secondary', mt: 1 }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.5 }}>
               {inputText.length} 글자
             </Typography>
           </Card>
-        </Grid>
+        </ResizablePanel>
 
-        {/* Braille Unicode Text Output */}
-        <Grid size={{ xs: 12, md: 6 }}>
+        {/* Resizable Divider Handle */}
+        <ResizableHandle direction="horizontal" tooltipText="좌우 너비 조절" />
+
+        {/* Output Card */}
+        <ResizablePanel id="braille-output" defaultSize={50} minSize={25}>
           <Card
             sx={{
-              p: 3,
+              p: 2,
               borderRadius: 2,
+              flex: '1 1 auto',
               height: '100%',
+              minHeight: 0,
               display: 'flex',
               flexDirection: 'column',
               bgcolor: 'background.neutral',
@@ -138,14 +154,20 @@ export function BrailleConverterTab() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                mb: 1.5,
+                mb: 1,
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
                   ⠠⠨⠃ 유니코드 점자 텍스트
                 </Typography>
-                <Chip label="Unicode 6-Dot" size="small" color="primary" variant="soft" />
+                <Chip
+                  label="Unicode 6-Dot"
+                  size="small"
+                  color="primary"
+                  variant="soft"
+                  sx={{ height: 22 }}
+                />
               </Box>
 
               <Box sx={{ display: 'flex', gap: 1 }}>
@@ -167,7 +189,7 @@ export function BrailleConverterTab() {
                   onClick={handlePrint}
                   disabled={!brailleOutput}
                 >
-                  출력용 인쇄
+                  인쇄
                 </Button>
               </Box>
             </Box>
@@ -175,38 +197,42 @@ export function BrailleConverterTab() {
             <TextField
               fullWidth
               multiline
-              rows={5}
+              minRows={2}
               value={brailleOutput}
               slotProps={{ input: { readOnly: true } }}
               placeholder="변환된 점자가 유니코드로 표시됩니다."
               variant="outlined"
               sx={{
                 flexGrow: 1,
-                '& .MuiOutlinedInput-root': {
+                '& .MuiInputBase-root': {
+                  height: '100%',
+                  alignItems: 'flex-start',
                   bgcolor: 'background.paper',
-                  fontSize: '1.45rem',
+                  fontSize: '1.35rem',
                   letterSpacing: '3px',
                   lineHeight: 1.8,
                 },
               }}
             />
 
-            <Typography variant="caption" sx={{ color: 'text.secondary', mt: 1 }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.5 }}>
               점자 셀 수: {brailleChars.length} 셀
             </Typography>
           </Card>
-        </Grid>
-      </Grid>
+        </ResizablePanel>
+      </ResizablePanelGroup>
 
       {/* 3D Tactile Embossed Board Card */}
       <Card
         sx={{
-          p: 3,
+          p: 2,
           borderRadius: 2,
           border: (theme) => `1px solid ${theme.palette.divider}`,
           display: 'flex',
           flexDirection: 'column',
-          gap: 2,
+          gap: 1,
+          flex: '1 1 0px',
+          minHeight: 0,
         }}
       >
         <Box
@@ -215,12 +241,13 @@ export function BrailleConverterTab() {
             alignItems: 'center',
             justifyContent: 'space-between',
             flexWrap: 'wrap',
-            gap: 2,
+            gap: 1,
+            flexShrink: 0,
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <TouchAppRoundedIcon sx={{ color: 'primary.main', fontSize: 24 }} />
-            <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+            <TouchAppRoundedIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+            <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
               3D 엠보싱 촉각 점자 보드 (Tactile Visualization)
             </Typography>
           </Box>
@@ -233,6 +260,7 @@ export function BrailleConverterTab() {
               size="small"
               variant={cellSize === 'small' ? 'contained' : 'outlined'}
               onClick={() => setCellSize('small')}
+              sx={{ minWidth: 44, py: 0.2 }}
             >
               작게
             </Button>
@@ -240,6 +268,7 @@ export function BrailleConverterTab() {
               size="small"
               variant={cellSize === 'medium' ? 'contained' : 'outlined'}
               onClick={() => setCellSize('medium')}
+              sx={{ minWidth: 44, py: 0.2 }}
             >
               중간
             </Button>
@@ -247,24 +276,26 @@ export function BrailleConverterTab() {
               size="small"
               variant={cellSize === 'large' ? 'contained' : 'outlined'}
               onClick={() => setCellSize('large')}
+              sx={{ minWidth: 44, py: 0.2 }}
             >
               크게
             </Button>
           </Box>
         </Box>
 
-        {/* Cells Layout Area */}
         <Box
           sx={{
-            p: 3,
+            p: 2,
             borderRadius: 2,
             bgcolor: 'background.neutral',
-            minHeight: 140,
+            flex: '1 1 auto',
+            minHeight: 0,
             display: 'flex',
             flexWrap: 'wrap',
             gap: cellSize === 'large' ? 2 : 1.2,
-            alignItems: 'center',
-            overflowX: 'auto',
+            alignItems: 'flex-start',
+            alignContent: 'flex-start',
+            overflowY: 'auto',
           }}
         >
           {brailleChars.map((ch, idx) => {
