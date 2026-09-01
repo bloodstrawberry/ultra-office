@@ -75,8 +75,6 @@ export function HomeHero({
             mx: 'auto',
           }}
         >
-
-
           {/* Real-time Search Bar */}
           <Box
             sx={{

@@ -1,4 +1,8 @@
+import { Suspense } from 'react';
+
 import { MainLayout } from 'src/layouts/main';
+
+import { LoadingScreen } from 'src/components/loading-screen';
 
 // ----------------------------------------------------------------------
 
@@ -7,5 +11,9 @@ type Props = {
 };
 
 export default function Layout({ children }: Props) {
-  return <MainLayout>{children}</MainLayout>;
+  return (
+    <MainLayout>
+      <Suspense fallback={<LoadingScreen />}>{children}</Suspense>
+    </MainLayout>
+  );
 }

@@ -345,9 +345,7 @@ export function HomeToolsGrid({
             {categories.map((cat) => {
               const isSelected = selectedCategory === cat;
               const label =
-                cat === 'all'
-                  ? `전체 도구${totalToolsCount ? ` (${totalToolsCount})` : ''}`
-                  : cat;
+                cat === 'all' ? `전체 도구${totalToolsCount ? ` (${totalToolsCount})` : ''}` : cat;
 
               return (
                 <Chip
@@ -366,9 +364,7 @@ export function HomeToolsGrid({
                     borderColor: (t) =>
                       isSelected ? 'primary.main' : alpha(t.palette.divider, 0.16),
                     bgcolor: (t) =>
-                      isSelected
-                        ? t.palette.primary.main
-                        : alpha(t.palette.background.paper, 0.6),
+                      isSelected ? t.palette.primary.main : alpha(t.palette.background.paper, 0.6),
                     '&:hover': {
                       bgcolor: (t) =>
                         isSelected
@@ -475,10 +471,7 @@ export function HomeToolsGrid({
                   일치하는 도구를 찾을 수 없습니다
                 </Typography>
 
-                <Typography
-                  variant="body2"
-                  sx={{ color: 'text.secondary', mb: 3, maxWidth: 400 }}
-                >
+                <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3, maxWidth: 400 }}>
                   입력하신 검색어에 해당하는 도구를 찾을 수 없습니다. 검색어를 변경하거나 필터를
                   초기화해 보세요.
                 </Typography>

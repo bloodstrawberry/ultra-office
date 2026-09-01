@@ -1,5 +1,6 @@
 import 'src/global.css';
 
+import { Suspense } from 'react';
 import type { Metadata, Viewport } from 'next';
 
 import InitColorSchemeScript from '@mui/material/InitColorSchemeScript';
@@ -112,8 +113,10 @@ export default async function RootLayout({ children }: RootLayoutProps) {
             defaultMode={themeConfig.defaultMode}
           >
             <Snackbar />
-            <ProgressBar />
-            {children}
+            <Suspense fallback={null}>
+              <ProgressBar />
+            </Suspense>
+            <Suspense fallback={null}>{children}</Suspense>
           </ThemeProvider>
         </AppRouterCacheProvider>
       </body>
