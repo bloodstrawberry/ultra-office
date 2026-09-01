@@ -3,8 +3,8 @@ import type { JanggiBakboProblem, JanggiPiece } from './types';
 function createJanggiProblem(
   id: string,
   title: string,
-  difficulty: '초급' | '중급' | '고급',
-  category: '연장군 박보' | '외통박보' | '마포연합' | '양차공격' | '상길돌파',
+  difficulty: '초급',
+  category: '연장군 박보' | '외통박보' | '마포연합' | '양차공격',
   targetMoves: number,
   initialPieces: { r: number; c: number; piece: JanggiPiece }[],
   objective: string,
@@ -70,7 +70,7 @@ function createJanggiProblem(
   };
 }
 
-const CORE_JANGGI_PUZZLES: JanggiBakboProblem[] = [
+export const JANGGI_BAKBO_LIST: JanggiBakboProblem[] = [
   createJanggiProblem(
     'janggi-bakbo-1',
     '1. 차·포 연공 2수 외통 박보',
@@ -136,7 +136,7 @@ const CORE_JANGGI_PUZZLES: JanggiBakboProblem[] = [
   createJanggiProblem(
     'janggi-bakbo-3',
     '3. 마·포 콤비네이션 궁성 외통',
-    '중급',
+    '초급',
     '마포연합',
     3,
     [
@@ -167,7 +167,7 @@ const CORE_JANGGI_PUZZLES: JanggiBakboProblem[] = [
   createJanggiProblem(
     'janggi-bakbo-4',
     '4. 고전 명작 ‘초한상쟁’ 연장군 박보',
-    '고급',
+    '초급',
     '연장군 박보',
     4,
     [
@@ -197,38 +197,7 @@ const CORE_JANGGI_PUZZLES: JanggiBakboProblem[] = [
   ),
   createJanggiProblem(
     'janggi-bakbo-5',
-    '5. 상길(象路) 돌파 벼락장군 박보',
-    '중급',
-    '상길돌파',
-    2,
-    [
-      { r: 9, c: 4, piece: { id: 'c-k', type: 'KING', side: 'CHO' } },
-      { r: 5, c: 5, piece: { id: 'c-r1', type: 'CHARIOT', side: 'CHO' } },
-      { r: 2, c: 4, piece: { id: 'c-c1', type: 'CANNON', side: 'CHO' } },
-      { r: 0, c: 5, piece: { id: 'h-k', type: 'KING', side: 'HAN' } },
-      { r: 0, c: 3, piece: { id: 'h-g1', type: 'GUARD', side: 'HAN' } },
-      { r: 1, c: 4, piece: { id: 'h-g2', type: 'GUARD', side: 'HAN' } },
-    ],
-    '초선(楚先) - 6열 차(車)의 직진 돌파력으로 한 궁성을 직격하세요.',
-    '초 차를 (2, 5)로 진입시켜 장군을 부르세요.',
-    [5, 5],
-    [2, 5],
-    '楚 車 6·三 궁성 침투 장군',
-    '정답! 6열을 가로질러 한 궁의 안형을 부수는 차장입니다.',
-    '차는 장애물이 없으면 판의 끝까지 질주하는 최강의 기물입니다.',
-    '다중 장애물 회피 경로 탐색',
-    [0, 5],
-    [0, 4],
-    '漢 宮 5·一 피신',
-    '한 궁이 좌측으로 피합니다.',
-    [2, 5],
-    [0, 5],
-    '楚 車 6·一 횡타 외통수!',
-    '외통 장군! 초나라의 완벽한 승리입니다.'
-  ),
-  createJanggiProblem(
-    'janggi-bakbo-6',
-    '6. 졸(卒) 전진 쐐기장군 외통 박보',
+    '5. 졸(卒) 전진 쐐기장군 외통 박보',
     '초급',
     '외통박보',
     2,
@@ -257,133 +226,4 @@ const CORE_JANGGI_PUZZLES: JanggiBakboProblem[] = [
     '楚 車 4·一 쇄도 외통수!',
     '외통 장군! 사가 비운 자리를 차가 파고들어 승리했습니다.'
   ),
-];
-
-// Generate 100+ Janggi Bakbo problems with 100% legal moves
-function generateFullJanggiLibrary(): JanggiBakboProblem[] {
-  const generated: JanggiBakboProblem[] = [];
-
-  // Group A: 차·포 연공 박보 (35문제)
-  for (let i = 1; i <= 35; i += 1) {
-    const colTarget = 3 + (i % 3); // 3, 4, or 5
-    const diff: '초급' | '중급' | '고급' = i <= 10 ? '초급' : i <= 22 ? '중급' : '고급';
-    const kingEscapeCol = colTarget === 3 ? 4 : colTarget === 5 ? 4 : 3;
-    generated.push(
-      createJanggiProblem(
-        `janggi-lib-chariot-${i}`,
-        `${6 + i}. 실전 차·포 연공 박보 #${i}`,
-        diff,
-        '외통박보',
-        2,
-        [
-          { r: 9, c: 4, piece: { id: `c-k-${i}`, type: 'KING', side: 'CHO' } },
-          { r: 5, c: colTarget, piece: { id: `c-r-${i}`, type: 'CHARIOT', side: 'CHO' } },
-          { r: 2, c: kingEscapeCol, piece: { id: `c-c-${i}`, type: 'CANNON', side: 'CHO' } },
-          { r: 0, c: colTarget, piece: { id: `h-k-${i}`, type: 'KING', side: 'HAN' } },
-          {
-            r: 0,
-            c: colTarget === 4 ? 5 : 4,
-            piece: { id: `h-g-${i}`, type: 'GUARD', side: 'HAN' },
-          },
-        ],
-        `초선(楚先) - 차로 한 궁성의 ${colTarget + 1}열을 강타하여 2수 외통수를 완성하세요.`,
-        `초 차를 (1, ${colTarget})로 전진시켜 직격 장군을 부르세요.`,
-        [5, colTarget],
-        [1, colTarget],
-        `楚 車 ${colTarget + 1}·二 진입 장군`,
-        '정답! 직선을 타고 궁성에 쐐기를 박는 차장입니다.',
-        '궁성 열을 장악하는 전형적인 차포 연공 박보 패턴입니다.',
-        '탐색 트리 가지치기',
-        [0, colTarget],
-        [1, colTarget === 4 ? 4 : colTarget],
-        '漢 宮 피신',
-        '한 궁이 피신합니다.',
-        [1, colTarget],
-        [0, colTarget],
-        '楚 車 궁성 횡타 외통수!',
-        '외통 장군! 초 완승!'
-      )
-    );
-  }
-
-  // Group B: 마·포 연계 박보 (35문제)
-  for (let i = 1; i <= 35; i += 1) {
-    const diff: '초급' | '중급' | '고급' = i <= 10 ? '초급' : i <= 22 ? '중급' : '고급';
-    generated.push(
-      createJanggiProblem(
-        `janggi-lib-horse-${i}`,
-        `${41 + i}. 실전 마·상 침투 박보 #${i}`,
-        diff,
-        '마포연합',
-        3,
-        [
-          { r: 8, c: 4, piece: { id: `c-k-h-${i}`, type: 'KING', side: 'CHO' } },
-          { r: 4, c: 2, piece: { id: `c-h-${i}`, type: 'HORSE', side: 'CHO' } },
-          { r: 5, c: 5, piece: { id: `c-r-${i}`, type: 'CHARIOT', side: 'CHO' } },
-          { r: 0, c: 4, piece: { id: `h-k-${i}`, type: 'KING', side: 'HAN' } },
-          { r: 0, c: 3, piece: { id: `h-g1-${i}`, type: 'GUARD', side: 'HAN' } },
-        ],
-        `초선(楚先) - 마의 멱을 열어 궁성으로 도약해 외통수를 완성하세요.`,
-        '초 마를 (2, 3)으로 도약시켜 선장군을 부르세요.',
-        [4, 2],
-        [2, 3],
-        '楚 馬 4·三 도약 장군',
-        '정답! 한 궁의 앞목을 누르는 정밀한 마장입니다.',
-        '마의 기동성과 멱 차단을 활용한 실전형 박보입니다.',
-        '그래프 장애물 감지 및 경로 최적화',
-        [0, 4],
-        [1, 4],
-        '漢 宮 하강 피신',
-        '한 궁이 아래로 피합니다.',
-        [5, 5],
-        [1, 5],
-        '楚 車 궁성 침투 외통수!',
-        '외통 장군 승리!'
-      )
-    );
-  }
-
-  // Group C: 차·졸 쇄도 박보 (30문제)
-  for (let i = 1; i <= 30; i += 1) {
-    const diff: '초급' | '중급' | '고급' = i <= 10 ? '초급' : i <= 20 ? '중급' : '고급';
-    generated.push(
-      createJanggiProblem(
-        `janggi-lib-soldier-${i}`,
-        `${76 + i}. 졸 쐐기 & 차 돌파 박보 #${i}`,
-        diff,
-        '상길돌파',
-        2,
-        [
-          { r: 9, c: 4, piece: { id: `c-k-e-${i}`, type: 'KING', side: 'CHO' } },
-          { r: 5, c: 5, piece: { id: `c-r-${i}`, type: 'CHARIOT', side: 'CHO' } },
-          { r: 2, c: 4, piece: { id: `c-s-${i}`, type: 'SOLDIER', side: 'CHO' } },
-          { r: 0, c: 5, piece: { id: `h-k-${i}`, type: 'KING', side: 'HAN' } },
-          { r: 0, c: 3, piece: { id: `h-g-${i}`, type: 'GUARD', side: 'HAN' } },
-        ],
-        `초선(楚先) - 차를 직진 침투시켜 한 궁성을 직격하고 외통수를 완성하세요.`,
-        '초 차를 (2, 5)로 진입시켜 장군을 부르세요.',
-        [5, 5],
-        [2, 5],
-        '楚 車 6·三 궁성 침투 장군',
-        '정답! 6열을 돌파하여 한 궁의 안형을 완전히 파괴합니다.',
-        '차의 종단 질주를 활용한 기습 박보입니다.',
-        '다중 장애물 회피 알고리즘',
-        [0, 5],
-        [0, 4],
-        '漢 宮 피신',
-        '한 궁이 좌측으로 피합니다.',
-        [2, 5],
-        [0, 5],
-        '楚 車 6·一 횡타 외통수!',
-        '외통 장군 승리!'
-      )
-    );
-  }
-
-  return generated;
-}
-
-export const JANGGI_BAKBO_LIST: JanggiBakboProblem[] = [
-  ...CORE_JANGGI_PUZZLES,
-  ...generateFullJanggiLibrary(),
 ];

@@ -14,6 +14,47 @@ export function createEmptyJanggiBoard(): JanggiBoard {
   return Array.from({ length: JANGGI_ROWS }, () => Array.from({ length: JANGGI_COLS }, () => null));
 }
 
+export function createStandardJanggiBoard(): JanggiBoard {
+  const board = createEmptyJanggiBoard();
+  // Han (Top, rows 0-3)
+  board[0][0] = { id: 'h-r1', type: 'CHARIOT', side: 'HAN' };
+  board[0][1] = { id: 'h-e1', type: 'ELEPHANT', side: 'HAN' };
+  board[0][2] = { id: 'h-h1', type: 'HORSE', side: 'HAN' };
+  board[0][3] = { id: 'h-g1', type: 'GUARD', side: 'HAN' };
+  board[1][4] = { id: 'h-k', type: 'KING', side: 'HAN' };
+  board[0][5] = { id: 'h-g2', type: 'GUARD', side: 'HAN' };
+  board[0][6] = { id: 'h-e2', type: 'ELEPHANT', side: 'HAN' };
+  board[0][7] = { id: 'h-h2', type: 'HORSE', side: 'HAN' };
+  board[0][8] = { id: 'h-r2', type: 'CHARIOT', side: 'HAN' };
+  board[2][1] = { id: 'h-c1', type: 'CANNON', side: 'HAN' };
+  board[2][7] = { id: 'h-c2', type: 'CANNON', side: 'HAN' };
+  board[3][0] = { id: 'h-s1', type: 'SOLDIER', side: 'HAN' };
+  board[3][2] = { id: 'h-s2', type: 'SOLDIER', side: 'HAN' };
+  board[3][4] = { id: 'h-s3', type: 'SOLDIER', side: 'HAN' };
+  board[3][6] = { id: 'h-s4', type: 'SOLDIER', side: 'HAN' };
+  board[3][8] = { id: 'h-s5', type: 'SOLDIER', side: 'HAN' };
+
+  // Cho (Bottom, rows 6-9)
+  board[9][0] = { id: 'c-r1', type: 'CHARIOT', side: 'CHO' };
+  board[9][1] = { id: 'c-e1', type: 'ELEPHANT', side: 'CHO' };
+  board[9][2] = { id: 'c-h1', type: 'HORSE', side: 'CHO' };
+  board[9][3] = { id: 'c-g1', type: 'GUARD', side: 'CHO' };
+  board[8][4] = { id: 'c-k', type: 'KING', side: 'CHO' };
+  board[9][5] = { id: 'c-g2', type: 'GUARD', side: 'CHO' };
+  board[9][6] = { id: 'c-e2', type: 'ELEPHANT', side: 'CHO' };
+  board[9][7] = { id: 'c-h2', type: 'HORSE', side: 'CHO' };
+  board[9][8] = { id: 'c-r2', type: 'CHARIOT', side: 'CHO' };
+  board[7][1] = { id: 'c-c1', type: 'CANNON', side: 'CHO' };
+  board[7][7] = { id: 'c-c2', type: 'CANNON', side: 'CHO' };
+  board[6][0] = { id: 'c-s1', type: 'SOLDIER', side: 'CHO' };
+  board[6][2] = { id: 'c-s2', type: 'SOLDIER', side: 'CHO' };
+  board[6][4] = { id: 'c-s3', type: 'SOLDIER', side: 'CHO' };
+  board[6][6] = { id: 'c-s4', type: 'SOLDIER', side: 'CHO' };
+  board[6][8] = { id: 'c-s5', type: 'SOLDIER', side: 'CHO' };
+
+  return board;
+}
+
 export function cloneJanggiBoard(board: JanggiBoard): JanggiBoard {
   return board.map((row) => row.map((cell) => (cell ? { ...cell } : null)));
 }

@@ -234,3 +234,57 @@ export function playPuzzleFailedSound(): void {
     // audio error ignore
   }
 }
+
+/** 알까기 튕기기 (Flick / Shoot) 효과음 */
+export function playAlkkagiFlickSound(powerRatio = 0.5): void {
+  if (isSfxMuted()) return;
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    const startFreq = 300 + powerRatio * 500;
+    osc.frequency.setValueAtTime(startFreq, now);
+    osc.frequency.exponentialRampToValueAtTime(80, now + 0.08);
+
+    const volume = 0.15 + powerRatio * 0.25;
+    gain.gain.setValueAtTime(volume, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.1);
+  } catch {
+    // audio error ignore
+  }
+}
+
+/** 알까기 장외 낙하 (Fall off / Drop) 효과음 */
+export function playAlkkagiFallSound(): void {
+  if (isSfxMuted()) return;
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(450, now);
+    osc.frequency.exponentialRampToValueAtTime(60, now + 0.18);
+
+    gain.gain.setValueAtTime(0.2, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.22);
+  } catch {
+    // audio error ignore
+  }
+}

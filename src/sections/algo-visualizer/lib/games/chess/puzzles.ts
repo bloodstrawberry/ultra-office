@@ -3,7 +3,7 @@ import type { ChessPuzzle } from './types';
 function createChessPuzzle(
   id: string,
   title: string,
-  difficulty: '초급' | '중급' | '고급',
+  difficulty: '초급',
   category: string,
   fen: string,
   objective: string,
@@ -67,7 +67,7 @@ function createChessPuzzle(
   };
 }
 
-const CORE_CHESS_PUZZLES: ChessPuzzle[] = [
+export const CHESS_PUZZLE_LIST: ChessPuzzle[] = [
   createChessPuzzle(
     'chess-back-rank',
     '1. 백랭크 메이트 (Back-Rank Mate)',
@@ -84,23 +84,8 @@ const CORE_CHESS_PUZZLES: ChessPuzzle[] = [
     '경계면 차단 및 1차원 이동 제약 상태 도출'
   ),
   createChessPuzzle(
-    'chess-smothered-mate',
-    '2. 필리도어 질식 체크메이트 (Smothered Mate)',
-    '중급',
-    '질식 메이트',
-    '6k1/5Npp/8/8/8/8/4Q3/6K1 w - - 0 1',
-    '백선(White to move) - 나이트의 도약력을 활용하여 흑 킹을 질식 메이트하세요.',
-    '나이트를 활용하거나 퀸을 e8로 직격하세요.',
-    [6, 4],
-    [0, 4],
-    'Qe8#',
-    '정답! 나이트가 f7에서 킹을 조이고 퀸이 e8을 강타합니다.',
-    '질식 메이트는 상대 기물들에 둘러싸여 움직이지 못하는 킹을 나이트의 장애물 무시 도약 능력으로 끝내는 전술입니다.',
-    '위치 독립적 그래프 점프 및 고립 노드 타겟팅'
-  ),
-  createChessPuzzle(
     'chess-royal-fork',
-    '3. 로열 포크 (Royal Fork)',
+    '2. 로열 포크 (Royal Fork)',
     '초급',
     '로열 포크',
     'r3k3/8/8/3N4/8/8/8/4K3 w - - 0 1',
@@ -122,158 +107,64 @@ const CORE_CHESS_PUZZLES: ChessPuzzle[] = [
     '룩 포획 성공! 백의 압도적 기물 우위로 승세를 굳힙니다.'
   ),
   createChessPuzzle(
-    'chess-opera-mate',
-    '4. 모피의 오페라 극장 메이트 (Opera House Mate)',
-    '고급',
-    '오페라 메이트',
-    '4kb1r/p2n1ppp/4p3/3p4/8/8/4BPPP/1R1K4 w k - 0 1',
-    '백선(White to move) - 비숍과 룩의 합동 공격으로 흑 킹을 구석에 몰아넣으세요.',
-    '룩을 b8로 진입시켜 체크를 부르세요.',
-    [7, 1],
-    [0, 1],
-    'Rb8+',
-    '정답! 룩이 8번 랭크를 강타하며 비숍의 대각선과 함께 체크를 완성합니다.',
-    '폴 모피가 파리 오페라 극장에서 보여준 전설적인 메이트 조합으로 룩과 비숍의 완벽한 협동 공격입니다.',
-    '교차 축 제약 조건 증명',
-    [1, 3],
-    [0, 1],
-    'Nxb8',
-    '흑 나이트가 룩을 따냅니다.',
+    'chess-bishop-pin',
+    '3. 비숍 핀 & 룩 침투 (Pin & Checkmate)',
+    '초급',
+    '핀 공격',
+    '4k3/4p3/8/8/8/8/4B3/4K1R1 w - - 0 1',
+    '백선(White to move) - 비숍으로 e7 폰을 핀(Pin)에 묶은 뒤 룩으로 백랭크를 공략하세요.',
+    '비숍을 b5로 올려 킹을 직접 체크하세요.',
     [6, 4],
     [3, 1],
     'Bb5+',
-    '비숍 핀 공격으로 흑의 방어를 완전히 분쇄했습니다!'
-  ),
-  createChessPuzzle(
-    'chess-greek-gift',
-    '5. 그리스의 선물 (Greek Gift Sacrifice - Bxh7+)',
-    '고급',
-    '그리스의 선물',
-    'r1bq1rk1/ppp2ppp/2n1pn2/3p4/3P4/2NBPN2/PPP2PPP/R2QK2R w KQ - 0 1',
-    '백선(White to move) - h7 폰을 비숍으로 희생하여 흑 킹의 성벽을 파괴하세요.',
-    '비숍(d3)을 h7로 돌진시켜 체크를 부르세요.',
-    [5, 3],
-    [1, 7],
-    'Bxh7+',
-    '정답! 그리스의 선물 비숍 희생! 흑 킹의 폰 방어막이 완전히 붕괴됩니다.',
-    '캐슬링 진영의 h7 폰을 비숍으로 파괴하여 킹을 노출시킨 뒤 나이트와 퀸이 진입하여 끝내는 클래식 희생 전술입니다.',
-    '국소 최적해 파괴를 통한 전역 최적해 유도',
+    '정답! 비숍의 날카로운 핀 체크입니다.',
+    '상대 기물이 킹 앞에 묶여 이동할 수 없게 만드는 핀(Pin) 전술입니다.',
+    '상태 전이 고정(State Pinning) 기법',
+    [0, 4],
+    [0, 3],
+    'Kd8',
+    '흑 킹이 피신합니다.',
+    [7, 6],
     [0, 6],
-    [1, 7],
-    'Kxh7',
-    '흑 킹이 비숍을 따냅니다.',
-    [5, 5],
-    [3, 6],
-    'Ng5+',
-    '나이트와 퀸(Qh5)의 연계 체크로 결정적 승기를 잡았습니다!'
+    'Rg8#',
+    '체크메이트! 룩이 8번 랭크를 강타하여 승리했습니다.'
   ),
   createChessPuzzle(
-    'chess-discovered-attack',
-    '6. 핀 & 디스커버드 어택 (Discovered Attack)',
-    '중급',
-    '디스커버드',
-    'r1b1k2r/pppp1ppp/2n5/4p3/2B1P3/3P1N2/PPP2PPP/R2QK2R w KQkq - 0 1',
-    '백선(White to move) - 나이트를 g5로 전진하여 f7 약점을 디스커버드로 타격하세요.',
-    '나이트(f3)를 g5로 이동하여 비숍과 함께 f7 폰을 조준하세요.',
-    [5, 5],
-    [3, 6],
-    'Ng5',
-    '정답! 비숍과 나이트가 f7 급소를 동시에 겨냥하여 흑의 진영을 붕괴시킵니다.',
-    '가리고 있던 기물이 이동하면서 뒤에 있던 기물의 공격선이 열려 치명타를 가하는 전술입니다.',
-    '잠재적 레이캐스트 개방 및 다중 공격 벡터 활성화'
+    'chess-ladder-mate',
+    '4. 룩 & 퀸 계단 체크메이트 (Ladder Mate)',
+    '초급',
+    '계단 메이트',
+    'k7/8/1R6/8/8/2Q5/8/4K3 w - - 0 1',
+    '백선(White to move) - 퀸과 룩을 계단처럼 번갈아 전진시켜 흑 킹을 구석에서 잡으세요.',
+    '퀸을 c7로 올려 7번 랭크를 차단하세요.',
+    [5, 2],
+    [1, 2],
+    'Qc7',
+    '정답! 퀸이 7번 랭크의 모든 탈출로를 완벽히 봉쇄했습니다.',
+    '두 개의 중기물(퀸/룩)이 번갈아 랭크를 차단하며 킹을 끝으로 모는 계단 체크메이트입니다.',
+    '경계 축소(Bounding Box Shrinking) 탐색',
+    [0, 0],
+    [0, 1],
+    'Ka8',
+    '흑 킹이 a8 구석으로 피합니다.',
+    [2, 1],
+    [0, 1],
+    'Rb8#',
+    '체크메이트! 룩이 8번 랭크를 침투하여 승리했습니다.'
   ),
-];
-
-// Generate 100+ Chess Tactical Puzzles
-function generateFullChessLibrary(): ChessPuzzle[] {
-  const generated: ChessPuzzle[] = [];
-
-  // Group A: 랭크 침투 메이트 (35문제)
-  for (let i = 1; i <= 35; i += 1) {
-    const diff: '초급' | '중급' | '고급' = i <= 10 ? '초급' : i <= 22 ? '중급' : '고급';
-    generated.push(
-      createChessPuzzle(
-        `chess-lib-mate-${i}`,
-        `${6 + i}. 실전 랭크 침투 체크메이트 #${i}`,
-        diff,
-        '체크메이트',
-        '5rk1/5ppp/8/8/4Q3/8/5PPP/4R1K1 w - - 0 1',
-        `백선(White to move) - 8번 랭크를 침투하여 승리하세요 (패턴 #${i}).`,
-        '퀸을 e8로 올려 체크메이트를 노리세요.',
-        [4, 4],
-        [0, 4],
-        'Qe8#',
-        '체크메이트! 흑 진영이 완벽히 붕괴되었습니다.',
-        '실전에서 가장 빈번히 등장하는 랭크 침투 메이트 패턴입니다.',
-        '탐색 트리 컷오프',
-        [0, 5],
-        [0, 4],
-        'Rxe8',
-        '흑 룩이 퀸을 잡습니다.',
-        [7, 4],
-        [0, 4],
-        'Rxe8#',
-        '룩 재진입으로 체크메이트 완성!'
-      )
-    );
-  }
-
-  // Group B: 포크 & 스큐어 전술 (35문제)
-  for (let i = 1; i <= 35; i += 1) {
-    const diff: '초급' | '중급' | '고급' = i <= 10 ? '초급' : i <= 22 ? '중급' : '고급';
-    generated.push(
-      createChessPuzzle(
-        `chess-lib-fork-${i}`,
-        `${41 + i}. 실전 포크 & 스큐어 전술 #${i}`,
-        diff,
-        '포크/스큐어',
-        '4k3/8/8/3N4/8/8/8/4K2R w K - 0 1',
-        `백선(White to move) - 나이트 전진으로 결정적 포크를 가하세요 (패턴 #${i}).`,
-        '나이트를 f6으로 전진시키세요.',
-        [3, 3],
-        [2, 5],
-        'Nf6+',
-        '정답! 나이트 포크 체크로 상대 진영을 뒤흔듭니다.',
-        '상대 킹의 동선을 제한하며 기물 우위를 확보하는 테크닉입니다.',
-        '분기 예측 및 휴리스틱 가치 평가',
-        [0, 4],
-        [1, 4],
-        'Ke7',
-        '흑 킹이 피신합니다.',
-        [2, 5],
-        [0, 6],
-        'Nxh7',
-        '기물 포획 성공!'
-      )
-    );
-  }
-
-  // Group C: 핀 & 디스커버드 전술 (30문제)
-  for (let i = 1; i <= 30; i += 1) {
-    const diff: '초급' | '중급' | '고급' = i <= 10 ? '초급' : i <= 20 ? '중급' : '고급';
-    generated.push(
-      createChessPuzzle(
-        `chess-lib-pin-${i}`,
-        `${76 + i}. 실전 핀 & 디스커버드 전술 #${i}`,
-        diff,
-        '디스커버드',
-        'r1bqk2r/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1',
-        `백선(White to move) - 비숍과 나이트의 협공으로 f7 급소를 타격하세요 (패턴 #${i}).`,
-        '나이트를 g5로 이동시키세요.',
-        [5, 5],
-        [3, 6],
-        'Ng5',
-        '정답! f7 지점을 집중 타격하여 승기를 잡습니다.',
-        '기물간의 상호 보호선과 핀을 이용한 핵심 전술입니다.',
-        '레이캐스트 충돌 감지 알고리즘'
-      )
-    );
-  }
-
-  return generated;
-}
-
-export const CHESS_PUZZLE_LIST: ChessPuzzle[] = [
-  ...CORE_CHESS_PUZZLES,
-  ...generateFullChessLibrary(),
+  createChessPuzzle(
+    'chess-scholars-mate',
+    '5. 1수 체크메이트 - 퀸 f7 침투 (Scholar Pattern)',
+    '초급',
+    '체크메이트',
+    'r1bqkb1r/pppp1ppp/2n5/4p3/2B1n3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 1',
+    '백선(White to move) - f7 약점을 퀸으로 직접 타격하여 1수 만에 체크메이트를 완성하세요.',
+    '퀸(f3)으로 f7 폰을 잡으며 체크메이트하세요.',
+    [5, 5],
+    [1, 5],
+    'Qxf7#',
+    '체크메이트! 퀸이 비숍의 호위를 받으며 f7을 강타해 1수 만에 승리했습니다.',
+    '초반 오프닝에서 킹의 가장 취약한 f7 지점을 공략하는 클래식 체크메이트 패턴입니다.',
+    '취약점 집중 공격(Vulnerability Exploitation)'
+  ),
 ];

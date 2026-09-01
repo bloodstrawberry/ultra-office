@@ -324,20 +324,20 @@ export const TOOLS_DATA: ToolItem[] = [
   {
     id: 'photo',
     title: '사진 편집 스튜디오',
-    subtitle: '18종 그래픽 & 아티스틱 크리에이터',
+    subtitle: '19종 그래픽 & 아티스틱 크리에이터',
     description:
-      '14종 예술 화풍 변환, 정밀 크기 조절(리사이즈), 모자이크/블러, 워터마크, 로고/썸네일 제작, 픽셀 아트, 스마트 스캐너 등 전문 사진 도구를 제공합니다.',
+      '14종 예술 화풍 변환, 여백 조정, 정밀 크기 조절(리사이즈), 모자이크/블러, 워터마크, 로고/썸네일 제작, 픽셀 아트, 스마트 스캐너 등 전문 사진 도구를 제공합니다.',
     category: 'media',
     path: paths.photo.root,
-    tag: '18종 세부도구',
+    tag: '19종 세부도구',
     tagColor: 'secondary',
     isFeatured: false,
     accentColor: '#A855F7', // Violet
     iconKey: 'photo',
     features: [
+      '스마트 여백 조정 & 그라데이션/블러 배경 확장',
       '너비/높이/퍼센트 정밀 이미지 크기 조절',
       '14종 예술 화풍 변환 & 아티스틱 스튜디오',
-      '픽셀/글리치 아트 & 디지털 풍화 효과',
       '모자이크 & 블러 비식별화',
     ],
   },

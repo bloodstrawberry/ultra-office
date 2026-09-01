@@ -73,3 +73,42 @@ for (const p of CHESS_PUZZLE_LIST) {
   }
 }
 console.log('Chess failures:', cFail);
+
+import { OTHELLO_PUZZLE_LIST } from '../src/sections/algo-visualizer/lib/games/othello/puzzles.ts';
+import { createEmptyOthelloBoard, applyOthelloMove } from '../src/sections/algo-visualizer/lib/games/othello/engine.ts';
+
+console.log('\n=== 4. TESTING OTHELLO PUZZLES (' + OTHELLO_PUZZLE_LIST.length + ') ===');
+let oFail = 0;
+for (const p of OTHELLO_PUZZLE_LIST) {
+  const board = createEmptyOthelloBoard();
+  for (const b of p.initialBlack) board[b.r][b.c] = 'B';
+  for (const w of p.initialWhite) board[w.r][w.c] = 'W';
+
+  for (const node of p.solutionTree) {
+    const res = applyOthelloMove(board, node.move, 'B');
+    if (!res.valid) {
+      console.error(`[OTHELLO FAIL] ${p.id} (${p.title}): Move (${node.move.r},${node.move.c}) ILLEGAL!`);
+      oFail++;
+    }
+  }
+}
+console.log('Othello failures:', oFail);
+
+import { GOMOKU_PUZZLE_LIST } from '../src/sections/algo-visualizer/lib/games/gomoku/puzzles.ts';
+import { createEmptyGomokuBoard } from '../src/sections/algo-visualizer/lib/games/gomoku/engine.ts';
+
+console.log('\n=== 5. TESTING GOMOKU PUZZLES (' + GOMOKU_PUZZLE_LIST.length + ') ===');
+let gFail = 0;
+for (const p of GOMOKU_PUZZLE_LIST) {
+  const board = createEmptyGomokuBoard();
+  for (const b of p.initialBlack) board[b.r][b.c] = 'B';
+  for (const w of p.initialWhite) board[w.r][w.c] = 'W';
+
+  for (const node of p.solutionTree) {
+    if (board[node.move.r][node.move.c] !== null) {
+      console.error(`[GOMOKU FAIL] ${p.id} (${p.title}): Move (${node.move.r},${node.move.c}) OCCUPIED!`);
+      gFail++;
+    }
+  }
+}
+console.log('Gomoku failures:', gFail);

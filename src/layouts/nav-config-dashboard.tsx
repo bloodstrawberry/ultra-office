@@ -154,6 +154,7 @@ export const navData: NavSectionProps['data'] = [
         icon: ICONS.photo,
         children: [
           { title: 'AI 배경 제거', path: paths.photo.bgRemove },
+          { title: '여백 조정', path: paths.photo.padding },
           { title: '스마트 OCR', path: paths.ocr },
           { title: 'Color Picker', path: paths.photo.colorPicker },
           { title: '사진 용량 압축', path: paths.photo.compress },
@@ -178,6 +179,17 @@ export const navData: NavSectionProps['data'] = [
           { title: 'GIF 프레임 분할 · 추출', path: paths.gifStudio.split },
           { title: 'GIF 배경색 변경 · 투명화', path: paths.gifStudio.bg },
           { title: 'GIF 속도 조절 & 역재생', path: paths.gifStudio.speed },
+        ],
+      },
+      {
+        title: '동영상 편집 스튜디오',
+        path: paths.videoMaster.root,
+        icon: ICONS.videoMaster,
+        children: [
+          { title: '동영상 종합 편집기', path: paths.videoMaster.root },
+          { title: '동영상 자르기', path: paths.videoMaster.trim },
+          { title: '동영상 붙이기', path: paths.videoMaster.merge },
+          { title: '동영상 AI 워터마크 각인', path: paths.videoMaster.aiWatermark },
         ],
       },
       {
@@ -227,6 +239,9 @@ export const navData: NavSectionProps['data'] = [
           { title: '바둑 사활 & 묘수풀이', path: paths.algo.baduk },
           { title: '장기 박보 & 묘수풀이', path: paths.algo.janggi },
           { title: '체스 전술 & 퍼즐풀이', path: paths.algo.chess },
+          { title: '오셀로 전술 & 리버시', path: paths.algo.othello },
+          { title: '오목 전술 & 5목 대국', path: paths.algo.gomoku },
+          { title: '피직스 알까기 (바둑/장기)', path: paths.algo.alkkagi },
         ],
       },
       {
@@ -343,11 +358,6 @@ export const navData: NavSectionProps['data'] = [
   {
     subheader: 'Graphic & Media',
     items: [
-      {
-        title: '동영상 편집 스튜디오',
-        path: paths.videoMaster,
-        icon: ICONS.videoMaster,
-      },
       { title: '다이어그램', path: paths.diagram, icon: ICONS.diagram },
       { title: '이미지 툴킷', path: paths.imageTool, icon: ICONS.imageTool },
     ],

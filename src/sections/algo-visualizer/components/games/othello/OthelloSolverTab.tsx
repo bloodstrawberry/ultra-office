@@ -9,8 +9,6 @@ import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
-import TextField from '@mui/material/TextField';
-import InputAdornment from '@mui/material/InputAdornment';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import ToggleButton from '@mui/material/ToggleButton';
@@ -23,9 +21,6 @@ import LightbulbRoundedIcon from '@mui/icons-material/LightbulbRounded';
 import HelpOutlineRoundedIcon from '@mui/icons-material/HelpOutlineRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
-import LayersRoundedIcon from '@mui/icons-material/LayersRounded';
-import InvertColorsRoundedIcon from '@mui/icons-material/InvertColorsRounded';
-import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import NavigateNextRoundedIcon from '@mui/icons-material/NavigateNextRounded';
 import NavigateBeforeRoundedIcon from '@mui/icons-material/NavigateBeforeRounded';
 import ShuffleRoundedIcon from '@mui/icons-material/ShuffleRounded';
@@ -34,76 +29,79 @@ import ListAltRoundedIcon from '@mui/icons-material/ListAltRounded';
 import MenuBookRoundedIcon from '@mui/icons-material/MenuBookRounded';
 import SportsEsportsRoundedIcon from '@mui/icons-material/SportsEsportsRounded';
 import DeleteSweepRoundedIcon from '@mui/icons-material/DeleteSweepRounded';
-import EditRoundedIcon from '@mui/icons-material/EditRounded';
-import GridViewRoundedIcon from '@mui/icons-material/GridViewRounded';
+import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
 
-import { BadukBoard } from './BadukBoard';
+import { OthelloBoard } from './OthelloBoard';
 import { GameAlgorithmInspector } from '../common/GameAlgorithmInspector';
-import { BADUK_PUZZLE_LIST } from '../../../lib/games/baduk/puzzles';
+import { OTHELLO_PUZZLE_LIST } from '../../../lib/games/othello/puzzles';
 import {
   playBadukStoneSound,
   playPuzzleSolvedSound,
   playPuzzleFailedSound,
 } from '../../../lib/games/gameSounds';
-import { playMove, createEmptyBoard, formatBadukCoord } from '../../../lib/games/baduk/engine';
 import {
-  analyzeBadukPosition,
-  findBestBadukAIMove,
-  findMatchingSolutionNode,
-} from '../../../lib/games/baduk/solver';
+  OTHELLO_SIZE,
+  applyOthelloMove,
+  countOthelloDiscs,
+  formatOthelloCoord,
+  getValidOthelloMoves,
+  createEmptyOthelloBoard,
+  createStandardOthelloBoard,
+} from '../../../lib/games/othello/engine';
 import {
-  type Point,
-  type BoardGrid,
-  type StoneColor,
-  type BadukProblem,
-  type BadukAIAnalysis,
-  type BadukSolutionNode,
-} from '../../../lib/games/baduk/types';
+  analyzeOthelloPosition,
+  findBestOthelloAIMove,
+  findMatchingOthelloNode,
+} from '../../../lib/games/othello/solver';
+import {
+  type OthelloGrid,
+  type OthelloPoint,
+  type OthelloColor,
+  type OthelloProblem,
+  type OthelloAIAnalysis,
+  type OthelloSolutionNode,
+} from '../../../lib/games/othello/types';
 
 type TabMode = 'puzzle' | 'sandbox';
 type PlacementTool = 'play' | 'black' | 'white' | 'eraser';
 
-export function BadukSolverTab() {
+export function OthelloSolverTab() {
   const [hasLoaded, setHasLoaded] = useState(false);
   const [tabMode, setTabMode] = useState<TabMode>('puzzle');
 
   // ================= Puzzle Mode States =================
   const [selectedProblemIndex, setSelectedProblemIndex] = useState<number>(0);
-  const [currentProblem, setCurrentProblem] = useState<BadukProblem>(BADUK_PUZZLE_LIST[0]);
+  const [currentProblem, setCurrentProblem] = useState<OthelloProblem>(OTHELLO_PUZZLE_LIST[0]);
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
 
-  const [board, setBoard] = useState<BoardGrid>(() => createEmptyBoard(9));
-  const [history, setHistory] = useState<BoardGrid[]>([]);
-  const [lastMove, setLastMove] = useState<Point | null>(null);
-  const [turn, setTurn] = useState<StoneColor>('B');
+  const [board, setBoard] = useState<OthelloGrid>(() => createEmptyOthelloBoard());
+  const [history, setHistory] = useState<OthelloGrid[]>([]);
+  const [lastMove, setLastMove] = useState<OthelloPoint | null>(null);
+  const [turn, setTurn] = useState<OthelloColor>('B');
   const [isAIMoving, setIsAIMoving] = useState<boolean>(false);
 
-  const [currentNodeTree, setCurrentNodeTree] = useState<BadukSolutionNode[]>([]);
+  const [currentNodeTree, setCurrentNodeTree] = useState<OthelloSolutionNode[]>([]);
   const [statusMessage, setStatusMessage] = useState<string>('');
   const [isSolved, setIsSolved] = useState<boolean>(false);
   const [isFailed, setIsFailed] = useState<boolean>(false);
   const [showHint, setShowHint] = useState<boolean>(false);
   const [showSolution, setShowSolution] = useState<boolean>(false);
+  const [aiAnalysis, setAiAnalysis] = useState<OthelloAIAnalysis | null>(null);
 
   // ================= Sandbox Mode States =================
-  const [sandboxBoardSize, setSandboxBoardSize] = useState<number>(9);
-  const [sandboxBoard, setSandboxBoard] = useState<BoardGrid>(() => createEmptyBoard(9));
-  const [sandboxHistory, setSandboxHistory] = useState<BoardGrid[]>([]);
-  const [sandboxTurn, setSandboxTurn] = useState<StoneColor>('B');
+  const [sandboxBoard, setSandboxBoard] = useState<OthelloGrid>(() => createStandardOthelloBoard());
+  const [sandboxHistory, setSandboxHistory] = useState<OthelloGrid[]>([]);
+  const [sandboxLastMove, setSandboxLastMove] = useState<OthelloPoint | null>(null);
+  const [sandboxTurn, setSandboxTurn] = useState<OthelloColor>('B');
   const [placementTool, setPlacementTool] = useState<PlacementTool>('play');
-  const [blackCaptures, setBlackCaptures] = useState(0);
-  const [whiteCaptures, setWhiteCaptures] = useState(0);
-  const [sandboxLastMove, setSandboxLastMove] = useState<Point | null>(null);
+  const [sandboxAnalysis, setSandboxAnalysis] = useState<OthelloAIAnalysis | null>(null);
 
-  // Overlays
-  const [showLiberties, setShowLiberties] = useState<boolean>(true);
-  const [showInfluence, setShowInfluence] = useState<boolean>(false);
-  const [aiAnalysis, setAiAnalysis] = useState<BadukAIAnalysis | null>(null);
+  const discCounts = useMemo(() => {
+    return tabMode === 'puzzle' ? countOthelloDiscs(board) : countOthelloDiscs(sandboxBoard);
+  }, [tabMode, board, sandboxBoard]);
 
-  // Load problem setup
-  const setupProblem = useCallback((problem: BadukProblem) => {
-    const newBoard = createEmptyBoard(problem.boardSize);
+  const setupProblem = useCallback((problem: OthelloProblem) => {
+    const newBoard = createEmptyOthelloBoard();
     for (const b of problem.initialBlack) {
       newBoard[b.r][b.c] = 'B';
     }
@@ -123,22 +121,23 @@ export function BadukSolverTab() {
     setShowHint(false);
     setShowSolution(false);
 
-    const analysis = analyzeBadukPosition(newBoard, problem.playerColor, problem.focusRegion);
+    const analysis = analyzeOthelloPosition(newBoard, problem.playerColor);
     setAiAnalysis(analysis);
   }, []);
 
   useEffect(() => {
     setHasLoaded(true);
-    setupProblem(BADUK_PUZZLE_LIST[0]);
-    const initSandbox = createEmptyBoard(9);
-    setSandboxBoard(initSandbox);
-    setSandboxHistory([initSandbox]);
+    setupProblem(OTHELLO_PUZZLE_LIST[0]);
+    const initStd = createStandardOthelloBoard();
+    setSandboxBoard(initStd);
+    setSandboxHistory([initStd]);
+    setSandboxAnalysis(analyzeOthelloPosition(initStd, 'B'));
   }, [setupProblem]);
 
   const handleSelectProblemIndex = (index: number) => {
-    if (index >= 0 && index < BADUK_PUZZLE_LIST.length) {
+    if (index >= 0 && index < OTHELLO_PUZZLE_LIST.length) {
       setSelectedProblemIndex(index);
-      const prob = BADUK_PUZZLE_LIST[index];
+      const prob = OTHELLO_PUZZLE_LIST[index];
       setCurrentProblem(prob);
       setupProblem(prob);
       setIsCatalogOpen(false);
@@ -152,13 +151,13 @@ export function BadukSolverTab() {
   };
 
   const handleNextProblem = () => {
-    if (selectedProblemIndex < BADUK_PUZZLE_LIST.length - 1) {
+    if (selectedProblemIndex < OTHELLO_PUZZLE_LIST.length - 1) {
       handleSelectProblemIndex(selectedProblemIndex + 1);
     }
   };
 
   const handleRandomProblem = () => {
-    const randomIndex = Math.floor(Math.random() * BADUK_PUZZLE_LIST.length);
+    const randomIndex = Math.floor(Math.random() * OTHELLO_PUZZLE_LIST.length);
     handleSelectProblemIndex(randomIndex);
   };
 
@@ -181,29 +180,24 @@ export function BadukSolverTab() {
     setIsFailed(false);
     setStatusMessage('수를 물렀습니다. 흑(Black)의 다음 착수를 선택하세요.');
 
-    const analysis = analyzeBadukPosition(
-      targetBoard,
-      currentProblem.playerColor,
-      currentProblem.focusRegion
-    );
+    const analysis = analyzeOthelloPosition(targetBoard, 'B');
     setAiAnalysis(analysis);
   };
 
-  const handlePlayMove = (r: number, c: number) => {
+  const handlePlaceDisc = (p: OthelloPoint) => {
     if (isSolved || isFailed || isAIMoving || turn !== 'B') return;
 
-    const moveRes = playMove(board, { r, c }, 'B');
+    const moveRes = applyOthelloMove(board, p, 'B');
     if (!moveRes.valid || !moveRes.newBoard) return;
 
     playBadukStoneSound();
     const nextBoard = moveRes.newBoard;
     setBoard(nextBoard);
     setHistory((prev) => [...prev, nextBoard]);
-    setLastMove({ r, c });
+    setLastMove(p);
     setTurn('W');
 
-    // Check solution match
-    const matchingNode = findMatchingSolutionNode(currentNodeTree, { r, c });
+    const matchingNode = findMatchingOthelloNode(currentNodeTree, p);
 
     if (matchingNode) {
       if (matchingNode.comment) {
@@ -214,7 +208,7 @@ export function BadukSolverTab() {
         setIsAIMoving(true);
         setTimeout(() => {
           const aiMove = matchingNode.aiResponse!;
-          const aiRes = playMove(nextBoard, aiMove, 'W');
+          const aiRes = applyOthelloMove(nextBoard, aiMove, 'W');
           if (aiRes.valid && aiRes.newBoard) {
             playBadukStoneSound();
             setBoard(aiRes.newBoard);
@@ -232,11 +226,8 @@ export function BadukSolverTab() {
             } else {
               setIsSolved(true);
               playPuzzleSolvedSound();
-              setStatusMessage('축하합니다! 사활 문제를 완벽하게 풀어냈습니다.');
+              setStatusMessage('축하합니다! 오셀로 전술 퍼즐을 완벽하게 풀어냈습니다.');
             }
-          } else {
-            setIsAIMoving(false);
-            setTurn('B');
           }
         }, 500);
       } else {
@@ -245,32 +236,26 @@ export function BadukSolverTab() {
         setStatusMessage(matchingNode.comment || '정답입니다! 묘수를 찾아냈습니다.');
       }
     } else {
-      // Dynamic AI counter-move
+      // Dynamic AI move
       setIsAIMoving(true);
-      setStatusMessage(
-        `흑 ${formatBadukCoord({ r, c }, currentProblem.boardSize)} 착수. 백(AI)이 수읽기 중입니다...`
-      );
+      setStatusMessage(`흑 ${formatOthelloCoord(p)} 착수. 백(AI)이 수읽기 중입니다...`);
 
       setTimeout(() => {
-        const { move: aiMove, reason } = findBestBadukAIMove(
-          nextBoard,
-          'W',
-          currentProblem.focusRegion
-        );
+        const { move: aiMove, reason } = findBestOthelloAIMove(nextBoard, 'W', 3);
 
         if (aiMove) {
-          const aiRes = playMove(nextBoard, aiMove, 'W');
+          const aiRes = applyOthelloMove(nextBoard, aiMove, 'W');
           if (aiRes.valid && aiRes.newBoard) {
             playBadukStoneSound();
             setBoard(aiRes.newBoard);
             setHistory((prev) => [...prev, aiRes.newBoard!]);
             setLastMove(aiMove);
             setStatusMessage(
-              `백이 ${formatBadukCoord(aiMove, currentProblem.boardSize)}에 응수했습니다 (${reason}). 흑의 다음 수를 두세요!`
+              `백이 ${formatOthelloCoord(aiMove)}에 응수했습니다 (${reason}). 흑의 다음 수를 두세요!`
             );
           }
         } else {
-          setStatusMessage('백이 더 이상 둘 곳이 없습니다. 흑의 승세입니다!');
+          setStatusMessage('백이 둘 곳이 없어 패스(Pass)했습니다. 흑의 연속 착수 기회입니다!');
         }
 
         setIsAIMoving(false);
@@ -278,11 +263,7 @@ export function BadukSolverTab() {
       }, 500);
     }
 
-    const analysis = analyzeBadukPosition(
-      nextBoard,
-      currentProblem.playerColor,
-      currentProblem.focusRegion
-    );
+    const analysis = analyzeOthelloPosition(nextBoard, 'B');
     setAiAnalysis(analysis);
   };
 
@@ -293,29 +274,25 @@ export function BadukSolverTab() {
       setTimeout(() => {
         const firstNode = currentProblem.solutionTree[0];
         if (firstNode) {
-          handlePlayMove(firstNode.move.r, firstNode.move.c);
+          handlePlaceDisc(firstNode.move);
         }
       }, 150);
       return;
     }
     const targetNode = currentNodeTree[0];
     if (targetNode) {
-      handlePlayMove(targetNode.move.r, targetNode.move.c);
+      handlePlaceDisc(targetNode.move);
     }
   };
 
-  const getBadukSolutionSteps = (problem: BadukProblem) => {
+  const getOthelloSolutionSteps = (problem: OthelloProblem) => {
     const steps: string[] = [];
-    const traverse = (nodes: BadukSolutionNode[], stepNum: number) => {
+    const traverse = (nodes: OthelloSolutionNode[], stepNum: number) => {
       if (!nodes || nodes.length === 0) return;
       const node = nodes[0];
-      steps.push(
-        `${stepNum}수: 흑(黑) ${formatBadukCoord(node.move, problem.boardSize)} (${node.move.r}, ${node.move.c}) 착수`
-      );
+      steps.push(`${stepNum}수: 흑(Black) ${formatOthelloCoord(node.move)} 착수`);
       if (node.aiResponse) {
-        steps.push(
-          `${stepNum + 1}수: 백(白) ${formatBadukCoord(node.aiResponse, problem.boardSize)} (${node.aiResponse.r}, ${node.aiResponse.c}) 응수`
-        );
+        steps.push(`${stepNum + 1}수: 백(White) ${formatOthelloCoord(node.aiResponse)} 응수`);
         if (node.children) {
           traverse(node.children, stepNum + 2);
         }
@@ -326,68 +303,67 @@ export function BadukSolverTab() {
   };
 
   // ================= Sandbox Handlers =================
-  const handleChangeBoardSize = (newSize: number) => {
-    setSandboxBoardSize(newSize);
-    const newB = createEmptyBoard(newSize);
-    setSandboxBoard(newB);
-    setSandboxHistory([newB]);
+  const handleSandboxResetStandard = () => {
+    const std = createStandardOthelloBoard();
+    setSandboxBoard(std);
+    setSandboxHistory([std]);
     setSandboxLastMove(null);
-    setBlackCaptures(0);
-    setWhiteCaptures(0);
     setSandboxTurn('B');
+    setSandboxAnalysis(analyzeOthelloPosition(std, 'B'));
   };
 
-  const handleSandboxClear = () => {
-    const newB = createEmptyBoard(sandboxBoardSize);
-    setSandboxBoard(newB);
-    setSandboxHistory([newB]);
+  const handleSandboxClearBoard = () => {
+    const empty = createEmptyOthelloBoard();
+    setSandboxBoard(empty);
+    setSandboxHistory([empty]);
     setSandboxLastMove(null);
-    setBlackCaptures(0);
-    setWhiteCaptures(0);
     setSandboxTurn('B');
+    setSandboxAnalysis(null);
   };
 
   const handleSandboxUndo = () => {
     if (sandboxHistory.length <= 1) return;
-    const nextHistory = sandboxHistory.slice(0, sandboxHistory.length - 1);
-    const targetB = nextHistory[nextHistory.length - 1];
-    setSandboxBoard(targetB);
-    setSandboxHistory(nextHistory);
+    const nextHist = sandboxHistory.slice(0, sandboxHistory.length - 1);
+    const target = nextHist[nextHist.length - 1];
+    setSandboxBoard(target);
+    setSandboxHistory(nextHist);
     setSandboxLastMove(null);
     setSandboxTurn(sandboxTurn === 'B' ? 'W' : 'B');
+    setSandboxAnalysis(analyzeOthelloPosition(target, sandboxTurn === 'B' ? 'W' : 'B'));
   };
 
-  const handleSandboxClickPoint = (r: number, c: number) => {
+  const handleSandboxClickPoint = (p: OthelloPoint) => {
     if (placementTool === 'play') {
-      const res = playMove(sandboxBoard, { r, c }, sandboxTurn);
+      const res = applyOthelloMove(sandboxBoard, p, sandboxTurn);
       if (!res.valid || !res.newBoard) return;
 
       playBadukStoneSound();
-      if (res.captures && res.captures.length > 0) {
-        if (sandboxTurn === 'B') setBlackCaptures((prev) => prev + res.captures.length);
-        else setWhiteCaptures((prev) => prev + res.captures.length);
-      }
+      const nextTurn = sandboxTurn === 'B' ? 'W' : 'B';
+      const validNext = getValidOthelloMoves(res.newBoard, nextTurn);
+      const finalTurn = validNext.length > 0 ? nextTurn : sandboxTurn; // Pass if no moves
+
       setSandboxBoard(res.newBoard);
       setSandboxHistory((prev) => [...prev, res.newBoard!]);
-      setSandboxLastMove({ r, c });
-      setSandboxTurn(sandboxTurn === 'B' ? 'W' : 'B');
+      setSandboxLastMove(p);
+      setSandboxTurn(finalTurn);
+      setSandboxAnalysis(analyzeOthelloPosition(res.newBoard, finalTurn));
     } else if (placementTool === 'black') {
-      const next = sandboxBoard.map((row, ri) =>
-        row.map((cell, ci) => (ri === r && ci === c ? 'B' : cell))
+      const next = sandboxBoard.map((row, r) =>
+        row.map((cell, c) => (r === p.r && c === p.c ? ('B' as OthelloColor) : cell))
       );
       playBadukStoneSound();
       setSandboxBoard(next);
       setSandboxHistory((prev) => [...prev, next]);
     } else if (placementTool === 'white') {
-      const next = sandboxBoard.map((row, ri) =>
-        row.map((cell, ci) => (ri === r && ci === c ? 'W' : cell))
+      const next = sandboxBoard.map((row, r) =>
+        row.map((cell, c) => (r === p.r && c === p.c ? ('W' as OthelloColor) : cell))
       );
       playBadukStoneSound();
       setSandboxBoard(next);
       setSandboxHistory((prev) => [...prev, next]);
     } else if (placementTool === 'eraser') {
-      const next = sandboxBoard.map((row, ri) =>
-        row.map((cell, ci) => (ri === r && ci === c ? null : cell))
+      const next = sandboxBoard.map((row, r) =>
+        row.map((cell, c) => (r === p.r && c === p.c ? null : cell))
       );
       setSandboxBoard(next);
       setSandboxHistory((prev) => [...prev, next]);
@@ -427,20 +403,20 @@ export function BadukSolverTab() {
               border: 'none',
               color: '#475569',
               '&.Mui-selected': {
-                bgcolor: '#0284c7',
+                bgcolor: '#15803d',
                 color: '#ffffff',
-                '&:hover': { bgcolor: '#0369a1' },
+                '&:hover': { bgcolor: '#166534' },
               },
             },
           }}
         >
           <ToggleButton value="puzzle">
             <MenuBookRoundedIcon sx={{ mr: 0.75, fontSize: 18 }} />
-            🎯 사활 문제 풀이 (초급 5선)
+            🎯 오셀로 전술 퍼즐 (초급 5선)
           </ToggleButton>
           <ToggleButton value="sandbox">
             <SportsEsportsRoundedIcon sx={{ mr: 0.75, fontSize: 18 }} />
-            🎮 자유 대국 & 자유 배치 모드
+            🎮 자유 대국 & 기물 배치 모드
           </ToggleButton>
         </ToggleButtonGroup>
       </Box>
@@ -473,7 +449,7 @@ export function BadukSolverTab() {
                   gap: 1,
                 }}
               >
-                <AutoAwesomeRoundedIcon sx={{ color: '#0284c7' }} />
+                <AutoAwesomeRoundedIcon sx={{ color: '#15803d' }} />
                 {currentProblem.title}
               </Typography>
 
@@ -484,19 +460,19 @@ export function BadukSolverTab() {
                 onClick={() => setIsCatalogOpen(true)}
                 sx={{
                   fontWeight: 700,
-                  color: '#0284c7',
-                  borderColor: 'rgba(2, 132, 199, 0.4)',
-                  background: 'rgba(2, 132, 199, 0.06)',
-                  '&:hover': { background: 'rgba(2, 132, 199, 0.12)' },
+                  color: '#15803d',
+                  borderColor: 'rgba(21, 128, 61, 0.4)',
+                  background: 'rgba(21, 128, 61, 0.06)',
+                  '&:hover': { background: 'rgba(21, 128, 61, 0.12)' },
                 }}
               >
-                예제 목록 ({selectedProblemIndex + 1} / {BADUK_PUZZLE_LIST.length})
+                퍼즐 목록 ({selectedProblemIndex + 1} / {OTHELLO_PUZZLE_LIST.length})
               </Button>
 
               <Chip
                 size="small"
                 label={currentProblem.category}
-                sx={{ background: 'rgba(2, 132, 199, 0.1)', color: '#0284c7', fontWeight: 700 }}
+                sx={{ background: 'rgba(21, 128, 61, 0.1)', color: '#15803d', fontWeight: 700 }}
               />
               <Chip
                 size="small"
@@ -517,14 +493,14 @@ export function BadukSolverTab() {
 
               <IconButton
                 onClick={handleNextProblem}
-                disabled={selectedProblemIndex === BADUK_PUZZLE_LIST.length - 1}
+                disabled={selectedProblemIndex === OTHELLO_PUZZLE_LIST.length - 1}
                 sx={{ color: '#64748b' }}
                 title="다음 문제"
               >
                 <NavigateNextRoundedIcon />
               </IconButton>
 
-              <IconButton onClick={handleRandomProblem} sx={{ color: '#d97706' }} title="랜덤 문제">
+              <IconButton onClick={handleRandomProblem} sx={{ color: '#d97706' }} title="랜덤 퍼즐">
                 <ShuffleRoundedIcon />
               </IconButton>
 
@@ -558,7 +534,7 @@ export function BadukSolverTab() {
                   '&:hover': { backgroundColor: '#fde68a !important', color: '#78350f !important' },
                 }}
               >
-                사활 힌트
+                전술 힌트
               </Button>
 
               <Button
@@ -578,13 +554,13 @@ export function BadukSolverTab() {
                 한 수 무르기
               </Button>
 
-              <IconButton onClick={handleReset} sx={{ color: '#64748b' }} title="문제 초기화">
+              <IconButton onClick={handleReset} sx={{ color: '#64748b' }} title="퍼즐 초기화">
                 <ReplayRoundedIcon />
               </IconButton>
             </Box>
           </Card>
 
-          {/* Main Puzzle Area */}
+          {/* Main Play Area */}
           <Box
             sx={{
               display: 'grid',
@@ -593,20 +569,14 @@ export function BadukSolverTab() {
               alignItems: 'start',
             }}
           >
-            {/* Left: Board */}
+            {/* Left: Othello Board */}
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5 }}>
-              <BadukBoard
+              <OthelloBoard
                 board={board}
-                boardSize={currentProblem.boardSize}
                 playerColor="B"
                 lastMove={lastMove}
-                showLiberties={showLiberties}
-                libertiesMap={aiAnalysis?.libertiesMap}
-                showInfluence={showInfluence}
-                influenceMap={aiAnalysis?.influenceMap}
-                recommendedMoves={aiAnalysis?.recommendedMoves}
                 disabled={isSolved || isFailed || isAIMoving}
-                onPlaceStone={(p) => handlePlayMove(p.r, p.c)}
+                onPlaceDisc={handlePlaceDisc}
               />
 
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
@@ -653,39 +623,72 @@ export function BadukSolverTab() {
                 </Button>
                 <Button
                   size="small"
-                  variant={showLiberties ? 'contained' : 'outlined'}
-                  startIcon={<LayersRoundedIcon />}
-                  onClick={() => setShowLiberties(!showLiberties)}
+                  variant="outlined"
+                  startIcon={<UndoRoundedIcon sx={{ color: '#475569 !important' }} />}
+                  onClick={handleUndo}
+                  disabled={history.length <= 1 || isAIMoving}
                   sx={{
-                    fontSize: '0.75rem',
                     fontWeight: 700,
-                    backgroundColor: showLiberties ? '#0284c7 !important' : '#f1f5f9 !important',
-                    color: showLiberties ? '#ffffff !important' : '#334155 !important',
+                    backgroundColor: '#f1f5f9 !important',
+                    color: '#334155 !important',
                     border: '1px solid #cbd5e1 !important',
+                    '&:hover': {
+                      backgroundColor: '#e2e8f0 !important',
+                      color: '#0f172a !important',
+                    },
                   }}
                 >
-                  활로 표시
-                </Button>
-                <Button
-                  size="small"
-                  variant={showInfluence ? 'contained' : 'outlined'}
-                  startIcon={<InvertColorsRoundedIcon />}
-                  onClick={() => setShowInfluence(!showInfluence)}
-                  sx={{
-                    fontSize: '0.75rem',
-                    fontWeight: 700,
-                    backgroundColor: showInfluence ? '#7c3aed !important' : '#f1f5f9 !important',
-                    color: showInfluence ? '#ffffff !important' : '#334155 !important',
-                    border: '1px solid #cbd5e1 !important',
-                  }}
-                >
-                  세력도
+                  한 수 무르기
                 </Button>
               </Box>
             </Box>
 
-            {/* Right: Problem Status & Analysis */}
+            {/* Right: Details & Status */}
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {/* Score Bar */}
+              <Card sx={{ p: 2, border: '1px solid #e2e8f0' }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    mb: 1,
+                  }}
+                >
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a' }}>
+                    ⚫ 흑(Black): {discCounts.black}개
+                  </Typography>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a' }}>
+                    ⚪ 백(White): {discCounts.white}개
+                  </Typography>
+                </Box>
+                <Box
+                  sx={{
+                    width: '100%',
+                    height: 12,
+                    bgcolor: '#e2e8f0',
+                    borderRadius: 1,
+                    overflow: 'hidden',
+                    display: 'flex',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: `${(discCounts.black / Math.max(1, discCounts.black + discCounts.white)) * 100}%`,
+                      bgcolor: '#0f172a',
+                      transition: 'width 0.3s ease',
+                    }}
+                  />
+                  <Box
+                    sx={{
+                      width: `${(discCounts.white / Math.max(1, discCounts.black + discCounts.white)) * 100}%`,
+                      bgcolor: '#94a3b8',
+                      transition: 'width 0.3s ease',
+                    }}
+                  />
+                </Box>
+              </Card>
+
               {/* Status Alert Card */}
               <Card
                 sx={{
@@ -695,7 +698,7 @@ export function BadukSolverTab() {
                     : isFailed
                       ? '#fef2f2'
                       : isAIMoving
-                        ? '#f0f9ff'
+                        ? '#f0fdf4'
                         : '#ffffff',
                   border: '1px solid',
                   borderColor: isSolved
@@ -703,7 +706,7 @@ export function BadukSolverTab() {
                     : isFailed
                       ? '#ef4444'
                       : isAIMoving
-                        ? '#0ea5e9'
+                        ? '#16a34a'
                         : '#e2e8f0',
                   boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
                   color: '#0f172a',
@@ -715,7 +718,7 @@ export function BadukSolverTab() {
                   ) : isFailed ? (
                     <CancelRoundedIcon sx={{ color: '#dc2626', fontSize: 28 }} />
                   ) : (
-                    <PlayArrowRoundedIcon sx={{ color: '#0284c7', fontSize: 28 }} />
+                    <PlayArrowRoundedIcon sx={{ color: '#15803d', fontSize: 28 }} />
                   )}
                   <Typography
                     variant="h6"
@@ -725,12 +728,12 @@ export function BadukSolverTab() {
                     }}
                   >
                     {isSolved
-                      ? '사활 해결 성공!'
+                      ? '퍼즐 해결 성공!'
                       : isFailed
                         ? '실패'
                         : isAIMoving
                           ? '백(AI) 수읽기 중...'
-                          : '흑선(黑先) - 착수할 위치를 클릭하세요'}
+                          : '흑선(Black) - 착수할 위치를 클릭하세요'}
                   </Typography>
                 </Box>
 
@@ -842,7 +845,7 @@ export function BadukSolverTab() {
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <CheckCircleRoundedIcon sx={{ color: '#16a34a', fontSize: 24 }} />
                       <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#15803d' }}>
-                        🎯 바둑 사활 정답 수순 및 좌표
+                        🎯 오셀로 정답 수순 및 좌표
                       </Typography>
                     </Box>
                     <Button
@@ -873,7 +876,7 @@ export function BadukSolverTab() {
                       border: '1px solid #bbf7d0',
                     }}
                   >
-                    {getBadukSolutionSteps(currentProblem).map((s, idx) => (
+                    {getOthelloSolutionSteps(currentProblem).map((s, idx) => (
                       <Typography
                         key={idx}
                         variant="body2"
@@ -903,7 +906,7 @@ export function BadukSolverTab() {
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                     <LightbulbRoundedIcon sx={{ color: '#d97706', fontSize: 20 }} />
                     <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#92400e' }}>
-                      사활 힌트 가이드
+                      전술 힌트 가이드
                     </Typography>
                   </Box>
                   <Typography variant="body2" sx={{ color: '#78350f' }}>
@@ -923,9 +926,9 @@ export function BadukSolverTab() {
                 }}
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                  <HelpOutlineRoundedIcon sx={{ color: '#0284c7', fontSize: 20 }} />
+                  <HelpOutlineRoundedIcon sx={{ color: '#15803d', fontSize: 20 }} />
                   <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a' }}>
-                    바둑 이론 & 맥점 해설
+                    오셀로 이론 & 포지션 해설
                   </Typography>
                 </Box>
                 <Typography variant="body2" sx={{ color: '#475569', lineHeight: 1.7 }}>
@@ -936,17 +939,17 @@ export function BadukSolverTab() {
               {/* Inspector */}
               {aiAnalysis && (
                 <GameAlgorithmInspector
-                  gameTitle="바둑 (Go/Baduk)"
+                  gameTitle="오셀로 (Othello / Reversi)"
                   csConcept={currentProblem.csConcept}
                   searchNodes={aiAnalysis.searchNodesEvaluated}
                   searchDepth={aiAnalysis.searchDepth}
                   timeMs={aiAnalysis.timeMs}
-                  evalScore={aiAnalysis.recommendedMoves[0]?.score || 0}
-                  algorithmName="BFS 활로 계산 & Minimax Alpha-Beta 탐색"
+                  evalScore={aiAnalysis.evaluationScore}
+                  algorithmName="Minimax Alpha-Beta & Positional Weight Matrix"
                   complexityInfo={{
-                    time: 'O(b^d) → Alpha-Beta 탐색',
-                    space: 'O(V + E) 그래프 BFS 탐색',
-                    branchingFactor: 'b ≈ 10~30 (부분 사활 영역)',
+                    time: 'O(b^d) → Alpha-Beta 가지치기',
+                    space: 'O(d) 스택 트리',
+                    branchingFactor: 'b ≈ 5~15 (오셀로 평균 착수수)',
                   }}
                 />
               )}
@@ -965,7 +968,7 @@ export function BadukSolverTab() {
             boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
           }}
         >
-          {/* Sandbox Toolbar */}
+          {/* Toolbar */}
           <Box
             sx={{
               display: 'flex',
@@ -980,35 +983,38 @@ export function BadukSolverTab() {
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
               <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a' }}>
-                🎮 바둑 자유 대국 & 포지션 배치장
+                🎮 오셀로 자유 대국 & 포지션 배치장
               </Typography>
 
-              {/* Board Size Selector */}
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <GridViewRoundedIcon sx={{ color: '#64748b', fontSize: 20 }} />
-                <Typography variant="body2" sx={{ fontWeight: 700, color: '#475569' }}>
-                  판 크기:
-                </Typography>
-                {[9, 13, 19].map((size) => (
-                  <Button
-                    key={size}
-                    size="small"
-                    variant={sandboxBoardSize === size ? 'contained' : 'outlined'}
-                    onClick={() => handleChangeBoardSize(size)}
-                    sx={{
-                      minWidth: 44,
-                      fontWeight: 800,
-                      backgroundColor:
-                        sandboxBoardSize === size ? '#0284c7 !important' : '#f1f5f9 !important',
-                      color:
-                        sandboxBoardSize === size ? '#ffffff !important' : '#334155 !important',
-                      border: '1px solid #cbd5e1 !important',
-                    }}
-                  >
-                    {size}x{size}
-                  </Button>
-                ))}
-              </Box>
+              <Button
+                size="small"
+                variant="contained"
+                startIcon={<RestartAltRoundedIcon sx={{ color: '#ffffff !important' }} />}
+                onClick={handleSandboxResetStandard}
+                sx={{
+                  fontWeight: 800,
+                  backgroundColor: '#15803d !important',
+                  color: '#ffffff !important',
+                  '&:hover': { backgroundColor: '#166534 !important' },
+                }}
+              >
+                정규 대국 배치
+              </Button>
+
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<DeleteSweepRoundedIcon sx={{ color: '#dc2626 !important' }} />}
+                onClick={handleSandboxClearBoard}
+                sx={{
+                  fontWeight: 700,
+                  backgroundColor: '#fef2f2 !important',
+                  color: '#dc2626 !important',
+                  border: '1px solid #fca5a5 !important',
+                }}
+              >
+                판 비우기
+              </Button>
             </Box>
 
             {/* Tools Palette */}
@@ -1027,7 +1033,7 @@ export function BadukSolverTab() {
                     px: 1.5,
                     color: '#475569',
                     '&.Mui-selected': {
-                      bgcolor: '#0284c7',
+                      bgcolor: '#15803d',
                       color: '#ffffff',
                     },
                   },
@@ -1059,25 +1065,10 @@ export function BadukSolverTab() {
               >
                 무르기
               </Button>
-
-              <Button
-                size="small"
-                variant="outlined"
-                startIcon={<DeleteSweepRoundedIcon sx={{ color: '#dc2626 !important' }} />}
-                onClick={handleSandboxClear}
-                sx={{
-                  fontWeight: 700,
-                  backgroundColor: '#fef2f2 !important',
-                  color: '#dc2626 !important',
-                  border: '1px solid #fca5a5 !important',
-                }}
-              >
-                판 비우기
-              </Button>
             </Box>
           </Box>
 
-          {/* Sandbox Main Body */}
+          {/* Sandbox Main Play Area */}
           <Box
             sx={{
               display: 'grid',
@@ -1087,57 +1078,20 @@ export function BadukSolverTab() {
             }}
           >
             {/* Board */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-              <BadukBoard
+            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+              <OthelloBoard
                 board={sandboxBoard}
-                boardSize={sandboxBoardSize}
                 playerColor={sandboxTurn}
                 lastMove={sandboxLastMove}
-                showLiberties={showLiberties}
-                showInfluence={showInfluence}
-                onPlaceStone={(p) => handleSandboxClickPoint(p.r, p.c)}
+                onPlaceDisc={handleSandboxClickPoint}
               />
-
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <Button
-                  size="small"
-                  variant={showLiberties ? 'contained' : 'outlined'}
-                  startIcon={<LayersRoundedIcon />}
-                  onClick={() => setShowLiberties(!showLiberties)}
-                  sx={{
-                    fontSize: '0.75rem',
-                    fontWeight: 700,
-                    backgroundColor: showLiberties ? '#0284c7 !important' : '#f1f5f9 !important',
-                    color: showLiberties ? '#ffffff !important' : '#334155 !important',
-                    border: '1px solid #cbd5e1 !important',
-                  }}
-                >
-                  활로 표시
-                </Button>
-                <Button
-                  size="small"
-                  variant={showInfluence ? 'contained' : 'outlined'}
-                  startIcon={<InvertColorsRoundedIcon />}
-                  onClick={() => setShowInfluence(!showInfluence)}
-                  sx={{
-                    fontSize: '0.75rem',
-                    fontWeight: 700,
-                    backgroundColor: showInfluence ? '#7c3aed !important' : '#f1f5f9 !important',
-                    color: showInfluence ? '#ffffff !important' : '#334155 !important',
-                    border: '1px solid #cbd5e1 !important',
-                  }}
-                >
-                  세력도
-                </Button>
-              </Box>
             </Box>
 
-            {/* Sandbox Side Status */}
+            {/* Side Status Card */}
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {/* Game Status Card */}
               <Card sx={{ p: 2.5, bgcolor: '#f8fafc', border: '1px solid #e2e8f0' }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 1.5 }}>
-                  📊 실시간 대국 정보
+                  📊 실시간 오셀로 대국 현황
                 </Typography>
 
                 <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
@@ -1155,8 +1109,8 @@ export function BadukSolverTab() {
                     <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
                       ⚫ 흑 (Black) {sandboxTurn === 'B' && '◀ 착수 차례'}
                     </Typography>
-                    <Typography variant="body2" sx={{ mt: 0.5, opacity: 0.85 }}>
-                      따낸 백돌: <strong>{blackCaptures}개</strong>
+                    <Typography variant="h5" sx={{ mt: 1, fontWeight: 900 }}>
+                      {discCounts.black}개
                     </Typography>
                   </Box>
 
@@ -1174,16 +1128,18 @@ export function BadukSolverTab() {
                     <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
                       ⚪ 백 (White) {sandboxTurn === 'W' && '◀ 착수 차례'}
                     </Typography>
-                    <Typography variant="body2" sx={{ mt: 0.5, opacity: 0.85 }}>
-                      따낸 흑돌: <strong>{whiteCaptures}개</strong>
+                    <Typography variant="h5" sx={{ mt: 1, fontWeight: 900 }}>
+                      {discCounts.white}개
                     </Typography>
                   </Box>
                 </Box>
 
                 <Typography variant="body2" sx={{ color: '#64748b', lineHeight: 1.6 }}>
-                  💡 <strong>자유 대국 안내:</strong> 바둑판 위를 클릭하여 자유롭게 수를 놓아보세요.
-                  따내기 및 자충수 판별이 실시간으로 작동하며, 도구 팔레트에서 흑/백 돌을 직접
-                  올려놓아 원하는 사활 포지션을 직접 만들어 연구할 수도 있습니다.
+                  💡 <strong>자유 대국 안내:</strong>
+                  <br />• <strong>대국 모드:</strong> 흑과 백이 번갈아 착수 가능 위치(고스트 도트)를
+                  클릭하면 가로/세로/대각선 상의 상대 돌이 자동으로 뒤집힙니다.
+                  <br />• <strong>돌 배치 모드:</strong> 원하는 색상의 돌을 선택하여 임의의 포지션을
+                  구성하고 전략을 분석해보세요.
                 </Typography>
               </Card>
             </Box>
@@ -1191,7 +1147,7 @@ export function BadukSolverTab() {
         </Card>
       )}
 
-      {/* Problem Catalog Dialog */}
+      {/* Catalog Dialog */}
       <Dialog
         open={isCatalogOpen}
         onClose={() => setIsCatalogOpen(false)}
@@ -1218,7 +1174,7 @@ export function BadukSolverTab() {
           }}
         >
           <Box sx={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a' }}>
-            바둑 사활 초급 핵심 5선
+            오셀로 전술 퍼즐 초급 핵심 5선
           </Box>
           <IconButton onClick={() => setIsCatalogOpen(false)} sx={{ color: '#64748b' }}>
             <CloseRoundedIcon />
@@ -1226,7 +1182,7 @@ export function BadukSolverTab() {
         </DialogTitle>
 
         <DialogContent sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-          {BADUK_PUZZLE_LIST.map((prob, idx) => {
+          {OTHELLO_PUZZLE_LIST.map((prob, idx) => {
             const isCurrent = idx === selectedProblemIndex;
             return (
               <Card
@@ -1235,12 +1191,12 @@ export function BadukSolverTab() {
                 sx={{
                   p: 2,
                   cursor: 'pointer',
-                  bgcolor: isCurrent ? 'rgba(2, 132, 199, 0.08)' : '#ffffff',
+                  bgcolor: isCurrent ? 'rgba(21, 128, 61, 0.08)' : '#ffffff',
                   border: '1px solid',
-                  borderColor: isCurrent ? '#0284c7' : '#e2e8f0',
+                  borderColor: isCurrent ? '#15803d' : '#e2e8f0',
                   '&:hover': {
-                    bgcolor: 'rgba(2, 132, 199, 0.12)',
-                    borderColor: '#0284c7',
+                    bgcolor: 'rgba(21, 128, 61, 0.12)',
+                    borderColor: '#15803d',
                   },
                 }}
               >
@@ -1262,8 +1218,8 @@ export function BadukSolverTab() {
                       height: 22,
                       fontSize: '0.75rem',
                       fontWeight: 700,
-                      bgcolor: 'rgba(2, 132, 199, 0.1)',
-                      color: '#0284c7',
+                      bgcolor: 'rgba(21, 128, 61, 0.1)',
+                      color: '#15803d',
                     }}
                   />
                 </Box>

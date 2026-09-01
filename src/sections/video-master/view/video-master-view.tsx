@@ -29,7 +29,11 @@ import ContentCutRoundedIcon from '@mui/icons-material/ContentCutRounded';
 import AudiotrackRoundedIcon from '@mui/icons-material/AudiotrackRounded';
 import CropRotateRoundedIcon from '@mui/icons-material/CropRotateRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
+import MovieFilterRoundedIcon from '@mui/icons-material/MovieFilterRounded';
 import PlayCircleFilledWhiteRoundedIcon from '@mui/icons-material/PlayCircleFilledWhiteRounded';
+
+import { paths } from 'src/routes/paths';
+import { RouterLink } from 'src/routes/components';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
@@ -174,6 +178,36 @@ export function VideoMasterView() {
         </Box>
 
         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+          <Button
+            component={RouterLink}
+            href={paths.videoMaster.trim}
+            variant="soft"
+            color="primary"
+            startIcon={<ContentCutRoundedIcon />}
+          >
+            동영상 자르기
+          </Button>
+
+          <Button
+            component={RouterLink}
+            href={paths.videoMaster.merge}
+            variant="soft"
+            color="primary"
+            startIcon={<CallMergeRoundedIcon />}
+          >
+            동영상 붙이기
+          </Button>
+
+          <Button
+            component={RouterLink}
+            href={paths.videoMaster.aiWatermark}
+            variant="soft"
+            color="primary"
+            startIcon={<MovieFilterRoundedIcon />}
+          >
+            AI 워터마크 각인
+          </Button>
+
           <Button
             variant="outlined"
             color="secondary"

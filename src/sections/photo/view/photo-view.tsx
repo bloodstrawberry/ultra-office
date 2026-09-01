@@ -125,6 +125,15 @@ const TOOL_SECTIONS: { category: string; desc: string; tools: PhotoToolItem[] }[
         badgeColor: 'primary',
       },
       {
+        id: 'padding',
+        title: '여백 조정 (Padding Studio)',
+        desc: '상하좌우 여백 확장, SNS 규격 자동 맞춤 & 스마트 그라데이션/블러 배경 채우기',
+        href: paths.photo.padding,
+        icon: <AspectRatioRoundedIcon sx={{ fontSize: 28, color: '#3b82f6' }} />,
+        tag: 'NEW',
+        badgeColor: 'success',
+      },
+      {
         id: 'color',
         title: '투명화 / 배경 지우개',
         desc: '원클릭 흰색↔투명 전환 및 스마트 페인트 통 영역 채우기',

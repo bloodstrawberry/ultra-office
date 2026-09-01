@@ -38,6 +38,9 @@ import { DataStructuresTab } from '../components/tabs/DataStructuresTab';
 import { BadukSolverTab } from '../components/games/baduk/BadukSolverTab';
 import { JanggiSolverTab } from '../components/games/janggi/JanggiSolverTab';
 import { ChessSolverTab } from '../components/games/chess/ChessSolverTab';
+import { OthelloSolverTab } from '../components/games/othello/OthelloSolverTab';
+import { GomokuSolverTab } from '../components/games/gomoku/GomokuSolverTab';
+import { AlkkagiTab } from '../components/games/alkkagi/AlkkagiTab';
 
 // ----------------------------------------------------------------------
 
@@ -47,6 +50,9 @@ export type VisualizerMainTab =
   | 'baduk'
   | 'janggi'
   | 'chess'
+  | 'othello'
+  | 'gomoku'
+  | 'alkkagi'
   | 'compare'
   | 'challenge'
   | 'playground'
@@ -180,29 +186,50 @@ function AlgoVisualizerMain({ defaultTab = 'visualizer' }: AlgoVisualizerViewPro
             sx={{ fontWeight: 700 }}
           />
           <Tab
+            value="othello"
+            label="6. 오셀로 전술 & 리버시"
+            icon={<LensRoundedIcon sx={{ color: '#22c55e' }} />}
+            iconPosition="start"
+            sx={{ fontWeight: 700 }}
+          />
+          <Tab
+            value="gomoku"
+            label="7. 오목 전술 & 5목 대국"
+            icon={<LensRoundedIcon sx={{ color: '#f59e0b' }} />}
+            iconPosition="start"
+            sx={{ fontWeight: 700 }}
+          />
+          <Tab
+            value="alkkagi"
+            label="8. 피직스 알까기 배틀"
+            icon={<SportsEsportsRoundedIcon sx={{ color: '#ea580c' }} />}
+            iconPosition="start"
+            sx={{ fontWeight: 700 }}
+          />
+          <Tab
             value="compare"
-            label="6. 1:1 알고리즘 비교"
+            label="9. 1:1 알고리즘 비교"
             icon={<CompareArrowsRoundedIcon />}
             iconPosition="start"
             sx={{ fontWeight: 700 }}
           />
           <Tab
             value="challenge"
-            label="7. CS 챌린지 모드"
+            label="10. CS 챌린지 모드"
             icon={<SportsEsportsRoundedIcon />}
             iconPosition="start"
             sx={{ fontWeight: 700 }}
           />
           <Tab
             value="playground"
-            label="8. 커스텀 코드 샌드박스"
+            label="11. 커스텀 코드 샌드박스"
             icon={<TerminalRoundedIcon />}
             iconPosition="start"
             sx={{ fontWeight: 700 }}
           />
           <Tab
             value="catalog"
-            label="9. Big-O 마스터 & 카탈로그"
+            label="12. Big-O 마스터 & 카탈로그"
             icon={<TableChartRoundedIcon />}
             iconPosition="start"
             sx={{ fontWeight: 700 }}
@@ -219,6 +246,9 @@ function AlgoVisualizerMain({ defaultTab = 'visualizer' }: AlgoVisualizerViewPro
         {currentTab === 'baduk' && <BadukSolverTab />}
         {currentTab === 'janggi' && <JanggiSolverTab />}
         {currentTab === 'chess' && <ChessSolverTab />}
+        {currentTab === 'othello' && <OthelloSolverTab />}
+        {currentTab === 'gomoku' && <GomokuSolverTab />}
+        {currentTab === 'alkkagi' && <AlkkagiTab />}
         {currentTab === 'compare' && <CompareTab />}
         {currentTab === 'challenge' && <ChallengeTab />}
         {currentTab === 'playground' && <PlaygroundTab />}

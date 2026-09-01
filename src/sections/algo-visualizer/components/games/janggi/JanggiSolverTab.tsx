@@ -13,6 +13,8 @@ import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
 import UndoRoundedIcon from '@mui/icons-material/UndoRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
@@ -28,6 +30,9 @@ import ShuffleRoundedIcon from '@mui/icons-material/ShuffleRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import ListAltRoundedIcon from '@mui/icons-material/ListAltRounded';
 import MenuBookRoundedIcon from '@mui/icons-material/MenuBookRounded';
+import SportsEsportsRoundedIcon from '@mui/icons-material/SportsEsportsRounded';
+import DeleteSweepRoundedIcon from '@mui/icons-material/DeleteSweepRounded';
+import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
 
 import { JanggiBoard } from './JanggiBoard';
 import { GameAlgorithmInspector } from '../common/GameAlgorithmInspector';
@@ -43,6 +48,7 @@ import {
   makeJanggiMove,
   isSameJanggiPoint,
   createEmptyJanggiBoard,
+  createStandardJanggiBoard,
 } from '../../../lib/games/janggi/engine';
 import {
   analyzeJanggiPosition,
@@ -53,23 +59,26 @@ import {
 import {
   type JanggiSide,
   type JanggiPoint,
+  type JanggiPiece,
+  type JanggiPieceType,
   type JanggiAIAnalysis,
   type JanggiBakboProblem,
   type JanggiSolutionNode,
   type JanggiBoard as JanggiBoardType,
 } from '../../../lib/games/janggi/types';
 
+type TabMode = 'puzzle' | 'sandbox';
+type JanggiTool = 'play' | 'erase' | { side: JanggiSide; type: JanggiPieceType };
+
 export function JanggiSolverTab() {
   const [hasLoaded, setHasLoaded] = useState(false);
+  const [tabMode, setTabMode] = useState<TabMode>('puzzle');
+
+  // ================= Puzzle Mode States =================
   const [selectedProblemIndex, setSelectedProblemIndex] = useState<number>(0);
   const [currentProblem, setCurrentProblem] = useState<JanggiBakboProblem>(JANGGI_BAKBO_LIST[0]);
-
-  // Catalog Dialog & Filter states
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('전체');
 
-  // Board state & undo history
   const [board, setBoard] = useState<JanggiBoardType>(() => createEmptyJanggiBoard());
   const [history, setHistory] = useState<JanggiBoardType[]>([]);
   const [selectedPoint, setSelectedPoint] = useState<JanggiPoint | null>(null);
@@ -77,7 +86,6 @@ export function JanggiSolverTab() {
   const [turn, setTurn] = useState<JanggiSide>('CHO');
   const [isAIMoving, setIsAIMoving] = useState<boolean>(false);
 
-  // Solution state
   const [currentNodeTree, setCurrentNodeTree] = useState<JanggiSolutionNode[]>([]);
   const [statusMessage, setStatusMessage] = useState<string>('');
   const [isSolved, setIsSolved] = useState<boolean>(false);
@@ -85,6 +93,26 @@ export function JanggiSolverTab() {
   const [showHint, setShowHint] = useState<boolean>(false);
   const [showSolution, setShowSolution] = useState<boolean>(false);
   const [aiAnalysis, setAiAnalysis] = useState<JanggiAIAnalysis | null>(null);
+
+  // ================= Sandbox Mode States =================
+  const [sandboxBoard, setSandboxBoard] = useState<JanggiBoardType>(() =>
+    createStandardJanggiBoard()
+  );
+  const [sandboxHistory, setSandboxHistory] = useState<JanggiBoardType[]>([]);
+  const [sandboxSelectedPoint, setSandboxSelectedPoint] = useState<JanggiPoint | null>(null);
+  const [sandboxLastMove, setSandboxLastMove] = useState<{
+    from: JanggiPoint;
+    to: JanggiPoint;
+  } | null>(null);
+  const [sandboxTurn, setSandboxTurn] = useState<JanggiSide>('CHO');
+  const [activeTool, setActiveTool] = useState<JanggiTool>('play');
+  const [sandboxCheckState, setSandboxCheckState] = useState<{
+    choInCheck: boolean;
+    hanInCheck: boolean;
+  }>({
+    choInCheck: false,
+    hanInCheck: false,
+  });
 
   const setupProblem = useCallback((problem: JanggiBakboProblem) => {
     const newBoard = createEmptyJanggiBoard();
@@ -112,6 +140,9 @@ export function JanggiSolverTab() {
   useEffect(() => {
     setHasLoaded(true);
     setupProblem(JANGGI_BAKBO_LIST[0]);
+    const initStd = createStandardJanggiBoard();
+    setSandboxBoard(initStd);
+    setSandboxHistory([initStd]);
   }, [setupProblem]);
 
   const handleSelectProblemIndex = (index: number) => {
@@ -187,7 +218,6 @@ export function JanggiSolverTab() {
     setSelectedPoint(null);
     setTurn('HAN');
 
-    // 1. Check if Han is in Check / Checkmate
     const isHanCheck = isSideInCheck(nextBoard, 'HAN');
     if (isHanCheck) {
       playCheckSound();
@@ -207,7 +237,6 @@ export function JanggiSolverTab() {
       return;
     }
 
-    // 2. Check match against solution tree
     const matchingNode = findMatchingBakboNode(currentNodeTree, from, to);
 
     if (matchingNode) {
@@ -335,309 +364,236 @@ export function JanggiSolverTab() {
     return steps;
   };
 
-  const filteredProblems = useMemo(() => {
-    return JANGGI_BAKBO_LIST.filter((p) => {
-      const matchSearch =
-        p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.objective.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchCategory = selectedCategory === '전체' || p.category === selectedCategory;
-      return matchSearch && matchCategory;
+  // ================= Sandbox Handlers =================
+  const handleSandboxResetStandard = () => {
+    const std = createStandardJanggiBoard();
+    setSandboxBoard(std);
+    setSandboxHistory([std]);
+    setSandboxSelectedPoint(null);
+    setSandboxLastMove(null);
+    setSandboxTurn('CHO');
+    setSandboxCheckState({ choInCheck: false, hanInCheck: false });
+  };
+
+  const handleSandboxClearBoard = () => {
+    const empty = createEmptyJanggiBoard();
+    setSandboxBoard(empty);
+    setSandboxHistory([empty]);
+    setSandboxSelectedPoint(null);
+    setSandboxLastMove(null);
+    setSandboxTurn('CHO');
+    setSandboxCheckState({ choInCheck: false, hanInCheck: false });
+  };
+
+  const handleSandboxUndo = () => {
+    if (sandboxHistory.length <= 1) return;
+    const nextHist = sandboxHistory.slice(0, sandboxHistory.length - 1);
+    const target = nextHist[nextHist.length - 1];
+    setSandboxBoard(target);
+    setSandboxHistory(nextHist);
+    setSandboxSelectedPoint(null);
+    setSandboxLastMove(null);
+    setSandboxTurn(sandboxTurn === 'CHO' ? 'HAN' : 'CHO');
+  };
+
+  const handleSandboxSelectPoint = (pt: JanggiPoint | null) => {
+    if (activeTool === 'play') {
+      setSandboxSelectedPoint(pt);
+    } else if (pt) {
+      // Place or erase piece
+      if (activeTool === 'erase') {
+        const nextB = sandboxBoard.map((row, r) =>
+          row.map((cell, c) => (r === pt.r && c === pt.c ? null : cell))
+        );
+        setSandboxBoard(nextB);
+        setSandboxHistory((prev) => [...prev, nextB]);
+      } else {
+        const newPiece: JanggiPiece = {
+          id: `custom-${activeTool.side}-${activeTool.type}-${Date.now()}`,
+          side: activeTool.side,
+          type: activeTool.type,
+        };
+        const nextB = sandboxBoard.map((row, r) =>
+          row.map((cell, c) => (r === pt.r && c === pt.c ? newPiece : cell))
+        );
+        playJanggiPieceSound();
+        setSandboxBoard(nextB);
+        setSandboxHistory((prev) => [...prev, nextB]);
+      }
+    }
+  };
+
+  const handleSandboxMovePiece = (from: JanggiPoint, to: JanggiPoint) => {
+    if (activeTool !== 'play') return;
+
+    const piece = sandboxBoard[from.r][from.c];
+    if (!piece || piece.side !== sandboxTurn) return;
+
+    const targetPiece = sandboxBoard[to.r][to.c];
+    if (targetPiece && targetPiece.side === sandboxTurn) return;
+
+    playJanggiPieceSound();
+    const nextB = makeJanggiMove(sandboxBoard, {
+      from,
+      to,
+      piece,
+      captured: targetPiece,
     });
-  }, [searchQuery, selectedCategory]);
+
+    const nextTurn = sandboxTurn === 'CHO' ? 'HAN' : 'CHO';
+    const isNextInCheck = isSideInCheck(nextB, nextTurn);
+    if (isNextInCheck) {
+      playCheckSound();
+    }
+
+    setSandboxBoard(nextB);
+    setSandboxHistory((prev) => [...prev, nextB]);
+    setSandboxLastMove({ from, to });
+    setSandboxSelectedPoint(null);
+    setSandboxTurn(nextTurn);
+    setSandboxCheckState({
+      choInCheck: isSideInCheck(nextB, 'CHO'),
+      hanInCheck: isSideInCheck(nextB, 'HAN'),
+    });
+  };
 
   if (!hasLoaded) return null;
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pb: 4 }}>
-      {/* 1. Header & Navigation Bar */}
-      <Card
-        sx={{
-          p: 2,
-          background: '#ffffff',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
-          display: 'flex',
-          flexDirection: { xs: 'column', md: 'row' },
-          justifyContent: 'space-between',
-          alignItems: { xs: 'flex-start', md: 'center' },
-          gap: 2,
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
-          <Typography
-            variant="h6"
-            sx={{
-              fontWeight: 800,
-              color: '#0f172a',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1,
-            }}
-          >
-            <AutoAwesomeRoundedIcon sx={{ color: '#059669' }} />
-            장기 박보 & 묘수풀이 AI 스튜디오
-          </Typography>
-
-          <Button
-            variant="outlined"
-            size="small"
-            startIcon={<ListAltRoundedIcon />}
-            onClick={() => setIsCatalogOpen(true)}
-            sx={{
-              fontWeight: 700,
-              color: '#059669',
-              borderColor: 'rgba(5, 150, 105, 0.4)',
-              background: 'rgba(5, 150, 105, 0.06)',
-              '&:hover': {
-                background: 'rgba(5, 150, 105, 0.12)',
-              },
-            }}
-          >
-            박보 목록 ({selectedProblemIndex + 1} / {JANGGI_BAKBO_LIST.length})
-          </Button>
-
-          <Chip
-            size="small"
-            label={currentProblem.category}
-            sx={{ background: 'rgba(5, 150, 105, 0.1)', color: '#059669', fontWeight: 700 }}
-          />
-          <Chip
-            size="small"
-            label={`${currentProblem.targetMoves}수 외통`}
-            sx={{ background: 'rgba(217, 119, 6, 0.1)', color: '#d97706', fontWeight: 700 }}
-          />
-        </Box>
-
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-          <IconButton
-            onClick={handlePrevProblem}
-            disabled={selectedProblemIndex === 0}
-            sx={{ color: '#64748b' }}
-            title="이전 문제"
-          >
-            <NavigateBeforeRoundedIcon />
-          </IconButton>
-
-          <IconButton
-            onClick={handleNextProblem}
-            disabled={selectedProblemIndex === JANGGI_BAKBO_LIST.length - 1}
-            sx={{ color: '#64748b' }}
-            title="다음 문제"
-          >
-            <NavigateNextRoundedIcon />
-          </IconButton>
-
-          <IconButton onClick={handleRandomProblem} sx={{ color: '#d97706' }} title="랜덤 박보">
-            <ShuffleRoundedIcon />
-          </IconButton>
-
-          <Button
-            size="small"
-            variant="contained"
-            startIcon={<MenuBookRoundedIcon sx={{ color: '#ffffff !important' }} />}
-            onClick={() => setShowSolution(!showSolution)}
-            sx={{
-              fontWeight: 800,
-              backgroundColor: '#15803d !important',
-              color: '#ffffff !important',
-              border: '1px solid #166534',
-              boxShadow: '0 2px 6px rgba(21, 128, 61, 0.35)',
-              '&:hover': {
-                backgroundColor: '#166534 !important',
-                color: '#ffffff !important',
-              },
-            }}
-          >
-            💡 정답 보기
-          </Button>
-
-          <Button
-            size="small"
-            variant="outlined"
-            startIcon={<LightbulbRoundedIcon sx={{ color: '#d97706 !important' }} />}
-            onClick={() => setShowHint(!showHint)}
-            sx={{
-              fontWeight: 800,
-              backgroundColor: '#fef3c7 !important',
-              color: '#92400e !important',
-              border: '1px solid #f59e0b !important',
-              '&:hover': {
-                backgroundColor: '#fde68a !important',
-                color: '#78350f !important',
-              },
-            }}
-          >
-            박보 힌트
-          </Button>
-
-          <Button
-            size="small"
-            variant="outlined"
-            startIcon={<UndoRoundedIcon sx={{ color: '#475569 !important' }} />}
-            onClick={handleUndo}
-            disabled={history.length <= 1 || isAIMoving}
-            sx={{
-              fontWeight: 700,
-              backgroundColor: '#f1f5f9 !important',
-              color: '#334155 !important',
-              border: '1px solid #cbd5e1 !important',
-              '&:hover': {
-                backgroundColor: '#e2e8f0 !important',
-                color: '#0f172a !important',
-              },
-            }}
-          >
-            한 수 무르기
-          </Button>
-
-          <IconButton onClick={handleReset} sx={{ color: '#64748b' }} title="문제 초기화">
-            <ReplayRoundedIcon />
-          </IconButton>
-        </Box>
-      </Card>
-
-      {/* 2. Main Play Area */}
+      {/* Mode Switch Bar */}
       <Box
         sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', lg: 'auto 1fr' },
-          gap: 3,
-          alignItems: 'start',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 1.5,
         }}
       >
-        {/* Left: Janggi Board */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5 }}>
-          <JanggiBoard
-            board={board}
-            playerSide="CHO"
-            selectedPoint={selectedPoint}
-            lastMove={lastMove}
-            disabled={isSolved || isFailed || isAIMoving}
-            onSelectPoint={setSelectedPoint}
-            onMovePiece={handleMovePiece}
-          />
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
-            <Button
-              size="small"
-              variant="contained"
-              startIcon={<MenuBookRoundedIcon sx={{ color: '#ffffff !important' }} />}
-              onClick={() => setShowSolution(!showSolution)}
-              sx={{
-                fontWeight: 800,
-                px: 2,
-                backgroundColor: '#15803d !important',
-                color: '#ffffff !important',
-                border: '1px solid #166534',
-                boxShadow: '0 2px 6px rgba(21, 128, 61, 0.35)',
-                '&:hover': {
-                  backgroundColor: '#166534 !important',
-                  color: '#ffffff !important',
-                },
-              }}
-            >
-              💡 정답 보기
-            </Button>
-            <Button
-              size="small"
-              variant="contained"
-              startIcon={<PlayArrowRoundedIcon sx={{ color: '#ffffff !important' }} />}
-              onClick={handleAutoPlaySolution}
-              disabled={isAIMoving}
-              sx={{
-                fontWeight: 800,
-                px: 2,
-                backgroundColor: '#0284c7 !important',
-                color: '#ffffff !important',
-                border: '1px solid #0369a1',
-                boxShadow: '0 2px 6px rgba(2, 132, 199, 0.35)',
-                '&:hover': {
-                  backgroundColor: '#0369a1 !important',
-                  color: '#ffffff !important',
-                },
-              }}
-            >
-              ▶ 정답 한 수 두기
-            </Button>
-            <Button
-              size="small"
-              variant="outlined"
-              startIcon={<UndoRoundedIcon sx={{ color: '#475569 !important' }} />}
-              onClick={handleUndo}
-              disabled={history.length <= 1 || isAIMoving}
-              sx={{
-                fontWeight: 700,
-                backgroundColor: '#f1f5f9 !important',
-                color: '#334155 !important',
-                border: '1px solid #cbd5e1 !important',
-                '&:hover': {
-                  backgroundColor: '#e2e8f0 !important',
-                  color: '#0f172a !important',
-                },
-              }}
-            >
-              한 수 무르기
-            </Button>
-          </Box>
-        </Box>
+        <ToggleButtonGroup
+          value={tabMode}
+          exclusive
+          onChange={(_, val) => val && setTabMode(val)}
+          size="small"
+          sx={{
+            bgcolor: '#f1f5f9',
+            p: 0.5,
+            borderRadius: 2,
+            border: '1px solid #cbd5e1',
+            '& .MuiToggleButton-root': {
+              fontWeight: 800,
+              fontSize: '0.85rem',
+              px: 2,
+              py: 0.75,
+              borderRadius: 1.5,
+              border: 'none',
+              color: '#475569',
+              '&.Mui-selected': {
+                bgcolor: '#059669',
+                color: '#ffffff',
+                '&:hover': { bgcolor: '#047857' },
+              },
+            },
+          }}
+        >
+          <ToggleButton value="puzzle">
+            <MenuBookRoundedIcon sx={{ mr: 0.75, fontSize: 18 }} />
+            🎯 박보 묘수풀이 (초급 5선)
+          </ToggleButton>
+          <ToggleButton value="sandbox">
+            <SportsEsportsRoundedIcon sx={{ mr: 0.75, fontSize: 18 }} />
+            🎮 장기 자유 대국 & 기물 배치 모드
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </Box>
 
-        {/* Right: Problem Details & Feedback */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {/* Status Alert Card */}
+      {/* ================= MODE 1: PUZZLE SOLVER ================= */}
+      {tabMode === 'puzzle' && (
+        <>
+          {/* Header & Controls */}
           <Card
             sx={{
-              p: 2.5,
-              background: isSolved
-                ? '#f0fdf4'
-                : isFailed
-                  ? '#fef2f2'
-                  : isAIMoving
-                    ? '#f0fdf4'
-                    : '#ffffff',
-              border: '1px solid',
-              borderColor: isSolved
-                ? '#22c55e'
-                : isFailed
-                  ? '#ef4444'
-                  : isAIMoving
-                    ? '#10b981'
-                    : '#e2e8f0',
+              p: 2,
+              background: '#ffffff',
+              border: '1px solid #e2e8f0',
               boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
-              color: '#0f172a',
+              display: 'flex',
+              flexDirection: { xs: 'column', md: 'row' },
+              justifyContent: 'space-between',
+              alignItems: { xs: 'flex-start', md: 'center' },
+              gap: 2,
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-              {isSolved ? (
-                <CheckCircleRoundedIcon sx={{ color: '#16a34a', fontSize: 28 }} />
-              ) : isFailed ? (
-                <CancelRoundedIcon sx={{ color: '#dc2626', fontSize: 28 }} />
-              ) : (
-                <PlayArrowRoundedIcon sx={{ color: '#059669', fontSize: 28 }} />
-              )}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
               <Typography
                 variant="h6"
                 sx={{
                   fontWeight: 800,
-                  color: isSolved ? '#16a34a' : isFailed ? '#dc2626' : '#0f172a',
+                  color: '#0f172a',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
                 }}
               >
-                {isSolved
-                  ? '외통수 승리!'
-                  : isFailed
-                    ? '실패'
-                    : isAIMoving
-                      ? '한(漢) 수비 수읽기 중...'
-                      : '초선(楚先) - 기물을 선택하여 이동하세요'}
+                <AutoAwesomeRoundedIcon sx={{ color: '#059669' }} />
+                {currentProblem.title}
               </Typography>
+
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<ListAltRoundedIcon />}
+                onClick={() => setIsCatalogOpen(true)}
+                sx={{
+                  fontWeight: 700,
+                  color: '#059669',
+                  borderColor: 'rgba(5, 150, 105, 0.4)',
+                  background: 'rgba(5, 150, 105, 0.06)',
+                  '&:hover': { background: 'rgba(5, 150, 105, 0.12)' },
+                }}
+              >
+                박보 목록 ({selectedProblemIndex + 1} / {JANGGI_BAKBO_LIST.length})
+              </Button>
+
+              <Chip
+                size="small"
+                label={currentProblem.category}
+                sx={{ background: 'rgba(5, 150, 105, 0.1)', color: '#059669', fontWeight: 700 }}
+              />
+              <Chip
+                size="small"
+                label="초급"
+                sx={{ background: 'rgba(22, 163, 74, 0.1)', color: '#16a34a', fontWeight: 700 }}
+              />
             </Box>
 
-            <Typography variant="body1" sx={{ color: '#334155', fontWeight: 600, mb: 1.5 }}>
-              {statusMessage}
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+              <IconButton
+                onClick={handlePrevProblem}
+                disabled={selectedProblemIndex === 0}
+                sx={{ color: '#64748b' }}
+                title="이전 문제"
+              >
+                <NavigateBeforeRoundedIcon />
+              </IconButton>
 
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              <IconButton
+                onClick={handleNextProblem}
+                disabled={selectedProblemIndex === JANGGI_BAKBO_LIST.length - 1}
+                sx={{ color: '#64748b' }}
+                title="다음 문제"
+              >
+                <NavigateNextRoundedIcon />
+              </IconButton>
+
+              <IconButton onClick={handleRandomProblem} sx={{ color: '#d97706' }} title="랜덤 박보">
+                <ShuffleRoundedIcon />
+              </IconButton>
+
               <Button
-                variant="contained"
                 size="small"
+                variant="contained"
                 startIcon={<MenuBookRoundedIcon sx={{ color: '#ffffff !important' }} />}
                 onClick={() => setShowSolution(!showSolution)}
                 sx={{
@@ -646,39 +602,31 @@ export function JanggiSolverTab() {
                   color: '#ffffff !important',
                   border: '1px solid #166534',
                   boxShadow: '0 2px 6px rgba(21, 128, 61, 0.35)',
-                  '&:hover': {
-                    backgroundColor: '#166534 !important',
-                    color: '#ffffff !important',
-                  },
+                  '&:hover': { backgroundColor: '#166534 !important', color: '#ffffff !important' },
                 }}
               >
                 💡 정답 보기
               </Button>
 
               <Button
-                variant="contained"
                 size="small"
-                startIcon={<PlayArrowRoundedIcon sx={{ color: '#ffffff !important' }} />}
-                onClick={handleAutoPlaySolution}
-                disabled={isAIMoving}
+                variant="outlined"
+                startIcon={<LightbulbRoundedIcon sx={{ color: '#d97706 !important' }} />}
+                onClick={() => setShowHint(!showHint)}
                 sx={{
                   fontWeight: 800,
-                  backgroundColor: '#0284c7 !important',
-                  color: '#ffffff !important',
-                  border: '1px solid #0369a1',
-                  boxShadow: '0 2px 6px rgba(2, 132, 199, 0.35)',
-                  '&:hover': {
-                    backgroundColor: '#0369a1 !important',
-                    color: '#ffffff !important',
-                  },
+                  backgroundColor: '#fef3c7 !important',
+                  color: '#92400e !important',
+                  border: '1px solid #f59e0b !important',
+                  '&:hover': { backgroundColor: '#fde68a !important', color: '#78350f !important' },
                 }}
               >
-                ▶ 정답 한 수 두기
+                박보 힌트
               </Button>
 
               <Button
-                variant="outlined"
                 size="small"
+                variant="outlined"
                 startIcon={<UndoRoundedIcon sx={{ color: '#475569 !important' }} />}
                 onClick={handleUndo}
                 disabled={history.length <= 1 || isAIMoving}
@@ -687,169 +635,678 @@ export function JanggiSolverTab() {
                   backgroundColor: '#f1f5f9 !important',
                   color: '#334155 !important',
                   border: '1px solid #cbd5e1 !important',
-                  '&:hover': {
-                    backgroundColor: '#e2e8f0 !important',
-                    color: '#0f172a !important',
-                  },
+                  '&:hover': { backgroundColor: '#e2e8f0 !important', color: '#0f172a !important' },
                 }}
               >
                 한 수 무르기
               </Button>
 
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={<ReplayRoundedIcon sx={{ color: '#475569 !important' }} />}
-                onClick={handleReset}
-                sx={{
-                  fontWeight: 700,
-                  backgroundColor: '#f8fafc !important',
-                  color: '#475569 !important',
-                  border: '1px solid #cbd5e1 !important',
-                  '&:hover': {
-                    backgroundColor: '#f1f5f9 !important',
-                    color: '#1e293b !important',
-                  },
-                }}
-              >
-                다시 시작
-              </Button>
+              <IconButton onClick={handleReset} sx={{ color: '#64748b' }} title="문제 초기화">
+                <ReplayRoundedIcon />
+              </IconButton>
             </Box>
           </Card>
 
-          {/* 🎯 Explicit Solution Text Card */}
-          {showSolution && (
-            <Card
-              sx={{
-                p: 2.5,
-                bgcolor: '#f0fdf4',
-                border: '2px solid #16a34a',
-                boxShadow: '0 4px 14px rgba(22, 163, 74, 0.12)',
-              }}
-            >
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  mb: 1.5,
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <CheckCircleRoundedIcon sx={{ color: '#16a34a', fontSize: 24 }} />
-                  <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#15803d' }}>
-                    🎯 박보 정답 수순 및 묘수
-                  </Typography>
-                </Box>
+          {/* Main Puzzle Area */}
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', lg: 'auto 1fr' },
+              gap: 3,
+              alignItems: 'start',
+            }}
+          >
+            {/* Left: Board */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5 }}>
+              <JanggiBoard
+                board={board}
+                playerSide="CHO"
+                selectedPoint={selectedPoint}
+                lastMove={lastMove}
+                disabled={isSolved || isFailed || isAIMoving}
+                onSelectPoint={setSelectedPoint}
+                onMovePiece={handleMovePiece}
+              />
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
                 <Button
                   size="small"
                   variant="contained"
-                  color="success"
-                  startIcon={<PlayArrowRoundedIcon />}
-                  onClick={handleAutoPlaySolution}
-                  sx={{ fontWeight: 800 }}
+                  startIcon={<MenuBookRoundedIcon sx={{ color: '#ffffff !important' }} />}
+                  onClick={() => setShowSolution(!showSolution)}
+                  sx={{
+                    fontWeight: 800,
+                    px: 2,
+                    backgroundColor: '#15803d !important',
+                    color: '#ffffff !important',
+                    border: '1px solid #166534',
+                    boxShadow: '0 2px 6px rgba(21, 128, 61, 0.35)',
+                    '&:hover': {
+                      backgroundColor: '#166534 !important',
+                      color: '#ffffff !important',
+                    },
+                  }}
                 >
-                  정답 바로 착수하기
+                  💡 정답 보기
+                </Button>
+                <Button
+                  size="small"
+                  variant="contained"
+                  startIcon={<PlayArrowRoundedIcon sx={{ color: '#ffffff !important' }} />}
+                  onClick={handleAutoPlaySolution}
+                  disabled={isAIMoving}
+                  sx={{
+                    fontWeight: 800,
+                    px: 2,
+                    backgroundColor: '#0284c7 !important',
+                    color: '#ffffff !important',
+                    border: '1px solid #0369a1',
+                    boxShadow: '0 2px 6px rgba(2, 132, 199, 0.35)',
+                    '&:hover': {
+                      backgroundColor: '#0369a1 !important',
+                      color: '#ffffff !important',
+                    },
+                  }}
+                >
+                  ▶ 정답 한 수 두기
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={<UndoRoundedIcon sx={{ color: '#475569 !important' }} />}
+                  onClick={handleUndo}
+                  disabled={history.length <= 1 || isAIMoving}
+                  sx={{
+                    fontWeight: 700,
+                    backgroundColor: '#f1f5f9 !important',
+                    color: '#334155 !important',
+                    border: '1px solid #cbd5e1 !important',
+                    '&:hover': {
+                      backgroundColor: '#e2e8f0 !important',
+                      color: '#0f172a !important',
+                    },
+                  }}
+                >
+                  한 수 무르기
                 </Button>
               </Box>
+            </Box>
 
-              <Box
+            {/* Right: Problem Details & Analysis */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {/* Status Alert Card */}
+              <Card
                 sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 1,
-                  mb: 1.5,
-                  p: 1.5,
-                  bgcolor: '#ffffff',
-                  borderRadius: 1.5,
-                  border: '1px solid #bbf7d0',
+                  p: 2.5,
+                  background: isSolved
+                    ? '#f0fdf4'
+                    : isFailed
+                      ? '#fef2f2'
+                      : isAIMoving
+                        ? '#f0fdf4'
+                        : '#ffffff',
+                  border: '1px solid',
+                  borderColor: isSolved
+                    ? '#22c55e'
+                    : isFailed
+                      ? '#ef4444'
+                      : isAIMoving
+                        ? '#10b981'
+                        : '#e2e8f0',
+                  boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
+                  color: '#0f172a',
                 }}
               >
-                {getJanggiSolutionSteps(currentProblem).map((s, idx) => (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+                  {isSolved ? (
+                    <CheckCircleRoundedIcon sx={{ color: '#16a34a', fontSize: 28 }} />
+                  ) : isFailed ? (
+                    <CancelRoundedIcon sx={{ color: '#dc2626', fontSize: 28 }} />
+                  ) : (
+                    <PlayArrowRoundedIcon sx={{ color: '#059669', fontSize: 28 }} />
+                  )}
                   <Typography
-                    key={idx}
-                    variant="body2"
-                    sx={{ fontWeight: 700, color: '#166534', fontSize: '0.95rem' }}
+                    variant="h6"
+                    sx={{
+                      fontWeight: 800,
+                      color: isSolved ? '#16a34a' : isFailed ? '#dc2626' : '#0f172a',
+                    }}
                   >
-                    • {s}
+                    {isSolved
+                      ? '외통수 승리!'
+                      : isFailed
+                        ? '실패'
+                        : isAIMoving
+                          ? '한(漢) 수비 수읽기 중...'
+                          : '초선(楚先) - 기물을 선택하여 이동하세요'}
                   </Typography>
-                ))}
-              </Box>
+                </Box>
 
-              <Typography variant="body2" sx={{ color: '#14532d', lineHeight: 1.6 }}>
-                💡 <strong>핵심 묘수:</strong> {currentProblem.hint}
-              </Typography>
-            </Card>
-          )}
-
-          {/* Hint Card */}
-          {showHint && (
-            <Card
-              sx={{
-                p: 2,
-                background: '#fffbeb',
-                border: '1px solid #fcd34d',
-                color: '#92400e',
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                <LightbulbRoundedIcon sx={{ color: '#d97706', fontSize: 20 }} />
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#92400e' }}>
-                  박보 힌트 가이드
+                <Typography variant="body1" sx={{ color: '#334155', fontWeight: 600, mb: 1.5 }}>
+                  {statusMessage}
                 </Typography>
-              </Box>
-              <Typography variant="body2" sx={{ color: '#78350f' }}>
-                {currentProblem.hint}
-              </Typography>
-            </Card>
-          )}
 
-          {/* Theory & Explanation Card */}
-          <Card
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    startIcon={<MenuBookRoundedIcon sx={{ color: '#ffffff !important' }} />}
+                    onClick={() => setShowSolution(!showSolution)}
+                    sx={{
+                      fontWeight: 800,
+                      backgroundColor: '#15803d !important',
+                      color: '#ffffff !important',
+                      border: '1px solid #166534',
+                      boxShadow: '0 2px 6px rgba(21, 128, 61, 0.35)',
+                      '&:hover': {
+                        backgroundColor: '#166534 !important',
+                        color: '#ffffff !important',
+                      },
+                    }}
+                  >
+                    💡 정답 보기
+                  </Button>
+
+                  <Button
+                    variant="contained"
+                    size="small"
+                    startIcon={<PlayArrowRoundedIcon sx={{ color: '#ffffff !important' }} />}
+                    onClick={handleAutoPlaySolution}
+                    disabled={isAIMoving}
+                    sx={{
+                      fontWeight: 800,
+                      backgroundColor: '#0284c7 !important',
+                      color: '#ffffff !important',
+                      border: '1px solid #0369a1',
+                      boxShadow: '0 2px 6px rgba(2, 132, 199, 0.35)',
+                      '&:hover': {
+                        backgroundColor: '#0369a1 !important',
+                        color: '#ffffff !important',
+                      },
+                    }}
+                  >
+                    ▶ 정답 한 수 두기
+                  </Button>
+
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<UndoRoundedIcon sx={{ color: '#475569 !important' }} />}
+                    onClick={handleUndo}
+                    disabled={history.length <= 1 || isAIMoving}
+                    sx={{
+                      fontWeight: 700,
+                      backgroundColor: '#f1f5f9 !important',
+                      color: '#334155 !important',
+                      border: '1px solid #cbd5e1 !important',
+                      '&:hover': {
+                        backgroundColor: '#e2e8f0 !important',
+                        color: '#0f172a !important',
+                      },
+                    }}
+                  >
+                    한 수 무르기
+                  </Button>
+
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<ReplayRoundedIcon sx={{ color: '#475569 !important' }} />}
+                    onClick={handleReset}
+                    sx={{
+                      fontWeight: 700,
+                      backgroundColor: '#f8fafc !important',
+                      color: '#475569 !important',
+                      border: '1px solid #cbd5e1 !important',
+                      '&:hover': {
+                        backgroundColor: '#f1f5f9 !important',
+                        color: '#1e293b !important',
+                      },
+                    }}
+                  >
+                    다시 시작
+                  </Button>
+                </Box>
+              </Card>
+
+              {/* Solution Card */}
+              {showSolution && (
+                <Card
+                  sx={{
+                    p: 2.5,
+                    bgcolor: '#f0fdf4',
+                    border: '2px solid #16a34a',
+                    boxShadow: '0 4px 14px rgba(22, 163, 74, 0.12)',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      mb: 1.5,
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <CheckCircleRoundedIcon sx={{ color: '#16a34a', fontSize: 24 }} />
+                      <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#15803d' }}>
+                        🎯 박보 정답 수순 및 묘수
+                      </Typography>
+                    </Box>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      startIcon={<PlayArrowRoundedIcon sx={{ color: '#ffffff !important' }} />}
+                      onClick={handleAutoPlaySolution}
+                      sx={{
+                        fontWeight: 800,
+                        backgroundColor: '#15803d !important',
+                        color: '#ffffff !important',
+                        '&:hover': { backgroundColor: '#166534 !important' },
+                      }}
+                    >
+                      정답 바로 착수
+                    </Button>
+                  </Box>
+
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 1,
+                      mb: 1.5,
+                      p: 1.5,
+                      bgcolor: '#ffffff',
+                      borderRadius: 1.5,
+                      border: '1px solid #bbf7d0',
+                    }}
+                  >
+                    {getJanggiSolutionSteps(currentProblem).map((s, idx) => (
+                      <Typography
+                        key={idx}
+                        variant="body2"
+                        sx={{ fontWeight: 700, color: '#166534', fontSize: '0.95rem' }}
+                      >
+                        • {s}
+                      </Typography>
+                    ))}
+                  </Box>
+
+                  <Typography variant="body2" sx={{ color: '#14532d', lineHeight: 1.6 }}>
+                    💡 <strong>핵심 묘수:</strong> {currentProblem.hint}
+                  </Typography>
+                </Card>
+              )}
+
+              {/* Hint Card */}
+              {showHint && (
+                <Card
+                  sx={{
+                    p: 2,
+                    background: '#fffbeb',
+                    border: '1px solid #fcd34d',
+                    color: '#92400e',
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                    <LightbulbRoundedIcon sx={{ color: '#d97706', fontSize: 20 }} />
+                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#92400e' }}>
+                      박보 힌트 가이드
+                    </Typography>
+                  </Box>
+                  <Typography variant="body2" sx={{ color: '#78350f' }}>
+                    {currentProblem.hint}
+                  </Typography>
+                </Card>
+              )}
+
+              {/* Theory Card */}
+              <Card
+                sx={{
+                  p: 2.5,
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
+                  color: '#0f172a',
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                  <HelpOutlineRoundedIcon sx={{ color: '#059669', fontSize: 20 }} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a' }}>
+                    박보 묘수 해설
+                  </Typography>
+                </Box>
+                <Typography variant="body2" sx={{ color: '#475569', lineHeight: 1.7 }}>
+                  {currentProblem.explanation}
+                </Typography>
+              </Card>
+
+              {/* CS Inspector */}
+              {aiAnalysis && (
+                <GameAlgorithmInspector
+                  gameTitle="장기 (Janggi)"
+                  csConcept={currentProblem.csConcept}
+                  searchNodes={aiAnalysis.searchNodesEvaluated}
+                  searchDepth={aiAnalysis.searchDepth}
+                  timeMs={aiAnalysis.timeMs}
+                  evalScore={aiAnalysis.scoreAdvantage}
+                  algorithmName="장기 Minimax & 연장군 외통 탐색"
+                  complexityInfo={{
+                    time: 'O(b^d) → Move Ordering 최적화',
+                    space: 'O(d) 스택 트리',
+                    branchingFactor: 'b ≈ 15~40 (장기 기동성)',
+                  }}
+                />
+              )}
+            </Box>
+          </Box>
+        </>
+      )}
+
+      {/* ================= MODE 2: FREE SANDBOX PLAYGROUND ================= */}
+      {tabMode === 'sandbox' && (
+        <Card
+          sx={{
+            p: 3,
+            background: '#ffffff',
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
+          }}
+        >
+          {/* Toolbar */}
+          <Box
             sx={{
-              p: 2.5,
-              background: '#ffffff',
-              border: '1px solid #e2e8f0',
-              boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
-              color: '#0f172a',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: 2,
+              mb: 3,
+              pb: 2,
+              borderBottom: '1px solid #e2e8f0',
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-              <HelpOutlineRoundedIcon sx={{ color: '#059669', fontSize: 20 }} />
-              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a' }}>
-                박보 묘수 해설
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+              <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a' }}>
+                🎮 장기 자유 대국 & 포지션 배치장
               </Typography>
+
+              <Button
+                size="small"
+                variant="contained"
+                startIcon={<RestartAltRoundedIcon sx={{ color: '#ffffff !important' }} />}
+                onClick={handleSandboxResetStandard}
+                sx={{
+                  fontWeight: 800,
+                  backgroundColor: '#059669 !important',
+                  color: '#ffffff !important',
+                  '&:hover': { backgroundColor: '#047857 !important' },
+                }}
+              >
+                정식 대국 배치
+              </Button>
+
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<DeleteSweepRoundedIcon sx={{ color: '#dc2626 !important' }} />}
+                onClick={handleSandboxClearBoard}
+                sx={{
+                  fontWeight: 700,
+                  backgroundColor: '#fef2f2 !important',
+                  color: '#dc2626 !important',
+                  border: '1px solid #fca5a5 !important',
+                }}
+              >
+                판 비우기
+              </Button>
             </Box>
-            <Typography variant="body2" sx={{ color: '#475569', lineHeight: 1.7 }}>
-              {currentProblem.explanation}
-            </Typography>
-          </Card>
 
-          {/* CS Inspector */}
-          {aiAnalysis && (
-            <GameAlgorithmInspector
-              gameTitle="장기 (Janggi)"
-              csConcept={currentProblem.csConcept}
-              searchNodes={aiAnalysis.searchNodesEvaluated}
-              searchDepth={aiAnalysis.searchDepth}
-              timeMs={aiAnalysis.timeMs}
-              evalScore={aiAnalysis.scoreAdvantage}
-              algorithmName="장기 Minimax & 연장군 외통 탐색"
-              complexityInfo={{
-                time: 'O(b^d) → Move Ordering 최적화',
-                space: 'O(d) 스택 트리',
-                branchingFactor: 'b ≈ 15~40 (장기 기동성)',
-              }}
-            />
-          )}
-        </Box>
-      </Box>
+            {/* Quick Actions */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<UndoRoundedIcon sx={{ color: '#475569 !important' }} />}
+                onClick={handleSandboxUndo}
+                disabled={sandboxHistory.length <= 1}
+                sx={{
+                  fontWeight: 700,
+                  backgroundColor: '#f1f5f9 !important',
+                  color: '#334155 !important',
+                  border: '1px solid #cbd5e1 !important',
+                }}
+              >
+                한 수 무르기
+              </Button>
+            </Box>
+          </Box>
 
-      {/* 3. Problem Catalog Dialog */}
+          {/* Placement Tool Selector */}
+          <Box
+            sx={{ mb: 3, p: 2, bgcolor: '#f8fafc', borderRadius: 2, border: '1px solid #e2e8f0' }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', mb: 1.5 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a' }}>
+                🛠️ 모드 및 기물 배치 도구:
+              </Typography>
+
+              <Button
+                size="small"
+                variant={activeTool === 'play' ? 'contained' : 'outlined'}
+                startIcon={<PlayArrowRoundedIcon />}
+                onClick={() => setActiveTool('play')}
+                sx={{
+                  fontWeight: 800,
+                  backgroundColor:
+                    activeTool === 'play' ? '#059669 !important' : '#ffffff !important',
+                  color: activeTool === 'play' ? '#ffffff !important' : '#334155 !important',
+                  border: '1px solid #cbd5e1 !important',
+                }}
+              >
+                🎮 2인 번갈아 대국 모드
+              </Button>
+
+              <Button
+                size="small"
+                variant={activeTool === 'erase' ? 'contained' : 'outlined'}
+                startIcon={<DeleteSweepRoundedIcon />}
+                onClick={() => setActiveTool('erase')}
+                sx={{
+                  fontWeight: 800,
+                  backgroundColor:
+                    activeTool === 'erase' ? '#dc2626 !important' : '#ffffff !important',
+                  color: activeTool === 'erase' ? '#ffffff !important' : '#dc2626 !important',
+                  border: '1px solid #fca5a5 !important',
+                }}
+              >
+                🧹 기물 지우개
+              </Button>
+            </Box>
+
+            {/* Pieces Palettes */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              {/* Cho Palette */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                <Typography
+                  variant="caption"
+                  sx={{ fontWeight: 800, color: '#15803d', minWidth: 65 }}
+                >
+                  🟢 초(楚) 기물:
+                </Typography>
+                {(
+                  [
+                    { type: 'KING', label: '楚 (궁)' },
+                    { type: 'CHARIOT', label: '車 (차)' },
+                    { type: 'CANNON', label: '包 (포)' },
+                    { type: 'HORSE', label: '馬 (마)' },
+                    { type: 'ELEPHANT', label: '象 (상)' },
+                    { type: 'GUARD', label: '士 (사)' },
+                    { type: 'SOLDIER', label: '卒 (졸)' },
+                  ] as const
+                ).map((p) => {
+                  const isSelected =
+                    typeof activeTool === 'object' &&
+                    activeTool.side === 'CHO' &&
+                    activeTool.type === p.type;
+                  return (
+                    <Button
+                      key={`cho-${p.type}`}
+                      size="small"
+                      variant={isSelected ? 'contained' : 'outlined'}
+                      onClick={() => setActiveTool({ side: 'CHO', type: p.type })}
+                      sx={{
+                        fontWeight: 800,
+                        backgroundColor: isSelected ? '#15803d !important' : '#ffffff !important',
+                        color: isSelected ? '#ffffff !important' : '#15803d !important',
+                        border: '1px solid #86efac !important',
+                      }}
+                    >
+                      {p.label}
+                    </Button>
+                  );
+                })}
+              </Box>
+
+              {/* Han Palette */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                <Typography
+                  variant="caption"
+                  sx={{ fontWeight: 800, color: '#b91c1c', minWidth: 65 }}
+                >
+                  🔴 한(漢) 기물:
+                </Typography>
+                {(
+                  [
+                    { type: 'KING', label: '漢 (궁)' },
+                    { type: 'CHARIOT', label: '車 (차)' },
+                    { type: 'CANNON', label: '包 (포)' },
+                    { type: 'HORSE', label: '馬 (마)' },
+                    { type: 'ELEPHANT', label: '象 (상)' },
+                    { type: 'GUARD', label: '士 (사)' },
+                    { type: 'SOLDIER', label: '兵 (병)' },
+                  ] as const
+                ).map((p) => {
+                  const isSelected =
+                    typeof activeTool === 'object' &&
+                    activeTool.side === 'HAN' &&
+                    activeTool.type === p.type;
+                  return (
+                    <Button
+                      key={`han-${p.type}`}
+                      size="small"
+                      variant={isSelected ? 'contained' : 'outlined'}
+                      onClick={() => setActiveTool({ side: 'HAN', type: p.type })}
+                      sx={{
+                        fontWeight: 800,
+                        backgroundColor: isSelected ? '#b91c1c !important' : '#ffffff !important',
+                        color: isSelected ? '#ffffff !important' : '#b91c1c !important',
+                        border: '1px solid #fca5a5 !important',
+                      }}
+                    >
+                      {p.label}
+                    </Button>
+                  );
+                })}
+              </Box>
+            </Box>
+          </Box>
+
+          {/* Sandbox Main Play Area */}
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', lg: 'auto 1fr' },
+              gap: 4,
+              alignItems: 'start',
+            }}
+          >
+            {/* Board */}
+            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+              <JanggiBoard
+                board={sandboxBoard}
+                playerSide={sandboxTurn}
+                selectedPoint={sandboxSelectedPoint}
+                lastMove={sandboxLastMove}
+                onSelectPoint={handleSandboxSelectPoint}
+                onMovePiece={handleSandboxMovePiece}
+              />
+            </Box>
+
+            {/* Side Status Card */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Card sx={{ p: 2.5, bgcolor: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 1.5 }}>
+                  📊 실시간 대국 및 형세 판별
+                </Typography>
+
+                <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                  <Box
+                    sx={{
+                      flex: 1,
+                      p: 2,
+                      bgcolor: sandboxTurn === 'CHO' ? '#f0fdf4' : '#ffffff',
+                      borderRadius: 2,
+                      border: '2px solid',
+                      borderColor: sandboxTurn === 'CHO' ? '#16a34a' : '#cbd5e1',
+                      textAlign: 'center',
+                    }}
+                  >
+                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#15803d' }}>
+                      🟢 초 (楚) {sandboxTurn === 'CHO' && '◀ 착수 차례'}
+                    </Typography>
+                    {sandboxCheckState.choInCheck && (
+                      <Chip
+                        label="장군 위기!"
+                        size="small"
+                        color="error"
+                        sx={{ mt: 1, fontWeight: 800 }}
+                      />
+                    )}
+                  </Box>
+
+                  <Box
+                    sx={{
+                      flex: 1,
+                      p: 2,
+                      bgcolor: sandboxTurn === 'HAN' ? '#fef2f2' : '#ffffff',
+                      borderRadius: 2,
+                      border: '2px solid',
+                      borderColor: sandboxTurn === 'HAN' ? '#dc2626' : '#cbd5e1',
+                      textAlign: 'center',
+                    }}
+                  >
+                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#b91c1c' }}>
+                      🔴 한 (漢) {sandboxTurn === 'HAN' && '◀ 착수 차례'}
+                    </Typography>
+                    {sandboxCheckState.hanInCheck && (
+                      <Chip
+                        label="장군 위기!"
+                        size="small"
+                        color="error"
+                        sx={{ mt: 1, fontWeight: 800 }}
+                      />
+                    )}
+                  </Box>
+                </Box>
+
+                <Typography variant="body2" sx={{ color: '#64748b', lineHeight: 1.6 }}>
+                  💡 <strong>자유 대국 & 배치 가이드:</strong>
+                  <br />• <strong>대국 모드:</strong> 초/한 번갈아 기물을 클릭하여 정통 장기 룰대로
+                  행마할 수 있습니다.
+                  <br />• <strong>기물 배치 팔레트:</strong> 팔레트에서 원하는 기물을 선택한 후
+                  장기판 좌표를 클릭하면 원하는 포지션을 자유롭게 만들어 볼 수 있습니다.
+                </Typography>
+              </Card>
+            </Box>
+          </Box>
+        </Card>
+      )}
+
+      {/* Catalog Dialog */}
       <Dialog
         open={isCatalogOpen}
         onClose={() => setIsCatalogOpen(false)}
-        maxWidth="md"
+        maxWidth="sm"
         fullWidth
         sx={{
           '& .MuiDialog-paper': {
@@ -872,116 +1329,61 @@ export function JanggiSolverTab() {
           }}
         >
           <Box sx={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a' }}>
-            장기 박보 & 묘수풀이 컬렉션 (총 {JANGGI_BAKBO_LIST.length}선)
+            장기 박보 묘수풀이 초급 핵심 5선
           </Box>
           <IconButton onClick={() => setIsCatalogOpen(false)} sx={{ color: '#64748b' }}>
             <CloseRoundedIcon />
           </IconButton>
         </DialogTitle>
 
-        <DialogContent sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {/* Search & Filters */}
-          <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
-            <TextField
-              size="small"
-              placeholder="박보 제목 또는 키워드 검색..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchRoundedIcon sx={{ color: '#94a3b8' }} />
-                  </InputAdornment>
-                ),
-              }}
-              sx={{
-                flex: 1,
-                minWidth: 200,
-                bgcolor: '#f8fafc',
-                borderRadius: 1,
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#cbd5e1' },
-              }}
-            />
-
-            <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', alignItems: 'center' }}>
-              {['전체', '외통박보', '양차공격', '마포연합', '연장군 박보', '상길돌파'].map(
-                (cat) => (
+        <DialogContent sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+          {JANGGI_BAKBO_LIST.map((prob, idx) => {
+            const isCurrent = idx === selectedProblemIndex;
+            return (
+              <Card
+                key={prob.id}
+                onClick={() => handleSelectProblemIndex(idx)}
+                sx={{
+                  p: 2,
+                  cursor: 'pointer',
+                  bgcolor: isCurrent ? 'rgba(5, 150, 105, 0.08)' : '#ffffff',
+                  border: '1px solid',
+                  borderColor: isCurrent ? '#059669' : '#e2e8f0',
+                  '&:hover': {
+                    bgcolor: 'rgba(5, 150, 105, 0.12)',
+                    borderColor: '#059669',
+                  },
+                }}
+              >
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    mb: 0.5,
+                  }}
+                >
+                  <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a' }}>
+                    {prob.title}
+                  </Typography>
                   <Chip
-                    key={cat}
-                    label={cat}
                     size="small"
-                    clickable
-                    onClick={() => setSelectedCategory(cat)}
+                    label={prob.category}
                     sx={{
+                      height: 22,
+                      fontSize: '0.75rem',
                       fontWeight: 700,
-                      bgcolor: selectedCategory === cat ? '#059669' : '#f1f5f9',
-                      color: selectedCategory === cat ? '#ffffff' : '#475569',
-                      '&:hover': {
-                        bgcolor: selectedCategory === cat ? '#047857' : '#e2e8f0',
-                      },
+                      bgcolor: 'rgba(5, 150, 105, 0.1)',
+                      color: '#059669',
                     }}
                   />
-                )
-              )}
-            </Box>
-          </Box>
-
-          {/* Problem Grid */}
-          <Box sx={{ maxHeight: 450, overflowY: 'auto', pr: 1 }}>
-            <Box
-              sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1.5 }}
-            >
-              {filteredProblems.map((prob) => {
-                const idx = JANGGI_BAKBO_LIST.findIndex((p) => p.id === prob.id);
-                const isCurrent = idx === selectedProblemIndex;
-                return (
-                  <Card
-                    key={prob.id}
-                    onClick={() => handleSelectProblemIndex(idx)}
-                    sx={{
-                      p: 1.5,
-                      cursor: 'pointer',
-                      bgcolor: isCurrent ? 'rgba(5, 150, 105, 0.08)' : '#ffffff',
-                      border: '1px solid',
-                      borderColor: isCurrent ? '#059669' : '#e2e8f0',
-                      boxShadow: '0 1px 4px rgba(0, 0, 0, 0.03)',
-                      '&:hover': {
-                        bgcolor: 'rgba(5, 150, 105, 0.12)',
-                        borderColor: '#059669',
-                      },
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        mb: 0.5,
-                      }}
-                    >
-                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a' }}>
-                        {prob.title}
-                      </Typography>
-                      <Chip
-                        size="small"
-                        label={prob.difficulty}
-                        sx={{
-                          height: 20,
-                          fontSize: '0.65rem',
-                          fontWeight: 700,
-                          bgcolor: 'rgba(217, 119, 6, 0.1)',
-                          color: '#d97706',
-                        }}
-                      />
-                    </Box>
-                    <Typography variant="caption" sx={{ color: '#64748b', display: 'block' }}>
-                      {prob.objective}
-                    </Typography>
-                  </Card>
-                );
-              })}
-            </Box>
-          </Box>
+                </Box>
+                <Typography variant="body2" sx={{ color: '#64748b' }}>
+                  {prob.objective}
+                </Typography>
+              </Card>
+            );
+          })}
         </DialogContent>
       </Dialog>
     </Box>
