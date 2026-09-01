@@ -19,15 +19,17 @@ import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 
 import { renderHomeIcon } from './home-icons';
-import { CATEGORIES, type ToolCategory } from './home-tools-data';
+import { CATEGORIES } from './home-tools-data';
 
 // ----------------------------------------------------------------------
 
 export interface HomeHeroProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  selectedCategory: ToolCategory;
-  onSelectCategory: (category: ToolCategory) => void;
+  selectedCategory: string;
+  onSelectCategory: (category: string) => void;
+  categories?: string[];
+  totalToolsCount?: number;
   onScrollToTools?: () => void;
 }
 
@@ -36,6 +38,8 @@ export function HomeHero({
   onSearchChange,
   selectedCategory,
   onSelectCategory,
+  categories,
+  totalToolsCount,
   onScrollToTools,
 }: HomeHeroProps) {
   const theme = useTheme();
@@ -71,88 +75,7 @@ export function HomeHero({
             mx: 'auto',
           }}
         >
-          {/* Top Live Badge */}
-          <Box
-            sx={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 1.25,
-              px: 2.25,
-              py: 0.75,
-              borderRadius: 5,
-              bgcolor: (t) => alpha(t.palette.primary.main, 0.08),
-              border: (t) => `1px solid ${alpha(t.palette.primary.main, 0.2)}`,
-              backdropFilter: 'blur(8px)',
-              mb: 3,
-            }}
-          >
-            <Box
-              sx={{
-                width: 8,
-                height: 8,
-                borderRadius: '50%',
-                bgcolor: 'success.main',
-                boxShadow: (t) => `0 0 10px ${t.palette.success.main}`,
-                animation: 'pulse 2s ease-in-out infinite',
-                '@keyframes pulse': {
-                  '0%, 100%': { opacity: 1, transform: 'scale(1)' },
-                  '50%': { opacity: 0.5, transform: 'scale(1.3)' },
-                },
-              }}
-            />
-            <Typography
-              variant="caption"
-              sx={{
-                fontWeight: 700,
-                color: 'primary.main',
-                fontSize: { xs: '0.78rem', md: '0.84rem' },
-                letterSpacing: 0.3,
-              }}
-            >
-              Ultra Office • 올인원 업무 생산성 플랫폼
-            </Typography>
-          </Box>
 
-          {/* Main Hero Headline */}
-          <Typography
-            variant="h1"
-            sx={{
-              fontWeight: 900,
-              fontSize: { xs: '2.3rem', sm: '3.2rem', md: '4rem' },
-              lineHeight: 1.15,
-              letterSpacing: { xs: -0.5, md: -1.5 },
-              mb: 2.5,
-              fontFamily: theme.typography.fontSecondaryFamily,
-            }}
-          >
-            업무에 필요한 모든 도구를
-            <br />
-            <Box
-              component="span"
-              sx={{
-                background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.info.main} 50%, ${theme.palette.secondary.main} 100%)`,
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}
-            >
-              브라우저에서 즉시 실행
-            </Box>
-          </Typography>
-
-          {/* Hero Subtitle */}
-          <Typography
-            variant="body1"
-            sx={{
-              color: 'text.secondary',
-              fontSize: { xs: '0.95rem', sm: '1.08rem', md: '1.2rem' },
-              lineHeight: 1.6,
-              mb: 4,
-              maxWidth: 720,
-            }}
-          >
-            AI 어시스턴트, 엑셀 스프레드시트, PDF 마스터, 데이터 비교, 스마트 OCR부터 16종 사진
-            편집기까지 — 설치 없이 안전한 로컬 환경에서 바로 사용하세요.
-          </Typography>
 
           {/* Real-time Search Bar */}
           <Box
@@ -222,48 +145,94 @@ export function HomeHero({
               mb: 4,
             }}
           >
-            {CATEGORIES.map((cat) => {
-              const isSelected = selectedCategory === cat.id;
-              return (
-                <Chip
-                  key={cat.id}
-                  icon={renderHomeIcon(cat.iconName, {
-                    sx: {
-                      fontSize: 18,
-                      color: isSelected ? 'inherit' : 'text.secondary',
-                    },
-                  })}
-                  label={cat.label}
-                  clickable
-                  onClick={() => onSelectCategory(cat.id)}
-                  color={isSelected ? 'primary' : 'default'}
-                  variant={isSelected ? 'filled' : 'outlined'}
-                  sx={{
-                    px: 1.25,
-                    py: 2.25,
-                    fontSize: { xs: '0.8rem', md: '0.86rem' },
-                    fontWeight: isSelected ? 700 : 500,
-                    borderRadius: 2,
-                    borderColor: (t) =>
-                      isSelected ? 'primary.main' : alpha(t.palette.divider, 0.16),
-                    bgcolor: (t) =>
-                      isSelected ? t.palette.primary.main : alpha(t.palette.background.paper, 0.6),
-                    backdropFilter: 'blur(8px)',
-                    transition: theme.transitions.create(['all'], {
-                      duration: theme.transitions.duration.shorter,
-                    }),
-                    '&:hover': {
-                      bgcolor: (t) =>
-                        isSelected
-                          ? t.palette.primary.dark
-                          : alpha(t.palette.background.paper, 0.95),
-                      borderColor: 'primary.main',
-                      transform: 'translateY(-2px)',
-                    },
-                  }}
-                />
-              );
-            })}
+            {categories && categories.length > 0
+              ? categories.map((cat) => {
+                  const isSelected = selectedCategory === cat;
+                  const label =
+                    cat === 'all'
+                      ? `전체 도구${totalToolsCount ? ` (${totalToolsCount})` : ''}`
+                      : cat;
+
+                  return (
+                    <Chip
+                      key={cat}
+                      label={label}
+                      clickable
+                      onClick={() => onSelectCategory(cat)}
+                      color={isSelected ? 'primary' : 'default'}
+                      variant={isSelected ? 'filled' : 'outlined'}
+                      sx={{
+                        px: 1.25,
+                        py: 2.25,
+                        fontSize: { xs: '0.8rem', md: '0.86rem' },
+                        fontWeight: isSelected ? 700 : 500,
+                        borderRadius: 2,
+                        borderColor: (t) =>
+                          isSelected ? 'primary.main' : alpha(t.palette.divider, 0.16),
+                        bgcolor: (t) =>
+                          isSelected
+                            ? t.palette.primary.main
+                            : alpha(t.palette.background.paper, 0.6),
+                        backdropFilter: 'blur(8px)',
+                        transition: theme.transitions.create(['all'], {
+                          duration: theme.transitions.duration.shorter,
+                        }),
+                        '&:hover': {
+                          bgcolor: (t) =>
+                            isSelected
+                              ? t.palette.primary.dark
+                              : alpha(t.palette.background.paper, 0.95),
+                          borderColor: 'primary.main',
+                          transform: 'translateY(-2px)',
+                        },
+                      }}
+                    />
+                  );
+                })
+              : CATEGORIES.map((cat) => {
+                  const isSelected = selectedCategory === cat.id;
+                  return (
+                    <Chip
+                      key={cat.id}
+                      icon={renderHomeIcon(cat.iconName, {
+                        sx: {
+                          fontSize: 18,
+                          color: isSelected ? 'inherit' : 'text.secondary',
+                        },
+                      })}
+                      label={cat.label}
+                      clickable
+                      onClick={() => onSelectCategory(cat.id)}
+                      color={isSelected ? 'primary' : 'default'}
+                      variant={isSelected ? 'filled' : 'outlined'}
+                      sx={{
+                        px: 1.25,
+                        py: 2.25,
+                        fontSize: { xs: '0.8rem', md: '0.86rem' },
+                        fontWeight: isSelected ? 700 : 500,
+                        borderRadius: 2,
+                        borderColor: (t) =>
+                          isSelected ? 'primary.main' : alpha(t.palette.divider, 0.16),
+                        bgcolor: (t) =>
+                          isSelected
+                            ? t.palette.primary.main
+                            : alpha(t.palette.background.paper, 0.6),
+                        backdropFilter: 'blur(8px)',
+                        transition: theme.transitions.create(['all'], {
+                          duration: theme.transitions.duration.shorter,
+                        }),
+                        '&:hover': {
+                          bgcolor: (t) =>
+                            isSelected
+                              ? t.palette.primary.dark
+                              : alpha(t.palette.background.paper, 0.95),
+                          borderColor: 'primary.main',
+                          transform: 'translateY(-2px)',
+                        },
+                      }}
+                    />
+                  );
+                })}
           </Box>
 
           {/* CTA Buttons */}

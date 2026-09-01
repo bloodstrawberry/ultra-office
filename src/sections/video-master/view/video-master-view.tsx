@@ -1,5 +1,6 @@
 'use client';
 
+import type { SampleVideoItem } from '../data/video-samples';
 import type {
   VideoMetadata,
   TransformSettings,
@@ -15,22 +16,21 @@ import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Tabs from '@mui/material/Tabs';
+import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import GifRoundedIcon from '@mui/icons-material/GifRounded';
 import TitleRoundedIcon from '@mui/icons-material/TitleRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
-import ScienceRoundedIcon from '@mui/icons-material/ScienceRounded';
 import ColorLensRoundedIcon from '@mui/icons-material/ColorLensRounded';
 import CameraAltRoundedIcon from '@mui/icons-material/CameraAltRounded';
 import CallMergeRoundedIcon from '@mui/icons-material/CallMergeRounded';
 import ContentCutRoundedIcon from '@mui/icons-material/ContentCutRounded';
 import AudiotrackRoundedIcon from '@mui/icons-material/AudiotrackRounded';
 import CropRotateRoundedIcon from '@mui/icons-material/CropRotateRounded';
-import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 import MovieFilterRoundedIcon from '@mui/icons-material/MovieFilterRounded';
-import PlayCircleFilledWhiteRoundedIcon from '@mui/icons-material/PlayCircleFilledWhiteRounded';
+import MovieCreationRoundedIcon from '@mui/icons-material/MovieCreationRounded';
 
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
@@ -47,12 +47,12 @@ import { FrameCapturePanel } from '../components/frame-capture-panel';
 import { TransformCropPanel } from '../components/transform-crop-panel';
 import { TextWatermarkPanel } from '../components/text-watermark-panel';
 import { VideoPlayerPreview } from '../components/video-player-preview';
+import { VideoUploadWorkspace } from '../components/video-upload-workspace';
 import {
   DEFAULT_FILTERS,
   DEFAULT_TRANSFORM,
   DEFAULT_WATERMARK,
   DEFAULT_TEXT_OVERLAY,
-  createSampleVideoBlob,
 } from '../utils/video-processor';
 
 // ----------------------------------------------------------------------
@@ -68,8 +68,6 @@ export function VideoMasterView() {
   const [metadata, setMetadata] = useState<VideoMetadata | null>(null);
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [duration, setDuration] = useState<number>(0);
-  const [isDragOver, setIsDragOver] = useState<boolean>(false);
-  const [isLoadingSample, setIsLoadingSample] = useState<boolean>(false);
 
   // Edit Settings
   const [filters, setFilters] = useState<VideoFilterSettings>({ ...DEFAULT_FILTERS });
@@ -77,9 +75,42 @@ export function VideoMasterView() {
   const [textOverlay, setTextOverlay] = useState<TextOverlaySettings>({ ...DEFAULT_TEXT_OVERLAY });
   const [watermark, setWatermark] = useState<WatermarkSettings>({ ...DEFAULT_WATERMARK });
 
+  // Resizable Right Panel
+  const [rightPanelWidth, setRightPanelWidth] = useState<number>(420);
+  const isResizingRef = useRef<boolean>(false);
+  const resizeStartXRef = useRef<number>(0);
+  const resizeStartWidthRef = useRef<number>(420);
+
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleDividerPointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    isResizingRef.current = true;
+    resizeStartXRef.current = e.clientX;
+    resizeStartWidthRef.current = rightPanelWidth;
+  };
+
+  const handleDividerPointerMove = (e: React.PointerEvent) => {
+    if (!isResizingRef.current) return;
+    const deltaX = resizeStartXRef.current - e.clientX;
+    const newWidth = Math.max(320, Math.min(680, resizeStartWidthRef.current + deltaX));
+    setRightPanelWidth(newWidth);
+  };
+
+  const handleDividerPointerUp = (e: React.PointerEvent) => {
+    if (isResizingRef.current) {
+      isResizingRef.current = false;
+      try {
+        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+      } catch {
+        // ignore
+      }
+    }
+  };
 
   // Handle Video File Upload
   const handleLoadFile = useCallback((file: File) => {
@@ -122,6 +153,15 @@ export function VideoMasterView() {
     };
   }, []);
 
+  const handleSelectSample = async (sample: SampleVideoItem) => {
+    try {
+      const file = await sample.generate();
+      handleLoadFile(file);
+    } catch {
+      toast.error('샘플 비디오 생성에 실패했습니다.');
+    }
+  };
+
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -130,57 +170,78 @@ export function VideoMasterView() {
     if (e.target) e.target.value = '';
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith('video/')) {
-      handleLoadFile(file);
-    } else {
-      toast.error('동영상 파일(.mp4, .webm, .mov 등)을 드래그해 주세요.');
-    }
-  };
-
-  // Load sample video
-  const handleLoadSample = async () => {
-    setIsLoadingSample(true);
-    try {
-      const sampleFile = await createSampleVideoBlob(6);
-      handleLoadFile(sampleFile);
-    } catch {
-      toast.error('샘플 비디오 생성 실패');
-    } finally {
-      setIsLoadingSample(false);
-    }
+  const handleReset = () => {
+    setVideoUrl(null);
+    setVideoFile(null);
+    setMetadata(null);
+    setCurrentTime(0);
+    setDuration(0);
   };
 
   return (
-    <DashboardContent maxWidth="xl" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-      {/* 1. Header */}
+    <DashboardContent
+      sx={{
+        flex: '1 1 auto',
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: 0,
+        height: '100%',
+        pb: { xs: 2, sm: 2.5 },
+      }}
+    >
+      <input ref={fileInputRef} type="file" hidden accept="video/*" onChange={handleFileInput} />
+
+      {/* 1. Header Navigation Bar */}
       <Box
         sx={{
+          mb: 2,
+          flexShrink: 0,
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: { xs: 'flex-start', sm: 'center' },
-          flexDirection: { xs: 'column', sm: 'row' },
-          gap: 2,
-          mb: 3,
+          alignItems: { xs: 'flex-start', md: 'center' },
+          flexDirection: { xs: 'column', md: 'row' },
+          gap: 1.5,
         }}
       >
         <Box>
-          <Typography variant="h4" sx={{ fontWeight: 800 }}>
-            동영상 편집 스튜디오 (Video Master)
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
-            서버 통신 없이 100% 브라우저(Web Audio · Canvas · WebAssembly)에서 동작하는 올인원
-            비디오 편집기
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, mb: 0.5 }}>
+            <Box
+              sx={{
+                width: 38,
+                height: 38,
+                borderRadius: 1.5,
+                bgcolor: 'primary.main',
+                color: 'primary.contrastText',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <MovieCreationRoundedIcon />
+            </Box>
+            <Typography variant="h4" sx={{ fontWeight: 800 }}>
+              동영상 편집 스튜디오 (Video Master)
+            </Typography>
+            <Chip
+              label="100% 브라우저 로컬 가속"
+              size="small"
+              color="primary"
+              variant="soft"
+              sx={{ fontWeight: 700, fontSize: '0.75rem' }}
+            />
+          </Box>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            서버 통신 없이 100% 브라우저 WebAssembly · Web Audio · Canvas에서 안전하고 정밀하게
+            영상을 편집합니다.
           </Typography>
         </Box>
 
-        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+        {/* Action Buttons */}
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
           <Button
             component={RouterLink}
             href={paths.videoMaster.trim}
+            size="small"
             variant="soft"
             color="primary"
             startIcon={<ContentCutRoundedIcon />}
@@ -191,6 +252,7 @@ export function VideoMasterView() {
           <Button
             component={RouterLink}
             href={paths.videoMaster.merge}
+            size="small"
             variant="soft"
             color="primary"
             startIcon={<CallMergeRoundedIcon />}
@@ -201,6 +263,7 @@ export function VideoMasterView() {
           <Button
             component={RouterLink}
             href={paths.videoMaster.aiWatermark}
+            size="small"
             variant="soft"
             color="primary"
             startIcon={<MovieFilterRoundedIcon />}
@@ -208,204 +271,207 @@ export function VideoMasterView() {
             AI 워터마크 각인
           </Button>
 
-          <Button
-            variant="outlined"
-            color="secondary"
-            startIcon={<ScienceRoundedIcon />}
-            onClick={handleLoadSample}
-            disabled={isLoadingSample}
-          >
-            {isLoadingSample ? '생성 중...' : '테스트용 샘플 영상 불러오기'}
-          </Button>
+          {videoUrl && (
+            <>
+              <Tooltip title="새 영상으로 교체">
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color="inherit"
+                  startIcon={<RefreshRoundedIcon />}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  영상 바꾸기
+                </Button>
+              </Tooltip>
 
-          <Button variant="contained" component="label" startIcon={<CloudUploadRoundedIcon />}>
-            동영상 열기
-            <input type="file" hidden accept="video/*" onChange={handleFileInput} />
-          </Button>
+              <Button size="small" variant="soft" color="error" onClick={handleReset}>
+                닫기
+              </Button>
+            </>
+          )}
         </Box>
       </Box>
 
-      {/* 2. Drag & Drop Zone if no video loaded */}
+      {/* 2. Main Content Area */}
       {!videoUrl ? (
+        <VideoUploadWorkspace
+          onSelectSample={handleSelectSample}
+          onFileSelect={handleLoadFile}
+          title="편집할 동영상을 업로드하세요"
+          subtitle="동영상 파일을 드래그하거나 컴퓨터에서 선택하세요. (모든 작업은 브라우저 로컬에서 안전하게 처리됩니다)"
+          icon={<MovieFilterRoundedIcon sx={{ fontSize: 38 }} />}
+        />
+      ) : (
+        /* Active Workspace: Left Viewport & Right Control Panels */
         <Box
-          onClick={() => fileInputRef.current?.click()}
-          onDragOver={(e) => {
-            e.preventDefault();
-            setIsDragOver(true);
-          }}
-          onDragLeave={() => setIsDragOver(false)}
-          onDrop={handleDrop}
           sx={{
-            p: 6,
-            borderRadius: 2,
-            border: '2px dashed',
-            borderColor: isDragOver ? 'primary.main' : 'divider',
-            bgcolor: isDragOver ? 'action.hover' : 'background.neutral',
             display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            textAlign: 'center',
-            gap: 2,
-            minHeight: 380,
-            cursor: 'pointer',
-            transition: 'all 0.2s',
+            flexDirection: { xs: 'column', lg: 'row' },
+            flex: '1 1 auto',
+            minHeight: 0,
+            height: '100%',
+            position: 'relative',
           }}
         >
-          <input
-            ref={fileInputRef}
-            type="file"
-            hidden
-            accept="video/*"
-            onChange={handleFileInput}
-          />
+          {/* Left: Player & Live Canvas Viewport */}
           <Box
             sx={{
-              width: 80,
-              height: 80,
-              borderRadius: '50%',
-              bgcolor: 'primary.lighter',
-              color: 'primary.main',
               display: 'flex',
+              flexDirection: 'column',
+              flex: '1 1 0px',
+              minWidth: 0,
+              minHeight: 0,
+              height: '100%',
+              pr: { lg: 1.5 },
+              gap: 1.5,
+            }}
+          >
+            <VideoPlayerPreview
+              videoUrl={videoUrl}
+              videoRef={videoRef}
+              canvasRef={canvasRef}
+              filters={filters}
+              transform={transform}
+              textOverlay={textOverlay}
+              watermark={watermark}
+              currentTime={currentTime}
+              duration={duration}
+              onTimeUpdate={(t) => setCurrentTime(t)}
+              onDurationChange={(d) => setDuration(d)}
+            />
+          </Box>
+
+          {/* Resizable Divider (Desktop) */}
+          <Box
+            onPointerDown={handleDividerPointerDown}
+            onPointerMove={handleDividerPointerMove}
+            onPointerUp={handleDividerPointerUp}
+            sx={{
+              display: { xs: 'none', lg: 'flex' },
+              width: 8,
+              cursor: 'col-resize',
               alignItems: 'center',
               justifyContent: 'center',
+              position: 'relative',
+              zIndex: 10,
+              userSelect: 'none',
+              touchAction: 'none',
+              mx: 0.5,
+              '&::after': {
+                content: '""',
+                width: 3,
+                height: 48,
+                borderRadius: 1.5,
+                bgcolor: 'divider',
+                transition: 'background-color 0.2s',
+              },
+              '&:hover::after': {
+                bgcolor: 'primary.main',
+              },
             }}
-          >
-            <PlayCircleFilledWhiteRoundedIcon sx={{ fontSize: 44 }} />
-          </Box>
+          />
 
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              동영상 파일을 이곳에 드래그하거나 클릭하여 선택하세요
-            </Typography>
-            <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
-              지원 포맷: MP4, WebM, MOV, MKV, AVI 등 (모든 작업은 브라우저 로컬에서 안전하게
-              처리됩니다)
-            </Typography>
-          </Box>
-
-          <Button variant="soft" color="primary" sx={{ mt: 1 }}>
-            내 컴퓨터에서 파일 찾기
-          </Button>
-        </Box>
-      ) : (
-        /* 3. Main Editor Layout */
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-          {/* Metadata Card */}
-          <VideoInfoCard metadata={metadata} />
-
-          {/* Main Grid: Left Player Preview vs Right Editing Panels */}
+          {/* Right: Feature Tool Tabs & Scrollable Panels */}
           <Box
             sx={{
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', lg: '1.2fr 1fr' },
-              gap: 3,
-              alignItems: 'start',
+              width: { xs: '100%', lg: rightPanelWidth },
+              minWidth: { lg: 320 },
+              maxWidth: { lg: 680 },
+              flexShrink: 0,
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              minHeight: 0,
+              gap: 1.5,
             }}
           >
-            {/* Left: Player & Live Canvas Mirror */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <VideoPlayerPreview
-                videoUrl={videoUrl}
-                videoRef={videoRef}
-                canvasRef={canvasRef}
-                filters={filters}
-                transform={transform}
-                textOverlay={textOverlay}
-                watermark={watermark}
-                currentTime={currentTime}
-                duration={duration}
-                onTimeUpdate={(t) => setCurrentTime(t)}
-                onDurationChange={(d) => setDuration(d)}
-              />
+            {/* Compact Video Info Header */}
+            {metadata && <VideoInfoCard metadata={metadata} />}
 
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                  💡 실시간 캔버스 미러링: 오른쪽 도구 탭에서 필터, 회전, 자막 변경 시 즉시
-                  반영됩니다.
-                </Typography>
+            {/* Pinned Tab Header */}
+            <Card sx={{ borderRadius: 2, flexShrink: 0 }}>
+              <Tabs
+                value={currentTab}
+                onChange={(_, val) => setCurrentTab(val)}
+                variant="scrollable"
+                scrollButtons="auto"
+                sx={{
+                  px: 1.5,
+                  minHeight: 44,
+                  borderBottom: '1px solid',
+                  borderColor: 'divider',
+                  '& .MuiTab-root': {
+                    minHeight: 44,
+                    py: 1,
+                    px: 1.5,
+                    fontWeight: 700,
+                    fontSize: '0.8125rem',
+                  },
+                }}
+              >
+                <Tab
+                  value="trim"
+                  icon={<ContentCutRoundedIcon fontSize="small" />}
+                  iconPosition="start"
+                  label="자르기 · 배속"
+                />
+                <Tab
+                  value="audio"
+                  icon={<AudiotrackRoundedIcon fontSize="small" />}
+                  iconPosition="start"
+                  label="오디오 추출"
+                />
+                <Tab
+                  value="gif"
+                  icon={<GifRoundedIcon fontSize="small" />}
+                  iconPosition="start"
+                  label="GIF 움짤"
+                />
+                <Tab
+                  value="filter"
+                  icon={<ColorLensRoundedIcon fontSize="small" />}
+                  iconPosition="start"
+                  label="필터 · 색감"
+                />
+                <Tab
+                  value="overlay"
+                  icon={<TitleRoundedIcon fontSize="small" />}
+                  iconPosition="start"
+                  label="자막 · 워터마크"
+                />
+                <Tab
+                  value="transform"
+                  icon={<CropRotateRoundedIcon fontSize="small" />}
+                  iconPosition="start"
+                  label="회전 · 비율"
+                />
+                <Tab
+                  value="frame"
+                  icon={<CameraAltRoundedIcon fontSize="small" />}
+                  iconPosition="start"
+                  label="프레임 캡처"
+                />
+                <Tab
+                  value="merge"
+                  icon={<CallMergeRoundedIcon fontSize="small" />}
+                  iconPosition="start"
+                  label="영상 병합"
+                />
+              </Tabs>
+            </Card>
 
-                <Tooltip title="새로운 영상으로 교체">
-                  <Button
-                    size="small"
-                    component="label"
-                    color="inherit"
-                    startIcon={<RefreshRoundedIcon />}
-                  >
-                    영상 바꾸기
-                    <input type="file" hidden accept="video/*" onChange={handleFileInput} />
-                  </Button>
-                </Tooltip>
-              </Box>
-            </Box>
-
-            {/* Right: Feature Tool Tabs & Panels */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <Card sx={{ borderRadius: 2 }}>
-                <Tabs
-                  value={currentTab}
-                  onChange={(_, val) => setCurrentTab(val)}
-                  variant="scrollable"
-                  scrollButtons="auto"
-                  sx={{
-                    px: 2,
-                    borderBottom: '1px solid',
-                    borderColor: 'divider',
-                    '& .MuiTab-root': { minHeight: 48, fontWeight: 700, fontSize: '0.85rem' },
-                  }}
-                >
-                  <Tab
-                    value="trim"
-                    icon={<ContentCutRoundedIcon fontSize="small" />}
-                    iconPosition="start"
-                    label="자르기 · 배속"
-                  />
-                  <Tab
-                    value="audio"
-                    icon={<AudiotrackRoundedIcon fontSize="small" />}
-                    iconPosition="start"
-                    label="오디오 추출"
-                  />
-                  <Tab
-                    value="gif"
-                    icon={<GifRoundedIcon fontSize="small" />}
-                    iconPosition="start"
-                    label="GIF 움짤"
-                  />
-                  <Tab
-                    value="filter"
-                    icon={<ColorLensRoundedIcon fontSize="small" />}
-                    iconPosition="start"
-                    label="필터 · 색감"
-                  />
-                  <Tab
-                    value="overlay"
-                    icon={<TitleRoundedIcon fontSize="small" />}
-                    iconPosition="start"
-                    label="자막 · 워터마크"
-                  />
-                  <Tab
-                    value="transform"
-                    icon={<CropRotateRoundedIcon fontSize="small" />}
-                    iconPosition="start"
-                    label="회전 · 비율"
-                  />
-                  <Tab
-                    value="frame"
-                    icon={<CameraAltRoundedIcon fontSize="small" />}
-                    iconPosition="start"
-                    label="프레임 캡처"
-                  />
-                  <Tab
-                    value="merge"
-                    icon={<CallMergeRoundedIcon fontSize="small" />}
-                    iconPosition="start"
-                    label="영상 병합"
-                  />
-                </Tabs>
-              </Card>
-
-              {/* Tab Panels */}
+            {/* Scrollable Tool Panel Area */}
+            <Box
+              sx={{
+                flex: '1 1 auto',
+                minHeight: 0,
+                overflowY: 'auto',
+                pr: 0.5,
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
               {currentTab === 'trim' && (
                 <TrimSpeedPanel videoUrl={videoUrl} duration={duration} videoRef={videoRef} />
               )}

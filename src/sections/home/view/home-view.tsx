@@ -4,24 +4,27 @@ import { useMemo, useState, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 
-import { HomeHero } from '../home-hero';
-import { HomeMetrics } from '../home-metrics';
-import { HomeFeatured } from '../home-featured';
+import { navData } from 'src/layouts/nav-config-dashboard';
+
+import { extractNavTools } from 'src/sections/photo/utils/nav-tools';
+
 import { HomeWorkflow } from '../home-workflow';
 import { HomeToolsGrid } from '../home-tools-grid';
-import { TOOLS_DATA, type ToolCategory } from '../home-tools-data';
 
 // ----------------------------------------------------------------------
 
 export function HomeView() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<ToolCategory>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+
+  // navData로부터 동적으로 전체 도구 및 섹션 그룹 추출 (SSOT)
+  const { tools, sectionGroups, categories } = useMemo(() => extractNavTools(navData), []);
 
   const handleSearchChange = useCallback((query: string) => {
     setSearchQuery(query);
   }, []);
 
-  const handleSelectCategory = useCallback((category: ToolCategory) => {
+  const handleSelectCategory = useCallback((category: string) => {
     setSelectedCategory(category);
   }, []);
 
@@ -30,37 +33,37 @@ export function HomeView() {
     setSelectedCategory('all');
   }, []);
 
-  const handleScrollToTools = useCallback(() => {
-    const el = document.getElementById('tools-section');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, []);
-
   // Filter tools based on search query and category
   const filteredTools = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
 
-    return TOOLS_DATA.filter((tool) => {
+    return tools.filter((tool) => {
       // Category check
-      const matchesCategory = selectedCategory === 'all' || tool.category === selectedCategory;
+      const matchesCategory = selectedCategory === 'all' || tool.section === selectedCategory;
+
+      if (!matchesCategory) return false;
 
       // Query check
-      if (!query) {
-        return matchesCategory;
-      }
+      if (!query) return true;
 
-      const matchesQuery =
+      return (
         tool.title.toLowerCase().includes(query) ||
-        tool.subtitle.toLowerCase().includes(query) ||
+        (tool.groupTitle && tool.groupTitle.toLowerCase().includes(query)) ||
+        tool.section.toLowerCase().includes(query) ||
         tool.description.toLowerCase().includes(query) ||
-        tool.category.toLowerCase().includes(query) ||
         (tool.tag && tool.tag.toLowerCase().includes(query)) ||
-        tool.features.some((f) => f.toLowerCase().includes(query));
-
-      return matchesCategory && matchesQuery;
+        tool.path.toLowerCase().includes(query)
+      );
     });
-  }, [searchQuery, selectedCategory]);
+  }, [tools, searchQuery, selectedCategory]);
+
+  // 카테고리별 그룹화된 필터링 결과 (카테고리가 'all'이고 검색어가 없을 때 섹션별 헤더 표시용)
+  const filteredSectionGroups = useMemo(() => {
+    if (searchQuery.trim() || selectedCategory !== 'all') {
+      return null;
+    }
+    return sectionGroups;
+  }, [sectionGroups, searchQuery, selectedCategory]);
 
   return (
     <Box
@@ -75,30 +78,20 @@ export function HomeView() {
         scrollBehavior: 'smooth',
       }}
     >
-      {/* 1. Hero & Real-time Quick Launcher */}
-      <HomeHero
-        searchQuery={searchQuery}
-        onSearchChange={handleSearchChange}
-        selectedCategory={selectedCategory}
-        onSelectCategory={handleSelectCategory}
-        onScrollToTools={handleScrollToTools}
-      />
-
-      {/* 2. Key Value Pillars */}
-      <HomeMetrics />
-
-      {/* 3. Featured Flagship Bento (Only shown when not searching or in 'all' view) */}
-      {!searchQuery && selectedCategory === 'all' && <HomeFeatured />}
-
-      {/* 4. Categorized & Filtered Tools Grid */}
+      {/* All Tools Hub with integrated search */}
       <HomeToolsGrid
         tools={filteredTools}
+        sectionGroups={filteredSectionGroups}
         selectedCategory={selectedCategory}
         searchQuery={searchQuery}
+        onSearchChange={handleSearchChange}
+        onSelectCategory={handleSelectCategory}
+        categories={categories}
+        totalToolsCount={tools.length}
         onResetFilters={handleResetFilters}
       />
 
-      {/* 5. 3-Step Simple Workflow */}
+      {/* 3-Step Simple Workflow */}
       <HomeWorkflow />
     </Box>
   );

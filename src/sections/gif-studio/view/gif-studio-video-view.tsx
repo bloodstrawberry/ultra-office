@@ -1,5 +1,7 @@
 'use client';
 
+import type { SampleVideoItem } from 'src/sections/video-master/data/video-samples';
+
 import { toast } from 'sonner';
 import React, { useRef, useState, useCallback } from 'react';
 
@@ -19,9 +21,9 @@ import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 import VideoLibraryRoundedIcon from '@mui/icons-material/VideoLibraryRounded';
 
-import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
-
 import { DashboardContent } from 'src/layouts/dashboard';
+
+import { VideoUploadWorkspace } from 'src/sections/video-master/components/video-upload-workspace';
 
 import { GifStudioNavHeader } from '../components/gif-studio-nav-header';
 import {
@@ -83,7 +85,7 @@ export function GifStudioVideoView() {
   const videoPlayerRef = useRef<HTMLVideoElement>(null);
 
   const handleVideoUpload = useCallback((file: File) => {
-    if (!file.type.startsWith('video/')) {
+    if (!file.type.startsWith('video/') && !/\.(mp4|webm|mov|mkv|avi)$/i.test(file.name)) {
       toast.error('비디오 파일(MP4, WebM 등)을 업로드해주세요.');
       return;
     }
@@ -94,13 +96,14 @@ export function GifStudioVideoView() {
     setVideoProgress(0);
   }, []);
 
-  const videoDrop = useImageDropPaste({
-    onFiles: (files) => {
-      const vid = files.find((f) => f.type.startsWith('video/'));
-      if (vid) handleVideoUpload(vid);
-    },
-    disabled: false,
-  });
+  const handleSelectSample = async (sample: SampleVideoItem) => {
+    try {
+      const file = await sample.generate();
+      handleVideoUpload(file);
+    } catch {
+      toast.error('샘플 비디오 생성에 실패했습니다.');
+    }
+  };
 
   const handleLoadedVideoMetadata = () => {
     if (videoPlayerRef.current) {
@@ -178,51 +181,13 @@ export function GifStudioVideoView() {
       />
 
       {!videoUrl ? (
-        <Card
-          {...videoDrop.getRootProps({
-            onClick: () => videoInputRef.current?.click(),
-          })}
-          sx={{
-            p: 6,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            border: '2px dashed',
-            borderColor: 'divider',
-            borderRadius: 3,
-            flex: '1 1 auto',
-            minHeight: 0,
-            height: '100%',
-            '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
-          }}
-        >
-          <Box
-            sx={{
-              width: 64,
-              height: 64,
-              borderRadius: '50%',
-              bgcolor: 'primary.lighter',
-              color: 'primary.main',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              mb: 2,
-            }}
-          >
-            <VideoLibraryRoundedIcon sx={{ fontSize: 38 }} />
-          </Box>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
-            동영상 파일 업로드 (MP4, WebM, MOV 등)
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-            원하는 구간을 자유롭게 잘라 고화질 움짤 GIF로 변환합니다
-          </Typography>
-          <Button variant="contained" color="primary" startIcon={<CloudUploadRoundedIcon />}>
-            동영상 파일 선택
-          </Button>
-        </Card>
+        <VideoUploadWorkspace
+          onSelectSample={handleSelectSample}
+          onFileSelect={handleVideoUpload}
+          title="GIF로 변환할 동영상을 업로드하세요"
+          subtitle="동영상 파일을 드래그하거나 컴퓨터에서 선택하세요. (원하는 구간을 자유롭게 잘라 고화질 움짤 GIF로 변환)"
+          icon={<VideoLibraryRoundedIcon sx={{ fontSize: 38 }} />}
+        />
       ) : (
         <Box
           sx={{

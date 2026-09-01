@@ -25,8 +25,9 @@ import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import CircularProgress from '@mui/material/CircularProgress';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
-import ZoomInRoundedIcon from '@mui/icons-material/ZoomInRounded';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import ImageRoundedIcon from '@mui/icons-material/ImageRounded';
+import ZoomInRoundedIcon from '@mui/icons-material/ZoomInRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import ZoomOutRoundedIcon from '@mui/icons-material/ZoomOutRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
@@ -38,18 +39,15 @@ import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import ArrowUpwardRoundedIcon from '@mui/icons-material/ArrowUpwardRounded';
 import SkipPreviousRoundedIcon from '@mui/icons-material/SkipPreviousRounded';
+import ContentPasteRoundedIcon from '@mui/icons-material/ContentPasteRounded';
 import MovieCreationRoundedIcon from '@mui/icons-material/MovieCreationRounded';
 import ArrowDownwardRoundedIcon from '@mui/icons-material/ArrowDownwardRounded';
-import ContentPasteRoundedIcon from '@mui/icons-material/ContentPasteRounded';
-import FormatSizeRoundedIcon from '@mui/icons-material/FormatSizeRounded';
-import OpenWithRoundedIcon from '@mui/icons-material/OpenWithRounded';
-import ImageRoundedIcon from '@mui/icons-material/ImageRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { GifSampleSection } from '../components/gif-sample-section';
-import { STUDIO_FONTS, ensureStudioFontsLoaded } from '../data/gif-fonts';
 import { GifStudioNavHeader } from '../components/gif-studio-nav-header';
+import { STUDIO_FONTS, ensureStudioFontsLoaded } from '../data/gif-fonts';
 import { GIF_SAMPLE_LIST, type GifSampleItem, fetchSampleGifFile } from '../data/gif-samples';
 import {
   formatBytes,

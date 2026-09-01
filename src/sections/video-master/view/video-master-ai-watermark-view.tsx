@@ -1,5 +1,7 @@
 'use client';
 
+import type { SampleVideoItem } from '../data/video-samples';
+
 import { toast } from 'sonner';
 import React, { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 
@@ -20,48 +22,48 @@ import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
 import DialogTitle from '@mui/material/DialogTitle';
 import ToggleButton from '@mui/material/ToggleButton';
-import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import LinearProgress from '@mui/material/LinearProgress';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import LoopRoundedIcon from '@mui/icons-material/LoopRounded';
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
-import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded';
+import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
+import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import VolumeOffRoundedIcon from '@mui/icons-material/VolumeOffRounded';
 import NorthEastRoundedIcon from '@mui/icons-material/NorthEastRounded';
+import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
+import CallMergeRoundedIcon from '@mui/icons-material/CallMergeRounded';
 import CropSquareRoundedIcon from '@mui/icons-material/CropSquareRounded';
+import FastRewindRoundedIcon from '@mui/icons-material/FastRewindRounded';
+import ContentCutRoundedIcon from '@mui/icons-material/ContentCutRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import FastForwardRoundedIcon from '@mui/icons-material/FastForwardRounded';
-import FastRewindRoundedIcon from '@mui/icons-material/FastRewindRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
-import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
-import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
 import MovieFilterRoundedIcon from '@mui/icons-material/MovieFilterRounded';
-import ContentCutRoundedIcon from '@mui/icons-material/ContentCutRounded';
-import CallMergeRoundedIcon from '@mui/icons-material/CallMergeRounded';
 import RadioButtonUncheckedRoundedIcon from '@mui/icons-material/RadioButtonUncheckedRounded';
-import PlayCircleFilledWhiteRoundedIcon from '@mui/icons-material/PlayCircleFilledWhiteRounded';
 
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
+import { VideoUploadWorkspace } from '../components/video-upload-workspace';
 import {
   loadImage,
   addCustomLogo,
-  findVideoLogoById,
   getAllVideoLogos,
   removeCustomLogo,
+  findVideoLogoById,
   type WatermarkLogo,
-  type PositionPreset,
   isPointInWatermark,
+  type PositionPreset,
   drawVideoAiWatermark,
   PRESET_AI_VIDEO_LOGOS,
   exportAiWatermarkedVideo,
@@ -135,10 +137,8 @@ function formatBytes(bytes: number): string {
 export function VideoMasterAiWatermarkView() {
   // Video Source & Metadata
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
-  const [videoFile, setVideoFile] = useState<File | null>(null);
   const [metadata, setMetadata] = useState<VideoMetadata | null>(null);
   const [isLoadingSample, setIsLoadingSample] = useState<boolean>(false);
-  const [isDragOver, setIsDragOver] = useState<boolean>(false);
 
   // Playback State
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -366,7 +366,6 @@ export function VideoMasterAiWatermarkView() {
   const handleLoadVideoFile = useCallback(
     (file: File) => {
       const url = URL.createObjectURL(file);
-      setVideoFile(file);
       setVideoUrl(url);
       setCurrentTime(0);
       setIsPlaying(false);
@@ -414,15 +413,12 @@ export function VideoMasterAiWatermarkView() {
     }
   };
 
-  // Drag & Drop File Handlers
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith('video/')) {
+  const handleSelectSample = async (sample: SampleVideoItem) => {
+    try {
+      const file = await sample.generate();
       handleLoadVideoFile(file);
-    } else {
-      toast.error('동영상 파일(.mp4, .webm, .mov 등)을 드롭해 주세요.');
+    } catch {
+      toast.error('샘플 비디오 생성에 실패했습니다.');
     }
   };
 
@@ -916,19 +912,19 @@ export function VideoMasterAiWatermarkView() {
 
   return (
     <DashboardContent
-      maxWidth="xl"
       sx={{
-        flexGrow: 1,
+        flex: '1 1 auto',
         display: 'flex',
         flexDirection: 'column',
-        height: 'calc(100vh - 80px)',
-        overflow: 'hidden',
-        p: { xs: 1.5, md: 2.5 },
+        minHeight: 0,
+        height: '100%',
+        pb: { xs: 2, sm: 2.5 },
       }}
     >
       {/* 1. Top Header */}
       <Box
         sx={{
+          mb: 2,
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -1024,83 +1020,13 @@ export function VideoMasterAiWatermarkView() {
 
       {/* 2. Main Content Viewport */}
       {!videoUrl ? (
-        /* Empty / Dropzone State */
-        <Box
-          onClick={() => fileInputRef.current?.click()}
-          onDragOver={(e) => {
-            e.preventDefault();
-            setIsDragOver(true);
-          }}
-          onDragLeave={() => setIsDragOver(false)}
-          onDrop={handleDrop}
-          sx={{
-            flexGrow: 1,
-            my: 3,
-            borderRadius: 3,
-            border: '2px dashed',
-            borderColor: isDragOver ? 'primary.main' : 'divider',
-            bgcolor: isDragOver ? 'action.hover' : 'background.neutral',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            textAlign: 'center',
-            gap: 2.5,
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-          }}
-        >
-          <Box
-            sx={{
-              width: 88,
-              height: 88,
-              borderRadius: '50%',
-              bgcolor: 'primary.lighter',
-              color: 'primary.main',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: (theme) => theme.customShadows?.z12,
-            }}
-          >
-            <PlayCircleFilledWhiteRoundedIcon sx={{ fontSize: 52 }} />
-          </Box>
-
-          <Box sx={{ maxWidth: 480 }}>
-            <Typography variant="h6" sx={{ fontWeight: 800 }}>
-              동영상 파일을 이곳에 드래그하거나 클릭하여 업로드하세요
-            </Typography>
-            <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
-              지원 포맷: MP4, WebM, MOV, MKV, AVI 등 (서버 업로드 없이 내 브라우저에서 안전하게
-              처리)
-            </Typography>
-          </Box>
-
-          <Box sx={{ display: 'flex', gap: 1.5, mt: 1 }}>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={(e) => {
-                e.stopPropagation();
-                fileInputRef.current?.click();
-              }}
-            >
-              내 PC에서 파일 선택
-            </Button>
-            <Button
-              variant="outlined"
-              color="secondary"
-              startIcon={<AutoAwesomeRoundedIcon />}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleLoadSampleVideo();
-              }}
-              disabled={isLoadingSample}
-            >
-              샘플 영상으로 바로 체험하기
-            </Button>
-          </Box>
-        </Box>
+        <VideoUploadWorkspace
+          onSelectSample={handleSelectSample}
+          onFileSelect={handleLoadVideoFile}
+          title="AI 워터마크를 각인할 동영상을 업로드하세요"
+          subtitle="동영상 파일을 드래그하거나 컴퓨터에서 선택하세요. (AI 모델 로고, 손그림 마커, 자막 100% 브라우저 합성)"
+          icon={<MovieFilterRoundedIcon sx={{ fontSize: 38 }} />}
+        />
       ) : (
         /* Active Workspace: Left Video Stage + Right Tabs Panel */
         <Box

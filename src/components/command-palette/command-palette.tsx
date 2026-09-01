@@ -13,10 +13,13 @@ import ListItemButton from '@mui/material/ListItemButton';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import KeyboardCommandKeyRoundedIcon from '@mui/icons-material/KeyboardCommandKeyRounded';
+import DashboardCustomizeRoundedIcon from '@mui/icons-material/DashboardCustomizeRounded';
 
 import { useRouter } from 'src/routes/hooks';
 
-import { TOOLS_DATA } from 'src/sections/home/home-tools-data';
+import { navData } from 'src/layouts/nav-config-dashboard';
+
+import { extractNavTools } from 'src/sections/photo/utils/nav-tools';
 
 // ----------------------------------------------------------------------
 
@@ -29,6 +32,9 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
 
+  // navData로부터 동적으로 전체 도구 추출
+  const { tools } = useMemo(() => extractNavTools(navData), []);
+
   // Reset query on modal open
   useEffect(() => {
     if (open) {
@@ -39,16 +45,18 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
   // Filter tools based on query
   const filteredTools = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    if (!q) return TOOLS_DATA;
+    if (!q) return tools;
 
-    return TOOLS_DATA.filter(
+    return tools.filter(
       (tool) =>
         tool.title.toLowerCase().includes(q) ||
-        tool.subtitle.toLowerCase().includes(q) ||
+        (tool.groupTitle && tool.groupTitle.toLowerCase().includes(q)) ||
+        tool.section.toLowerCase().includes(q) ||
         tool.description.toLowerCase().includes(q) ||
-        tool.features.some((f) => f.toLowerCase().includes(q))
+        (tool.tag && tool.tag.toLowerCase().includes(q)) ||
+        tool.path.toLowerCase().includes(q)
     );
-  }, [searchQuery]);
+  }, [tools, searchQuery]);
 
   const handleSelectTool = useCallback(
     (path: string) => {
@@ -130,32 +138,52 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                   <Box
                     sx={{
-                      width: 10,
-                      height: 10,
-                      borderRadius: '50%',
-                      bgcolor: tool.accentColor || 'primary.main',
+                      width: 32,
+                      height: 32,
+                      borderRadius: 1.5,
+                      bgcolor: 'action.hover',
+                      color: 'primary.main',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                       flexShrink: 0,
                     }}
-                  />
+                  >
+                    {tool.icon || <DashboardCustomizeRoundedIcon sx={{ fontSize: 18 }} />}
+                  </Box>
                   <Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
                         {tool.title}
                       </Typography>
+                      {tool.groupTitle && (
+                        <Chip
+                          label={tool.groupTitle}
+                          size="small"
+                          variant="outlined"
+                          sx={{ height: 18, fontSize: '9px', fontWeight: 600 }}
+                        />
+                      )}
                       {tool.tag && (
                         <Chip
                           label={tool.tag}
                           size="small"
-                          color={tool.tagColor || 'primary'}
+                          color={tool.badgeColor || 'primary'}
                           sx={{ height: 18, fontSize: '10px', fontWeight: 700 }}
                         />
                       )}
                     </Box>
                     <Typography
                       variant="caption"
-                      sx={{ color: 'text.secondary', display: 'block' }}
+                      sx={{
+                        color: 'text.secondary',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 1,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                      }}
                     >
-                      {tool.subtitle}
+                      {tool.description}
                     </Typography>
                   </Box>
                 </Box>
@@ -197,7 +225,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
           단축키 <strong>Ctrl + K</strong> / <strong>Cmd + K</strong>로 언제든지 열 수 있습니다.
         </Typography>
         <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-          총 {TOOLS_DATA.length}개 실무 도구
+          총 {tools.length}개 실무 도구
         </Typography>
       </Box>
     </Dialog>

@@ -21,6 +21,7 @@ import ApprovalRoundedIcon from '@mui/icons-material/ApprovalRounded';
 import VideocamRoundedIcon from '@mui/icons-material/VideocamRounded';
 import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded';
 import ViewInArRoundedIcon from '@mui/icons-material/ViewInArRounded';
+import HandymanRoundedIcon from '@mui/icons-material/HandymanRounded';
 import TableViewRoundedIcon from '@mui/icons-material/TableViewRounded';
 import FunctionsRoundedIcon from '@mui/icons-material/FunctionsRounded';
 import DataArrayRoundedIcon from '@mui/icons-material/DataArrayRounded';
@@ -44,16 +45,17 @@ import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
 import CompareArrowsRoundedIcon from '@mui/icons-material/CompareArrowsRounded';
 import QrCodeScannerRoundedIcon from '@mui/icons-material/QrCodeScannerRounded';
 import MovieCreationRoundedIcon from '@mui/icons-material/MovieCreationRounded';
-import DocumentScannerRoundedIcon from '@mui/icons-material/DocumentScannerRounded';
-import SwapHorizontalCircleRoundedIcon from '@mui/icons-material/SwapHorizontalCircleRounded';
-import HandymanRoundedIcon from '@mui/icons-material/HandymanRounded';
 import SportsEsportsRoundedIcon from '@mui/icons-material/SportsEsportsRounded';
+import DocumentScannerRoundedIcon from '@mui/icons-material/DocumentScannerRounded';
+import DashboardCustomizeRoundedIcon from '@mui/icons-material/DashboardCustomizeRounded';
+import SwapHorizontalCircleRoundedIcon from '@mui/icons-material/SwapHorizontalCircleRounded';
 
 import { paths } from 'src/routes/paths';
 
 // ----------------------------------------------------------------------
 
 const ICONS = {
+  hub: <DashboardCustomizeRoundedIcon fontSize="small" />,
   folder: <FolderRoundedIcon fontSize="small" />,
   search: <SearchRoundedIcon fontSize="small" />,
   text: <TextFieldsRoundedIcon fontSize="small" />,
@@ -114,7 +116,7 @@ export const navData: NavSectionProps['data'] = [
    * 0. Hub / Overview
    */
   {
-    items: [{ title: '전체 도구 허브', path: paths.photo.root, icon: ICONS.photo }],
+    items: [{ title: '전체 도구 허브', path: paths.photo.root, icon: ICONS.hub }],
   },
 
   /**

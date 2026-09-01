@@ -1,9 +1,10 @@
 'use client';
 
+import type { SampleVideoItem } from '../data/video-samples';
 import type { MergeClipData, MergeExportSettings } from '../utils/video-merge-processor';
 
 import { toast } from 'sonner';
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -11,7 +12,6 @@ import Chip from '@mui/material/Chip';
 import Radio from '@mui/material/Radio';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
-import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import RadioGroup from '@mui/material/RadioGroup';
@@ -19,28 +19,37 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import LinearProgress from '@mui/material/LinearProgress';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import FormControlLabel from '@mui/material/FormControlLabel';
-import CallMergeRoundedIcon from '@mui/icons-material/CallMergeRounded';
-import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
-import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
-import ScienceRoundedIcon from '@mui/icons-material/ScienceRounded';
-import ArrowUpwardRoundedIcon from '@mui/icons-material/ArrowUpwardRounded';
-import ArrowDownwardRoundedIcon from '@mui/icons-material/ArrowDownwardRounded';
-import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
-import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
 import MovieRoundedIcon from '@mui/icons-material/MovieRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
-import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
+import CallMergeRoundedIcon from '@mui/icons-material/CallMergeRounded';
+import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
+import ContentCutRoundedIcon from '@mui/icons-material/ContentCutRounded';
+import ArrowUpwardRoundedIcon from '@mui/icons-material/ArrowUpwardRounded';
 import DeleteSweepRoundedIcon from '@mui/icons-material/DeleteSweepRounded';
+import MovieFilterRoundedIcon from '@mui/icons-material/MovieFilterRounded';
+import ArrowDownwardRoundedIcon from '@mui/icons-material/ArrowDownwardRounded';
+import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
 
+import { DashboardContent } from 'src/layouts/dashboard';
+
+import { VideoUploadWorkspace } from '../components/video-upload-workspace';
 import {
   createSampleMergeClips,
   exportMergedVideoSequentially,
 } from '../utils/video-merge-processor';
+import {
+  createOceanWaveVideo,
+  createNeonMotionVideo,
+  createCyberpunkAiVideo,
+  createTimecodeCinematicVideo,
+} from '../data/video-samples';
 
 // ----------------------------------------------------------------------
 
@@ -65,13 +74,11 @@ function formatBytes(bytes: number): string {
 export function VideoMasterMergeView() {
   // Clips state
   const [clips, setClips] = useState<MergeClipData[]>([]);
-  const [isDragOver, setIsDragOver] = useState<boolean>(false);
-  const [isLoadingSamples, setIsLoadingSamples] = useState<boolean>(false);
 
   // Sequence Live Preview State
   const [previewClipIndex, setPreviewClipIndex] = useState<number>(0);
   const [isSequencePlaying, setIsSequencePlaying] = useState<boolean>(false);
-  const [sequenceCurrentTime, setSequenceCurrentTime] = useState<number>(0);
+  const [, setSequenceCurrentTime] = useState<number>(0);
 
   // Single Clip Preview Modal
   const [previewModalClip, setPreviewModalClip] = useState<MergeClipData | null>(null);
@@ -92,10 +99,43 @@ export function VideoMasterMergeView() {
   const [isExportDialogOpen, setIsExportDialogOpen] = useState<boolean>(false);
   const [mergedResultUrl, setMergedResultUrl] = useState<string | null>(null);
 
+  // Resizable Right Panel
+  const [rightPanelWidth, setRightPanelWidth] = useState<number>(400);
+  const isResizingRef = useRef<boolean>(false);
+  const resizeStartXRef = useRef<number>(0);
+  const resizeStartWidthRef = useRef<number>(400);
+
   // Refs
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const sequenceVideoRef = useRef<HTMLVideoElement | null>(null);
   const exportAbortControllerRef = useRef<AbortController | null>(null);
+
+  const handleDividerPointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    isResizingRef.current = true;
+    resizeStartXRef.current = e.clientX;
+    resizeStartWidthRef.current = rightPanelWidth;
+  };
+
+  const handleDividerPointerMove = (e: React.PointerEvent) => {
+    if (!isResizingRef.current) return;
+    const deltaX = resizeStartXRef.current - e.clientX;
+    const newWidth = Math.max(300, Math.min(650, resizeStartWidthRef.current + deltaX));
+    setRightPanelWidth(newWidth);
+  };
+
+  const handleDividerPointerUp = (e: React.PointerEvent) => {
+    if (isResizingRef.current) {
+      isResizingRef.current = false;
+      try {
+        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+      } catch {
+        // ignore
+      }
+    }
+  };
 
   // Add Files Handler
   const handleAddFiles = useCallback((files: FileList | File[] | null) => {
@@ -104,7 +144,7 @@ export function VideoMasterMergeView() {
     const fileArray = Array.isArray(files) ? files : Array.from(files);
 
     fileArray.forEach((file) => {
-      if (!file.type.startsWith('video/')) return;
+      if (!file.type.startsWith('video/') && !/\.(mp4|webm|mov|mkv|avi)$/i.test(file.name)) return;
       const url = URL.createObjectURL(file);
       const tempVideo = document.createElement('video');
       tempVideo.src = url;
@@ -148,25 +188,50 @@ export function VideoMasterMergeView() {
     toast.success(`${fileArray.length}개의 동영상 클립을 목록에 추가했습니다.`);
   }, []);
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleAddFiles(e.dataTransfer.files);
-    }
-  };
+  // Preset Samples for Merge
+  const mergeSamplePresets: SampleVideoItem[] = [
+    {
+      id: 'merge-3-parts',
+      label: '🎬 3부작 테마 연속 클립',
+      subLabel: 'Intro · Main · Outro (총 12초)',
+      duration: '3클립',
+      thumbnailSvg: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180"><rect width="320" height="180" fill="%230f172a"/><rect x="15" y="25" width="85" height="130" rx="6" fill="%2300a76f" opacity="0.8"/><rect x="115" y="25" width="85" height="130" rx="6" fill="%230284c7" opacity="0.8"/><rect x="215" y="25" width="85" height="130" rx="6" fill="%238b5cf6" opacity="0.8"/><text x="160" y="95" fill="%23ffffff" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle">3 CLIPS MERGE</text></svg>`,
+      generate: async () => {
+        const sampleFiles = await createSampleMergeClips();
+        return sampleFiles[0];
+      },
+    },
+    {
+      id: 'merge-neon-timecode',
+      label: '⚡ 네온 + 타임코드 2종',
+      subLabel: '모션 & 타임코드 연결 (총 14초)',
+      duration: '2클립',
+      thumbnailSvg: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180"><rect width="320" height="180" fill="%23090d16"/><rect x="20" y="25" width="130" height="130" rx="6" fill="%236366f1" opacity="0.7"/><rect x="170" y="25" width="130" height="130" rx="6" fill="%2300a76f" opacity="0.7"/><text x="160" y="95" fill="%23ffffff" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle">NEON + HUD</text></svg>`,
+      generate: async () => createNeonMotionVideo(6),
+    },
+    {
+      id: 'merge-ocean-cyber',
+      label: '🌊 오션 + 사이버 2종',
+      subLabel: '웨이브 & 사이버 연결 (총 12초)',
+      duration: '2클립',
+      thumbnailSvg: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180"><rect width="320" height="180" fill="%23041322"/><rect x="20" y="25" width="130" height="130" rx="6" fill="%230ea5e9" opacity="0.7"/><rect x="170" y="25" width="130" height="130" rx="6" fill="%23ec4899" opacity="0.7"/><text x="160" y="95" fill="%23ffffff" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle">OCEAN + CYBER</text></svg>`,
+      generate: async () => createOceanWaveVideo(6),
+    },
+  ];
 
-  // 1-Click Multi Sample Video Generator
-  const handleLoadSampleClips = async () => {
-    setIsLoadingSamples(true);
-    try {
+  const handleSelectSample = async (sample: SampleVideoItem) => {
+    if (sample.id === 'merge-3-parts') {
       const sampleFiles = await createSampleMergeClips();
       handleAddFiles(sampleFiles);
-      toast.success('3개의 테스트 샘플 비디오 클립이 생성되어 로드되었습니다.');
-    } catch {
-      toast.error('샘플 비디오 생성 실패');
-    } finally {
-      setIsLoadingSamples(false);
+    } else if (sample.id === 'merge-neon-timecode') {
+      const [f1, f2] = await Promise.all([
+        createNeonMotionVideo(6),
+        createTimecodeCinematicVideo(8),
+      ]);
+      handleAddFiles([f1, f2]);
+    } else if (sample.id === 'merge-ocean-cyber') {
+      const [f1, f2] = await Promise.all([createOceanWaveVideo(6), createCyberpunkAiVideo(6)]);
+      handleAddFiles([f1, f2]);
     }
   };
 
@@ -253,8 +318,8 @@ export function VideoMasterMergeView() {
 
     setIsExporting(true);
     setExportProgress(0);
-    setExportElapsedSec(0);
     setExportCurrentClipIdx(1);
+    setExportElapsedSec(0);
     setIsExportDialogOpen(true);
 
     const abortController = new AbortController();
@@ -271,9 +336,9 @@ export function VideoMasterMergeView() {
       const mergedBlob = await exportMergedVideoSequentially(
         clips,
         settings,
-        (percent, currentClipIdx, total, elapsed) => {
-          setExportProgress(percent);
-          setExportCurrentClipIdx(currentClipIdx);
+        (progress, currentIdx, _, elapsed) => {
+          setExportProgress(progress);
+          setExportCurrentClipIdx(currentIdx);
           setExportElapsedSec(elapsed);
         },
         abortController.signal
@@ -281,12 +346,12 @@ export function VideoMasterMergeView() {
 
       const resultUrl = URL.createObjectURL(mergedBlob);
       setMergedResultUrl(resultUrl);
-      toast.success(`총 ${clips.length}개 비디오의 병합이 성공적으로 완료되었습니다!`);
+      toast.success('동영상 병합 및 인코딩이 성공적으로 완료되었습니다!');
     } catch (err: unknown) {
-      if ((err as Error)?.message?.includes('취소') || (err as Error)?.message?.includes('중단')) {
-        toast.info('비디오 병합이 취소되었습니다.');
+      if ((err as Error)?.message?.includes('취소')) {
+        toast.info('동영상 병합 작업이 취소되었습니다.');
       } else {
-        toast.error('비디오 병합 중 오류가 발생했습니다.');
+        toast.error('동영상 병합 중 오류가 발생했습니다.');
       }
     } finally {
       setIsExporting(false);
@@ -301,68 +366,84 @@ export function VideoMasterMergeView() {
     setIsExportDialogOpen(false);
   };
 
-  const handleDownloadMerged = () => {
+  const handleDownloadResult = () => {
     if (!mergedResultUrl) return;
     const link = document.createElement('a');
     link.href = mergedResultUrl;
-    link.download = `merged_${clips.length}_clips_${Date.now()}.webm`;
+    link.download = `merged_video_${Date.now()}.webm`;
     link.click();
-    toast.success('병합된 동영상 다운로드를 시작합니다.');
+    toast.success('병합된 비디오 다운로드를 시작합니다.');
   };
 
   const totalDuration = clips.reduce((acc, c) => acc + (c.duration || 0), 0);
-  const totalSize = clips.reduce((acc, c) => acc + (c.size || 0), 0);
+  const totalBytes = clips.reduce((acc, c) => acc + (c.size || 0), 0);
 
   return (
-    <Box
+    <DashboardContent
       sx={{
-        height: '100dvh',
+        flex: '1 1 auto',
         display: 'flex',
         flexDirection: 'column',
-        bgcolor: 'background.default',
-        overflow: 'hidden',
+        minHeight: 0,
+        height: '100%',
+        pb: { xs: 2, sm: 2.5 },
       }}
     >
-      {/* 1. Header Bar */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        hidden
+        multiple
+        accept="video/*"
+        onChange={(e) => handleAddFiles(e.target.files)}
+      />
+
+      {/* 1. Top Header */}
       <Box
         sx={{
-          px: { xs: 2, sm: 3 },
-          py: 1.5,
-          borderBottom: '1px solid',
-          borderColor: 'divider',
+          mb: 2,
+          flexShrink: 0,
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'center',
-          flexShrink: 0,
-          bgcolor: 'background.paper',
+          alignItems: { xs: 'flex-start', md: 'center' },
+          flexDirection: { xs: 'column', md: 'row' },
+          gap: 1.5,
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <Box
-            sx={{
-              width: 38,
-              height: 38,
-              borderRadius: 1.5,
-              bgcolor: 'primary.lighter',
-              color: 'primary.main',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <CallMergeRoundedIcon />
-          </Box>
-          <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
-              동영상 붙이기 (Video Merger & Concatenator)
+        <Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, mb: 0.5 }}>
+            <Box
+              sx={{
+                width: 38,
+                height: 38,
+                borderRadius: 1.5,
+                bgcolor: 'primary.main',
+                color: 'primary.contrastText',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <CallMergeRoundedIcon />
+            </Box>
+            <Typography variant="h4" sx={{ fontWeight: 800 }}>
+              동영상 붙이기 (Video Merge)
             </Typography>
-            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
-              다중 클립 무손실 순차 합성 · 비율 맞춤 · 오디오 믹싱 · 실시간 시퀀스 미리보기
-            </Typography>
+            <Chip
+              label="다중 클립 무제한 병합"
+              size="small"
+              color="primary"
+              variant="soft"
+              sx={{ fontWeight: 700, fontSize: '0.75rem' }}
+            />
           </Box>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            여러 개의 동영상을 순서대로 매끄럽게 연결하고 해상도 및 비율을 자동 맞춤하여 하나로
+            출력합니다.
+          </Typography>
         </Box>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
           <Button
             component={RouterLink}
             href={paths.videoMaster.root}
@@ -375,125 +456,75 @@ export function VideoMasterMergeView() {
           </Button>
 
           <Button
+            component={RouterLink}
+            href={paths.videoMaster.trim}
             size="small"
-            variant="outlined"
-            color="secondary"
-            startIcon={<ScienceRoundedIcon />}
-            onClick={handleLoadSampleClips}
-            disabled={isLoadingSamples}
+            variant="soft"
+            color="primary"
+            startIcon={<ContentCutRoundedIcon />}
           >
-            {isLoadingSamples ? '생성 중...' : '3종 샘플 영상 불러오기'}
+            동영상 자르기
           </Button>
 
           <Button
+            component={RouterLink}
+            href={paths.videoMaster.aiWatermark}
             size="small"
-            variant="contained"
-            component="label"
-            startIcon={<CloudUploadRoundedIcon />}
+            variant="soft"
+            color="primary"
+            startIcon={<MovieFilterRoundedIcon />}
           >
-            클립 추가
-            <input
-              ref={fileInputRef}
-              type="file"
-              hidden
-              multiple
-              accept="video/*"
-              onChange={(e) => handleAddFiles(e.target.files)}
-            />
+            AI 워터마크
           </Button>
+
+          {clips.length > 0 && (
+            <>
+              <Button
+                size="small"
+                variant="contained"
+                startIcon={<AddRoundedIcon />}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                클립 추가
+              </Button>
+
+              <Button
+                size="small"
+                variant="soft"
+                color="error"
+                startIcon={<DeleteSweepRoundedIcon />}
+                onClick={handleClearAll}
+              >
+                전체 삭제
+              </Button>
+            </>
+          )}
         </Box>
       </Box>
 
       {/* 2. Main Workspace Layout */}
       {clips.length === 0 ? (
-        /* Empty State Dropzone */
-        <Box
-          sx={{
-            flex: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            p: 3,
-            overflowY: 'auto',
-          }}
-        >
-          <Box
-            onClick={() => fileInputRef.current?.click()}
-            onDragOver={(e) => {
-              e.preventDefault();
-              setIsDragOver(true);
-            }}
-            onDragLeave={() => setIsDragOver(false)}
-            onDrop={handleDrop}
-            sx={{
-              maxWidth: 640,
-              width: '100%',
-              p: 6,
-              borderRadius: 3,
-              border: '2px dashed',
-              borderColor: isDragOver ? 'primary.main' : 'divider',
-              bgcolor: isDragOver ? 'action.hover' : 'background.paper',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              textAlign: 'center',
-              gap: 2.5,
-              cursor: 'pointer',
-              boxShadow: 2,
-              transition: 'all 0.2s',
-            }}
-          >
-            <Box
-              sx={{
-                width: 76,
-                height: 76,
-                borderRadius: '50%',
-                bgcolor: 'primary.lighter',
-                color: 'primary.main',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <CallMergeRoundedIcon sx={{ fontSize: 40 }} />
-            </Box>
-
-            <Box>
-              <Typography variant="h6" sx={{ fontWeight: 800 }}>
-                이어붙이고 싶은 동영상 파일들을 드롭하세요 (다중 선택 가능)
-              </Typography>
-              <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
-                여러 개의 MP4, WebM, MOV 영상을 순서대로 매끄럽게 하나로 병합합니다
-              </Typography>
-            </Box>
-
-            <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', justifyContent: 'center' }}>
-              <Button variant="contained" color="primary">
-                내 컴퓨터에서 파일 선택하기
-              </Button>
-              <Button
-                variant="outlined"
-                color="secondary"
-                startIcon={<ScienceRoundedIcon />}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleLoadSampleClips();
-                }}
-              >
-                테스트 샘플 클립 3종 즉시 생성
-              </Button>
-            </Box>
-          </Box>
-        </Box>
+        <VideoUploadWorkspace
+          multiple
+          sampleVideos={mergeSamplePresets}
+          onSelectSample={handleSelectSample}
+          onFileSelect={(f) => handleAddFiles([f])}
+          onMultipleFilesSelect={handleAddFiles}
+          title="이어붙일 동영상 파일들을 업로드하세요"
+          subtitle="여러 개의 동영상 파일(MP4, WebM, MOV 등)을 드래그하거나 다중 선택하세요."
+          icon={<CallMergeRoundedIcon sx={{ fontSize: 38 }} />}
+          buttonText="동영상 파일 다중 선택"
+        />
       ) : (
         /* Active Workspace: Left Player & Clip List vs Right Settings */
         <Box
           sx={{
-            flex: 1,
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', md: '1fr 380px', lg: '1fr 420px' },
-            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: { xs: 'column', lg: 'row' },
+            flex: '1 1 auto',
+            minHeight: 0,
+            height: '100%',
+            position: 'relative',
           }}
         >
           {/* Left: Sequence Player & Reorderable Clip List */}
@@ -501,25 +532,27 @@ export function VideoMasterMergeView() {
             sx={{
               display: 'flex',
               flexDirection: 'column',
-              p: { xs: 2, sm: 3 },
-              gap: 2.5,
+              flex: '1 1 0px',
+              minWidth: 0,
+              minHeight: 0,
+              height: '100%',
+              pr: { lg: 1.5 },
+              gap: 1.5,
               overflowY: 'auto',
-              borderRight: '1px solid',
-              borderColor: 'divider',
-              bgcolor: 'background.neutral',
             }}
           >
             {/* Sequence Live Preview Player */}
             <Card
               sx={{
                 position: 'relative',
-                borderRadius: 2,
+                borderRadius: 2.5,
                 overflow: 'hidden',
                 bgcolor: '#000000',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                minHeight: { xs: 240, sm: 340, md: 380 },
+                flex: '1 1 auto',
+                minHeight: 220,
                 boxShadow: 3,
               }}
             >
@@ -559,206 +592,211 @@ export function VideoMasterMergeView() {
                   gap: 1,
                 }}
               >
-                <Chip
-                  label={`클립 #${previewClipIndex + 1}/${clips.length}`}
-                  size="small"
-                  color="primary"
-                  sx={{ height: 22, fontWeight: 800 }}
-                />
-                <span>{currentClip?.name}</span>
-                <span style={{ color: '#00A76F' }}>
-                  ({formatTime(sequenceCurrentTime)} / {formatTime(currentClip?.duration || 0)})
+                <span>
+                  클립 {previewClipIndex + 1} / {clips.length}
                 </span>
+                <span style={{ color: '#00A76F' }}>({currentClip?.name})</span>
               </Box>
 
-              {/* Transport Overlay Button */}
-              <IconButton
-                onClick={toggleSequencePlayPause}
-                sx={{
-                  position: 'absolute',
-                  bottom: 12,
-                  right: 12,
-                  bgcolor: 'rgba(0, 167, 111, 0.9)',
-                  color: '#FFFFFF',
-                  '&:hover': { bgcolor: 'primary.main' },
-                }}
-              >
-                {isSequencePlaying ? <PauseRoundedIcon /> : <PlayArrowRoundedIcon />}
-              </IconButton>
+              {/* Resolution Tag */}
+              {currentClip && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: 12,
+                    right: 12,
+                    bgcolor: 'rgba(0,0,0,0.8)',
+                    px: 1.2,
+                    py: 0.4,
+                    borderRadius: 1,
+                    fontFamily: 'monospace',
+                    fontSize: '0.75rem',
+                    color: 'grey.400',
+                    backdropFilter: 'blur(4px)',
+                  }}
+                >
+                  {currentClip.width}x{currentClip.height}
+                </Box>
+              )}
             </Card>
 
-            {/* Sequence Summary HUD & Actions */}
-            <Card sx={{ p: 2, borderRadius: 2 }}>
+            {/* Sequence Control Bar */}
+            <Card sx={{ p: 1.5, borderRadius: 2, flexShrink: 0 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: 1,
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <IconButton
+                    color="primary"
+                    onClick={toggleSequencePlayPause}
+                    sx={{
+                      width: 42,
+                      height: 42,
+                      bgcolor: 'primary.lighter',
+                      '&:hover': { bgcolor: 'primary.light' },
+                    }}
+                  >
+                    {isSequencePlaying ? <PauseRoundedIcon /> : <PlayArrowRoundedIcon />}
+                  </IconButton>
+
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                    {isSequencePlaying ? '연속 미리보기 재생 중' : '시퀀스 미리보기 일시정지'}
+                  </Typography>
+                </Box>
+
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    총 재생시간:
+                  </Typography>
+                  <Chip
+                    label={formatTime(totalDuration)}
+                    size="small"
+                    color="primary"
+                    variant="soft"
+                    sx={{ fontWeight: 800, fontFamily: 'monospace' }}
+                  />
+                  <Chip
+                    label={formatBytes(totalBytes)}
+                    size="small"
+                    variant="outlined"
+                    sx={{ fontWeight: 600 }}
+                  />
+                </Box>
+              </Box>
+            </Card>
+
+            {/* Reorderable Clip List Section */}
+            <Card sx={{ p: 2, borderRadius: 2, flexShrink: 0 }}>
               <Box
                 sx={{
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  flexWrap: 'wrap',
-                  gap: 1,
+                  mb: 1.5,
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
-                    총 {clips.length}개 클립
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 600 }}>
-                    합산 예상 길이:{' '}
-                    <span style={{ color: '#00A76F', fontWeight: 800 }}>
-                      {formatTime(totalDuration)}
-                    </span>
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                    ({formatBytes(totalSize)})
-                  </Typography>
-                </Box>
-
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Button
-                    size="small"
-                    variant="soft"
-                    color="primary"
-                    component="label"
-                    startIcon={<AddRoundedIcon />}
-                  >
-                    클립 추가
-                    <input
-                      type="file"
-                      hidden
-                      multiple
-                      accept="video/*"
-                      onChange={(e) => handleAddFiles(e.target.files)}
-                    />
-                  </Button>
-                  <Button
-                    size="small"
-                    variant="soft"
-                    color="error"
-                    startIcon={<DeleteSweepRoundedIcon />}
-                    onClick={handleClearAll}
-                  >
-                    전체 비우기
-                  </Button>
-                </Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                  📋 병합 순서 목록 ({clips.length}개 클립)
+                </Typography>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={<AddRoundedIcon />}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  클립 추가
+                </Button>
               </Box>
-            </Card>
 
-            {/* Reorderable Clip List */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 800, px: 0.5 }}>
-                📋 병합 시퀀스 목록 (위에서 아래 순서로 이어붙여집니다)
-              </Typography>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 1,
+                  maxHeight: 280,
+                  overflowY: 'auto',
+                }}
+              >
+                {clips.map((clip, index) => {
+                  const isSelected = index === previewClipIndex;
 
-              {clips.map((clip, index) => {
-                const isSelectedForPreview = previewClipIndex === index;
-                return (
-                  <Card
-                    key={clip.id}
-                    onClick={() => {
-                      setPreviewClipIndex(index);
-                      setIsSequencePlaying(true);
-                    }}
-                    sx={{
-                      p: 1.5,
-                      borderRadius: 2,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 2,
-                      border: '2px solid',
-                      borderColor: isSelectedForPreview ? 'primary.main' : 'divider',
-                      bgcolor: isSelectedForPreview ? 'primary.lighter' : 'background.paper',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                      boxShadow: isSelectedForPreview ? 2 : 0,
-                    }}
-                  >
-                    {/* Number Badge */}
+                  return (
                     <Box
+                      key={clip.id}
+                      onClick={() => setPreviewClipIndex(index)}
                       sx={{
-                        width: 28,
-                        height: 28,
-                        borderRadius: '50%',
-                        bgcolor: isSelectedForPreview ? 'primary.main' : 'background.neutral',
-                        color: isSelectedForPreview ? '#FFFFFF' : 'text.secondary',
+                        p: 1.25,
+                        borderRadius: 1.5,
+                        border: '1px solid',
+                        borderColor: isSelected ? 'primary.main' : 'divider',
+                        bgcolor: isSelected ? 'primary.lighter' : 'background.paper',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'center',
-                        fontWeight: 800,
-                        fontSize: '0.85rem',
-                        flexShrink: 0,
+                        justifyContent: 'space-between',
+                        gap: 1.5,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        '&:hover': { borderColor: 'primary.main' },
                       }}
                     >
-                      {index + 1}
-                    </Box>
+                      {/* Left: Thumbnail & Name */}
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0 }}>
+                        <Box
+                          sx={{
+                            width: 24,
+                            height: 24,
+                            borderRadius: '50%',
+                            bgcolor: isSelected ? 'primary.main' : 'action.selected',
+                            color: isSelected ? '#ffffff' : 'text.primary',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '0.75rem',
+                            fontWeight: 800,
+                            flexShrink: 0,
+                          }}
+                        >
+                          {index + 1}
+                        </Box>
 
-                    {/* Thumbnail */}
-                    <Box
-                      sx={{
-                        width: 80,
-                        height: 48,
-                        borderRadius: 1,
-                        bgcolor: '#000000',
-                        backgroundImage: clip.thumbnailUrl ? `url(${clip.thumbnailUrl})` : 'none',
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                        flexShrink: 0,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      {!clip.thumbnailUrl && (
-                        <MovieRoundedIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
-                      )}
-                    </Box>
-
-                    {/* Title & Metadata */}
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Typography variant="body2" noWrap sx={{ fontWeight: 700 }}>
-                        {clip.name}
-                      </Typography>
-                      <Typography
-                        variant="caption"
-                        sx={{ color: 'text.secondary', display: 'block' }}
-                      >
-                        {formatTime(clip.duration)} · {clip.width}x{clip.height} ·{' '}
-                        {formatBytes(clip.size)}
-                      </Typography>
-                    </Box>
-
-                    {/* Reorder & Action Controls */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      <Tooltip title="위로 이동">
-                        <span>
-                          <IconButton
-                            size="small"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleMoveUp(index);
+                        {clip.thumbnailUrl && (
+                          <Box
+                            component="img"
+                            src={clip.thumbnailUrl}
+                            alt={clip.name}
+                            sx={{
+                              width: 54,
+                              height: 34,
+                              borderRadius: 1,
+                              objectFit: 'cover',
+                              bgcolor: '#000000',
+                              flexShrink: 0,
                             }}
-                            disabled={index === 0}
-                          >
-                            <ArrowUpwardRoundedIcon fontSize="small" />
-                          </IconButton>
-                        </span>
-                      </Tooltip>
+                          />
+                        )}
 
-                      <Tooltip title="아래로 이동">
-                        <span>
-                          <IconButton
-                            size="small"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleMoveDown(index);
-                            }}
-                            disabled={index === clips.length - 1}
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography
+                            variant="subtitle2"
+                            sx={{ fontWeight: 700, fontSize: '0.85rem' }}
+                            noWrap
                           >
-                            <ArrowDownwardRoundedIcon fontSize="small" />
-                          </IconButton>
-                        </span>
-                      </Tooltip>
+                            {clip.name}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                            {formatTime(clip.duration)} · {clip.width}x{clip.height}
+                          </Typography>
+                        </Box>
+                      </Box>
 
-                      <Tooltip title="클립 삭제">
+                      {/* Right: Actions */}
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }}>
+                        <IconButton
+                          size="small"
+                          disabled={index === 0}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleMoveUp(index);
+                          }}
+                        >
+                          <ArrowUpwardRoundedIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          disabled={index === clips.length - 1}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleMoveDown(index);
+                          }}
+                        >
+                          <ArrowDownwardRoundedIcon fontSize="small" />
+                        </IconButton>
                         <IconButton
                           size="small"
                           color="error"
@@ -769,33 +807,64 @@ export function VideoMasterMergeView() {
                         >
                           <DeleteOutlineRoundedIcon fontSize="small" />
                         </IconButton>
-                      </Tooltip>
+                      </Box>
                     </Box>
-                  </Card>
-                );
-              })}
-            </Box>
+                  );
+                })}
+              </Box>
+            </Card>
           </Box>
 
-          {/* Right Sidebar: Merge Output Specifications */}
+          {/* Resizable Divider (Desktop) */}
+          <Box
+            onPointerDown={handleDividerPointerDown}
+            onPointerMove={handleDividerPointerMove}
+            onPointerUp={handleDividerPointerUp}
+            sx={{
+              display: { xs: 'none', lg: 'flex' },
+              width: 8,
+              cursor: 'col-resize',
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'relative',
+              zIndex: 10,
+              userSelect: 'none',
+              touchAction: 'none',
+              mx: 0.5,
+              '&::after': {
+                content: '""',
+                width: 3,
+                height: 48,
+                borderRadius: 1.5,
+                bgcolor: 'divider',
+                transition: 'background-color 0.2s',
+              },
+              '&:hover::after': {
+                bgcolor: 'primary.main',
+              },
+            }}
+          />
+
+          {/* Right: Output Settings & Merge Action Panel */}
           <Box
             sx={{
-              p: { xs: 2, sm: 3 },
+              width: { xs: '100%', lg: rightPanelWidth },
+              minWidth: { lg: 300 },
+              maxWidth: { lg: 650 },
+              flexShrink: 0,
+              height: '100%',
               display: 'flex',
               flexDirection: 'column',
-              gap: 2.5,
+              minHeight: 0,
+              gap: 1.5,
               overflowY: 'auto',
-              bgcolor: 'background.paper',
+              pr: 0.5,
             }}
           >
-            <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
-              병합 출력 규격 & 설정
-            </Typography>
-
-            {/* 1. Canvas Output Resolution */}
-            <Card sx={{ p: 2, borderRadius: 2, bgcolor: 'background.neutral' }}>
+            {/* 1. Resolution Mode */}
+            <Card sx={{ p: 2, borderRadius: 2 }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
-                📐 출력 캔버스 해상도
+                📐 출력 해상도 및 화면 비율
               </Typography>
               <RadioGroup
                 value={resolutionMode}
@@ -808,96 +877,91 @@ export function VideoMasterMergeView() {
                 <FormControlLabel
                   value="1080p"
                   control={<Radio size="small" />}
-                  label={<Typography variant="body2">1080p FHD (1920x1080 · 16:9)</Typography>}
+                  label={<Typography variant="body2">FHD 1080p (1920x1080 - 16:9 표준)</Typography>}
                 />
                 <FormControlLabel
                   value="720p"
                   control={<Radio size="small" />}
-                  label={<Typography variant="body2">720p HD (1280x720 · 16:9)</Typography>}
-                />
-                <FormControlLabel
-                  value="vertical"
-                  control={<Radio size="small" />}
-                  label={<Typography variant="body2">9:16 쇼츠 / 릴스 (1080x1920 세로)</Typography>}
-                />
-                <FormControlLabel
-                  value="square"
-                  control={<Radio size="small" />}
-                  label={<Typography variant="body2">1:1 정사각 (1080x1080 인스타)</Typography>}
+                  label={<Typography variant="body2">HD 720p (1280x720 - 빠른 처리)</Typography>}
                 />
                 <FormControlLabel
                   value="first-clip"
                   control={<Radio size="small" />}
                   label={
                     <Typography variant="body2">
-                      첫 번째 클립 기준 맞춤 ({clips[0]?.width || 1280}x{clips[0]?.height || 720})
+                      첫 번째 클립 기준 ({clips[0]?.width || 1280}x{clips[0]?.height || 720})
                     </Typography>
+                  }
+                />
+                <FormControlLabel
+                  value="vertical"
+                  control={<Radio size="small" />}
+                  label={
+                    <Typography variant="body2">쇼츠/릴스 세로형 (1080x1920 - 9:16)</Typography>
+                  }
+                />
+                <FormControlLabel
+                  value="square"
+                  control={<Radio size="small" />}
+                  label={
+                    <Typography variant="body2">인스타그램 정사각형 (1080x1080 - 1:1)</Typography>
                   }
                 />
               </RadioGroup>
             </Card>
 
-            {/* 2. Fit Mode & Aspect Ratio Strategy */}
-            <Card sx={{ p: 2, borderRadius: 2, bgcolor: 'background.neutral' }}>
+            {/* 2. Fit Mode & Background */}
+            <Card sx={{ p: 2, borderRadius: 2 }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
-                🖼️ 화면 비율 맞춤 방식
+                🖼️ 화면 맞춤 & 레터박스 여백색
               </Typography>
-              <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+              <Box sx={{ display: 'flex', gap: 1, mb: 1.5 }}>
                 <Button
                   size="small"
                   variant={fitMode === 'contain' ? 'contained' : 'outlined'}
                   color={fitMode === 'contain' ? 'primary' : 'inherit'}
                   onClick={() => setFitMode('contain')}
-                  sx={{ flex: 1, fontSize: '0.8rem' }}
+                  sx={{ flex: 1, fontSize: '0.75rem' }}
                 >
-                  비율 유지 (레터박스)
+                  원본 비율 유지 (여백 생성)
                 </Button>
                 <Button
                   size="small"
                   variant={fitMode === 'cover' ? 'contained' : 'outlined'}
                   color={fitMode === 'cover' ? 'primary' : 'inherit'}
                   onClick={() => setFitMode('cover')}
-                  sx={{ flex: 1, fontSize: '0.8rem' }}
+                  sx={{ flex: 1, fontSize: '0.75rem' }}
                 >
-                  꽉 채우기 (크롭)
+                  화면 꽉 채우기 (자르기)
                 </Button>
               </Box>
 
-              {/* Background Color Picker */}
-              <Typography
-                variant="caption"
-                sx={{ color: 'text.secondary', fontWeight: 600, display: 'block', mb: 1 }}
-              >
-                여백 배경색 선택
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
-                {[
-                  { color: '#000000', label: '블랙' },
-                  { color: '#0F172A', label: '슬레이트' },
-                  { color: '#27272A', label: '다크그레이' },
-                  { color: '#FFFFFF', label: '화이트' },
-                ].map((c) => (
-                  <Tooltip key={c.color} title={c.label}>
+              {fitMode === 'contain' && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    배경 여백 색상:
+                  </Typography>
+                  {['#000000', '#ffffff', '#1e293b', '#0f172a'].map((c) => (
                     <Box
-                      onClick={() => setBackgroundColor(c.color)}
+                      key={c}
+                      onClick={() => setBackgroundColor(c)}
                       sx={{
-                        width: 32,
-                        height: 32,
+                        width: 22,
+                        height: 22,
                         borderRadius: '50%',
-                        bgcolor: c.color,
+                        bgcolor: c,
                         border: '2px solid',
-                        borderColor: backgroundColor === c.color ? 'primary.main' : 'divider',
+                        borderColor: backgroundColor === c ? 'primary.main' : 'divider',
                         cursor: 'pointer',
-                        boxShadow: 1,
                       }}
                     />
-                  </Tooltip>
-                ))}
-              </Box>
+                  ))}
+                </Box>
+              )}
             </Card>
 
             {/* 3. Bitrate Quality */}
-            <Card sx={{ p: 2, borderRadius: 2, bgcolor: 'background.neutral' }}>
+            <Card sx={{ p: 2, borderRadius: 2 }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
                 🎚️ 비트레이트 품질
               </Typography>
@@ -921,8 +985,8 @@ export function VideoMasterMergeView() {
               </Box>
             </Card>
 
-            {/* 4. Merge Execution Button */}
-            <Box sx={{ mt: 'auto', pt: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+            {/* 4. Merge Action Button */}
+            <Box sx={{ mt: 'auto', pt: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
               <Button
                 variant="contained"
                 color="primary"
@@ -930,18 +994,18 @@ export function VideoMasterMergeView() {
                 startIcon={<CallMergeRoundedIcon />}
                 onClick={handleStartMerge}
                 disabled={isExporting || clips.length < 2}
-                sx={{ py: 1.5, fontWeight: 800, fontSize: '1rem' }}
+                sx={{ py: 1.4, fontWeight: 800, fontSize: '0.95rem' }}
               >
                 {clips.length >= 2
-                  ? `총 ${clips.length}개 클립 하나로 병합하기 (${formatTime(totalDuration)})`
-                  : '클립을 2개 이상 추가해 주세요'}
+                  ? `${clips.length}개 영상 하나로 병합하기 (${formatTime(totalDuration)})`
+                  : '2개 이상 클립을 추가하세요'}
               </Button>
             </Box>
           </Box>
         </Box>
       )}
 
-      {/* 3. Export Progress & Download Dialog */}
+      {/* 3. Export Dialog */}
       <Dialog
         open={isExportDialogOpen}
         onClose={handleCancelExport}
@@ -957,7 +1021,7 @@ export function VideoMasterMergeView() {
             justifyContent: 'space-between',
           }}
         >
-          <span>{isExporting ? '동영상 순차 병합 인코딩 중...' : '🎉 동영상 병합 완료!'}</span>
+          <span>{isExporting ? '동영상 순차 병합 중...' : '🎉 동영상 병합 완료!'}</span>
           {!isExporting && (
             <IconButton onClick={() => setIsExportDialogOpen(false)}>
               <CloseRoundedIcon />
@@ -970,30 +1034,21 @@ export function VideoMasterMergeView() {
             <Box
               sx={{ display: 'flex', flexDirection: 'column', gap: 2, textAlign: 'center', py: 2 }}
             >
-              <Chip
-                label={`${exportCurrentClipIdx} / ${clips.length} 번째 클립 합성 중...`}
-                color="primary"
-                sx={{ fontWeight: 800, alignSelf: 'center' }}
-              />
-
               <LinearProgress
                 variant="determinate"
                 value={exportProgress}
                 sx={{ height: 10, borderRadius: 2 }}
               />
-
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Typography variant="body2" sx={{ fontWeight: 700, color: 'primary.main' }}>
-                  전체 진행률: {exportProgress}%
+                  현재 클립: {exportCurrentClipIdx} / {clips.length} ({exportProgress}%)
                 </Typography>
                 <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                   경과 시간: {exportElapsedSec}초
                 </Typography>
               </Box>
-
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                💡 Web Audio API와 캔버스 렌더러를 통해 무손실 오디오와 매끄러운 화면 전환으로
-                병합하고 있습니다.
+                💡 브라우저 로컬 캔버스 합성으로 해상도 및 비율을 완벽히 맞추어 병합 중입니다.
               </Typography>
             </Box>
           ) : (
@@ -1002,6 +1057,7 @@ export function VideoMasterMergeView() {
                 <video
                   controls
                   autoPlay
+                  loop
                   src={mergedResultUrl}
                   style={{
                     width: '100%',
@@ -1014,10 +1070,10 @@ export function VideoMasterMergeView() {
                   sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                 >
                   <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                    병합 완료 ({clips.length}개 클립)
+                    포맷: WebM (고화질 VP9)
                   </Typography>
                   <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                    총 재생 시간: {formatTime(totalDuration)}
+                    총 {clips.length}개 클립 병합 완료 ({formatTime(totalDuration)})
                   </Typography>
                 </Box>
               </Box>
@@ -1039,7 +1095,7 @@ export function VideoMasterMergeView() {
                 variant="contained"
                 color="primary"
                 startIcon={<DownloadRoundedIcon />}
-                onClick={handleDownloadMerged}
+                onClick={handleDownloadResult}
                 sx={{ fontWeight: 800 }}
               >
                 병합 비디오 다운로드 (.webm)
@@ -1048,6 +1104,30 @@ export function VideoMasterMergeView() {
           )}
         </DialogActions>
       </Dialog>
-    </Box>
+
+      {/* 4. Single Clip Preview Dialog */}
+      <Dialog
+        open={Boolean(previewModalClip)}
+        onClose={() => setPreviewModalClip(null)}
+        maxWidth="md"
+        fullWidth
+        sx={{ '& .MuiDialog-paper': { borderRadius: 2.5 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 800 }}>{previewModalClip?.name}</DialogTitle>
+        <DialogContent dividers>
+          {previewModalClip && (
+            <video
+              controls
+              autoPlay
+              src={previewModalClip.previewUrl}
+              style={{ width: '100%', maxHeight: 400, borderRadius: 8, backgroundColor: '#000000' }}
+            />
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPreviewModalClip(null)}>닫기</Button>
+        </DialogActions>
+      </Dialog>
+    </DashboardContent>
   );
 }

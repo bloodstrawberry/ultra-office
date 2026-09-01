@@ -165,15 +165,19 @@ export function VideoPlayerPreview({
     <Card
       ref={containerRef}
       sx={{
-        p: 2,
-        borderRadius: 2,
-        bgcolor: '#0f172a',
+        p: { xs: 1.5, sm: 2 },
+        borderRadius: 2.5,
+        bgcolor: '#0b1120',
         color: '#ffffff',
         display: 'flex',
         flexDirection: 'column',
         gap: 1.5,
         position: 'relative',
         overflow: 'hidden',
+        flex: '1 1 auto',
+        minHeight: 0,
+        height: '100%',
+        boxShadow: (theme) => theme.customShadows?.z8 || theme.shadows[8],
       }}
     >
       {/* Hidden Source Video Element */}
@@ -197,9 +201,10 @@ export function VideoPlayerPreview({
         sx={{
           position: 'relative',
           width: '100%',
-          height: { xs: 260, sm: 360, md: 420 },
+          flex: '1 1 auto',
+          minHeight: 180,
           bgcolor: '#000000',
-          borderRadius: 1.5,
+          borderRadius: 2,
           overflow: 'hidden',
           display: 'flex',
           alignItems: 'center',
@@ -213,6 +218,8 @@ export function VideoPlayerPreview({
           style={{
             maxWidth: '100%',
             maxHeight: '100%',
+            width: 'auto',
+            height: 'auto',
             objectFit: 'contain',
           }}
         />

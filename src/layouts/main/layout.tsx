@@ -110,7 +110,7 @@ export function MainLayout({
       /** **************************************
        * @Header
        *************************************** */
-      headerSection={renderHeader()}
+      headerSection={isHomePage ? undefined : renderHeader()}
       /** **************************************
        * @Footer
        *************************************** */

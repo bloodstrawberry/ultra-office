@@ -148,18 +148,18 @@ export function HomeFooter({ sx, ...other }: FooterProps) {
     <FooterRoot
       sx={[
         {
-          py: 5,
+          py: 1.5,
           textAlign: 'center',
+          borderTop: '1px solid',
+          borderColor: 'divider',
         },
         ...(Array.isArray(sx) ? sx : [sx]),
       ]}
       {...other}
     >
       <Container>
-        <Logo />
-        <Box sx={{ mt: 1, typography: 'caption' }}>
-          © All rights reserved.
-          <br /> made by
+        <Box sx={{ typography: 'caption', color: 'text.secondary' }}>
+          © All rights reserved. made by
           <Link href="https://bloodstrawberry.tistory.com/"> bloodstrawberry</Link>
         </Box>
       </Container>

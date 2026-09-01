@@ -18,7 +18,7 @@ export type ConfigValue = {
 // ----------------------------------------------------------------------
 
 export const CONFIG: ConfigValue = {
-  appName: 'Ultra Office',
+  appName: '피로물든딸기의 오피스',
   appVersion: packageJson.version,
   serverUrl: process.env.NEXT_PUBLIC_SERVER_URL ?? '',
   assetsDir: process.env.NEXT_PUBLIC_ASSETS_DIR ?? process.env.NEXT_PUBLIC_BASE_PATH ?? '',
