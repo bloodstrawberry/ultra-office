@@ -1,4 +1,4 @@
-import type { BadukProblem, Point } from './types';
+import type { BadukProblem } from './types';
 
 // ============================================================
 // Helper builders for rich Baduk problem generation
@@ -82,13 +82,9 @@ const CORE_BADUK_PROBLEMS: BadukProblem[] = [
     '흑선(黑先) - 백 2점을 환격으로 포획하세요.',
     '(0, 2) 위치에 과감히 돌을 먹여쳐 보세요.',
     [0, 2],
-    '정답! 백이 따내더라도 즉시 3점을 되따낼 수 있습니다.',
+    '정답! 백의 활로를 1개로 줄이는 결정타 먹여치기입니다.',
     '상대에게 미끼 돌을 따내게 하여 활로를 1개로 줄인 뒤 전체를 되따내는 환격의 기초입니다.',
-    '상태 전이 역전(Inverse State Transition) 및 BFS 활로 제약',
-    [0, 2],
-    '백이 흑 1점을 따냅니다.',
-    [1, 2],
-    '환격 완료! 백 3점 전체를 되따내어 포획했습니다.'
+    '상태 전이 역전(Inverse State Transition) 및 BFS 활로 제약'
   ),
   createBadukProblem(
     'baduk-snap-2',
@@ -115,11 +111,7 @@ const CORE_BADUK_PROBLEMS: BadukProblem[] = [
     [0, 6],
     '정답! 백의 안형을 완전히 무너뜨리는 환격 치중입니다.',
     '백 3개의 활로를 1개로 압축시키는 먹여치기 환격입니다.',
-    '국소 최적해(Local Trap)를 통한 상대 그래프 고립',
-    [0, 6],
-    '백이 흑을 따냅니다.',
-    [1, 5],
-    '되따내기 성공! 백 4점 전체를 포획했습니다.'
+    '국소 최적해(Local Trap)를 통한 상대 그래프 고립'
   ),
   createBadukProblem(
     'baduk-throw-1',
@@ -145,11 +137,7 @@ const CORE_BADUK_PROBLEMS: BadukProblem[] = [
     [0, 7],
     '정답! 백의 활로를 1개로 줄이는 결정타입니다.',
     '상대의 호구 속에 희생타를 던져 넣어 상대의 활로를 강제로 줄이는 전술입니다.',
-    '희생 비용(Sacrifice Cost)을 통한 전역 보상 획득',
-    [0, 7],
-    '백이 흑 1점을 따냅니다.',
-    [0, 6],
-    '단수! 백돌 전체가 활로가 없어 잡혔습니다.'
+    '희생 비용(Sacrifice Cost)을 통한 전역 보상 획득'
   ),
   createBadukProblem(
     'baduk-ladder-1',
@@ -288,11 +276,7 @@ const CORE_BADUK_PROBLEMS: BadukProblem[] = [
     [1, 1],
     '정답! 삼궁의 정중앙에 치중하여 백이 두 눈을 만들 수 없습니다.',
     '3칸짜리 집 모양은 한가운데를 빼앗기면 2안을 만들 수 없어 죽게 됩니다.',
-    '트리 중심 노드(Centroid) 선점을 통한 분할 차단',
-    [0, 1],
-    '백이 끊으려 합니다.',
-    [1, 0],
-    '자충을 이용하여 백 전체를 포획했습니다!'
+    '트리 중심 노드(Centroid) 선점을 통한 분할 차단'
   ),
   createBadukProblem(
     'baduk-life-3',
@@ -351,11 +335,7 @@ const CORE_BADUK_PROBLEMS: BadukProblem[] = [
     [1, 1],
     '정답! 오궁도화의 급소인 정중앙에 치중하여 백이 두 눈을 낼 수 없습니다.',
     '오궁도화는 정중앙 1점에 치중하면 백이 어디를 두어도 죽는 대표 사활입니다.',
-    '핵심 노드(Articulation Point) 선점 및 경로 차단',
-    [2, 1],
-    '백이 궁도를 넓히려 합니다.',
-    [1, 0],
-    '정확한 응수로 백 대마를 완전히 포획했습니다!'
+    '핵심 노드(Articulation Point) 선점 및 경로 차단'
   ),
   createBadukProblem(
     'baduk-adv-1',
@@ -382,11 +362,7 @@ const CORE_BADUK_PROBLEMS: BadukProblem[] = [
     [0, 0],
     '정답! 1선 젖힘으로 백의 귀 활로를 3수로 제한하는 귀삼수 맥점입니다.',
     '귀삼수는 귀에서 2점을 키워 버린 뒤 먹여치기로 상대 활로를 무조건 3수 이하로 줄여 잡는 정석입니다.',
-    '고정 상한(Upper Bound) 활로 제약 수렴 기법',
-    [1, 0],
-    '백이 단수를 칩니다.',
-    [2, 1],
-    '먹여치기 연계! 백이 3수를 넘지 못하고 잡힙니다.'
+    '고정 상한(Upper Bound) 활로 제약 수렴 기법'
   ),
   createBadukProblem(
     'baduk-adv-2',
@@ -414,11 +390,7 @@ const CORE_BADUK_PROBLEMS: BadukProblem[] = [
     [1, 1],
     '정답! 1의 2 치중으로 백의 두 집 모양을 근본적으로 무력화했습니다.',
     '귀는 두 면이 막혀 있어 1의 2 급소는 상대의 호구 모양을 단숨에 옥집으로 만듭니다.',
-    '경계 조건 하에서의 도메인 특화 기하 탐색',
-    [0, 1],
-    '백이 끊어 잡으려 합니다.',
-    [1, 0],
-    '자충을 이용하여 백 전체를 환격/단수로 포획 성공!'
+    '경계 조건 하에서의 도메인 특화 기하 탐색'
   ),
   createBadukProblem(
     'baduk-classics-1',
@@ -439,7 +411,6 @@ const CORE_BADUK_PROBLEMS: BadukProblem[] = [
       [0, 1],
       [0, 2],
       [1, 1],
-      [1, 3],
       [2, 2],
     ],
     '흑선(黑先) - 자충을 유도하는 절묘한 끼움수로 백돌을 제압하세요.',
@@ -447,11 +418,7 @@ const CORE_BADUK_PROBLEMS: BadukProblem[] = [
     [1, 2],
     '정답! 현현기경의 절묘한 끼움 맥점입니다.',
     '돌 사이에 깊숙이 끼워 넣어 상대의 연결을 끊고 자충을 유도하는 중국 고전 기보의 명작입니다.',
-    '최소 컷(Min-Cut) 알고리즘을 통한 상대 네트워크 분할',
-    [0, 3],
-    '백이 이어보지만 양단수에 걸립니다.',
-    [2, 1],
-    '단수! 백 전체가 자충에 빠져 포획되었습니다.'
+    '최소 컷(Min-Cut) 알고리즘을 통한 상대 네트워크 분할'
   ),
   createBadukProblem(
     'baduk-master-1',
@@ -469,7 +436,6 @@ const CORE_BADUK_PROBLEMS: BadukProblem[] = [
       [5, 3],
     ],
     [
-      [2, 3],
       [2, 4],
       [3, 4],
       [3, 5],
@@ -480,11 +446,7 @@ const CORE_BADUK_PROBLEMS: BadukProblem[] = [
     [3, 3],
     '정답! 인공지능을 침묵시킨 전설적인 끼움 묘수입니다.',
     '이세돌 9단이 알파고의 방대한 몬테카를로 탐색망 속에서 발견해낸 기적의 한 수입니다.',
-    'MCTS 가치망 평가 오류 유도 및 글로벌 탐색 역전',
-    [2, 3],
-    '백이 당황하여 잘못된 응수를 둡니다.',
-    [3, 2],
-    '단수를 치며 중앙 대마의 활로를 완전히 개방했습니다!'
+    'MCTS 가치망 평가 오류 유도 및 글로벌 탐색 역전'
   ),
   createBadukProblem(
     'baduk-master-2',
@@ -542,11 +504,7 @@ function generateFullBadukLibrary(): BadukProblem[] {
         [1, 1],
         '정답! 정확한 치중으로 백의 안형을 완전히 파괴했습니다.',
         '귀의 특수성과 사활의 3궁/4궁 급소를 이용한 실전 문제입니다.',
-        'Alpha-Beta 가지치기 및 국소 상태 트리 최적화',
-        [0, 1],
-        '백이 저항합니다.',
-        [1, 0],
-        '단수로 백돌을 포획 성공!'
+        'Alpha-Beta 가지치기 및 국소 상태 트리 최적화'
       )
     );
   }
@@ -578,11 +536,7 @@ function generateFullBadukLibrary(): BadukProblem[] {
         [2, 4],
         '정답! 날일자 씌움으로 백의 탈출구를 완벽히 차단했습니다.',
         '중앙에서의 강력한 포위 및 봉쇄 테크닉입니다.',
-        '경계선 추적(Contour Tracing) 및 연결성 차단',
-        [4, 3],
-        '백이 도망치려 합니다.',
-        [4, 2],
-        '완전 포위 완료!'
+        '경계선 추적(Contour Tracing) 및 연결성 차단'
       )
     );
   }
@@ -616,11 +570,7 @@ function generateFullBadukLibrary(): BadukProblem[] {
         [5, 2],
         '정답! 자충을 피하고 상대의 활로를 먼저 압박하는 정확한 수순입니다.',
         '수상전의 기본 원칙인 바깥 공배 메우기를 적용한 문제입니다.',
-        'BFS 탐색 트리 활로 수치(Degrees) 최적화',
-        [7, 1],
-        '백이 메워옵니다.',
-        [6, 2],
-        '단수로 백돌을 포획 성공!'
+        'BFS 탐색 트리 활로 수치(Degrees) 최적화'
       )
     );
   }

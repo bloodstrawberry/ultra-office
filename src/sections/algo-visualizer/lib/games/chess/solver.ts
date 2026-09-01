@@ -191,6 +191,30 @@ export function analyzeChessPosition(board: ChessBoard, playerColor: ChessColor)
   };
 }
 
+export { getAllLegalChessMoves } from './engine';
+
+/** Find the best AI response move for a given color */
+export function findBestChessAIMove(
+  board: ChessBoard,
+  color: ChessColor
+): { move: ChessMove | null; isCheckmate: boolean; reason: string } {
+  const legalMoves = getAllLegalChessMoves(board, color);
+  if (legalMoves.length === 0) {
+    const inCheck = isKingInCheck(board, color);
+    return { move: null, isCheckmate: inCheck, reason: inCheck ? '체크메이트' : '스테일메이트' };
+  }
+
+  const stats = { nodes: 0 };
+  const { bestMove } = minimaxChess(board, 2, -Infinity, Infinity, true, color, stats);
+  const move = bestMove || legalMoves[0];
+
+  let reason = '최적 방어 응수';
+  if (move.isCheck) reason = '역체크 반격!';
+  else if (move.captured) reason = '기물 포획 수비';
+
+  return { move, isCheckmate: false, reason };
+}
+
 /** Check if user move matches chess puzzle solution tree */
 export function findMatchingChessNode(
   tree: ChessSolutionNode[],

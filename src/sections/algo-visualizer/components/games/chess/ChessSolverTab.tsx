@@ -27,6 +27,7 @@ import NavigateBeforeRoundedIcon from '@mui/icons-material/NavigateBeforeRounded
 import ShuffleRoundedIcon from '@mui/icons-material/ShuffleRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import ListAltRoundedIcon from '@mui/icons-material/ListAltRounded';
+import MenuBookRoundedIcon from '@mui/icons-material/MenuBookRounded';
 
 import { ChessBoard } from './ChessBoard';
 import { GameAlgorithmInspector } from '../common/GameAlgorithmInspector';
@@ -41,14 +42,19 @@ import {
   parseFEN,
   isKingInCheck,
   makeChessMove,
+  isSameSquare,
+  squareToAlgebraic,
   createEmptyChessBoard,
 } from '../../../lib/games/chess/engine';
 import {
-  minimaxChess,
   analyzeChessPosition,
+  findBestChessAIMove,
+  getAllLegalChessMoves,
   findMatchingChessNode,
 } from '../../../lib/games/chess/solver';
 import {
+  type ChessColor,
+  type ChessMove,
   type ChessSquare,
   type ChessPuzzle,
   type ChessAIAnalysis,
@@ -58,81 +64,85 @@ import {
 
 export function ChessSolverTab() {
   const [hasLoaded, setHasLoaded] = useState(false);
-  const [selectedPuzzleIndex, setSelectedPuzzleIndex] = useState<number>(0);
-  const [currentPuzzle, setCurrentPuzzle] = useState<ChessPuzzle>(CHESS_PUZZLE_LIST[0]);
+  const [selectedProblemIndex, setSelectedProblemIndex] = useState<number>(0);
+  const [currentProblem, setCurrentProblem] = useState<ChessPuzzle>(CHESS_PUZZLE_LIST[0]);
 
-  // Catalog Dialog & Search state
+  // Catalog Dialog & Filter states
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('전체');
 
-  // Board state & history
+  // Board state & undo history
   const [board, setBoard] = useState<ChessBoardType>(() => createEmptyChessBoard());
   const [history, setHistory] = useState<ChessBoardType[]>([]);
   const [selectedSquare, setSelectedSquare] = useState<ChessSquare | null>(null);
   const [lastMove, setLastMove] = useState<{ from: ChessSquare; to: ChessSquare } | null>(null);
+  const [turn, setTurn] = useState<ChessColor>('w');
   const [isAIMoving, setIsAIMoving] = useState<boolean>(false);
 
-  // Solution tracking
+  // Solution state
   const [currentNodeTree, setCurrentNodeTree] = useState<ChessSolutionNode[]>([]);
   const [statusMessage, setStatusMessage] = useState<string>('');
   const [isSolved, setIsSolved] = useState<boolean>(false);
   const [isFailed, setIsFailed] = useState<boolean>(false);
   const [showHint, setShowHint] = useState<boolean>(false);
+  const [showSolution, setShowSolution] = useState<boolean>(false);
   const [aiAnalysis, setAiAnalysis] = useState<ChessAIAnalysis | null>(null);
 
-  const setupPuzzle = useCallback((puzzle: ChessPuzzle) => {
-    const { board: parsedBoard } = parseFEN(puzzle.fen);
+  const setupProblem = useCallback((problem: ChessPuzzle) => {
+    const { board: initialBoard, activeColor } = parseFEN(problem.fen);
 
-    setBoard(parsedBoard);
-    setHistory([parsedBoard]);
+    setBoard(initialBoard);
+    setHistory([initialBoard]);
     setSelectedSquare(null);
     setLastMove(null);
+    setTurn(activeColor);
     setIsAIMoving(false);
-    setCurrentNodeTree(puzzle.solutionTree);
-    setStatusMessage(puzzle.objective);
+    setCurrentNodeTree(problem.solutionTree);
+    setStatusMessage(problem.objective);
     setIsSolved(false);
     setIsFailed(false);
     setShowHint(false);
+    setShowSolution(false);
 
-    const analysis = analyzeChessPosition(parsedBoard, puzzle.playerColor);
+    const analysis = analyzeChessPosition(initialBoard, activeColor);
     setAiAnalysis(analysis);
   }, []);
 
   useEffect(() => {
     setHasLoaded(true);
-    setupPuzzle(CHESS_PUZZLE_LIST[0]);
-  }, [setupPuzzle]);
+    setupProblem(CHESS_PUZZLE_LIST[0]);
+  }, [setupProblem]);
 
-  const handleSelectPuzzleIndex = (index: number) => {
+  const handleSelectProblemIndex = (index: number) => {
     if (index >= 0 && index < CHESS_PUZZLE_LIST.length) {
-      setSelectedPuzzleIndex(index);
-      const pz = CHESS_PUZZLE_LIST[index];
-      setCurrentPuzzle(pz);
-      setupPuzzle(pz);
+      setSelectedProblemIndex(index);
+      const prob = CHESS_PUZZLE_LIST[index];
+      setCurrentProblem(prob);
+      setupProblem(prob);
       setIsCatalogOpen(false);
     }
   };
 
-  const handlePrevPuzzle = () => {
-    if (selectedPuzzleIndex > 0) {
-      handleSelectPuzzleIndex(selectedPuzzleIndex - 1);
+  const handlePrevProblem = () => {
+    if (selectedProblemIndex > 0) {
+      handleSelectProblemIndex(selectedProblemIndex - 1);
     }
   };
 
-  const handleNextPuzzle = () => {
-    if (selectedPuzzleIndex < CHESS_PUZZLE_LIST.length - 1) {
-      handleSelectPuzzleIndex(selectedPuzzleIndex + 1);
+  const handleNextProblem = () => {
+    if (selectedProblemIndex < CHESS_PUZZLE_LIST.length - 1) {
+      handleSelectProblemIndex(selectedProblemIndex + 1);
     }
   };
 
-  const handleRandomPuzzle = () => {
+  const handleRandomProblem = () => {
     const randomIndex = Math.floor(Math.random() * CHESS_PUZZLE_LIST.length);
-    handleSelectPuzzleIndex(randomIndex);
+    handleSelectProblemIndex(randomIndex);
   };
 
   const handleReset = () => {
-    setupPuzzle(currentPuzzle);
+    setupProblem(currentProblem);
   };
 
   const handleUndo = () => {
@@ -146,36 +156,61 @@ export function ChessSolverTab() {
     setHistory(nextHistory);
     setSelectedSquare(null);
     setLastMove(null);
+    setTurn('w');
     setIsSolved(false);
     setIsFailed(false);
-    setStatusMessage('수를 물렀습니다. 다른 전술 수를 시도해보세요.');
+    setStatusMessage('수를 물렀습니다. 백(White)의 다음 행마를 선택하세요.');
 
-    const analysis = analyzeChessPosition(targetBoard, currentPuzzle.playerColor);
+    const analysis = analyzeChessPosition(targetBoard, 'w');
     setAiAnalysis(analysis);
   };
 
   const handleMovePiece = (from: ChessSquare, to: ChessSquare) => {
-    if (isSolved || isFailed || isAIMoving) return;
+    if (isSolved || isFailed || isAIMoving || turn !== 'w') return;
 
     const piece = board[from.r][from.c];
     if (!piece || piece.color !== 'w') return;
 
-    const nextBoard = makeChessMove(board, {
+    const targetPiece = board[to.r][to.c];
+    if (targetPiece && targetPiece.color === 'w') return;
+
+    const moveObj: ChessMove = {
       from,
       to,
       piece,
-      captured: board[to.r][to.c],
-    });
+      captured: targetPiece,
+    };
+
+    const nextBoard = makeChessMove(board, moveObj);
+    playChessMoveSound();
 
     setBoard(nextBoard);
     setHistory((prev) => [...prev, nextBoard]);
     setLastMove({ from, to });
+    setSelectedSquare(null);
+    setTurn('b');
 
-    if (isKingInCheck(nextBoard, 'b')) {
+    // Check check / checkmate
+    const isBlackInCheck = isKingInCheck(nextBoard, 'b');
+    if (isBlackInCheck) {
       playCheckSound();
     }
 
-    // Check match against solution tree
+    const blackLegalMoves = getAllLegalChessMoves(nextBoard, 'b');
+
+    if (blackLegalMoves.length === 0) {
+      if (isBlackInCheck) {
+        setIsSolved(true);
+        playPuzzleSolvedSound();
+        setStatusMessage('체크메이트! 백(White)의 완벽한 승리입니다!');
+      } else {
+        setIsFailed(true);
+        setStatusMessage('스테일메이트 (Stalemate): 무승부입니다.');
+      }
+      return;
+    }
+
+    // Match solution tree
     const matchingNode = findMatchingChessNode(currentNodeTree, from, to);
 
     if (matchingNode) {
@@ -183,89 +218,128 @@ export function ChessSolverTab() {
         setStatusMessage(matchingNode.comment);
       }
 
-      if (matchingNode.aiResponse) {
+      const scriptedAI = matchingNode.aiResponse;
+      const isScriptedValid =
+        scriptedAI &&
+        blackLegalMoves.some(
+          (lm: ChessMove) =>
+            isSameSquare(lm.from, scriptedAI.from) && isSameSquare(lm.to, scriptedAI.to)
+        );
+
+      if (isScriptedValid && scriptedAI) {
         setIsAIMoving(true);
-        const aiMove = matchingNode.aiResponse;
         setTimeout(() => {
-          const aiPiece = nextBoard[aiMove.from.r][aiMove.from.c];
+          const aiPiece = nextBoard[scriptedAI.from.r][scriptedAI.from.c];
           if (aiPiece) {
             playChessMoveSound();
             const aiBoard = makeChessMove(nextBoard, {
-              from: aiMove.from,
-              to: aiMove.to,
+              from: scriptedAI.from,
+              to: scriptedAI.to,
               piece: aiPiece,
-              captured: nextBoard[aiMove.to.r][aiMove.to.c],
+              captured: nextBoard[scriptedAI.to.r][scriptedAI.to.c],
             });
             setBoard(aiBoard);
             setHistory((prev) => [...prev, aiBoard]);
-            setLastMove({ from: aiMove.from, to: aiMove.to });
+            setLastMove({ from: scriptedAI.from, to: scriptedAI.to });
+            setTurn('w');
             setIsAIMoving(false);
 
-            if (aiMove.comment) {
-              setStatusMessage(aiMove.comment);
-            }
             if (matchingNode.children && matchingNode.children.length > 0) {
               setCurrentNodeTree(matchingNode.children);
             } else {
               setIsSolved(true);
               playPuzzleSolvedSound();
-              setStatusMessage('체크메이트! 퍼즐을 완벽하게 완수했습니다.');
+              setStatusMessage('축하합니다! 체스 퍼즐을 완벽하게 해결했습니다.');
             }
-          } else {
-            setIsAIMoving(false);
           }
-        }, 450);
+        }, 500);
       } else {
-        setIsSolved(true);
-        playPuzzleSolvedSound();
-        setStatusMessage(matchingNode.comment || '정답입니다! Brilliant Move !!');
-      }
-    } else {
-      setIsAIMoving(true);
-      setStatusMessage('백 착수 완료. 흑(Black) AI가 최선의 응수를 계산 중입니다...');
-
-      setTimeout(() => {
-        const stats = { nodes: 0 };
-        const { bestMove: aiMove } = minimaxChess(
-          nextBoard,
-          2,
-          -Infinity,
-          Infinity,
-          true,
-          'b',
-          stats
-        );
-
-        if (aiMove) {
-          playChessMoveSound();
-          const aiBoard = makeChessMove(nextBoard, aiMove);
-          setBoard(aiBoard);
-          setHistory((prev) => [...prev, aiBoard]);
-          setLastMove({ from: aiMove.from, to: aiMove.to });
-          setStatusMessage('흑이 응수했습니다. [한 수 무르기] 또는 다음 수를 착수하세요!');
-        } else {
+        if (
+          !matchingNode.aiResponse &&
+          (!matchingNode.children || matchingNode.children.length === 0)
+        ) {
           setIsSolved(true);
           playPuzzleSolvedSound();
-          setStatusMessage('체크메이트! 흑에게 남은 합법적 수가 없어 백이 승리했습니다.');
+          setStatusMessage(matchingNode.comment || '체크메이트 승리!');
+        } else {
+          triggerDynamicAIDefense(nextBoard);
         }
-
-        setIsAIMoving(false);
-      }, 450);
+      }
+    } else {
+      triggerDynamicAIDefense(nextBoard);
     }
 
-    const analysis = analyzeChessPosition(nextBoard, currentPuzzle.playerColor);
+    const analysis = analyzeChessPosition(nextBoard, 'w');
     setAiAnalysis(analysis);
   };
 
+  const triggerDynamicAIDefense = (currentBoard: ChessBoardType) => {
+    setIsAIMoving(true);
+    setStatusMessage('백(White) 행마 완료. 흑(Black) AI가 최선의 응수를 수읽기 중입니다...');
+
+    setTimeout(() => {
+      const { move: aiMove, isCheckmate, reason } = findBestChessAIMove(currentBoard, 'b');
+
+      if (isCheckmate || !aiMove) {
+        setIsSolved(true);
+        playPuzzleSolvedSound();
+        setStatusMessage('체크메이트! 흑(Black)이 응수할 수 없어 백이 승리했습니다!');
+      } else {
+        playChessMoveSound();
+        const aiBoard = makeChessMove(currentBoard, aiMove);
+        setBoard(aiBoard);
+        setHistory((prev) => [...prev, aiBoard]);
+        setLastMove({ from: aiMove.from, to: aiMove.to });
+        setStatusMessage(
+          `흑이 ${squareToAlgebraic(aiMove.to)}로 응수했습니다 (${reason}). 다음 수를 두세요!`
+        );
+      }
+
+      setIsAIMoving(false);
+      setTurn('w');
+    }, 500);
+  };
+
   const handleAutoPlaySolution = () => {
-    if (isSolved || isAIMoving || currentNodeTree.length === 0) return;
+    if (isAIMoving) return;
+    if (currentNodeTree.length === 0 || isSolved || isFailed || turn !== 'w') {
+      setupProblem(currentProblem);
+      setTimeout(() => {
+        const firstNode = currentProblem.solutionTree[0];
+        if (firstNode) {
+          handleMovePiece(firstNode.from, firstNode.to);
+        }
+      }, 150);
+      return;
+    }
     const targetNode = currentNodeTree[0];
     if (targetNode) {
       handleMovePiece(targetNode.from, targetNode.to);
     }
   };
 
-  const filteredPuzzles = useMemo(() => {
+  const getChessSolutionSteps = (problem: ChessPuzzle) => {
+    const steps: string[] = [];
+    const traverse = (nodes: ChessSolutionNode[], stepNum: number) => {
+      if (!nodes || nodes.length === 0) return;
+      const node = nodes[0];
+      steps.push(
+        `${stepNum}수: 백(White) ${node.san || `${squareToAlgebraic(node.from)} ➔ ${squareToAlgebraic(node.to)}`}`
+      );
+      if (node.aiResponse) {
+        steps.push(
+          `${stepNum + 1}수: 흑(Black) ${node.aiResponse.san || `${squareToAlgebraic(node.aiResponse.from)} ➔ ${squareToAlgebraic(node.aiResponse.to)}`}`
+        );
+        if (node.children) {
+          traverse(node.children, stepNum + 2);
+        }
+      }
+    };
+    traverse(problem.solutionTree, 1);
+    return steps;
+  };
+
+  const filteredProblems = useMemo(() => {
     return CHESS_PUZZLE_LIST.filter((p) => {
       const matchSearch =
         p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -304,8 +378,8 @@ export function ChessSolverTab() {
               gap: 1,
             }}
           >
-            <AutoAwesomeRoundedIcon sx={{ color: '#7c3aed' }} />
-            체스 전술 & 퍼즐풀이 AI 스튜디오
+            <AutoAwesomeRoundedIcon sx={{ color: '#0284c7' }} />
+            체스 전술 & 체크메이트 AI 스튜디오
           </Typography>
 
           <Button
@@ -315,71 +389,87 @@ export function ChessSolverTab() {
             onClick={() => setIsCatalogOpen(true)}
             sx={{
               fontWeight: 700,
-              color: '#7c3aed',
-              borderColor: 'rgba(124, 58, 237, 0.4)',
-              background: 'rgba(124, 58, 237, 0.06)',
+              color: '#0284c7',
+              borderColor: 'rgba(2, 132, 199, 0.4)',
+              background: 'rgba(2, 132, 199, 0.06)',
               '&:hover': {
-                background: 'rgba(124, 58, 237, 0.12)',
+                background: 'rgba(2, 132, 199, 0.12)',
               },
             }}
           >
-            퍼즐 목록 ({selectedPuzzleIndex + 1} / {CHESS_PUZZLE_LIST.length})
+            전술 목록 ({selectedProblemIndex + 1} / {CHESS_PUZZLE_LIST.length})
           </Button>
 
           <Chip
             size="small"
-            label={currentPuzzle.category}
-            sx={{ background: 'rgba(124, 58, 237, 0.1)', color: '#7c3aed', fontWeight: 700 }}
+            label={currentProblem.category}
+            sx={{ background: 'rgba(2, 132, 199, 0.1)', color: '#0284c7', fontWeight: 700 }}
           />
           <Chip
             size="small"
-            label="White to move (백선)"
-            sx={{ background: '#f1f5f9', color: '#475569', fontWeight: 600 }}
+            label={`난이도: ${currentProblem.difficulty}`}
+            sx={{ background: 'rgba(124, 58, 237, 0.1)', color: '#7c3aed', fontWeight: 700 }}
           />
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
           <IconButton
-            onClick={handlePrevPuzzle}
-            disabled={selectedPuzzleIndex === 0}
+            onClick={handlePrevProblem}
+            disabled={selectedProblemIndex === 0}
             sx={{ color: '#64748b' }}
-            title="이전 문제"
+            title="이전 퍼즐"
           >
             <NavigateBeforeRoundedIcon />
           </IconButton>
 
           <IconButton
-            onClick={handleNextPuzzle}
-            disabled={selectedPuzzleIndex === CHESS_PUZZLE_LIST.length - 1}
+            onClick={handleNextProblem}
+            disabled={selectedProblemIndex === CHESS_PUZZLE_LIST.length - 1}
             sx={{ color: '#64748b' }}
-            title="다음 문제"
+            title="다음 퍼즐"
           >
             <NavigateNextRoundedIcon />
           </IconButton>
 
-          <IconButton onClick={handleRandomPuzzle} sx={{ color: '#d97706' }} title="랜덤 퍼즐">
+          <IconButton onClick={handleRandomProblem} sx={{ color: '#d97706' }} title="랜덤 퍼즐">
             <ShuffleRoundedIcon />
           </IconButton>
 
           <Button
             size="small"
             variant="contained"
-            color="success"
-            startIcon={<CheckCircleRoundedIcon />}
-            onClick={handleAutoPlaySolution}
-            disabled={isSolved || isAIMoving || currentNodeTree.length === 0}
-            sx={{ fontWeight: 700 }}
+            startIcon={<MenuBookRoundedIcon sx={{ color: '#ffffff !important' }} />}
+            onClick={() => setShowSolution(!showSolution)}
+            sx={{
+              fontWeight: 800,
+              backgroundColor: '#15803d !important',
+              color: '#ffffff !important',
+              border: '1px solid #166534',
+              boxShadow: '0 2px 6px rgba(21, 128, 61, 0.35)',
+              '&:hover': {
+                backgroundColor: '#166534 !important',
+                color: '#ffffff !important',
+              },
+            }}
           >
-            정답 한 수
+            💡 정답 보기
           </Button>
 
           <Button
             size="small"
             variant="outlined"
-            color="warning"
-            startIcon={<LightbulbRoundedIcon />}
+            startIcon={<LightbulbRoundedIcon sx={{ color: '#d97706 !important' }} />}
             onClick={() => setShowHint(!showHint)}
-            sx={{ fontWeight: 700 }}
+            sx={{
+              fontWeight: 800,
+              backgroundColor: '#fef3c7 !important',
+              color: '#92400e !important',
+              border: '1px solid #f59e0b !important',
+              '&:hover': {
+                backgroundColor: '#fde68a !important',
+                color: '#78350f !important',
+              },
+            }}
           >
             전술 힌트
           </Button>
@@ -387,16 +477,24 @@ export function ChessSolverTab() {
           <Button
             size="small"
             variant="outlined"
-            color="info"
-            startIcon={<UndoRoundedIcon />}
+            startIcon={<UndoRoundedIcon sx={{ color: '#475569 !important' }} />}
             onClick={handleUndo}
             disabled={history.length <= 1 || isAIMoving}
-            sx={{ fontWeight: 700 }}
+            sx={{
+              fontWeight: 700,
+              backgroundColor: '#f1f5f9 !important',
+              color: '#334155 !important',
+              border: '1px solid #cbd5e1 !important',
+              '&:hover': {
+                backgroundColor: '#e2e8f0 !important',
+                color: '#0f172a !important',
+              },
+            }}
           >
             한 수 무르기
           </Button>
 
-          <IconButton onClick={handleReset} sx={{ color: '#64748b' }} title="문제 초기화">
+          <IconButton onClick={handleReset} sx={{ color: '#64748b' }} title="퍼즐 초기화">
             <ReplayRoundedIcon />
           </IconButton>
         </Box>
@@ -412,43 +510,108 @@ export function ChessSolverTab() {
         }}
       >
         {/* Left: Chess Board & Evaluation Bar */}
-        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
-          {aiAnalysis && (
-            <Box
-              sx={{
-                width: 18,
-                height: 432,
-                background: '#f1f5f9',
-                borderRadius: 1,
-                overflow: 'hidden',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'flex-end',
-                border: '1px solid #cbd5e1',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
-              }}
-              title={`Evaluation: ${aiAnalysis.evaluationScore > 0 ? `+${aiAnalysis.evaluationScore.toFixed(1)}` : aiAnalysis.evaluationScore.toFixed(1)}`}
-            >
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5 }}>
+          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+            {aiAnalysis && (
               <Box
                 sx={{
-                  width: '100%',
-                  height: `${Math.max(5, Math.min(95, 50 + aiAnalysis.evaluationScore * 5))}%`,
-                  background: '#0284c7',
-                  transition: 'height 0.3s ease',
+                  width: 18,
+                  height: 432,
+                  background: '#f1f5f9',
+                  borderRadius: 1,
+                  overflow: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'flex-end',
+                  border: '1px solid #cbd5e1',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
                 }}
-              />
-            </Box>
-          )}
+                title={`Evaluation: ${aiAnalysis.evaluationScore > 0 ? `+${aiAnalysis.evaluationScore.toFixed(1)}` : aiAnalysis.evaluationScore.toFixed(1)}`}
+              >
+                <Box
+                  sx={{
+                    width: '100%',
+                    height: `${Math.max(5, Math.min(95, 50 + aiAnalysis.evaluationScore * 5))}%`,
+                    background: '#0284c7',
+                    transition: 'height 0.3s ease',
+                  }}
+                />
+              </Box>
+            )}
 
-          <ChessBoard
-            board={board}
-            playerColor="w"
-            selectedSquare={selectedSquare}
-            lastMove={lastMove}
-            disabled={isSolved || isFailed || isAIMoving}
-            onSelectSquare={setSelectedSquare}
-            onMovePiece={handleMovePiece}
-          />
+            <ChessBoard
+              board={board}
+              playerColor="w"
+              selectedSquare={selectedSquare}
+              lastMove={lastMove}
+              disabled={isSolved || isFailed || isAIMoving}
+              onSelectSquare={setSelectedSquare}
+              onMovePiece={handleMovePiece}
+            />
+          </Box>
+
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
+            <Button
+              size="small"
+              variant="contained"
+              startIcon={<MenuBookRoundedIcon sx={{ color: '#ffffff !important' }} />}
+              onClick={() => setShowSolution(!showSolution)}
+              sx={{
+                fontWeight: 800,
+                px: 2,
+                backgroundColor: '#15803d !important',
+                color: '#ffffff !important',
+                border: '1px solid #166534',
+                boxShadow: '0 2px 6px rgba(21, 128, 61, 0.35)',
+                '&:hover': {
+                  backgroundColor: '#166534 !important',
+                  color: '#ffffff !important',
+                },
+              }}
+            >
+              💡 정답 보기
+            </Button>
+            <Button
+              size="small"
+              variant="contained"
+              startIcon={<PlayArrowRoundedIcon sx={{ color: '#ffffff !important' }} />}
+              onClick={handleAutoPlaySolution}
+              disabled={isAIMoving}
+              sx={{
+                fontWeight: 800,
+                px: 2,
+                backgroundColor: '#0284c7 !important',
+                color: '#ffffff !important',
+                border: '1px solid #0369a1',
+                boxShadow: '0 2px 6px rgba(2, 132, 199, 0.35)',
+                '&:hover': {
+                  backgroundColor: '#0369a1 !important',
+                  color: '#ffffff !important',
+                },
+              }}
+            >
+              ▶ 정답 한 수 두기
+            </Button>
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<UndoRoundedIcon sx={{ color: '#475569 !important' }} />}
+              onClick={handleUndo}
+              disabled={history.length <= 1 || isAIMoving}
+              sx={{
+                fontWeight: 700,
+                backgroundColor: '#f1f5f9 !important',
+                color: '#334155 !important',
+                border: '1px solid #cbd5e1 !important',
+                '&:hover': {
+                  backgroundColor: '#e2e8f0 !important',
+                  color: '#0f172a !important',
+                },
+              }}
+            >
+              한 수 무르기
+            </Button>
+          </Box>
         </Box>
 
         {/* Right: Details & Status */}
@@ -482,7 +645,7 @@ export function ChessSolverTab() {
               ) : isFailed ? (
                 <CancelRoundedIcon sx={{ color: '#dc2626', fontSize: 28 }} />
               ) : (
-                <PlayArrowRoundedIcon sx={{ color: '#7c3aed', fontSize: 28 }} />
+                <PlayArrowRoundedIcon sx={{ color: '#0284c7', fontSize: 28 }} />
               )}
               <Typography
                 variant="h6"
@@ -492,12 +655,12 @@ export function ChessSolverTab() {
                 }}
               >
                 {isSolved
-                  ? '체크메이트 성공!'
+                  ? '체크메이트 승리!'
                   : isFailed
                     ? '실패'
                     : isAIMoving
-                      ? '흑(Black) AI 수읽기 중...'
-                      : '백선(White to move) - 기물을 선택하여 이동하세요'}
+                      ? '흑(Black) 수비 수읽기 중...'
+                      : '백선(White) - 기물을 선택하여 이동하세요'}
               </Typography>
             </Box>
 
@@ -508,40 +671,150 @@ export function ChessSolverTab() {
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
               <Button
                 variant="contained"
-                color="success"
                 size="small"
-                startIcon={<CheckCircleRoundedIcon />}
-                onClick={handleAutoPlaySolution}
-                disabled={isSolved || isAIMoving || currentNodeTree.length === 0}
-                sx={{ fontWeight: 700 }}
+                startIcon={<MenuBookRoundedIcon sx={{ color: '#ffffff !important' }} />}
+                onClick={() => setShowSolution(!showSolution)}
+                sx={{
+                  fontWeight: 800,
+                  backgroundColor: '#15803d !important',
+                  color: '#ffffff !important',
+                  border: '1px solid #166534',
+                  boxShadow: '0 2px 6px rgba(21, 128, 61, 0.35)',
+                  '&:hover': {
+                    backgroundColor: '#166534 !important',
+                    color: '#ffffff !important',
+                  },
+                }}
               >
-                정답 한 수 두기
+                💡 정답 보기
+              </Button>
+
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<PlayArrowRoundedIcon sx={{ color: '#ffffff !important' }} />}
+                onClick={handleAutoPlaySolution}
+                disabled={isAIMoving}
+                sx={{
+                  fontWeight: 800,
+                  backgroundColor: '#0284c7 !important',
+                  color: '#ffffff !important',
+                  border: '1px solid #0369a1',
+                  boxShadow: '0 2px 6px rgba(2, 132, 199, 0.35)',
+                  '&:hover': {
+                    backgroundColor: '#0369a1 !important',
+                    color: '#ffffff !important',
+                  },
+                }}
+              >
+                ▶ 정답 한 수 두기
               </Button>
 
               <Button
                 variant="outlined"
-                color="inherit"
                 size="small"
-                startIcon={<UndoRoundedIcon />}
+                startIcon={<UndoRoundedIcon sx={{ color: '#475569 !important' }} />}
                 onClick={handleUndo}
                 disabled={history.length <= 1 || isAIMoving}
-                sx={{ fontWeight: 700, borderColor: '#cbd5e1', color: '#475569' }}
+                sx={{
+                  fontWeight: 700,
+                  backgroundColor: '#f1f5f9 !important',
+                  color: '#334155 !important',
+                  border: '1px solid #cbd5e1 !important',
+                  '&:hover': {
+                    backgroundColor: '#e2e8f0 !important',
+                    color: '#0f172a !important',
+                  },
+                }}
               >
                 한 수 무르기
               </Button>
 
               <Button
-                variant="contained"
-                color="primary"
+                variant="outlined"
                 size="small"
-                startIcon={<ReplayRoundedIcon />}
+                startIcon={<ReplayRoundedIcon sx={{ color: '#475569 !important' }} />}
                 onClick={handleReset}
-                sx={{ fontWeight: 700 }}
+                sx={{
+                  fontWeight: 700,
+                  backgroundColor: '#f8fafc !important',
+                  color: '#475569 !important',
+                  border: '1px solid #cbd5e1 !important',
+                  '&:hover': {
+                    backgroundColor: '#f1f5f9 !important',
+                    color: '#1e293b !important',
+                  },
+                }}
               >
-                처음부터 다시하기
+                다시 시작
               </Button>
             </Box>
           </Card>
+
+          {/* 🎯 Explicit Solution Text Card */}
+          {showSolution && (
+            <Card
+              sx={{
+                p: 2.5,
+                bgcolor: '#f0fdf4',
+                border: '2px solid #16a34a',
+                boxShadow: '0 4px 14px rgba(22, 163, 74, 0.12)',
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  mb: 1.5,
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <CheckCircleRoundedIcon sx={{ color: '#16a34a', fontSize: 24 }} />
+                  <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#15803d' }}>
+                    🎯 체스 전술 정답 수순 및 표기
+                  </Typography>
+                </Box>
+                <Button
+                  size="small"
+                  variant="contained"
+                  color="success"
+                  startIcon={<PlayArrowRoundedIcon />}
+                  onClick={handleAutoPlaySolution}
+                  sx={{ fontWeight: 800 }}
+                >
+                  정답 바로 착수하기
+                </Button>
+              </Box>
+
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 1,
+                  mb: 1.5,
+                  p: 1.5,
+                  bgcolor: '#ffffff',
+                  borderRadius: 1.5,
+                  border: '1px solid #bbf7d0',
+                }}
+              >
+                {getChessSolutionSteps(currentProblem).map((s, idx) => (
+                  <Typography
+                    key={idx}
+                    variant="body2"
+                    sx={{ fontWeight: 700, color: '#166534', fontSize: '0.95rem' }}
+                  >
+                    • {s}
+                  </Typography>
+                ))}
+              </Box>
+
+              <Typography variant="body2" sx={{ color: '#14532d', lineHeight: 1.6 }}>
+                💡 <strong>핵심 전술 해설:</strong> {currentProblem.hint}
+              </Typography>
+            </Card>
+          )}
 
           {/* Hint Card */}
           {showHint && (
@@ -560,12 +833,12 @@ export function ChessSolverTab() {
                 </Typography>
               </Box>
               <Typography variant="body2" sx={{ color: '#78350f' }}>
-                {currentPuzzle.hint}
+                {currentProblem.hint}
               </Typography>
             </Card>
           )}
 
-          {/* Theory & Explanation */}
+          {/* Theory & Explanation Card */}
           <Card
             sx={{
               p: 2.5,
@@ -576,13 +849,13 @@ export function ChessSolverTab() {
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-              <HelpOutlineRoundedIcon sx={{ color: '#7c3aed', fontSize: 20 }} />
+              <HelpOutlineRoundedIcon sx={{ color: '#0284c7', fontSize: 20 }} />
               <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a' }}>
-                체스 전술 해설
+                체스 이론 & 전술 해설
               </Typography>
             </Box>
             <Typography variant="body2" sx={{ color: '#475569', lineHeight: 1.7 }}>
-              {currentPuzzle.explanation}
+              {currentProblem.explanation}
             </Typography>
           </Card>
 
@@ -590,16 +863,16 @@ export function ChessSolverTab() {
           {aiAnalysis && (
             <GameAlgorithmInspector
               gameTitle="체스 (Chess)"
-              csConcept={currentPuzzle.csConcept}
+              csConcept={currentProblem.csConcept}
               searchNodes={aiAnalysis.searchNodesEvaluated}
               searchDepth={aiAnalysis.searchDepth}
               timeMs={aiAnalysis.timeMs}
               evalScore={aiAnalysis.evaluationScore}
-              algorithmName="Piece-Square Tables & Alpha-Beta"
+              algorithmName="체스 Minimax & Alpha-Beta 가지치기"
               complexityInfo={{
-                time: 'O(b^(d/2)) with MVV-LVA',
-                space: 'O(d) ply',
-                branchingFactor: 'b ≈ 30~35 (Shannon Number)',
+                time: 'O(b^d) → Alpha-Beta 탐색',
+                space: 'O(d) 스택 트리',
+                branchingFactor: 'b ≈ 35 (체스 평균 분기수)',
               }}
             />
           )}
@@ -633,7 +906,7 @@ export function ChessSolverTab() {
           }}
         >
           <Box sx={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a' }}>
-            체스 전술 & 퍼즐 컬렉션 (총 {CHESS_PUZZLE_LIST.length}선)
+            체스 전술 & 체크메이트 퍼즐 컬렉션 (총 {CHESS_PUZZLE_LIST.length}선)
           </Box>
           <IconButton onClick={() => setIsCatalogOpen(false)} sx={{ color: '#64748b' }}>
             <CloseRoundedIcon />
@@ -645,7 +918,7 @@ export function ChessSolverTab() {
           <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
             <TextField
               size="small"
-              placeholder="전술 제목 또는 키워드 검색..."
+              placeholder="체스 퍼즐 검색..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               InputProps={{
@@ -665,32 +938,25 @@ export function ChessSolverTab() {
             />
 
             <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', alignItems: 'center' }}>
-              {[
-                '전체',
-                '백랭크 메이트',
-                '질식 메이트',
-                '로열 포크',
-                '오페라 메이트',
-                '그리스의 선물',
-                '체크메이트',
-                '포크/스큐어',
-              ].map((cat) => (
-                <Chip
-                  key={cat}
-                  label={cat}
-                  size="small"
-                  clickable
-                  onClick={() => setSelectedCategory(cat)}
-                  sx={{
-                    fontWeight: 700,
-                    bgcolor: selectedCategory === cat ? '#7c3aed' : '#f1f5f9',
-                    color: selectedCategory === cat ? '#ffffff' : '#475569',
-                    '&:hover': {
-                      bgcolor: selectedCategory === cat ? '#6d28d9' : '#e2e8f0',
-                    },
-                  }}
-                />
-              ))}
+              {['전체', '체크메이트', '백랭크', '포크', '핀', '디스커버드', '유명 기보'].map(
+                (cat) => (
+                  <Chip
+                    key={cat}
+                    label={cat}
+                    size="small"
+                    clickable
+                    onClick={() => setSelectedCategory(cat)}
+                    sx={{
+                      fontWeight: 700,
+                      bgcolor: selectedCategory === cat ? '#0284c7' : '#f1f5f9',
+                      color: selectedCategory === cat ? '#ffffff' : '#475569',
+                      '&:hover': {
+                        bgcolor: selectedCategory === cat ? '#0369a1' : '#e2e8f0',
+                      },
+                    }}
+                  />
+                )
+              )}
             </Box>
           </Box>
 
@@ -699,23 +965,23 @@ export function ChessSolverTab() {
             <Box
               sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1.5 }}
             >
-              {filteredPuzzles.map((prob) => {
+              {filteredProblems.map((prob) => {
                 const idx = CHESS_PUZZLE_LIST.findIndex((p) => p.id === prob.id);
-                const isCurrent = idx === selectedPuzzleIndex;
+                const isCurrent = idx === selectedProblemIndex;
                 return (
                   <Card
                     key={prob.id}
-                    onClick={() => handleSelectPuzzleIndex(idx)}
+                    onClick={() => handleSelectProblemIndex(idx)}
                     sx={{
                       p: 1.5,
                       cursor: 'pointer',
-                      bgcolor: isCurrent ? 'rgba(124, 58, 237, 0.08)' : '#ffffff',
+                      bgcolor: isCurrent ? 'rgba(2, 132, 199, 0.08)' : '#ffffff',
                       border: '1px solid',
-                      borderColor: isCurrent ? '#7c3aed' : '#e2e8f0',
+                      borderColor: isCurrent ? '#0284c7' : '#e2e8f0',
                       boxShadow: '0 1px 4px rgba(0, 0, 0, 0.03)',
                       '&:hover': {
-                        bgcolor: 'rgba(124, 58, 237, 0.12)',
-                        borderColor: '#7c3aed',
+                        bgcolor: 'rgba(2, 132, 199, 0.12)',
+                        borderColor: '#0284c7',
                       },
                     }}
                   >

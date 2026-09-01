@@ -544,9 +544,17 @@ export const REGEX_PRESETS = [
 // ----------------------------------------------------------------------
 function getRandomBytes(size: number): Uint8Array {
   const bytes = new Uint8Array(size);
-  if (typeof window !== 'undefined' && window.crypto && typeof window.crypto.getRandomValues === 'function') {
+  if (
+    typeof window !== 'undefined' &&
+    window.crypto &&
+    typeof window.crypto.getRandomValues === 'function'
+  ) {
     window.crypto.getRandomValues(bytes);
-  } else if (typeof globalThis !== 'undefined' && globalThis.crypto && typeof globalThis.crypto.getRandomValues === 'function') {
+  } else if (
+    typeof globalThis !== 'undefined' &&
+    globalThis.crypto &&
+    typeof globalThis.crypto.getRandomValues === 'function'
+  ) {
     globalThis.crypto.getRandomValues(bytes);
   } else {
     for (let i = 0; i < size; i += 1) {

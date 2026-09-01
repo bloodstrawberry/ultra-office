@@ -29,6 +29,7 @@ import NavigateBeforeRoundedIcon from '@mui/icons-material/NavigateBeforeRounded
 import ShuffleRoundedIcon from '@mui/icons-material/ShuffleRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import ListAltRoundedIcon from '@mui/icons-material/ListAltRounded';
+import MenuBookRoundedIcon from '@mui/icons-material/MenuBookRounded';
 
 import { BadukBoard } from './BadukBoard';
 import { GameAlgorithmInspector } from '../common/GameAlgorithmInspector';
@@ -77,6 +78,7 @@ export function BadukSolverTab() {
   const [isSolved, setIsSolved] = useState<boolean>(false);
   const [isFailed, setIsFailed] = useState<boolean>(false);
   const [showHint, setShowHint] = useState<boolean>(false);
+  const [showSolution, setShowSolution] = useState<boolean>(false);
 
   // Visualizer overlays
   const [showLiberties, setShowLiberties] = useState<boolean>(true);
@@ -103,6 +105,7 @@ export function BadukSolverTab() {
     setIsSolved(false);
     setIsFailed(false);
     setShowHint(false);
+    setShowSolution(false);
 
     const analysis = analyzeBadukPosition(newBoard, problem.playerColor, problem.focusRegion);
     setAiAnalysis(analysis);
@@ -265,11 +268,42 @@ export function BadukSolverTab() {
   };
 
   const handleAutoPlaySolution = () => {
-    if (isSolved || isAIMoving || turn !== 'B' || currentNodeTree.length === 0) return;
+    if (isAIMoving) return;
+    if (currentNodeTree.length === 0 || isSolved || isFailed || turn !== 'B') {
+      setupProblem(currentProblem);
+      setTimeout(() => {
+        const firstNode = currentProblem.solutionTree[0];
+        if (firstNode) {
+          handlePlayMove(firstNode.move.r, firstNode.move.c);
+        }
+      }, 150);
+      return;
+    }
     const targetNode = currentNodeTree[0];
     if (targetNode) {
       handlePlayMove(targetNode.move.r, targetNode.move.c);
     }
+  };
+
+  const getBadukSolutionSteps = (problem: BadukProblem) => {
+    const steps: string[] = [];
+    const traverse = (nodes: BadukSolutionNode[], stepNum: number) => {
+      if (!nodes || nodes.length === 0) return;
+      const node = nodes[0];
+      steps.push(
+        `${stepNum}수: 흑(黑) ${formatBadukCoord(node.move, problem.boardSize)} (${node.move.r}, ${node.move.c}) 착수`
+      );
+      if (node.aiResponse) {
+        steps.push(
+          `${stepNum + 1}수: 백(白) ${formatBadukCoord(node.aiResponse, problem.boardSize)} (${node.aiResponse.r}, ${node.aiResponse.c}) 응수`
+        );
+        if (node.children) {
+          traverse(node.children, stepNum + 2);
+        }
+      }
+    };
+    traverse(problem.solutionTree, 1);
+    return steps;
   };
 
   // Filtered problem list for catalog dialog
@@ -373,22 +407,38 @@ export function BadukSolverTab() {
           <Button
             size="small"
             variant="contained"
-            color="success"
-            startIcon={<CheckCircleRoundedIcon />}
-            onClick={handleAutoPlaySolution}
-            disabled={isSolved || isAIMoving || turn !== 'B' || currentNodeTree.length === 0}
-            sx={{ fontWeight: 700 }}
+            startIcon={<MenuBookRoundedIcon sx={{ color: '#ffffff !important' }} />}
+            onClick={() => setShowSolution(!showSolution)}
+            sx={{
+              fontWeight: 800,
+              backgroundColor: '#15803d !important',
+              color: '#ffffff !important',
+              border: '1px solid #166534',
+              boxShadow: '0 2px 6px rgba(21, 128, 61, 0.35)',
+              '&:hover': {
+                backgroundColor: '#166534 !important',
+                color: '#ffffff !important',
+              },
+            }}
           >
-            정답 한 수
+            💡 정답 보기
           </Button>
 
           <Button
             size="small"
             variant="outlined"
-            color="warning"
-            startIcon={<LightbulbRoundedIcon />}
+            startIcon={<LightbulbRoundedIcon sx={{ color: '#d97706 !important' }} />}
             onClick={() => setShowHint(!showHint)}
-            sx={{ fontWeight: 700 }}
+            sx={{
+              fontWeight: 800,
+              backgroundColor: '#fef3c7 !important',
+              color: '#92400e !important',
+              border: '1px solid #f59e0b !important',
+              '&:hover': {
+                backgroundColor: '#fde68a !important',
+                color: '#78350f !important',
+              },
+            }}
           >
             사활 힌트
           </Button>
@@ -396,11 +446,19 @@ export function BadukSolverTab() {
           <Button
             size="small"
             variant="outlined"
-            color="info"
-            startIcon={<UndoRoundedIcon />}
+            startIcon={<UndoRoundedIcon sx={{ color: '#475569 !important' }} />}
             onClick={handleUndo}
             disabled={history.length <= 1 || isAIMoving}
-            sx={{ fontWeight: 700 }}
+            sx={{
+              fontWeight: 700,
+              backgroundColor: '#f1f5f9 !important',
+              color: '#334155 !important',
+              border: '1px solid #cbd5e1 !important',
+              '&:hover': {
+                backgroundColor: '#e2e8f0 !important',
+                color: '#0f172a !important',
+              },
+            }}
           >
             한 수 무르기
           </Button>
@@ -436,27 +494,78 @@ export function BadukSolverTab() {
             onPlaceStone={(p) => handlePlayMove(p.r, p.c)}
           />
 
-          {/* Toggle controls */}
-          <Box sx={{ display: 'flex', gap: 1 }}>
+          {/* Controls under Board */}
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
+            <Button
+              size="small"
+              variant="contained"
+              startIcon={<MenuBookRoundedIcon sx={{ color: '#ffffff !important' }} />}
+              onClick={() => setShowSolution(!showSolution)}
+              sx={{
+                fontWeight: 800,
+                px: 2,
+                backgroundColor: '#15803d !important',
+                color: '#ffffff !important',
+                border: '1px solid #166534',
+                boxShadow: '0 2px 6px rgba(21, 128, 61, 0.35)',
+                '&:hover': {
+                  backgroundColor: '#166534 !important',
+                  color: '#ffffff !important',
+                },
+              }}
+            >
+              💡 정답 보기
+            </Button>
+            <Button
+              size="small"
+              variant="contained"
+              startIcon={<PlayArrowRoundedIcon sx={{ color: '#ffffff !important' }} />}
+              onClick={handleAutoPlaySolution}
+              disabled={isAIMoving}
+              sx={{
+                fontWeight: 800,
+                px: 2,
+                backgroundColor: '#0284c7 !important',
+                color: '#ffffff !important',
+                border: '1px solid #0369a1',
+                boxShadow: '0 2px 6px rgba(2, 132, 199, 0.35)',
+                '&:hover': {
+                  backgroundColor: '#0369a1 !important',
+                  color: '#ffffff !important',
+                },
+              }}
+            >
+              ▶ 정답 한 수 두기
+            </Button>
             <Button
               size="small"
               variant={showLiberties ? 'contained' : 'outlined'}
-              color="primary"
               startIcon={<LayersRoundedIcon />}
               onClick={() => setShowLiberties(!showLiberties)}
-              sx={{ fontSize: '0.75rem', fontWeight: 700 }}
+              sx={{
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                backgroundColor: showLiberties ? '#0284c7 !important' : '#f1f5f9 !important',
+                color: showLiberties ? '#ffffff !important' : '#334155 !important',
+                border: '1px solid #cbd5e1 !important',
+              }}
             >
-              활로(Liberties) 표시
+              활로 표시
             </Button>
             <Button
               size="small"
               variant={showInfluence ? 'contained' : 'outlined'}
-              color="secondary"
               startIcon={<InvertColorsRoundedIcon />}
               onClick={() => setShowInfluence(!showInfluence)}
-              sx={{ fontSize: '0.75rem', fontWeight: 700 }}
+              sx={{
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                backgroundColor: showInfluence ? '#7c3aed !important' : '#f1f5f9 !important',
+                color: showInfluence ? '#ffffff !important' : '#334155 !important',
+                border: '1px solid #cbd5e1 !important',
+              }}
             >
-              세력 히트맵
+              세력도
             </Button>
           </Box>
         </Box>
@@ -518,40 +627,150 @@ export function BadukSolverTab() {
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
               <Button
                 variant="contained"
-                color="success"
                 size="small"
-                startIcon={<CheckCircleRoundedIcon />}
-                onClick={handleAutoPlaySolution}
-                disabled={isSolved || isAIMoving || turn !== 'B' || currentNodeTree.length === 0}
-                sx={{ fontWeight: 700 }}
+                startIcon={<MenuBookRoundedIcon sx={{ color: '#ffffff !important' }} />}
+                onClick={() => setShowSolution(!showSolution)}
+                sx={{
+                  fontWeight: 800,
+                  backgroundColor: '#15803d !important',
+                  color: '#ffffff !important',
+                  border: '1px solid #166534',
+                  boxShadow: '0 2px 6px rgba(21, 128, 61, 0.35)',
+                  '&:hover': {
+                    backgroundColor: '#166534 !important',
+                    color: '#ffffff !important',
+                  },
+                }}
               >
-                정답 한 수 두기
+                💡 정답 보기
+              </Button>
+
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<PlayArrowRoundedIcon sx={{ color: '#ffffff !important' }} />}
+                onClick={handleAutoPlaySolution}
+                disabled={isAIMoving}
+                sx={{
+                  fontWeight: 800,
+                  backgroundColor: '#0284c7 !important',
+                  color: '#ffffff !important',
+                  border: '1px solid #0369a1',
+                  boxShadow: '0 2px 6px rgba(2, 132, 199, 0.35)',
+                  '&:hover': {
+                    backgroundColor: '#0369a1 !important',
+                    color: '#ffffff !important',
+                  },
+                }}
+              >
+                ▶ 정답 한 수 두기
               </Button>
 
               <Button
                 variant="outlined"
-                color="inherit"
                 size="small"
-                startIcon={<UndoRoundedIcon />}
+                startIcon={<UndoRoundedIcon sx={{ color: '#475569 !important' }} />}
                 onClick={handleUndo}
                 disabled={history.length <= 1 || isAIMoving}
-                sx={{ fontWeight: 700, borderColor: '#cbd5e1', color: '#475569' }}
+                sx={{
+                  fontWeight: 700,
+                  backgroundColor: '#f1f5f9 !important',
+                  color: '#334155 !important',
+                  border: '1px solid #cbd5e1 !important',
+                  '&:hover': {
+                    backgroundColor: '#e2e8f0 !important',
+                    color: '#0f172a !important',
+                  },
+                }}
               >
                 한 수 무르기
               </Button>
 
               <Button
-                variant="contained"
-                color="primary"
+                variant="outlined"
                 size="small"
-                startIcon={<ReplayRoundedIcon />}
+                startIcon={<ReplayRoundedIcon sx={{ color: '#475569 !important' }} />}
                 onClick={handleReset}
-                sx={{ fontWeight: 700 }}
+                sx={{
+                  fontWeight: 700,
+                  backgroundColor: '#f8fafc !important',
+                  color: '#475569 !important',
+                  border: '1px solid #cbd5e1 !important',
+                  '&:hover': {
+                    backgroundColor: '#f1f5f9 !important',
+                    color: '#1e293b !important',
+                  },
+                }}
               >
-                처음부터 다시하기
+                다시 시작
               </Button>
             </Box>
           </Card>
+
+          {/* 🎯 Explicit Solution Text Card */}
+          {showSolution && (
+            <Card
+              sx={{
+                p: 2.5,
+                bgcolor: '#f0fdf4',
+                border: '2px solid #16a34a',
+                boxShadow: '0 4px 14px rgba(22, 163, 74, 0.12)',
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  mb: 1.5,
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <CheckCircleRoundedIcon sx={{ color: '#16a34a', fontSize: 24 }} />
+                  <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#15803d' }}>
+                    🎯 바둑 사활 정답 수순 및 좌표
+                  </Typography>
+                </Box>
+                <Button
+                  size="small"
+                  variant="contained"
+                  color="success"
+                  startIcon={<PlayArrowRoundedIcon />}
+                  onClick={handleAutoPlaySolution}
+                  sx={{ fontWeight: 800 }}
+                >
+                  정답 바로 착수하기
+                </Button>
+              </Box>
+
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 1,
+                  mb: 1.5,
+                  p: 1.5,
+                  bgcolor: '#ffffff',
+                  borderRadius: 1.5,
+                  border: '1px solid #bbf7d0',
+                }}
+              >
+                {getBadukSolutionSteps(currentProblem).map((s, idx) => (
+                  <Typography
+                    key={idx}
+                    variant="body2"
+                    sx={{ fontWeight: 700, color: '#166534', fontSize: '0.95rem' }}
+                  >
+                    • {s}
+                  </Typography>
+                ))}
+              </Box>
+
+              <Typography variant="body2" sx={{ color: '#14532d', lineHeight: 1.6 }}>
+                💡 <strong>정답 해설:</strong> {currentProblem.hint}
+              </Typography>
+            </Card>
+          )}
 
           {/* Hint Card */}
           {showHint && (
