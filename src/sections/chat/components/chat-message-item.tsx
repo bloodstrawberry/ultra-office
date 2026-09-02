@@ -14,7 +14,12 @@ import DoneAllRoundedIcon from '@mui/icons-material/DoneAllRounded';
 import LightbulbRoundedIcon from '@mui/icons-material/LightbulbRounded';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import AddReactionRoundedIcon from '@mui/icons-material/AddReactionRounded';
+import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded';
+import ThumbUpOutlinedIcon from '@mui/icons-material/ThumbUpOutlined';
+import ThumbDownOutlinedIcon from '@mui/icons-material/ThumbDownOutlined';
+import AutorenewRoundedIcon from '@mui/icons-material/AutorenewRounded';
 
+import { generateAvatarColor } from 'src/utils/avatar-colors';
 import { THEME_OPTIONS } from '../constants/themes';
 import type { ChatMessage, ChatRoomConfig, ChatUser } from '../types';
 
@@ -22,6 +27,8 @@ interface ChatMessageItemProps {
   message: ChatMessage;
   sender?: ChatUser;
   config: ChatRoomConfig;
+  previousMessage?: ChatMessage | null;
+  nextMessage?: ChatMessage | null;
   onSelectMessage?: (msg: ChatMessage) => void;
 }
 
@@ -29,6 +36,8 @@ export function ChatMessageItem({
   message,
   sender,
   config,
+  previousMessage,
+  nextMessage,
   onSelectMessage,
 }: ChatMessageItemProps) {
   const { themeId, category } = config;
@@ -40,39 +49,75 @@ export function ChatMessageItem({
   const [thinkingOpen, setThinkingOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // 1. 시스템 메시지 (날짜선, 공지, 입장/퇴장)
+  const isKakao = themeId === 'kakaotalk';
+  const isKnox = themeId === 'knox';
+
+  // 1. 연속 발신자 메시지 감지 로직
+  const isConsecutive = Boolean(
+    previousMessage &&
+      previousMessage.senderId === message.senderId &&
+      !previousMessage.isSystem &&
+      !message.isSystem
+  );
+
+  const isLast = Boolean(
+    !nextMessage || nextMessage.senderId !== message.senderId || nextMessage.isSystem
+  );
+
+  const shouldShowTime = Boolean(
+    !nextMessage ||
+      nextMessage.senderId !== message.senderId ||
+      nextMessage.isSystem ||
+      (nextMessage.time && message.time && nextMessage.time !== message.time)
+  );
+
+  // 2. 시스템 메시지 (날짜 구분선, Knox 보안 공지, 입장/퇴장)
   if (isSystem) {
+    const isNotice = message.systemType === 'notice' || message.text.includes('보안 안내');
+
     return (
       <Box
         sx={{
           display: 'flex',
           justifyContent: 'center',
-          my: 1.5,
+          my: isNotice ? 1.5 : 1.8,
           px: 2,
+          width: '100%',
         }}
         onClick={() => onSelectMessage?.(message)}
       >
         <Box
           sx={{
-            bgcolor: 'rgba(0, 0, 0, 0.25)',
-            backdropFilter: 'blur(4px)',
+            bgcolor: isNotice
+              ? isKnox
+                ? 'rgba(12, 35, 64, 0.85)'
+                : 'rgba(0, 0, 0, 0.45)'
+              : 'rgba(0, 0, 0, 0.22)',
+            backdropFilter: 'blur(6px)',
             color: '#FFFFFF',
-            px: 1.5,
-            py: 0.5,
+            px: 1.8,
+            py: 0.6,
             borderRadius: 5,
-            fontSize: 11,
+            fontSize: 11.5,
             fontWeight: 500,
             textAlign: 'center',
-            maxWidth: '85%',
+            maxWidth: '90%',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 0.6,
+            boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+            userSelect: 'none',
           }}
         >
-          {message.text}
+          {isNotice && <SecurityRoundedIcon sx={{ fontSize: 14, color: '#38BDF8' }} />}
+          <span>{message.text}</span>
         </Box>
       </Box>
     );
   }
 
-  // 2. LLM 카테고리 (ChatGPT, Gemini, Claude, Grok) 렌더러
+  // 3. LLM 카테고리 (ChatGPT, Gemini, Claude, Grok) 렌더러
   if (category === 'llm' || isBot) {
     return (
       <Box
@@ -86,7 +131,7 @@ export function ChatMessageItem({
         onClick={() => onSelectMessage?.(message)}
       >
         {isMe ? (
-          // LLM 사용자 질문 버블 (우측 정렬 또는 카드형)
+          // LLM 사용자 질문 버블 (우측 정렬 카드형)
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5 }}>
             {message.mediaUrl && (
               <Box
@@ -122,7 +167,7 @@ export function ChatMessageItem({
             )}
           </Box>
         ) : (
-          // LLM 응답 (좌측 또는 전폭 카드)
+          // LLM AI 답변 (좌측 전폭 카드)
           <Box sx={{ display: 'flex', gap: 1.5, width: '100%', alignItems: 'flex-start' }}>
             <Avatar
               src={sender?.avatar || 'https://api.dicebear.com/7.x/bottts/svg?seed=AI'}
@@ -251,9 +296,11 @@ export function ChatMessageItem({
                       sx={{ color: '#D4D4D4', p: 0.3 }}
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigator.clipboard?.writeText(message.codeSnippet?.code || '');
-                        setCopied(true);
-                        setTimeout(() => setCopied(false), 1500);
+                        if (typeof navigator !== 'undefined' && navigator.clipboard) {
+                          navigator.clipboard.writeText(message.codeSnippet?.code || '');
+                          setCopied(true);
+                          setTimeout(() => setCopied(false), 1500);
+                        }
                       }}
                     >
                       {copied ? (
@@ -279,6 +326,37 @@ export function ChatMessageItem({
                   </Box>
                 </Box>
               )}
+
+              {/* LLM PC 웹/모바일 응답 하단 액션 툴바 (복사, 재생성, 피드백) */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
+                <IconButton
+                  size="small"
+                  sx={{ color: '#94A3B8', p: 0.4 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+                      navigator.clipboard.writeText(message.text || '');
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 1500);
+                    }
+                  }}
+                >
+                  {copied ? (
+                    <CheckRoundedIcon sx={{ fontSize: 15, color: '#10B981' }} />
+                  ) : (
+                    <ContentCopyRoundedIcon sx={{ fontSize: 15 }} />
+                  )}
+                </IconButton>
+                <IconButton size="small" sx={{ color: '#94A3B8', p: 0.4 }}>
+                  <AutorenewRoundedIcon sx={{ fontSize: 15 }} />
+                </IconButton>
+                <IconButton size="small" sx={{ color: '#94A3B8', p: 0.4 }}>
+                  <ThumbUpOutlinedIcon sx={{ fontSize: 14 }} />
+                </IconButton>
+                <IconButton size="small" sx={{ color: '#94A3B8', p: 0.4 }}>
+                  <ThumbDownOutlinedIcon sx={{ fontSize: 14 }} />
+                </IconButton>
+              </Box>
             </Box>
           </Box>
         )}
@@ -286,68 +364,128 @@ export function ChatMessageItem({
     );
   }
 
-  // 3. 메신저 및 SNS 메시지 렌더러
+  // 4. 메신저 및 SNS 메시지 렌더러 (카카오톡, Knox, LINE 등)
   const partnerName = sender?.name || '상대방';
   const partnerAvatar = sender?.avatar;
 
-  const isKakao = themeId === 'kakaotalk';
+  // 버블 배경색 & 텍스트 색상 결정 (svs-web 기준 정밀 일치)
+  const getBubbleBg = () => {
+    if (message.mediaUrl && !message.text) return 'transparent';
+    if (isKnox) {
+      return isMe ? '#D9E5FF' : '#FFFFFF'; // Knox sent: 파스텔 라이트블루, received: 화이트
+    }
+    if (isKakao) {
+      return isMe ? '#FEE500' : '#FFFFFF'; // 카카오톡 sent: 옐로우, received: 화이트
+    }
+    return isMe ? themeMeta.myBubbleBg : themeMeta.otherBubbleBg;
+  };
+
+  const getBubbleTextColor = () => {
+    if (isKnox || isKakao) return '#000000';
+    return isMe ? themeMeta.myBubbleText : themeMeta.otherBubbleText;
+  };
+
+  // 모서리 둥글기 (Border Radius) 계산
+  const getBorderRadius = () => {
+    if (isKnox) {
+      const radius = '12px';
+      if (isMe) {
+        return isLast ? `${radius} ${radius} 0 ${radius}` : radius; // 우측 하단 뾰족
+      }
+      return !isConsecutive ? `0 ${radius} ${radius} ${radius}` : radius; // 좌측 상단 뾰족
+    }
+    if (isKakao) {
+      return '12px';
+    }
+    if (isMe) {
+      return '18px 18px 4px 18px';
+    }
+    return '18px 18px 18px 4px';
+  };
+
+  // 연속 메시지에 따른 하단 여백 설정
+  const bottomSpacing = isLast ? (isKakao ? 1.4 : 1.8) : isKakao ? 0.35 : 0.45;
+
+  const bubbleBg = getBubbleBg();
+  const bubbleTextColor = getBubbleTextColor();
 
   return (
     <Box
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        my: isKakao ? 0.6 : 0.8,
+        mb: bottomSpacing,
         px: 1.5,
         alignItems: isMe ? 'flex-end' : 'flex-start',
         cursor: 'pointer',
+        width: '100%',
         '&:hover': {
-          opacity: 0.96,
+          opacity: 0.98,
         },
       }}
       onClick={() => onSelectMessage?.(message)}
     >
-      {/* 상대방 프로필 & 이름 (카톡/라인/Knox 등) */}
-      {!isMe && (
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, mb: 0.4 }}>
+      {/* 상대방 프로필 & 이름 (연속 메시지일 경우 첫 메시지에만 표시) */}
+      {!isMe && !isConsecutive && (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.4 }}>
           {isKakao && !partnerAvatar ? (
             <Avatar
               sx={{
-                width: 38,
-                height: 38,
+                width: 36,
+                height: 36,
                 bgcolor: '#72C2E1',
                 color: '#FFFFFF',
+                borderRadius: '16px', // 카카오 squircle 모서리
               }}
             >
-              <PersonRoundedIcon sx={{ fontSize: 26 }} />
+              <PersonRoundedIcon sx={{ fontSize: 24 }} />
+            </Avatar>
+          ) : isKnox ? (
+            <Avatar
+              src={partnerAvatar}
+              alt={partnerName}
+              sx={{
+                width: 34,
+                height: 34,
+                bgcolor: !partnerAvatar ? generateAvatarColor(partnerName) : 'default',
+                color: '#FFFFFF',
+                fontSize: 13,
+                fontWeight: 700,
+              }}
+            >
+              {!partnerAvatar && partnerName ? partnerName.charAt(0) : ''}
             </Avatar>
           ) : (
             <Avatar
               src={partnerAvatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=user'}
               alt={partnerName}
-              sx={{ width: isKakao ? 38 : 34, height: isKakao ? 38 : 34 }}
+              sx={{
+                width: 34,
+                height: 34,
+                ...(isKakao && { borderRadius: '16px' }),
+              }}
             />
           )}
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', mt: 0.2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
             <Typography
               sx={{
-                fontSize: 12.5,
+                fontSize: 13,
                 fontWeight: 600,
-                color: isKakao ? '#2E363E' : themeMeta.headerText,
+                color: isKakao ? '#2E363E' : isKnox ? '#1E293B' : themeMeta.headerText,
                 letterSpacing: -0.2,
               }}
             >
               {partnerName}
             </Typography>
-            {sender?.title && themeMeta.features.hasProfileTitle && (
+
+            {sender?.title && (
               <Typography
+                component="span"
                 sx={{
-                  fontSize: 10,
-                  color: '#64748B',
-                  bgcolor: 'rgba(0,0,0,0.05)',
-                  px: 0.5,
-                  borderRadius: 0.5,
+                  fontSize: 11,
+                  color: isKnox ? '#64748B' : 'text.secondary',
+                  fontWeight: 400,
                 }}
               >
                 {sender.title}
@@ -364,8 +502,8 @@ export function ChatMessageItem({
           flexDirection: isMe ? 'row-reverse' : 'row',
           alignItems: 'flex-end',
           gap: 0.6,
-          maxWidth: '84%',
-          pl: !isMe ? (isKakao ? 5.8 : 5.2) : 0, // 아바타 공간만큼 정렬 패딩
+          maxWidth: '85%',
+          pl: !isMe ? (!isConsecutive ? 5.2 : 5.2) : 0, // 아바타 공간만큼 들여쓰기 유지
           position: 'relative',
         }}
       >
@@ -379,36 +517,41 @@ export function ChatMessageItem({
         >
           <Box
             sx={{
-              bgcolor:
-                !message.text && message.mediaUrl
-                  ? 'transparent'
-                  : isMe
-                    ? themeMeta.myBubbleBg
-                    : themeMeta.otherBubbleBg,
-              background:
-                !message.text && message.mediaUrl
-                  ? 'transparent'
-                  : isMe
-                    ? themeMeta.myBubbleBg
-                    : themeMeta.otherBubbleBg,
-              color: isMe ? themeMeta.myBubbleText : themeMeta.otherBubbleText,
+              position: 'relative',
+              bgcolor: bubbleBg,
+              background: bubbleBg,
+              color: bubbleTextColor,
               px: !message.text && message.mediaUrl ? 0 : 1.4,
               py: !message.text && message.mediaUrl ? 0 : 0.85,
-              borderRadius: isMe
-                ? isKakao
-                  ? '14px 2px 14px 14px'
-                  : '18px 18px 4px 18px'
-                : isKakao
-                  ? '2px 14px 14px 14px'
-                  : '18px 18px 18px 4px',
-              boxShadow: !message.text && message.mediaUrl ? 'none' : '0 1px 2px rgba(0,0,0,0.06)',
+              borderRadius: getBorderRadius(),
+              boxShadow: isKnox
+                ? 'none'
+                : !message.text && message.mediaUrl
+                  ? 'none'
+                  : '0 1px 2px rgba(0,0,0,0.1)',
+              border: isKnox && !isMe && !message.mediaUrl ? '1px solid #E2E8F0' : 'none',
               fontSize: 13.5,
               lineHeight: 1.45,
               wordBreak: 'break-word',
-              maxWidth: 270,
+              maxWidth: 280,
+              // 🟡 카카오톡 고유의 뾰족한 말풍선 꼬리 (&::before) - 연속 메시지가 아닌 첫 메시지에만 표시
+              ...(isKakao &&
+                !message.mediaUrl &&
+                !isConsecutive && {
+                  overflow: 'visible',
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 8,
+                    [isMe ? 'right' : 'left']: -6,
+                    borderTop: '2px solid transparent',
+                    borderBottom: '8px solid transparent',
+                    [isMe ? 'borderLeft' : 'borderRight']: `8px solid ${bubbleBg}`,
+                  },
+                }),
             }}
           >
-            {/* 💬 카카오톡 답장 (Reply) 인용 블록 */}
+            {/* 💬 답장 (Reply) 인용 블록 */}
             {message.replyTo && (
               <Box
                 sx={{
@@ -437,7 +580,7 @@ export function ChatMessageItem({
                 sx={{
                   maxWidth: 220,
                   maxHeight: 260,
-                  borderRadius: !message.text ? 2 : 1,
+                  borderRadius: !message.text ? 1.5 : 1,
                   display: 'block',
                   mb: message.text ? 0.75 : 0,
                   boxShadow: !message.text ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
@@ -485,7 +628,7 @@ export function ChatMessageItem({
           )}
         </Box>
 
-        {/* 시간 및 읽음 표시/안읽은 카운트 */}
+        {/* 시간 및 읽음 표시 / 안읽음 숫자 */}
         <Box
           sx={{
             display: 'flex',
@@ -495,14 +638,14 @@ export function ChatMessageItem({
             mb: 0.2,
           }}
         >
-          {/* 카카오톡 특유의 노란 숫자 '1' (안읽음 표시) */}
+          {/* 카카오톡 특유의 노란 숫자 '1' (안읽음 카운트) */}
           {isMe && themeMeta.features.hasUnreadBadge && (message.unreadCount ?? 0) > 0 && (
             <Typography
               sx={{
                 fontSize: 10,
                 fontWeight: 700,
-                color: '#FEE500',
-                textShadow: '0 0 1px rgba(0,0,0,0.3)',
+                color: isKakao ? '#FEE500' : '#1D63ED',
+                textShadow: isKakao ? '0 0 1px rgba(0,0,0,0.35)' : 'none',
                 lineHeight: 1,
                 mb: 0.2,
               }}
@@ -518,17 +661,17 @@ export function ChatMessageItem({
             </Typography>
           )}
 
-          {/* 텔레그램/페이스북 더블 체크마크 */}
+          {/* 텔레그램 더블 체크마크 */}
           {isMe && themeMeta.features.hasDoubleCheck && (
             <DoneAllRoundedIcon sx={{ fontSize: 13, color: '#38BDF8', lineHeight: 1 }} />
           )}
 
-          {/* 전송 시각 */}
-          {message.time && (
+          {/* 전송 시각 (동일 시간 연속 메시지 그룹의 마지막에만 노출) */}
+          {shouldShowTime && message.time && (
             <Typography
               sx={{
-                fontSize: 9.5,
-                color: isKakao ? '#556677' : 'rgba(100, 116, 139, 0.85)',
+                fontSize: 10,
+                color: isKakao ? '#556677' : 'text.secondary',
                 fontWeight: 500,
                 whiteSpace: 'nowrap',
               }}

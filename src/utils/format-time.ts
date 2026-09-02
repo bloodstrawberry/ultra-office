@@ -1,8 +1,12 @@
+import 'dayjs/locale/ko';
+
 import type { Dayjs, OpUnitType } from 'dayjs';
 
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 import relativeTime from 'dayjs/plugin/relativeTime';
+
+dayjs.locale('ko');
 
 // ----------------------------------------------------------------------
 
@@ -121,6 +125,115 @@ export function fToNow(date: DatePickerFormat): string {
   }
 
   return dayjs(date).toNow(true);
+}
+
+// ----------------------------------------------------------------------
+
+/**
+ * @output 하루 이내: "5초 전", "3분 전", "2시간 전", 하루 이상: "2025.10.13 21:52"
+ */
+export function fCommentTime(date: DatePickerFormat): string {
+  if (!isValidDate(date)) {
+    return 'Invalid date';
+  }
+
+  const target = dayjs(date);
+  const now = dayjs();
+
+  const diffInSeconds = now.diff(target, 'second');
+  const diffInMinutes = now.diff(target, 'minute');
+  const diffInHours = now.diff(target, 'hour');
+
+  if (diffInHours < 24) {
+    if (diffInSeconds < 60) {
+      return `${diffInSeconds}초 전`;
+    }
+    if (diffInMinutes < 60) {
+      return `${diffInMinutes}분 전`;
+    }
+    return `${diffInHours}시간 전`;
+  }
+
+  return target.format('YYYY.MM.DD HH:mm');
+}
+
+/**
+ * @output 2024년 12월 4일 수요일, 14:30
+ */
+export function fDateTimeKorean(date: DatePickerFormat): string {
+  if (!isValidDate(date)) {
+    return 'Invalid date';
+  }
+
+  return dayjs(date).format('YYYY년 MM월 DD일 dddd, HH:mm');
+}
+
+/**
+ * @output 14:30
+ */
+export function fTimeKorean(date: DatePickerFormat): string {
+  if (!isValidDate(date)) {
+    return 'Invalid date';
+  }
+
+  return dayjs(date).format('HH:mm');
+}
+
+/**
+ * @output 오후 4:54 (for kakao theme) or 16:54 (for other themes)
+ */
+export function fTimeKoreanWithTheme(date: DatePickerFormat, theme?: string): string {
+  if (!isValidDate(date)) {
+    return 'Invalid date';
+  }
+
+  if (theme === 'kakaotalk' || theme === 'kakao') {
+    const hour = dayjs(date).hour();
+    const minute = dayjs(date).minute();
+    const period = hour < 12 ? '오전' : '오후';
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    return `${period} ${displayHour}:${minute.toString().padStart(2, '0')}`;
+  }
+
+  return dayjs(date).format('HH:mm');
+}
+
+/**
+ * @output 2024년 12월 4일 수요일
+ */
+export function fDateKorean(date: DatePickerFormat): string {
+  if (!isValidDate(date)) {
+    return 'Invalid date';
+  }
+
+  return dayjs(date).format('YYYY년 M월 D일 dddd');
+}
+
+/**
+ * @output Chat list time format (Yesterday, Today (AM/PM), Date)
+ */
+export function fChatListTime(date: DatePickerFormat): string {
+  if (!isValidDate(date)) {
+    return '';
+  }
+
+  const target = dayjs(date);
+  const now = dayjs();
+
+  if (target.isSame(now, 'day')) {
+    const hour = target.hour();
+    const minute = target.minute();
+    const period = hour < 12 ? '오전' : '오후';
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    return `${period} ${displayHour}:${minute.toString().padStart(2, '0')}`;
+  }
+
+  const yesterday = now.clone().subtract(1, 'day');
+  if (target.isSame(yesterday, 'day')) {
+    return '어제';
+  }
+
+  return target.format('YYYY-MM-DD');
 }
 
 // ----------------------------------------------------------------------

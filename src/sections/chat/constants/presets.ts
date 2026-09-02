@@ -290,8 +290,181 @@ export const INITIAL_PRESETS: Record<ChatCategory, Record<string, ChatData>> = {
     },
   },
 
-  // 3. LLM 프리셋
+  // 3. LLM 프리셋 (모바일 & PC 웹)
   llm: {
+    chatgpt_web_pc: {
+      config: {
+        category: 'llm',
+        themeId: 'chatgpt_web',
+        roomTitle: 'Next.js 15 아키텍처 & 하이드레이션 최적화',
+        partnerName: 'ChatGPT 4o',
+        partnerStatus: 'OpenAI GPT-4o (Thinking & Code)',
+        browserUrl: 'https://chatgpt.com/c/6712-nextjs-arch',
+        timeString: '16:20',
+        batteryLevel: 98,
+        networkType: 'WIFI',
+        wifiLevel: 3,
+        isCharging: true,
+        darkMode: true,
+        deviceType: 'desktop',
+        showDeviceFrame: true,
+        deviceWidth: 820,
+      },
+      users: [
+        {
+          id: 'me',
+          name: 'Developer',
+          avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=user_chatgpt',
+          role: 'me',
+        },
+        {
+          id: 'gpt',
+          name: 'ChatGPT',
+          avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=OpenAI',
+          role: 'bot',
+        },
+      ],
+      messages: [
+        {
+          id: 'gpt_pc_1',
+          senderId: 'me',
+          text: 'Next.js App Router 환경에서 Zustand 상태를 SSR 하이드레이션 불일치 없이 브라우저 로컬 스토리지와 안전하게 동기화하는 엔터프라이즈 패턴 코드를 보여줘.',
+          time: '16:18',
+        },
+        {
+          id: 'gpt_pc_2',
+          senderId: 'gpt',
+          thoughtText:
+            'Zustand persist 미들웨어와 Next.js SSR의 하이드레이션 불일치(Hydration Mismatch) 문제 해결 분석... useSyncExternalStore 또는 useEffect 기반 isHydrated 플래그 래퍼 패턴 설계.',
+          text: 'Next.js App Router에서 Zustand의 `persist` 미들웨어를 사용할 때 발생하는 하이드레이션 오류를 완벽히 해결하려면, 마운트 완료 시점(`hasHydrated`)을 검증하는 안전한 커스텀 훅 래퍼를 구성하는 것이 가장 견고합니다.',
+          codeSnippet: {
+            language: 'typescript',
+            code: `import { useState, useEffect } from 'react';
+
+export const useHydratedStore = <T, F>(
+  store: (callback: (state: T) => unknown) => unknown,
+  callback: (state: T) => F
+) => {
+  const result = store(callback) as F;
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
+  return isHydrated ? result : undefined;
+};`,
+          },
+          time: '16:19',
+        },
+      ],
+    },
+    claude_web_pc: {
+      config: {
+        category: 'llm',
+        themeId: 'claude_web',
+        roomTitle: 'Claude 3.5 Sonnet Artifacts & Analysis',
+        partnerName: 'Claude 3.5 Sonnet',
+        partnerStatus: 'Anthropic Claude · Artifacts Enabled',
+        browserUrl: 'https://claude.ai/chat/analysis-sonnet',
+        timeString: '14:15',
+        batteryLevel: 90,
+        networkType: 'WIFI',
+        wifiLevel: 3,
+        isCharging: false,
+        darkMode: true,
+        deviceType: 'desktop',
+        showDeviceFrame: true,
+        deviceWidth: 840,
+      },
+      users: [
+        {
+          id: 'me',
+          name: 'Architect',
+          avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=user_claude',
+          role: 'me',
+        },
+        {
+          id: 'claude_bot',
+          name: 'Claude',
+          avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=AnthropicClaude',
+          role: 'bot',
+        },
+      ],
+      messages: [
+        {
+          id: 'cl1',
+          senderId: 'me',
+          text: '대규모 마이크로서비스 환경에서 분산 트랜잭션을 관리하기 위한 Saga 패턴(오케스트레이션 vs 코레오그래피)의 장단점과 보상 트랜잭션 구현 전략을 요약해줘.',
+          time: '14:10',
+        },
+        {
+          id: 'cl2',
+          senderId: 'claude_bot',
+          thoughtText:
+            'Saga 패턴의 두 가지 아키텍처 방식 비교 분석... 오케스트레이션(중앙 집중형 제어)과 코레오그래피(이벤트 발행/구독)의 결합도 및 장애 복구 메커니즘 도출.',
+          text: `### 🏛️ Saga 패턴: 분산 트랜잭션 관리 전략
+
+1. **오케스트레이션 방식 (Orchestration-based Saga)**
+   - **장점**: 트랜잭션 흐름과 상태가 단일 오케스트레이터에 집중되어 복잡한 워크플로우 추적 및 디버깅이 매우 용이합니다.
+   - **단점**: 중앙 오케스트레이터 서비스가 단일 실패 지점(SPOF)이나 병목이 될 수 있습니다.
+
+2. **코레오그래피 방식 (Choreography-based Saga)**
+   - **장점**: 중앙 제어자가 없어 서비스 간 결합도가 낮고 이벤트 브로커(Kafka 등)를 통한 빠른 확장이 가능합니다.
+   - **단점**: 트랜잭션 참가자가 많아지면 전체 워크플로우를 파악하기 어렵고 순환 종속성이 발생할 수 있습니다.`,
+          time: '14:12',
+        },
+      ],
+    },
+    deepseek_r1_pc: {
+      config: {
+        category: 'llm',
+        themeId: 'deepseek_web',
+        roomTitle: 'DeepSeek R1 DeepThink 추론 세션',
+        partnerName: 'DeepSeek R1',
+        partnerStatus: 'DeepThink (Reasoning Active)',
+        browserUrl: 'https://chat.deepseek.com',
+        timeString: '19:40',
+        batteryLevel: 85,
+        networkType: '5G',
+        wifiLevel: 3,
+        isCharging: false,
+        darkMode: true,
+        deviceType: 'desktop',
+        showDeviceFrame: true,
+        deviceWidth: 820,
+      },
+      users: [
+        {
+          id: 'me',
+          name: 'AI Researcher',
+          avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=deep_user',
+          role: 'me',
+        },
+        {
+          id: 'deepseek_bot',
+          name: 'DeepSeek R1',
+          avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=DeepSeekAI',
+          role: 'bot',
+        },
+      ],
+      messages: [
+        {
+          id: 'ds1',
+          senderId: 'me',
+          text: '대규모 언어 모델(LLM)에서 강화학습(RL) 기반 추론 능력(Reasoning Chain)이 기존 사전학습 및 SFT와 어떻게 차별화되는지 설명해줘.',
+          time: '19:35',
+        },
+        {
+          id: 'ds2',
+          senderId: 'deepseek_bot',
+          thoughtText:
+            '사용자가 LLM의 RL 기반 추론 모델(o1, DeepSeek-R1)과 기존 SFT 패러다임의 차이를 질의함.\n- 사전학습(Pretraining): 지식 압축 및 다음 토큰 예측\n- 지도미세조정(SFT): 정답 데이터셋 모방\n- RL 추론(Reasoning via RL): 탐색(Search), 자가 수정(Self-Correction), 긴 사고 체인(CoT) 생성 강화.',
+          text: `DeepSeek R1과 같은 **RL 기반 추론 모델**의 핵심 혁신은 단순한 패턴 매칭이나 인간 응답 모방을 넘어, **문제를 단계별로 탐색(Search)하고 중간 오답을 스스로 검증 및 수정(Self-Reflection)하는 능력**을 강화학습 보상 함수를 통해 자발적으로 학습했다는 점입니다.`,
+          time: '19:38',
+        },
+      ],
+    },
     chatgpt_code: {
       config: {
         category: 'llm',

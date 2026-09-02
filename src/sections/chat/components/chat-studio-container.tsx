@@ -34,11 +34,22 @@ export function ChatStudioContainer({ category, defaultThemeId }: ChatStudioCont
 
   // 테마 변경 핸들러
   const handleThemeChange = (themeId: ChatThemeId) => {
+    const isWebTheme = themeId.endsWith('_web');
     setChatData((prev) => ({
       ...prev,
       config: {
         ...prev.config,
         themeId,
+        ...(isWebTheme && {
+          deviceType: 'desktop',
+          showDeviceFrame: true,
+          deviceWidth: 820,
+        }),
+        ...(!isWebTheme &&
+          prev.config.deviceType === 'desktop' && {
+            deviceType: 'frameless',
+            deviceWidth: 420,
+          }),
       },
     }));
   };

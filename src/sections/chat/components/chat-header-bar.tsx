@@ -36,14 +36,16 @@ export function ChatHeaderBar({ config, partner }: ChatHeaderBarProps) {
 
   // 1. LLM Themes Header
   if (config.category === 'llm') {
+    const isWeb = themeId.endsWith('_web') || config.deviceType === 'desktop';
+
     return (
       <Box
         sx={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          px: 2,
-          py: 1.2,
+          px: isWeb ? 2.5 : 2,
+          py: isWeb ? 1 : 1.2,
           bgcolor: themeMeta.headerBg,
           color: themeMeta.headerText,
           borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
@@ -51,39 +53,82 @@ export function ChatHeaderBar({ config, partner }: ChatHeaderBarProps) {
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
-          <Avatar
-            src={displayAvatar}
-            alt={displayName}
-            sx={{ width: 28, height: 28, bgcolor: themeMeta.badgeColor }}
-          >
-            <AutoAwesomeRoundedIcon sx={{ fontSize: 16 }} />
-          </Avatar>
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Typography sx={{ fontSize: 14, fontWeight: 700 }}>{displayName}</Typography>
-              {themeId === 'gemini' && (
-                <Typography
-                  sx={{
-                    fontSize: 10,
-                    bgcolor: 'rgba(26,115,232,0.3)',
-                    color: '#8AB4F8',
-                    px: 0.6,
-                    py: 0.1,
-                    borderRadius: 1,
-                    fontWeight: 700,
-                  }}
-                >
-                  Advanced
-                </Typography>
-              )}
+          {isWeb ? (
+            // PC 웹 모드: 모델 선택 드롭다운 뱃지
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.8,
+                bgcolor: 'rgba(255, 255, 255, 0.08)',
+                px: 1.4,
+                py: 0.5,
+                borderRadius: 2,
+                cursor: 'pointer',
+                '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.12)' },
+              }}
+            >
+              <Typography sx={{ fontSize: 13.5, fontWeight: 700, color: themeMeta.headerText }}>
+                {displayName}
+              </Typography>
+              <Typography sx={{ fontSize: 10, color: '#94A3B8' }}>▾</Typography>
             </Box>
-            {partnerStatus && (
-              <Typography sx={{ fontSize: 11, opacity: 0.6 }}>{partnerStatus}</Typography>
-            )}
-          </Box>
+          ) : (
+            <>
+              <Avatar
+                src={displayAvatar}
+                alt={displayName}
+                sx={{ width: 28, height: 28, bgcolor: themeMeta.badgeColor }}
+              >
+                <AutoAwesomeRoundedIcon sx={{ fontSize: 16 }} />
+              </Avatar>
+              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography sx={{ fontSize: 14, fontWeight: 700 }}>{displayName}</Typography>
+                  {themeId.startsWith('gemini') && (
+                    <Typography
+                      sx={{
+                        fontSize: 10,
+                        bgcolor: 'rgba(26,115,232,0.3)',
+                        color: '#8AB4F8',
+                        px: 0.6,
+                        py: 0.1,
+                        borderRadius: 1,
+                        fontWeight: 700,
+                      }}
+                    >
+                      Advanced
+                    </Typography>
+                  )}
+                </Box>
+                {partnerStatus && (
+                  <Typography sx={{ fontSize: 11, opacity: 0.6 }}>{partnerStatus}</Typography>
+                )}
+              </Box>
+            </>
+          )}
         </Box>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+          {isWeb && (
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.5,
+                bgcolor: 'rgba(255, 255, 255, 0.08)',
+                px: 1.2,
+                py: 0.4,
+                borderRadius: 2,
+                fontSize: 11,
+                fontWeight: 600,
+                cursor: 'pointer',
+                '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.12)' },
+              }}
+            >
+              <span>공유</span>
+            </Box>
+          )}
           <IconButton size="small" sx={{ color: 'inherit', opacity: 0.8 }}>
             <MoreVertRoundedIcon fontSize="small" />
           </IconButton>

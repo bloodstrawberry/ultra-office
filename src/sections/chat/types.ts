@@ -2,7 +2,15 @@ export type ChatCategory = 'messenger' | 'sns' | 'llm';
 
 export type MessengerThemeId = 'kakaotalk' | 'line' | 'knox' | 'telegram' | 'imessage';
 export type SnsThemeId = 'instagram' | 'threads' | 'facebook' | 'twitter';
-export type LlmThemeId = 'chatgpt' | 'gemini' | 'claude' | 'grok';
+export type LlmThemeId =
+  | 'chatgpt'
+  | 'chatgpt_web'
+  | 'claude'
+  | 'claude_web'
+  | 'gemini'
+  | 'gemini_web'
+  | 'deepseek_web'
+  | 'grok';
 
 export type ChatThemeId = MessengerThemeId | SnsThemeId | LlmThemeId;
 
@@ -46,7 +54,7 @@ export interface ChatMessage {
   };
 }
 
-export type DeviceType = 'iphone' | 'android' | 'frameless';
+export type DeviceType = 'iphone' | 'android' | 'desktop' | 'frameless';
 export type NetworkType = '5G' | 'LTE' | 'WIFI';
 
 export interface ChatRoomConfig {
@@ -58,6 +66,7 @@ export interface ChatRoomConfig {
   partnerName: string;
   partnerStatus?: string;
   partnerAvatar?: string;
+  browserUrl?: string; // PC 브라우저 모드용 주소창 URL (예: https://chatgpt.com)
 
   // 상태바 및 환경
   timeString: string; // "09:41"
@@ -70,11 +79,12 @@ export interface ChatRoomConfig {
   // 디바이스 프레임 & 크기 & 곡률
   deviceType: DeviceType;
   showDeviceFrame: boolean;
-  deviceWidth?: number; // 320 ~ 640 (기본 390)
+  deviceWidth?: number; // 320 ~ 960 (기본 390)
   deviceScale?: number; // 60 ~ 140 (기본 100%)
   frameBorderRadius?: number; // 0 ~ 60 (기본값 기종별 자동)
   bubbleBorderRadius?: number; // 0 ~ 30 (말풍선 둥글기)
   customBgColor?: string;
+  isFullViewport?: boolean; // PC 화면 너비/높이 전체 100% 채우기 모드
 }
 
 export interface ChatData {

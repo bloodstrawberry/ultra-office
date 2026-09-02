@@ -44,8 +44,132 @@ export function ChatBottomInputBar({ config, onSendMessage }: ChatBottomInputBar
     }
   };
 
-  // 1. LLM 하단 프롬프트 입력창
+  // 1. LLM 하단 프롬프트 입력창 (모바일 & PC 웹)
   if (category === 'llm') {
+    const isWeb = themeId.endsWith('_web') || config.deviceType === 'desktop';
+
+    if (isWeb) {
+      return (
+        <Box
+          sx={{
+            p: 2,
+            bgcolor: 'transparent',
+            display: 'flex',
+            justifyContent: 'center',
+            width: '100%',
+          }}
+        >
+          <Box
+            sx={{
+              width: '100%',
+              maxWidth: 740,
+              bgcolor: darkMode ? '#2F2F2F' : '#FFFFFF',
+              borderRadius: 3.5,
+              px: 2,
+              py: 1.2,
+              boxShadow: '0 8px 30px rgba(0,0,0,0.25)',
+              border: darkMode ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid #E2E8F0',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 1,
+            }}
+          >
+            <InputBase
+              fullWidth
+              multiline
+              maxRows={4}
+              placeholder={`${themeMeta.name}에게 무엇이든 물어보세요...`}
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              onKeyDown={handleKeyDown}
+              sx={{
+                color: darkMode ? '#FFFFFF' : '#1E293B',
+                fontSize: 14,
+                lineHeight: 1.5,
+              }}
+            />
+
+            {/* 하단 툴바: 파일 첨부, 웹 검색 칩, 추론 칩, 마이크 & 전송 버튼 */}
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                pt: 0.5,
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                <IconButton size="small" sx={{ color: darkMode ? '#94A3B8' : '#64748B', p: 0.4 }}>
+                  <AddRoundedIcon sx={{ fontSize: 20 }} />
+                </IconButton>
+
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.4,
+                    bgcolor: darkMode ? 'rgba(255,255,255,0.06)' : 'grey.100',
+                    px: 1,
+                    py: 0.3,
+                    borderRadius: 1.5,
+                    fontSize: 11.5,
+                    fontWeight: 600,
+                    color: darkMode ? '#D1D5DB' : '#475569',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <span>🌐 웹 검색</span>
+                </Box>
+
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.4,
+                    bgcolor: darkMode ? 'rgba(255,255,255,0.06)' : 'grey.100',
+                    px: 1,
+                    py: 0.3,
+                    borderRadius: 1.5,
+                    fontSize: 11.5,
+                    fontWeight: 600,
+                    color: darkMode ? '#D1D5DB' : '#475569',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <span>💡 추론</span>
+                </Box>
+              </Box>
+
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                <IconButton size="small" sx={{ color: darkMode ? '#94A3B8' : '#64748B', p: 0.4 }}>
+                  <MicRoundedIcon sx={{ fontSize: 19 }} />
+                </IconButton>
+
+                <IconButton
+                  size="small"
+                  onClick={handleSend}
+                  disabled={!inputText.trim()}
+                  sx={{
+                    bgcolor: inputText.trim()
+                      ? themeMeta.badgeColor
+                      : darkMode
+                        ? 'rgba(255,255,255,0.1)'
+                        : 'grey.300',
+                    color: inputText.trim() ? '#FFFFFF' : darkMode ? '#6B7280' : '#94A3B8',
+                    '&:hover': { bgcolor: inputText.trim() ? themeMeta.badgeColor : undefined },
+                    width: 32,
+                    height: 32,
+                  }}
+                >
+                  <SendRoundedIcon sx={{ fontSize: 16 }} />
+                </IconButton>
+              </Box>
+            </Box>
+          </Box>
+        </Box>
+      );
+    }
+
     return (
       <Box
         sx={{
@@ -127,7 +251,7 @@ export function ChatBottomInputBar({ config, onSendMessage }: ChatBottomInputBar
           sx={{
             px: 1.2,
             py: 0.8,
-            bgcolor: '#ABC1D1',
+            bgcolor: '#B2C7D9',
             display: 'flex',
             alignItems: 'center',
             gap: 0.8,

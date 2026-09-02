@@ -27,22 +27,136 @@ export function ChatDeviceFrame({ config, children }: ChatDeviceFrameProps) {
   } = config;
 
   const customRadius = config.frameBorderRadius;
+  const isFullViewport = config.isFullViewport;
+
+  if (deviceType === 'desktop') {
+    const desktopWidth = isFullViewport ? '100%' : config.deviceWidth || 820;
+    const desktopHeight = isFullViewport ? '100%' : 680;
+    const url =
+      config.browserUrl ||
+      (config.themeId.startsWith('claude')
+        ? 'https://claude.ai'
+        : config.themeId.startsWith('gemini')
+          ? 'https://gemini.google.com'
+          : config.themeId.startsWith('deepseek')
+            ? 'https://chat.deepseek.com'
+            : 'https://chatgpt.com');
+
+    return (
+      <Box
+        sx={{
+          width: desktopWidth,
+          maxWidth: '100%',
+          height: desktopHeight,
+          flex: isFullViewport ? 1 : 'none',
+          display: 'flex',
+          flexDirection: 'column',
+          borderRadius:
+            isFullViewport && !showDeviceFrame
+              ? 0
+              : customRadius !== undefined
+                ? `${customRadius}px`
+                : '12px',
+          overflow: 'hidden',
+          boxShadow:
+            isFullViewport && !showDeviceFrame
+              ? 'none'
+              : '0 25px 65px -10px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1)',
+          bgcolor: darkMode ? '#181818' : '#FFFFFF',
+          border: isFullViewport && !showDeviceFrame ? 'none' : '1px solid rgba(255,255,255,0.08)',
+          position: 'relative',
+          transition: 'width 0.2s ease, height 0.2s ease, border-radius 0.2s ease',
+        }}
+      >
+        {/* 데스크톱 웹 브라우저 상단 윈도우 바 (프레임 활성화 시) */}
+        {showDeviceFrame && (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              px: 2,
+              py: 1,
+              bgcolor: darkMode ? '#1F1F1F' : '#F1F3F5',
+              borderBottom: darkMode ? '1px solid #2D2D2D' : '1px solid #E2E8F0',
+              userSelect: 'none',
+              gap: 2,
+            }}
+          >
+            {/* 좌측 macOS 신호등 창 제어 버튼 */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.9 }}>
+              <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#FF5F56' }} />
+              <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#FFBD2E' }} />
+              <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#27C93F' }} />
+            </Box>
+
+            {/* 중앙 URL 주소창 */}
+            <Box
+              sx={{
+                flex: 1,
+                maxWidth: 480,
+                bgcolor: darkMode ? '#2B2B2B' : '#FFFFFF',
+                borderRadius: 2,
+                px: 1.5,
+                py: 0.35,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 0.6,
+                border: darkMode ? '1px solid #383838' : '1px solid #CBD5E1',
+              }}
+            >
+              <Typography sx={{ fontSize: 11, color: '#10B981', fontWeight: 700 }}>🔒</Typography>
+              <Typography
+                noWrap
+                sx={{
+                  fontSize: 12,
+                  color: darkMode ? '#D1D5DB' : '#475569',
+                  fontFamily: 'monospace',
+                  letterSpacing: -0.2,
+                }}
+              >
+                {url}
+              </Typography>
+            </Box>
+
+            {/* 우측 빈 공간 균형용 */}
+            <Box sx={{ width: 50, display: 'flex', justifyContent: 'flex-end' }}>
+              <Typography sx={{ fontSize: 11, color: darkMode ? '#6B7280' : '#94A3B8' }}>
+                {isFullViewport ? 'PC Full' : 'PC Web'}
+              </Typography>
+            </Box>
+          </Box>
+        )}
+
+        {/* 메인 콘텐츠 */}
+        <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+          {children}
+        </Box>
+      </Box>
+    );
+  }
 
   if (!showDeviceFrame || deviceType === 'frameless') {
     return (
       <Box
         sx={{
-          width: '100%',
-          maxWidth: 440,
+          width: isFullViewport ? '100%' : '100%',
+          maxWidth: isFullViewport ? '100%' : 440,
           height: '100%',
-          maxHeight: 760,
+          maxHeight: isFullViewport ? '100%' : 760,
+          flex: isFullViewport ? 1 : 'none',
           display: 'flex',
           flexDirection: 'column',
-          borderRadius: customRadius !== undefined ? `${customRadius}px` : '16px',
+          borderRadius: isFullViewport
+            ? 0
+            : customRadius !== undefined
+              ? `${customRadius}px`
+              : '16px',
           overflow: 'hidden',
-          boxShadow: (theme) => theme.shadows[10],
+          boxShadow: isFullViewport ? 'none' : (theme) => theme.shadows[10],
           bgcolor: darkMode ? '#121212' : '#FFFFFF',
-          border: (theme) => `1px solid ${theme.palette.divider}`,
+          border: isFullViewport ? 'none' : (theme) => `1px solid ${theme.palette.divider}`,
           position: 'relative',
           transition: 'border-radius 0.2s ease',
         }}

@@ -23,6 +23,9 @@ import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import RoundedCornerRoundedIcon from '@mui/icons-material/RoundedCornerRounded';
+import FullscreenRoundedIcon from '@mui/icons-material/FullscreenRounded';
+import FullscreenExitRoundedIcon from '@mui/icons-material/FullscreenExitRounded';
+import DesktopWindowsRoundedIcon from '@mui/icons-material/DesktopWindowsRounded';
 
 import { THEME_OPTIONS, THEMES_BY_CATEGORY } from '../constants/themes';
 import { ChatDeviceFrame } from './chat-device-frame';
@@ -62,11 +65,12 @@ export function ChatPreviewCanvas({
   const currentScale = data.config.deviceScale || 100;
   const currentWidth = data.config.deviceWidth || 390;
   const currentRadius = data.config.frameBorderRadius ?? 36;
+  const isFullViewport = Boolean(data.config.isFullViewport);
 
   // 1. 재생(Play) 시뮬레이션 상태
   const [isPlaying, setIsPlaying] = useState(false);
   const [visibleCount, setVisibleCount] = useState<number>(data.messages.length);
-  const [playbackSpeed, setPlaybackSpeed] = useState<number>(1000); // 1초 간격
+  const playbackSpeed = 1000; // 1초 간격
 
   // 메시지 개수가 변경되면 전체 표시로 동기화 (재생 중이 아닐 때)
   useEffect(() => {
@@ -177,13 +181,12 @@ export function ChatPreviewCanvas({
       if (!blob) {
         throw new Error('Blob creation failed');
       }
-      if (navigator.clipboard && window.ClipboardItem) {
+      if (typeof navigator !== 'undefined' && navigator.clipboard && window.ClipboardItem) {
         await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
         toast.success('채팅방 이미지가 클립보드에 복사되었습니다! (Ctrl+V로 붙여넣기)', {
           id: 'chat-copy',
         });
       } else {
-        // Fallback 다운로드
         await handleDownloadImage();
       }
     } catch (err) {
@@ -193,9 +196,7 @@ export function ChatPreviewCanvas({
   };
 
   // 현재 보여줄 메시지 목록
-  const displayedMessages = isPlaying
-    ? data.messages.slice(0, visibleCount)
-    : data.messages.slice(0, visibleCount);
+  const displayedMessages = data.messages.slice(0, visibleCount);
 
   return (
     <Box
@@ -377,6 +378,7 @@ export function ChatPreviewCanvas({
           </Popover>
 
           {/* 디바이스 너비 퀵 셀렉터 */}
+          {/* 디바이스 너비 퀵 셀렉터 */}
           <Box
             sx={{
               display: { xs: 'none', lg: 'flex' },
@@ -389,27 +391,56 @@ export function ChatPreviewCanvas({
           >
             <Button
               size="small"
-              variant={currentWidth === 340 ? 'contained' : 'text'}
-              onClick={() => handleSetWidth(340)}
+              variant={!isFullViewport && currentWidth === 340 ? 'contained' : 'text'}
+              onClick={() => {
+                handleSetWidth(340);
+                onUpdateConfig?.({ isFullViewport: false, deviceType: 'iphone' });
+              }}
               sx={{ minWidth: 38, px: 0.8, py: 0.2, fontSize: 11 }}
             >
               340
             </Button>
             <Button
               size="small"
-              variant={currentWidth === 390 ? 'contained' : 'text'}
-              onClick={() => handleSetWidth(390)}
+              variant={!isFullViewport && currentWidth === 390 ? 'contained' : 'text'}
+              onClick={() => {
+                handleSetWidth(390);
+                onUpdateConfig?.({ isFullViewport: false, deviceType: 'iphone' });
+              }}
               sx={{ minWidth: 38, px: 0.8, py: 0.2, fontSize: 11 }}
             >
               390
             </Button>
             <Button
               size="small"
-              variant={currentWidth === 430 ? 'contained' : 'text'}
-              onClick={() => handleSetWidth(430)}
+              variant={!isFullViewport && currentWidth === 430 ? 'contained' : 'text'}
+              onClick={() => {
+                handleSetWidth(430);
+                onUpdateConfig?.({ isFullViewport: false, deviceType: 'iphone' });
+              }}
               sx={{ minWidth: 38, px: 0.8, py: 0.2, fontSize: 11 }}
             >
               430
+            </Button>
+            <Button
+              size="small"
+              variant={!isFullViewport && currentWidth === 820 ? 'contained' : 'text'}
+              onClick={() => {
+                handleSetWidth(820);
+                onUpdateConfig?.({ isFullViewport: false, deviceType: 'desktop' });
+              }}
+              sx={{ minWidth: 44, px: 0.8, py: 0.2, fontSize: 11, fontWeight: 700 }}
+            >
+              820 (PC)
+            </Button>
+            <Button
+              size="small"
+              variant={isFullViewport ? 'contained' : 'text'}
+              color="primary"
+              onClick={() => onUpdateConfig?.({ isFullViewport: true, deviceType: 'desktop' })}
+              sx={{ minWidth: 50, px: 0.8, py: 0.2, fontSize: 11, fontWeight: 700 }}
+            >
+              🖥️ Full (100%)
             </Button>
           </Box>
 
@@ -451,7 +482,29 @@ export function ChatPreviewCanvas({
             편집
           </Button>
 
-          <Tooltip title={data.config.showDeviceFrame ? '프레임리스 모드' : '스마트폰 프레임 모드'}>
+          <Tooltip title={isFullViewport ? '기본 크기로 복귀' : '화면 전체 채우기 (Full Viewport)'}>
+            <IconButton
+              onClick={() =>
+                onUpdateConfig?.({
+                  isFullViewport: !isFullViewport,
+                  ...(isFullViewport ? { deviceWidth: 820 } : { deviceType: 'desktop' }),
+                })
+              }
+              sx={{
+                bgcolor: isFullViewport ? 'primary.main' : 'action.hover',
+                color: isFullViewport ? '#FFFFFF' : 'inherit',
+                '&:hover': { bgcolor: isFullViewport ? 'primary.dark' : 'action.selected' },
+              }}
+            >
+              {isFullViewport ? (
+                <FullscreenExitRoundedIcon fontSize="small" />
+              ) : (
+                <FullscreenRoundedIcon fontSize="small" />
+              )}
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title={data.config.showDeviceFrame ? '프레임리스 모드' : '외곽 프레임 모드'}>
             <IconButton onClick={onToggleFrame} sx={{ bgcolor: 'action.hover' }}>
               {data.config.showDeviceFrame ? (
                 <CropFreeRoundedIcon fontSize="small" />
@@ -473,15 +526,31 @@ export function ChatPreviewCanvas({
       <Box
         sx={{
           flex: 1,
-          overflowY: 'auto',
+          overflowY: isFullViewport ? 'hidden' : 'auto',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          p: { xs: 1.5, md: 3 },
+          p: isFullViewport
+            ? data.config.showDeviceFrame
+              ? { xs: 1, md: 1.5 }
+              : 0
+            : { xs: 1.5, md: 3 },
           position: 'relative',
+          height: isFullViewport ? '100%' : 'auto',
+          minHeight: 0,
         }}
       >
-        <div ref={containerRef}>
+        <Box
+          ref={containerRef}
+          sx={{
+            width: isFullViewport ? '100%' : 'auto',
+            height: isFullViewport ? '100%' : 'auto',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flex: isFullViewport ? 1 : 'none',
+          }}
+        >
           <ChatDeviceFrame config={data.config}>
             {/* 채팅방 내부 전체 래퍼 */}
             <Box
@@ -502,7 +571,7 @@ export function ChatPreviewCanvas({
                 partner={data.users.find((u) => u.role === 'other' || u.role === 'bot')}
               />
 
-              {/* 메시지 스트림 스크롤 영역 */}
+              {/* 메시지 스트림 스크롤 영역 (PC 화면일 때 중앙 840px 컨테이너 유지) */}
               <Box
                 ref={messagesScrollRef}
                 sx={{
@@ -511,28 +580,48 @@ export function ChatPreviewCanvas({
                   py: 1.5,
                   display: 'flex',
                   flexDirection: 'column',
+                  alignItems: 'center',
                   scrollBehavior: 'smooth',
+                  width: '100%',
                 }}
               >
-                {displayedMessages.map((msg) => {
-                  const sender = data.users.find((u) => u.id === msg.senderId);
-                  return (
-                    <ChatMessageItem
-                      key={msg.id}
-                      message={msg}
-                      sender={sender}
-                      config={data.config}
-                      onSelectMessage={onSelectMessage}
-                    />
-                  );
-                })}
+                <Box
+                  sx={{
+                    width: '100%',
+                    maxWidth:
+                      data.config.category === 'llm' || data.config.deviceType === 'desktop'
+                        ? 840
+                        : '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                  }}
+                >
+                  {displayedMessages.map((msg, idx) => {
+                    const sender = data.users.find((u) => u.id === msg.senderId);
+                    const previousMessage = idx > 0 ? displayedMessages[idx - 1] : null;
+                    const nextMessage =
+                      idx < displayedMessages.length - 1 ? displayedMessages[idx + 1] : null;
+
+                    return (
+                      <ChatMessageItem
+                        key={msg.id}
+                        message={msg}
+                        sender={sender}
+                        config={data.config}
+                        previousMessage={previousMessage}
+                        nextMessage={nextMessage}
+                        onSelectMessage={onSelectMessage}
+                      />
+                    );
+                  })}
+                </Box>
               </Box>
 
               {/* 하단 입력바 */}
               <ChatBottomInputBar config={data.config} onSendMessage={onSendMessage} />
             </Box>
           </ChatDeviceFrame>
-        </div>
+        </Box>
       </Box>
     </Box>
   );

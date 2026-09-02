@@ -965,26 +965,48 @@ export function ChatEditorDrawer({
                   value={data.config.deviceType}
                   onChange={(e) => handleConfigChange({ deviceType: e.target.value as DeviceType })}
                 >
+                  <MenuItem value="desktop">PC 데스크톱 웹 브라우저 (Chrome/Safari)</MenuItem>
                   <MenuItem value="iphone">Apple iPhone (Dynamic Island)</MenuItem>
                   <MenuItem value="android">Samsung Galaxy / Android</MenuItem>
                   <MenuItem value="frameless">프레임리스 (앱 카드형)</MenuItem>
                 </TextField>
 
-                {/* 모바일 화면 너비 조절 */}
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={Boolean(data.config.isFullViewport)}
+                      onChange={(e) =>
+                        handleConfigChange({
+                          isFullViewport: e.target.checked,
+                          ...(e.target.checked ? { deviceType: 'desktop' } : {}),
+                        })
+                      }
+                    />
+                  }
+                  label="🖥️ PC 전체화면 (100% 너비 & 높이 사용)"
+                />
+
+                {/* 화면 너비 조절 */}
                 <Box>
                   <Box
                     sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                   >
                     <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                      기기 가로 너비 (Width): {data.config.deviceWidth || 390}px
+                      기기 가로 너비 (Width):{' '}
+                      {data.config.isFullViewport
+                        ? '100% (Full)'
+                        : `${data.config.deviceWidth || 390}px`}
                     </Typography>
                   </Box>
                   <Slider
+                    disabled={Boolean(data.config.isFullViewport)}
                     value={data.config.deviceWidth || 390}
                     min={320}
-                    max={520}
+                    max={960}
                     step={10}
-                    onChange={(_, val) => handleConfigChange({ deviceWidth: val as number })}
+                    onChange={(_, val) =>
+                      handleConfigChange({ deviceWidth: val as number, isFullViewport: false })
+                    }
                   />
                   {/* 퀵 프리셋 버튼 */}
                   <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
@@ -992,7 +1014,9 @@ export function ChatEditorDrawer({
                       size="small"
                       variant="outlined"
                       sx={{ fontSize: 11, py: 0.2 }}
-                      onClick={() => handleConfigChange({ deviceWidth: 340 })}
+                      onClick={() =>
+                        handleConfigChange({ deviceWidth: 340, isFullViewport: false })
+                      }
                     >
                       미니 (340px)
                     </Button>
@@ -1000,7 +1024,9 @@ export function ChatEditorDrawer({
                       size="small"
                       variant="outlined"
                       sx={{ fontSize: 11, py: 0.2 }}
-                      onClick={() => handleConfigChange({ deviceWidth: 390 })}
+                      onClick={() =>
+                        handleConfigChange({ deviceWidth: 390, isFullViewport: false })
+                      }
                     >
                       기본 (390px)
                     </Button>
@@ -1008,7 +1034,9 @@ export function ChatEditorDrawer({
                       size="small"
                       variant="outlined"
                       sx={{ fontSize: 11, py: 0.2 }}
-                      onClick={() => handleConfigChange({ deviceWidth: 430 })}
+                      onClick={() =>
+                        handleConfigChange({ deviceWidth: 430, isFullViewport: false })
+                      }
                     >
                       맥스 (430px)
                     </Button>
@@ -1016,9 +1044,36 @@ export function ChatEditorDrawer({
                       size="small"
                       variant="outlined"
                       sx={{ fontSize: 11, py: 0.2 }}
-                      onClick={() => handleConfigChange({ deviceWidth: 480 })}
+                      onClick={() =>
+                        handleConfigChange({ deviceWidth: 480, isFullViewport: false })
+                      }
                     >
                       태블릿 (480px)
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      sx={{ fontSize: 11, py: 0.2 }}
+                      onClick={() =>
+                        handleConfigChange({
+                          deviceWidth: 820,
+                          deviceType: 'desktop',
+                          isFullViewport: false,
+                        })
+                      }
+                    >
+                      PC (820px)
+                    </Button>
+                    <Button
+                      size="small"
+                      variant={data.config.isFullViewport ? 'contained' : 'outlined'}
+                      color="primary"
+                      sx={{ fontSize: 11, py: 0.2, fontWeight: 700 }}
+                      onClick={() =>
+                        handleConfigChange({ isFullViewport: true, deviceType: 'desktop' })
+                      }
+                    >
+                      🖥️ 100% Full (전체화면)
                     </Button>
                   </Box>
                 </Box>
