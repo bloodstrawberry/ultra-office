@@ -1,0 +1,155 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import Box from '@mui/material/Box';
+
+import { INITIAL_PRESETS } from '../constants/presets';
+import { THEMES_BY_CATEGORY } from '../constants/themes';
+import { ChatPreviewCanvas } from './chat-preview-canvas';
+import { ChatEditorDrawer } from './chat-editor-drawer';
+import type { ChatCategory, ChatData, ChatThemeId, ChatMessage, ChatRoomConfig } from '../types';
+
+interface ChatStudioContainerProps {
+  category: ChatCategory;
+  defaultThemeId?: ChatThemeId;
+}
+
+export function ChatStudioContainer({ category, defaultThemeId }: ChatStudioContainerProps) {
+  const initialCategoryPreset = Object.values(INITIAL_PRESETS[category])[0];
+
+  const [chatData, setChatData] = useState<ChatData>(() => {
+    const data = JSON.parse(JSON.stringify(initialCategoryPreset));
+    if (defaultThemeId) {
+      data.config.themeId = defaultThemeId;
+    }
+    return data;
+  });
+
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  // 테마 변경 핸들러
+  const handleThemeChange = (themeId: ChatThemeId) => {
+    setChatData((prev) => ({
+      ...prev,
+      config: {
+        ...prev.config,
+        themeId,
+      },
+    }));
+  };
+
+  // 퀵 메시지 전송 핸들러 (하단 인풋바에서 발송)
+  const handleSendMessage = (text: string) => {
+    const isLlm = category === 'llm';
+    const newMsg: ChatMessage = {
+      id: `msg_${Date.now()}`,
+      senderId: 'me',
+      text,
+      time: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
+      unreadCount: 1,
+    };
+
+    setChatData((prev) => {
+      const nextMessages = [...prev.messages, newMsg];
+
+      // LLM 카테고리일 경우 모의 AI 답변 자동 응답 시뮬레이션
+      if (isLlm) {
+        const botUser = prev.users.find((u) => u.role === 'bot') || {
+          id: 'bot',
+          name: prev.config.themeId.toUpperCase(),
+        };
+
+        const aiReply: ChatMessage = {
+          id: `ai_${Date.now() + 1}`,
+          senderId: botUser.id,
+          thoughtText: `입력 프롬프트 분석 및 ${prev.config.themeId} 모델 컨텍스트 구성 중...`,
+          text: `요청하신 "${text}"에 대한 답변입니다.\n\n가상 목업 환경에서 실시간으로 대화 흐름을 시뮬레이션하고 있습니다. 우측 상단의 [채팅방 편집] 버튼을 눌러 이 메시지의 텍스트나 코드 블록을 자유롭게 수정해 보세요!`,
+          time: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
+        };
+
+        return {
+          ...prev,
+          messages: [...nextMessages, aiReply],
+        };
+      }
+
+      return {
+        ...prev,
+        messages: nextMessages,
+      };
+    });
+  };
+
+  // 프레임 온/오프 토글
+  const handleToggleFrame = () => {
+    setChatData((prev) => ({
+      ...prev,
+      config: {
+        ...prev.config,
+        showDeviceFrame: !prev.config.showDeviceFrame,
+      },
+    }));
+  };
+
+  // 방 설정 부분 업데이트 핸들러
+  const handleUpdateConfig = (patch: Partial<ChatRoomConfig>) => {
+    setChatData((prev) => ({
+      ...prev,
+      config: {
+        ...prev.config,
+        ...patch,
+      },
+    }));
+  };
+
+  // 초기화 핸들러
+  const handleReset = () => {
+    const preset = JSON.parse(JSON.stringify(initialCategoryPreset));
+    if (defaultThemeId) {
+      preset.config.themeId = defaultThemeId;
+    }
+    setChatData(preset);
+  };
+
+  if (!hasMounted) {
+    return null;
+  }
+
+  return (
+    <Box
+      sx={{
+        width: '100%',
+        height: 'calc(100vh - 80px)',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        position: 'relative',
+      }}
+    >
+      <ChatPreviewCanvas
+        data={chatData}
+        category={category}
+        onOpenEditor={() => setEditorOpen(true)}
+        onThemeChange={handleThemeChange}
+        onSendMessage={handleSendMessage}
+        onToggleFrame={handleToggleFrame}
+        onReset={handleReset}
+        onUpdateConfig={handleUpdateConfig}
+        onSelectMessage={() => setEditorOpen(true)}
+      />
+
+      <ChatEditorDrawer
+        open={editorOpen}
+        onClose={() => setEditorOpen(false)}
+        data={chatData}
+        onChange={setChatData}
+        category={category}
+      />
+    </Box>
+  );
+}

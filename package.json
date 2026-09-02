@@ -119,6 +119,7 @@
     "gifshot": "^0.4.5",
     "gifuct-js": "^2.1.2",
     "handsontable": "^18.0.0",
+    "html-to-image": "^1.11.13",
     "idb-keyval": "^6.3.0",
     "js-yaml": "^5.2.1",
     "jszip": "^3.10.1",

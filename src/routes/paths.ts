@@ -38,6 +38,12 @@ export const paths = {
   threejs: '/threejs',
   barcode: '/barcode',
   agent: '/agent',
+  chat: {
+    root: '/chat/messenger',
+    messenger: '/chat/messenger',
+    sns: '/chat/sns',
+    llm: '/chat/llm',
+  },
   mathGraph: '/math-graph',
   logicLab: '/logic-lab',
   algo: {
@@ -73,8 +79,8 @@ export const paths = {
   screenRecorder: '/screen-recorder',
   videoMaster: {
     root: '/video-master',
-    trim: '/video-master/trim',
-    merge: '/video-master/merge',
+    trim: '/video-master',
+    merge: '/video-master',
     aiWatermark: '/video-master/ai-watermark',
   },
   gigaViewer: '/giga-viewer',

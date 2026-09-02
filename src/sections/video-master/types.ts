@@ -93,3 +93,71 @@ export interface MergeClipItem {
   duration: number;
   previewUrl: string;
 }
+
+export interface STTTranscriptItem {
+  id: string;
+  startTime: number;
+  endTime: number;
+  text: string;
+  isFinal?: boolean;
+}
+
+export interface STTLanguage {
+  code: string;
+  label: string;
+  native: string;
+}
+
+export type STTExtractStatus = 'idle' | 'recognizing' | 'paused' | 'completed' | 'error';
+
+// ----------------------------------------------------------------------
+// Multi-Track Video Studio Types (GIF Studio Style)
+// ----------------------------------------------------------------------
+
+export interface VideoStudioClipItem {
+  id: string;
+  type: 'video' | 'image';
+  name: string;
+  file?: File;
+  src: string; // Object URL or Base64 / Remote URL
+  thumbnailUrl?: string;
+  thumbnails?: string[]; // Filmstrip frame thumbnails
+  originalWidth: number;
+  originalHeight: number;
+  originalDuration: number; // in seconds
+  trimStart: number; // in seconds (0-based)
+  trimEnd: number; // in seconds (inclusive)
+  duration: number; // calculated playback duration = (trimEnd - trimStart) / speedMultiplier
+  speedMultiplier: number; // 0.25 to 4.0
+  volume: number; // 0 to 2.0 (default 1.0)
+  mute: boolean;
+  rotation: 0 | 90 | 180 | 270;
+  flipH: boolean;
+  flipV: boolean;
+  filterPreset: VideoPresetKey;
+  filters: VideoFilterSettings;
+}
+
+export interface VideoStudioTextItem {
+  id: string;
+  text: string;
+  startTime: number; // in seconds on global timeline
+  duration: number; // in seconds
+  fontSize: number;
+  fontColor: string;
+  fontBgColor: string;
+  fontFamily: string;
+  position?: 'top' | 'center' | 'bottom' | 'custom';
+  xPercent: number; // 0% - 100% (horizontal center = 50)
+  yPercent: number; // 0% - 100% (vertical position = 85)
+}
+
+export interface VideoStudioExportSettings {
+  aspectRatio: 'original' | '16:9' | '9:16' | '1:1' | '4:3';
+  resolution: 'original' | '1080p' | '720p' | '480p';
+  fps: number; // 15, 24, 30, 60
+  format: 'mp4' | 'webm' | 'gif';
+  quality: 'high' | 'medium' | 'standard';
+  fitMode: 'contain' | 'cover' | 'fill';
+  backgroundColor: string;
+}

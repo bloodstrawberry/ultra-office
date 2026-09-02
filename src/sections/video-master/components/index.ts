@@ -5,6 +5,8 @@ export * from './video-merge-panel';
 export * from './filter-color-panel';
 export * from './audio-extract-panel';
 export * from './frame-capture-panel';
+export * from './image-extract-panel';
+export * from './stt-extract-panel';
 export * from './video-player-preview';
 export * from './text-watermark-panel';
 export * from './transform-crop-panel';

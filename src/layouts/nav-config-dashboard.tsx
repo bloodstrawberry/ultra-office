@@ -47,6 +47,7 @@ import QrCodeScannerRoundedIcon from '@mui/icons-material/QrCodeScannerRounded';
 import MovieCreationRoundedIcon from '@mui/icons-material/MovieCreationRounded';
 import SportsEsportsRoundedIcon from '@mui/icons-material/SportsEsportsRounded';
 import DocumentScannerRoundedIcon from '@mui/icons-material/DocumentScannerRounded';
+import ForumRoundedIcon from '@mui/icons-material/ForumRounded';
 import DashboardCustomizeRoundedIcon from '@mui/icons-material/DashboardCustomizeRounded';
 import SwapHorizontalCircleRoundedIcon from '@mui/icons-material/SwapHorizontalCircleRounded';
 
@@ -99,6 +100,7 @@ const ICONS = {
   waveOptics: <WavesRoundedIcon fontSize="small" />,
   monteCarlo: <ScatterPlotRoundedIcon fontSize="small" />,
   appsInToss: <AppsRoundedIcon fontSize="small" />,
+  chat: <ForumRoundedIcon fontSize="small" />,
   matlab: <CalculateRoundedIcon fontSize="small" />,
   blackHole: <TrackChangesRoundedIcon fontSize="small" />,
   threejs: <ViewInArRoundedIcon fontSize="small" />,
@@ -188,9 +190,7 @@ export const navData: NavSectionProps['data'] = [
         path: paths.videoMaster.root,
         icon: ICONS.videoMaster,
         children: [
-          { title: '동영상 종합 편집기', path: paths.videoMaster.root },
-          { title: '동영상 자르기', path: paths.videoMaster.trim },
-          { title: '동영상 붙이기', path: paths.videoMaster.merge },
+          { title: '동영상 편집기', path: paths.videoMaster.root },
           { title: '동영상 AI 워터마크 각인', path: paths.videoMaster.aiWatermark },
         ],
       },
@@ -218,6 +218,16 @@ export const navData: NavSectionProps['data'] = [
           { title: 'Math Lab', path: paths.matlab },
           { title: 'Three.js Lab', path: paths.threejs },
           { title: '개발자 툴킷', path: paths.devTools },
+        ],
+      },
+      {
+        title: '채팅방',
+        path: paths.chat.root,
+        icon: ICONS.chat,
+        children: [
+          { title: '메신저', path: paths.chat.messenger },
+          { title: 'SNS', path: paths.chat.sns },
+          { title: 'LLM', path: paths.chat.llm },
         ],
       },
       {
