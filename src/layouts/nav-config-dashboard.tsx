@@ -7,6 +7,7 @@ import CodeRoundedIcon from '@mui/icons-material/CodeRounded';
 import AppsRoundedIcon from '@mui/icons-material/AppsRounded';
 import HiveRoundedIcon from '@mui/icons-material/HiveRounded';
 import WavesRoundedIcon from '@mui/icons-material/WavesRounded';
+import ForumRoundedIcon from '@mui/icons-material/ForumRounded';
 import CasinoRoundedIcon from '@mui/icons-material/CasinoRounded';
 import FolderRoundedIcon from '@mui/icons-material/FolderRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
@@ -47,7 +48,6 @@ import QrCodeScannerRoundedIcon from '@mui/icons-material/QrCodeScannerRounded';
 import MovieCreationRoundedIcon from '@mui/icons-material/MovieCreationRounded';
 import SportsEsportsRoundedIcon from '@mui/icons-material/SportsEsportsRounded';
 import DocumentScannerRoundedIcon from '@mui/icons-material/DocumentScannerRounded';
-import ForumRoundedIcon from '@mui/icons-material/ForumRounded';
 import DashboardCustomizeRoundedIcon from '@mui/icons-material/DashboardCustomizeRounded';
 import SwapHorizontalCircleRoundedIcon from '@mui/icons-material/SwapHorizontalCircleRounded';
 
@@ -220,6 +220,7 @@ export const navData: NavSectionProps['data'] = [
           { title: '정규표현식', path: paths.text.regex },
           { title: 'Math Lab', path: paths.matlab },
           { title: 'Three.js Lab', path: paths.threejs },
+          { title: '파일 변환기', path: paths.fileConvert },
           { title: '개발자 툴킷', path: paths.devTools },
         ],
       },

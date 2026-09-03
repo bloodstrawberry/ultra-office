@@ -88,3 +88,23 @@ declare module 'react-plotly.js/factory' {
 
   export default function createPlotlyComponent(plotly: any): React.ComponentType<PlotParams>;
 }
+
+declare module 'turndown' {
+  export interface TurndownOptions {
+    headingStyle?: 'setext' | 'atx';
+    hr?: string;
+    bulletListMarker?: '-' | '+' | '*';
+    codeBlockStyle?: 'indented' | 'fenced';
+    emDelimiter?: '_' | '*';
+    strongDelimiter?: '__' | '**';
+    linkStyle?: 'inlined' | 'referenced';
+    linkReferenceStyle?: 'full' | 'collapsed' | 'shortcut';
+  }
+
+  export default class TurndownService {
+    constructor(options?: TurndownOptions);
+    turndown(html: string | unknown): string;
+    use(plugin: unknown): this;
+    addRule(key: string, rule: unknown): this;
+  }
+}
