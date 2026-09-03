@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import Box from '@mui/material/Box';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
+import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded';
 
 import { ClockDialog } from './clock-dialog';
 
@@ -105,7 +106,12 @@ function SevenSegmentColon({ height = 28 }: SevenSegmentColonProps) {
 
 // ----------------------------------------------------------------------
 
-export function NavTime({ sx, ...other }: BoxProps) {
+export interface NavTimeProps extends BoxProps {
+  showIcon?: boolean;
+  digitHeight?: number;
+}
+
+export function NavTime({ sx, showIcon = false, digitHeight = 26, ...other }: NavTimeProps) {
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
   const [timeState, setTimeState] = useState({
     period: '오후',
@@ -138,8 +144,6 @@ export function NavTime({ sx, ...other }: BoxProps) {
 
     return () => clearInterval(interval);
   }, []);
-
-  const digitHeight = 26;
 
   return (
     <>
@@ -180,6 +184,18 @@ export function NavTime({ sx, ...other }: BoxProps) {
           ]}
           {...other}
         >
+          {showIcon && (
+            <AccessTimeRoundedIcon
+              sx={{
+                fontSize: Math.round(digitHeight * 0.85),
+                color: 'inherit',
+                opacity: 0.75,
+                alignSelf: 'center',
+                mr: 0.2,
+              }}
+            />
+          )}
+
           {/* 오전 / 오후 indicator */}
           <Typography
             component="span"

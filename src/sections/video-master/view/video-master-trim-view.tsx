@@ -27,7 +27,6 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import LoopRoundedIcon from '@mui/icons-material/LoopRounded';
 import FlagRoundedIcon from '@mui/icons-material/FlagRounded';
 import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
-import MovieRoundedIcon from '@mui/icons-material/MovieRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import Replay5RoundedIcon from '@mui/icons-material/Replay5Rounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
@@ -36,13 +35,8 @@ import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import VolumeOffRoundedIcon from '@mui/icons-material/VolumeOffRounded';
-import CallMergeRoundedIcon from '@mui/icons-material/CallMergeRounded';
 import ContentCutRoundedIcon from '@mui/icons-material/ContentCutRounded';
 import SportsScoreRoundedIcon from '@mui/icons-material/SportsScoreRounded';
-import MovieFilterRoundedIcon from '@mui/icons-material/MovieFilterRounded';
-
-import { paths } from 'src/routes/paths';
-import { RouterLink } from 'src/routes/components';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
@@ -400,39 +394,6 @@ export function VideoMasterTrimView() {
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-          <Button
-            component={RouterLink}
-            href={paths.videoMaster.root}
-            size="small"
-            variant="soft"
-            color="inherit"
-            startIcon={<MovieRoundedIcon />}
-          >
-            종합 편집기
-          </Button>
-
-          <Button
-            component={RouterLink}
-            href={paths.videoMaster.merge}
-            size="small"
-            variant="soft"
-            color="primary"
-            startIcon={<CallMergeRoundedIcon />}
-          >
-            동영상 붙이기
-          </Button>
-
-          <Button
-            component={RouterLink}
-            href={paths.videoMaster.aiWatermark}
-            size="small"
-            variant="soft"
-            color="primary"
-            startIcon={<MovieFilterRoundedIcon />}
-          >
-            AI 워터마크
-          </Button>
-
           {videoUrl && (
             <>
               <Tooltip title="다른 영상으로 교체">

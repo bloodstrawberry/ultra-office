@@ -571,7 +571,7 @@ export function ChatPreviewCanvas({
                 partner={data.users.find((u) => u.role === 'other' || u.role === 'bot')}
               />
 
-              {/* 메시지 스트림 스크롤 영역 (PC 화면일 때 중앙 840px 컨테이너 유지) */}
+              {/* 메시지 스트림 스크롤 영역 (Full 모드 시 좌/우 전폭 활용, 기본 모드 시 중앙 840px 컨테이너) */}
               <Box
                 ref={messagesScrollRef}
                 sx={{
@@ -580,7 +580,7 @@ export function ChatPreviewCanvas({
                   py: 1.5,
                   display: 'flex',
                   flexDirection: 'column',
-                  alignItems: 'center',
+                  alignItems: isFullViewport ? 'stretch' : 'center',
                   scrollBehavior: 'smooth',
                   width: '100%',
                 }}
@@ -588,8 +588,9 @@ export function ChatPreviewCanvas({
                 <Box
                   sx={{
                     width: '100%',
-                    maxWidth:
-                      data.config.category === 'llm' || data.config.deviceType === 'desktop'
+                    maxWidth: isFullViewport
+                      ? '100%'
+                      : data.config.category === 'llm' || data.config.deviceType === 'desktop'
                         ? 840
                         : '100%',
                     display: 'flex',

@@ -23,7 +23,7 @@ import AspectRatioRoundedIcon from '@mui/icons-material/AspectRatioRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import { PhotoUploadWorkspace, type SampleImageItem } from '../components';
+import { AppsInTossNavHeader, PhotoUploadWorkspace, type SampleImageItem } from '../components';
 import { type CropRect, InteractiveCropBox } from '../components/interactive-crop-box';
 import { downloadDataUrl, shareToKakaoTalk, cropAndResizeLogo } from '../utils/image-processor';
 
@@ -405,15 +405,7 @@ export function LogoView() {
         pb: { xs: 2, sm: 3 },
       }}
     >
-      <Box sx={{ mb: { xs: 1.5, sm: 2 }, flexShrink: 0 }}>
-        <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
-          로고 / 썸네일 맞춤 생성기
-        </Typography>
-        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          자유로운 영역 드래그 크롭 후 가로/세로 해상도를 직접 지정하여 고화질 앱 아이콘 및 썸네일을
-          생성합니다.
-        </Typography>
-      </Box>
+      <AppsInTossNavHeader currentTab="logo" />
 
       {!imageSrc ? (
         <PhotoUploadWorkspace

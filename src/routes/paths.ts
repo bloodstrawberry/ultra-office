@@ -81,6 +81,8 @@ export const paths = {
     root: '/video-master',
     trim: '/video-master',
     merge: '/video-master',
+    mp4ToMp3: '/video-master/mp4-to-mp3',
+    batch: '/video-master/batch',
     aiWatermark: '/video-master/ai-watermark',
   },
   gigaViewer: '/giga-viewer',
@@ -131,5 +133,6 @@ export const paths = {
     flip: `/photo/flip`,
     resize: `/photo/resize`,
     padding: `/photo/padding`,
+    ogImage: `/photo/og-image`,
   },
 };

@@ -57,6 +57,11 @@ export const TOOL_METADATA_MAP: Record<
     tag: '데스크톱',
     badgeColor: 'warning',
   },
+  [paths.photo.ogImage]: {
+    description: '1200x600 토스 오픈그래프 규격 맞춤 리사이즈 & 공유 카드 시뮬레이터',
+    tag: '1200x600',
+    badgeColor: 'primary',
+  },
 
   // 사진 필터 및 효과
   [paths.photo.artStyle]: {

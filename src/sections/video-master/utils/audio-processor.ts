@@ -1,6 +1,28 @@
 // ----------------------------------------------------------------------
-// Audio Processor - Pure Web Audio API & PCM WAV Encoder
+// Audio Processor - Pure Web Audio API & LAME MP3 / PCM WAV Encoder
 // ----------------------------------------------------------------------
+
+import { Mp3Encoder } from '@breezystack/lamejs';
+
+export interface AudioExtractSettings {
+  format: 'mp3' | 'wav';
+  kbps?: 128 | 192 | 256 | 320;
+  channels?: 1 | 2;
+  volume?: number;
+  startTimeSec?: number;
+  endTimeSec?: number;
+  onProgress?: (progress: number, phase: string) => void;
+}
+
+export interface AudioExtractResult {
+  blob: Blob;
+  url: string;
+  duration: number;
+  format: 'mp3' | 'wav';
+  channels: number;
+  sampleRate: number;
+  sizeBytes: number;
+}
 
 /**
  * Extracts AudioBuffer from a video or audio file
@@ -54,6 +76,89 @@ export function sliceAudioBuffer(
 }
 
 /**
+ * Converts Float32Array PCM to Int16Array with volume scaling and clamping
+ */
+function floatToInt16(floatData: Float32Array, volume = 1.0): Int16Array {
+  const int16 = new Int16Array(floatData.length);
+  for (let i = 0; i < floatData.length; i += 1) {
+    const sample = Math.max(-1, Math.min(1, floatData[i] * volume));
+    int16[i] = sample < 0 ? sample * 0x8000 : sample * 0x7fff;
+  }
+  return int16;
+}
+
+/**
+ * Converts AudioBuffer into pure MP3 Blob using LAME encoder
+ */
+export async function audioBufferToMp3Blob(
+  buffer: AudioBuffer,
+  options?: {
+    kbps?: number;
+    channels?: number;
+    volume?: number;
+    onProgress?: (progress: number) => void;
+  }
+): Promise<Blob> {
+  const requestedChannels = options?.channels ?? 2;
+  const numChannels = Math.min(requestedChannels, buffer.numberOfChannels);
+  const sampleRate = buffer.sampleRate;
+  const kbps = options?.kbps ?? 192;
+  const volume = options?.volume ?? 1.0;
+
+  const mp3encoder = new Mp3Encoder(numChannels, sampleRate, kbps);
+  const mp3Data: Uint8Array[] = [];
+
+  const leftFloat = buffer.getChannelData(0);
+  const leftInt16 = floatToInt16(leftFloat, volume);
+
+  let rightInt16: Int16Array | undefined;
+  if (numChannels === 2) {
+    const rightFloat = buffer.numberOfChannels > 1 ? buffer.getChannelData(1) : leftFloat;
+    rightInt16 = floatToInt16(rightFloat, volume);
+  }
+
+  const sampleBlockSize = 1152;
+  const totalSamples = leftInt16.length;
+
+  for (let i = 0; i < totalSamples; i += sampleBlockSize) {
+    const leftChunk = leftInt16.subarray(i, i + sampleBlockSize);
+    let mp3buf: Uint8Array;
+
+    if (numChannels === 2 && rightInt16) {
+      const rightChunk = rightInt16.subarray(i, i + sampleBlockSize);
+      mp3buf = mp3encoder.encodeBuffer(leftChunk, rightChunk);
+    } else {
+      mp3buf = mp3encoder.encodeBuffer(leftChunk);
+    }
+
+    if (mp3buf.length > 0) {
+      mp3Data.push(new Uint8Array(mp3buf));
+    }
+
+    if (
+      options?.onProgress &&
+      (i % (sampleBlockSize * 15) === 0 || i + sampleBlockSize >= totalSamples)
+    ) {
+      const pct = Math.min(95, Math.round((i / totalSamples) * 95));
+      options.onProgress(pct);
+      // Yield to browser UI thread
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+  }
+
+  const endBuf = mp3encoder.flush();
+  if (endBuf.length > 0) {
+    mp3Data.push(new Uint8Array(endBuf));
+  }
+
+  if (options?.onProgress) {
+    options.onProgress(100);
+  }
+
+  return new Blob(mp3Data as BlobPart[], { type: 'audio/mp3' });
+}
+
+/**
  * Converts AudioBuffer into 16-bit PCM WAV Blob
  */
 export function audioBufferToWavBlob(
@@ -73,7 +178,6 @@ export function audioBufferToWavBlob(
 
   let result: Float32Array;
   if (numChannels === 2) {
-    // Interleave stereo
     const left = buffer.getChannelData(0);
     const right = buffer.numberOfChannels > 1 ? buffer.getChannelData(1) : left;
     result = new Float32Array(left.length + right.length);
@@ -82,7 +186,6 @@ export function audioBufferToWavBlob(
       result[i * 2 + 1] = right[i];
     }
   } else {
-    // Mono
     result = buffer.getChannelData(0);
   }
 
@@ -100,13 +203,13 @@ export function audioBufferToWavBlob(
 
   // fmt sub-chunk
   writeString(view, 12, 'fmt ');
-  view.setUint32(16, 16, true); // Subchunk1Size (16 for PCM)
-  view.setUint16(20, format, true); // AudioFormat (1 = PCM)
-  view.setUint16(22, numChannels, true); // NumChannels
-  view.setUint32(24, sampleRate, true); // SampleRate
-  view.setUint32(28, byteRate, true); // ByteRate
-  view.setUint16(32, blockAlign, true); // BlockAlign
-  view.setUint16(34, bitDepth, true); // BitsPerSample
+  view.setUint32(16, 16, true);
+  view.setUint16(20, format, true);
+  view.setUint16(22, numChannels, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, byteRate, true);
+  view.setUint16(32, blockAlign, true);
+  view.setUint16(34, bitDepth, true);
 
   // data sub-chunk
   writeString(view, 36, 'data');
@@ -115,9 +218,7 @@ export function audioBufferToWavBlob(
   // Write PCM audio samples
   let offset = 44;
   for (let i = 0; i < result.length; i += 1) {
-    // Clamp sample between -1 and 1
     const s = Math.max(-1, Math.min(1, result[i] * volume));
-    // Scale to 16-bit signed integer
     const sample = s < 0 ? s * 0x8000 : s * 0x7fff;
     view.setInt16(offset, sample, true);
     offset += 2;
@@ -133,19 +234,75 @@ function writeString(view: DataView, offset: number, string: string): void {
 }
 
 /**
+ * All-in-one Video to MP3/WAV Audio Extractor Pipeline
+ */
+export async function extractAudioFromVideoFile(
+  file: File,
+  settings: AudioExtractSettings
+): Promise<AudioExtractResult> {
+  settings.onProgress?.(5, '동영상 오디오 트랙 디코딩 중...');
+  const fullBuffer = await extractAudioBufferFromFile(file);
+
+  const duration = fullBuffer.duration;
+  const startTime = Math.max(0, settings.startTimeSec ?? 0);
+  const endTime = Math.min(duration, settings.endTimeSec ?? duration);
+
+  let targetBuffer = fullBuffer;
+  if (startTime > 0 || endTime < duration) {
+    settings.onProgress?.(25, '오디오 구간 자르기 중...');
+    targetBuffer = sliceAudioBuffer(fullBuffer, startTime, endTime);
+  }
+
+  let audioBlob: Blob;
+  const format = settings.format;
+
+  if (format === 'mp3') {
+    settings.onProgress?.(35, 'LAME MP3 고음질 인코딩 중...');
+    audioBlob = await audioBufferToMp3Blob(targetBuffer, {
+      kbps: settings.kbps ?? 192,
+      channels: settings.channels ?? 2,
+      volume: settings.volume ?? 1.0,
+      onProgress: (p) => {
+        const overall = 35 + Math.round(p * 0.6);
+        settings.onProgress?.(overall, `MP3 인코딩 중 (${p}%)...`);
+      },
+    });
+  } else {
+    settings.onProgress?.(70, '무손실 16-bit WAV 생성 중...');
+    audioBlob = audioBufferToWavBlob(targetBuffer, {
+      channels: settings.channels ?? 2,
+      volume: settings.volume ?? 1.0,
+    });
+  }
+
+  settings.onProgress?.(100, '변환 완료!');
+  const url = URL.createObjectURL(audioBlob);
+
+  return {
+    blob: audioBlob,
+    url,
+    duration: targetBuffer.duration,
+    format,
+    channels: Math.min(settings.channels ?? 2, targetBuffer.numberOfChannels),
+    sampleRate: targetBuffer.sampleRate,
+    sizeBytes: audioBlob.size,
+  };
+}
+
+/**
  * Format seconds to MM:SS or HH:MM:SS
  */
 export function formatTime(seconds: number): string {
-  if (isNaN(seconds) || seconds < 0) return '00:00';
+  if (isNaN(seconds) || seconds < 0) return '00:00.0';
   const hrs = Math.floor(seconds / 3600);
   const mins = Math.floor((seconds % 3600) / 60);
   const secs = Math.floor(seconds % 60);
-  const ms = Math.floor((seconds % 1) * 100);
+  const ms = Math.floor((seconds % 1) * 10);
 
   if (hrs > 0) {
-    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}.${ms}`;
   }
-  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}.${ms}`;
 }
 
 /**

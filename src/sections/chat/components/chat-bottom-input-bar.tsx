@@ -62,7 +62,7 @@ export function ChatBottomInputBar({ config, onSendMessage }: ChatBottomInputBar
           <Box
             sx={{
               width: '100%',
-              maxWidth: 740,
+              maxWidth: config.isFullViewport ? { xs: '100%', md: 880 } : 740,
               bgcolor: darkMode ? '#2F2F2F' : '#FFFFFF',
               borderRadius: 3.5,
               px: 2,

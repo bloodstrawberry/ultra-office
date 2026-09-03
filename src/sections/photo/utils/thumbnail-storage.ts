@@ -19,8 +19,16 @@ export const DEFAULT_HORIZONTAL_SETTINGS: CropSettings = {
   height: 741,
 };
 
+export const DEFAULT_OG_SETTINGS: CropSettings = {
+  x: 0,
+  y: 0,
+  width: 1200,
+  height: 600,
+};
+
 const STORAGE_KEY_VERTICAL = 'ultra_office_crop_vertical';
 const STORAGE_KEY_HORIZONTAL = 'ultra_office_crop_horizontal';
+const STORAGE_KEY_OG = 'ultra_office_crop_og';
 
 export async function getVerticalCropSettings(): Promise<CropSettings> {
   if (typeof window === 'undefined') return DEFAULT_VERTICAL_SETTINGS;
@@ -77,5 +85,33 @@ export async function saveHorizontalCropSettings(settings: CropSettings): Promis
     localStorage.setItem(STORAGE_KEY_HORIZONTAL, JSON.stringify(settings));
   } catch (e) {
     console.error('Failed to save horizontal crop settings:', e);
+  }
+}
+
+export async function getOgCropSettings(): Promise<CropSettings> {
+  if (typeof window === 'undefined') return DEFAULT_OG_SETTINGS;
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY_OG);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return {
+        x: typeof parsed.x === 'number' ? parsed.x : DEFAULT_OG_SETTINGS.x,
+        y: typeof parsed.y === 'number' ? parsed.y : DEFAULT_OG_SETTINGS.y,
+        width: typeof parsed.width === 'number' ? parsed.width : DEFAULT_OG_SETTINGS.width,
+        height: typeof parsed.height === 'number' ? parsed.height : DEFAULT_OG_SETTINGS.height,
+      };
+    }
+  } catch (e) {
+    console.error('Failed to load og crop settings:', e);
+  }
+  return DEFAULT_OG_SETTINGS;
+}
+
+export async function saveOgCropSettings(settings: CropSettings): Promise<void> {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(STORAGE_KEY_OG, JSON.stringify(settings));
+  } catch (e) {
+    console.error('Failed to save og crop settings:', e);
   }
 }

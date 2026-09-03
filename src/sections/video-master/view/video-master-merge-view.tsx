@@ -22,20 +22,14 @@ import LinearProgress from '@mui/material/LinearProgress';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
-import MovieRoundedIcon from '@mui/icons-material/MovieRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import CallMergeRoundedIcon from '@mui/icons-material/CallMergeRounded';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
-import ContentCutRoundedIcon from '@mui/icons-material/ContentCutRounded';
 import ArrowUpwardRoundedIcon from '@mui/icons-material/ArrowUpwardRounded';
 import DeleteSweepRoundedIcon from '@mui/icons-material/DeleteSweepRounded';
-import MovieFilterRoundedIcon from '@mui/icons-material/MovieFilterRounded';
 import ArrowDownwardRoundedIcon from '@mui/icons-material/ArrowDownwardRounded';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
-
-import { paths } from 'src/routes/paths';
-import { RouterLink } from 'src/routes/components';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
@@ -444,39 +438,6 @@ export function VideoMasterMergeView() {
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-          <Button
-            component={RouterLink}
-            href={paths.videoMaster.root}
-            size="small"
-            variant="soft"
-            color="inherit"
-            startIcon={<MovieRoundedIcon />}
-          >
-            종합 편집기
-          </Button>
-
-          <Button
-            component={RouterLink}
-            href={paths.videoMaster.trim}
-            size="small"
-            variant="soft"
-            color="primary"
-            startIcon={<ContentCutRoundedIcon />}
-          >
-            동영상 자르기
-          </Button>
-
-          <Button
-            component={RouterLink}
-            href={paths.videoMaster.aiWatermark}
-            size="small"
-            variant="soft"
-            color="primary"
-            startIcon={<MovieFilterRoundedIcon />}
-          >
-            AI 워터마크
-          </Button>
-
           {clips.length > 0 && (
             <>
               <Button

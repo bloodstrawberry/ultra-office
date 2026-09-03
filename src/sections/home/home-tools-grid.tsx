@@ -10,8 +10,8 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
 import { alpha } from '@mui/material/styles';
+import TextField from '@mui/material/TextField';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -21,6 +21,8 @@ import SearchOffRoundedIcon from '@mui/icons-material/SearchOffRounded';
 import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import DashboardCustomizeRoundedIcon from '@mui/icons-material/DashboardCustomizeRounded';
+
+import { NavTime } from 'src/layouts/components/nav-time';
 
 // ----------------------------------------------------------------------
 
@@ -276,9 +278,30 @@ export function HomeToolsGrid({
             sx={{
               display: 'flex',
               alignItems: 'center',
-              gap: 1.5,
+              gap: 1.25,
+              flexWrap: 'wrap',
             }}
           >
+            <NavTime
+              showIcon
+              sx={{
+                px: 1.5,
+                py: 0.6,
+                borderRadius: 2,
+                border: '1px solid',
+                borderColor: (t) => alpha(t.palette.divider, 0.16),
+                bgcolor: (t) => alpha(t.palette.background.paper, 0.8),
+                backdropFilter: 'blur(10px)',
+                boxShadow: (t) => `0 2px 8px ${alpha(t.palette.common.black, 0.04)}`,
+                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                '&:hover': {
+                  bgcolor: (t) => alpha(t.palette.background.paper, 0.98),
+                  borderColor: 'primary.main',
+                  boxShadow: (t) => `0 4px 16px ${alpha(t.palette.primary.main, 0.15)}`,
+                },
+              }}
+            />
+
             <Chip
               icon={<DashboardCustomizeRoundedIcon sx={{ fontSize: '16px !important' }} />}
               label={`총 ${totalToolsCount ?? tools.length}개 도구 지원`}

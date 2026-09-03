@@ -75,6 +75,7 @@ export function VideoUploadWorkspace({
   const { isDragActive, getRootProps } = useImageDropPaste({
     onFiles: handleFiles,
     multiple,
+    accept: ['video/*', '.mp4', '.webm', '.mov', '.mkv', '.avi', '.m4v', '.flv'],
   });
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

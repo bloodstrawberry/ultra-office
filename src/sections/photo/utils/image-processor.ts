@@ -1139,3 +1139,116 @@ export async function renderGenericSplitComparisonImage({
 
   return canvas.toDataURL('image/png');
 }
+
+// ----------------------------------------------------------------------
+// Apps in Toss: ogImage Processing
+// ----------------------------------------------------------------------
+
+export type OgFitMode = 'fit' | 'cover' | 'crop' | 'stretch';
+export type OgAlignment = 'center' | 'top' | 'bottom' | 'left' | 'right';
+export type OgBgMode = 'color' | 'transparent' | 'blur';
+
+export interface ProcessOgImageOptions {
+  width?: number;
+  height?: number;
+  mode?: OgFitMode;
+  alignment?: OgAlignment;
+  backgroundColor?: string;
+  bgMode?: OgBgMode;
+  cropArea?: { x: number; y: number; width: number; height: number };
+  format?: 'image/png' | 'image/jpeg' | 'image/webp';
+  quality?: number;
+}
+
+/**
+ * Resizes, fits, or crops image to Apps in Toss 1200x600 ogImage specifications
+ */
+export async function processOgImage(
+  imageSrc: string,
+  options: ProcessOgImageOptions = {}
+): Promise<string> {
+  const {
+    width = 1200,
+    height = 600,
+    mode = 'fit',
+    alignment = 'center',
+    backgroundColor = '#FFFFFF',
+    bgMode = 'color',
+    cropArea,
+    format = 'image/png',
+    quality = 0.95,
+  } = options;
+
+  const img = await loadImage(imageSrc);
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, Math.round(width));
+  canvas.height = Math.max(1, Math.round(height));
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Failed to get 2d context');
+
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+
+  // 1. Background Fill
+  if (bgMode === 'blur') {
+    ctx.save();
+    // Blur backdrop using the image itself
+    ctx.filter = 'blur(28px) brightness(0.7)';
+    const scaleBack = Math.max(canvas.width / img.width, canvas.height / img.height) * 1.2;
+    const backW = img.width * scaleBack;
+    const backH = img.height * scaleBack;
+    const backX = (canvas.width - backW) / 2;
+    const backY = (canvas.height - backH) / 2;
+    ctx.drawImage(img, backX, backY, backW, backH);
+    ctx.restore();
+  } else if (bgMode === 'color' && backgroundColor && backgroundColor !== 'transparent') {
+    ctx.fillStyle = backgroundColor;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  } else if (bgMode === 'transparent' && format === 'image/jpeg') {
+    // JPEG doesn't support transparency, fallback to white
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  // 2. Foreground Image Drawing
+  if (mode === 'crop' && cropArea && cropArea.width > 0 && cropArea.height > 0) {
+    ctx.drawImage(
+      img,
+      cropArea.x,
+      cropArea.y,
+      cropArea.width,
+      cropArea.height,
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+  } else if (mode === 'stretch') {
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  } else if (mode === 'cover') {
+    const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
+    const destW = img.width * scale;
+    const destH = img.height * scale;
+    let destX = (canvas.width - destW) / 2;
+    let destY = (canvas.height - destH) / 2;
+
+    if (alignment === 'top') destY = 0;
+    else if (alignment === 'bottom') destY = canvas.height - destH;
+    else if (alignment === 'left') destX = 0;
+    else if (alignment === 'right') destX = canvas.width - destW;
+
+    ctx.drawImage(img, destX, destY, destW, destH);
+  } else {
+    // Default: 'fit' (contain)
+    const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+    const destW = img.width * scale;
+    const destH = img.height * scale;
+    const destX = (canvas.width - destW) / 2;
+    const destY = (canvas.height - destH) / 2;
+
+    ctx.drawImage(img, destX, destY, destW, destH);
+  }
+
+  return canvas.toDataURL(format, quality);
+}

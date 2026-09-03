@@ -74,3 +74,5 @@ export { WeatheringView as PhotoWeatheringView } from './photo-weathering-view';
 export { AiWatermarkView as PhotoAiWatermarkView } from './photo-ai-watermark-view';
 export { ColorPickerView as PhotoColorPickerView } from './photo-color-picker-view';
 export { PaddingView as PhotoPaddingView } from './photo-padding-view';
+export * from './photo-og-image-view';
+export { PhotoOgImageView as OgImageView } from './photo-og-image-view';

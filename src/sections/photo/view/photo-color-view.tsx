@@ -22,7 +22,7 @@ import FormatColorFillRoundedIcon from '@mui/icons-material/FormatColorFillRound
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import { PhotoUploadWorkspace, type SampleImageItem } from '../components';
+import { AppsInTossNavHeader, PhotoUploadWorkspace, type SampleImageItem } from '../components';
 import {
   downloadDataUrl,
   floodFillCanvas,
@@ -305,15 +305,7 @@ export function PhotoColorView() {
         pb: { xs: 2, sm: 3 },
       }}
     >
-      <Box sx={{ mb: { xs: 1.5, sm: 2 }, flexShrink: 0 }}>
-        <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
-          배경색 변경 & 투명화 (Background Eraser)
-        </Typography>
-        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          원클릭 흰색↔투명 전환 및 스마트 페인트 통으로 불필요한 배경 색상을 빠르게 투명화하거나
-          변경합니다.
-        </Typography>
-      </Box>
+      <AppsInTossNavHeader currentTab="color" />
 
       {!imageSrc ? (
         <PhotoUploadWorkspace

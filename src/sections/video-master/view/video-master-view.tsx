@@ -1,13 +1,7 @@
 'use client';
 
 import type { SampleVideoItem } from '../data/video-samples';
-import type {
-  FilterPreset,
-  VideoFilterSettings,
-  VideoStudioClipItem,
-  VideoStudioTextItem,
-  VideoStudioExportSettings,
-} from '../types';
+import type { VideoStudioClipItem, VideoStudioTextItem, VideoStudioExportSettings } from '../types';
 
 import { toast } from 'sonner';
 import React, { useRef, useState, useEffect, useCallback } from 'react';
@@ -29,52 +23,48 @@ import IconButton from '@mui/material/IconButton';
 import FormControl from '@mui/material/FormControl';
 import LinearProgress from '@mui/material/LinearProgress';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
-import MicRoundedIcon from '@mui/icons-material/MicRounded';
+import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
+import TitleRoundedIcon from '@mui/icons-material/TitleRounded';
 import ZoomInRoundedIcon from '@mui/icons-material/ZoomInRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import ZoomOutRoundedIcon from '@mui/icons-material/ZoomOutRounded';
 import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
-import CameraAltRoundedIcon from '@mui/icons-material/CameraAltRounded';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
-import ContentCutRoundedIcon from '@mui/icons-material/ContentCutRounded';
-import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
-import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
 import VolumeOffRoundedIcon from '@mui/icons-material/VolumeOffRounded';
+import ContentCutRoundedIcon from '@mui/icons-material/ContentCutRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import MovieFilterRoundedIcon from '@mui/icons-material/MovieFilterRounded';
-import ContentPasteRoundedIcon from '@mui/icons-material/ContentPasteRounded';
-import ColorLensRoundedIcon from '@mui/icons-material/ColorLensRounded';
 import RotateRightRoundedIcon from '@mui/icons-material/RotateRightRounded';
-import FlipCameraAndroidRoundedIcon from '@mui/icons-material/FlipCameraAndroidRounded';
-import TitleRoundedIcon from '@mui/icons-material/TitleRounded';
 import MovieCreationRoundedIcon from '@mui/icons-material/MovieCreationRounded';
-import SkipPreviousRoundedIcon from '@mui/icons-material/SkipPreviousRounded';
-import SkipNextRoundedIcon from '@mui/icons-material/SkipNextRounded';
-import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
-
-import { paths } from 'src/routes/paths';
-import { RouterLink } from 'src/routes/components';
+import FlipCameraAndroidRoundedIcon from '@mui/icons-material/FlipCameraAndroidRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
+import { FILTER_PRESETS } from '../utils/video-processor';
 import { SttExtractPanel } from '../components/stt-extract-panel';
 import { ImageExtractPanel } from '../components/image-extract-panel';
+import { AudioExtractPanel } from '../components/audio-extract-panel';
 import { VideoUploadWorkspace } from '../components/video-upload-workspace';
-import { FILTER_PRESETS, DEFAULT_FILTERS } from '../utils/video-processor';
 import {
   exportStudioGif,
   exportStudioVideo,
   getClipAtGlobalTime,
   drawClipFrameToCanvas,
   drawTextOverlaysToCanvas,
-  calculateTotalTimelineDuration,
   createVideoStudioClipFromFile,
+  calculateTotalTimelineDuration,
 } from '../utils/video-studio-processor';
 
 // ----------------------------------------------------------------------
 
-type InspectorTabKey = 'clip' | 'text' | 'image-extract' | 'stt-extract' | 'export';
+type InspectorTabKey =
+  | 'clip'
+  | 'text'
+  | 'image-extract'
+  | 'stt-extract'
+  | 'audio-extract'
+  | 'export';
 
 export function VideoMasterView() {
   // ─── Multi-Track Clips & Text Items ───
@@ -253,7 +243,7 @@ export function VideoMasterView() {
   useEffect(() => {
     if (!isPlaying) {
       updateCanvasFrame(currentPlayheadTime);
-      return;
+      return () => {};
     }
 
     let lastTime = performance.now();
@@ -356,7 +346,9 @@ export function VideoMasterView() {
       isScrubbingRef.current = false;
       try {
         (e.target as HTMLElement).releasePointerCapture(e.pointerId);
-      } catch {}
+      } catch {
+        // ignore if capture is not active
+      }
     }
   };
 
@@ -523,17 +515,6 @@ export function VideoMasterView() {
 
         {/* Action Buttons */}
         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
-          <Button
-            component={RouterLink}
-            href={paths.videoMaster.aiWatermark}
-            size="small"
-            variant="soft"
-            color="primary"
-            startIcon={<MovieFilterRoundedIcon />}
-          >
-            동영상 AI 워터마크 각인
-          </Button>
-
           <Button
             size="small"
             variant="contained"
@@ -718,6 +699,7 @@ export function VideoMasterView() {
                 <Tab value="text" label="자막 편집" />
                 <Tab value="image-extract" label="이미지 추출" />
                 <Tab value="stt-extract" label="STT 추출" />
+                <Tab value="audio-extract" label="오디오/MP3 추출" />
                 <Tab value="export" label="내보내기" />
               </Tabs>
 
@@ -1005,7 +987,15 @@ export function VideoMasterView() {
                   />
                 )}
 
-                {/* ── Tab 5: Export Video / GIF ── */}
+                {/* ── Tab 5: Audio / MP3 Extract ── */}
+                {inspectorTab === 'audio-extract' && (
+                  <AudioExtractPanel
+                    videoFile={selectedClip?.file || clips[0]?.file || null}
+                    duration={selectedClip?.duration || totalDuration}
+                  />
+                )}
+
+                {/* ── Tab 6: Export Video / GIF ── */}
                 {inspectorTab === 'export' && (
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>

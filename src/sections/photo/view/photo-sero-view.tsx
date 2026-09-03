@@ -24,6 +24,7 @@ import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { SafeNumberInput } from '../components/safe-number-input';
+import { AppsInTossNavHeader } from '../components/apps-in-toss-nav-header';
 import { downloadZipFile, type ZipFileEntry } from '../utils/zip-exporter';
 import { PhotoUploadWorkspace, type SampleImageItem } from '../components/photo-upload-workspace';
 import {
@@ -265,15 +266,7 @@ export function SeroView() {
         pb: { xs: 2, sm: 3 },
       }}
     >
-      <Box sx={{ mb: { xs: 1.5, sm: 2 }, flexShrink: 0 }}>
-        <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
-          세로형 스크린샷 일괄 생성기
-        </Typography>
-        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          스마트폰/숏폼/스토리 규격 세로 스크린샷을 여러 장의 사진에서 동일한 영역으로 고속 일괄
-          생성합니다.
-        </Typography>
-      </Box>
+      <AppsInTossNavHeader currentTab="sero" />
 
       <input
         ref={fileInputRef}

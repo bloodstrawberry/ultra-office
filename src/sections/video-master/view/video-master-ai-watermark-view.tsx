@@ -39,18 +39,13 @@ import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import VolumeOffRoundedIcon from '@mui/icons-material/VolumeOffRounded';
 import NorthEastRoundedIcon from '@mui/icons-material/NorthEastRounded';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
-import CallMergeRoundedIcon from '@mui/icons-material/CallMergeRounded';
 import CropSquareRoundedIcon from '@mui/icons-material/CropSquareRounded';
 import FastRewindRoundedIcon from '@mui/icons-material/FastRewindRounded';
-import ContentCutRoundedIcon from '@mui/icons-material/ContentCutRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import FastForwardRoundedIcon from '@mui/icons-material/FastForwardRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 import MovieFilterRoundedIcon from '@mui/icons-material/MovieFilterRounded';
 import RadioButtonUncheckedRoundedIcon from '@mui/icons-material/RadioButtonUncheckedRounded';
-
-import { paths } from 'src/routes/paths';
-import { RouterLink } from 'src/routes/components';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
@@ -962,28 +957,6 @@ export function VideoMasterAiWatermarkView() {
 
         {/* Header Action Buttons */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Button
-            component={RouterLink}
-            href={paths.videoMaster.trim}
-            size="small"
-            variant="soft"
-            color="inherit"
-            startIcon={<ContentCutRoundedIcon />}
-          >
-            동영상 자르기
-          </Button>
-
-          <Button
-            component={RouterLink}
-            href={paths.videoMaster.merge}
-            size="small"
-            variant="soft"
-            color="inherit"
-            startIcon={<CallMergeRoundedIcon />}
-          >
-            동영상 붙이기
-          </Button>
-
           <Button
             size="small"
             variant="soft"

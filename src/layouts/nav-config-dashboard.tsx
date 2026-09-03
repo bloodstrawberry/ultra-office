@@ -136,6 +136,7 @@ export const navData: NavSectionProps['data'] = [
           { title: '배경색 변경', path: paths.photo.color },
           { title: '세로 스크린샷', path: paths.photo.sero },
           { title: '가로 스크린샷', path: paths.photo.garo },
+          { title: 'ogImage 크기 조절', path: paths.photo.ogImage },
         ],
       },
       {
@@ -191,6 +192,8 @@ export const navData: NavSectionProps['data'] = [
         icon: ICONS.videoMaster,
         children: [
           { title: '동영상 편집기', path: paths.videoMaster.root },
+          { title: 'MP4 → MP3 변환', path: paths.videoMaster.mp4ToMp3 },
+          { title: '동영상 일괄 변환기', path: paths.videoMaster.batch },
           { title: '동영상 AI 워터마크 각인', path: paths.videoMaster.aiWatermark },
         ],
       },

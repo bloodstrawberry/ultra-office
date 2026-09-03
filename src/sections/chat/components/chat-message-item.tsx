@@ -119,20 +119,31 @@ export function ChatMessageItem({
 
   // 3. LLM 카테고리 (ChatGPT, Gemini, Claude, Grok) 렌더러
   if (category === 'llm' || isBot) {
+    const isFull = Boolean(config.isFullViewport);
+
     return (
       <Box
         sx={{
           display: 'flex',
           flexDirection: 'column',
           my: 1.5,
-          px: 2,
+          px: isFull ? { xs: 2, md: 4, lg: 6 } : 2,
           gap: 1,
+          width: '100%',
         }}
         onClick={() => onSelectMessage?.(message)}
       >
         {isMe ? (
-          // LLM 사용자 질문 버블 (우측 정렬 카드형)
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5 }}>
+          // LLM 사용자 질문 버블 (우측 끝 정렬)
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-end',
+              gap: 0.5,
+              width: '100%',
+            }}
+          >
             {message.mediaUrl && (
               <Box
                 component="img"
@@ -152,11 +163,11 @@ export function ChatMessageItem({
                 sx={{
                   bgcolor: themeMeta.myBubbleBg,
                   color: themeMeta.myBubbleText,
-                  px: 2,
+                  px: 2.2,
                   py: 1.2,
                   borderRadius: '18px 18px 4px 18px',
-                  maxWidth: '85%',
-                  fontSize: 14,
+                  maxWidth: isFull ? { xs: '85%', md: '65%', lg: '50%' } : '85%',
+                  fontSize: 14.5,
                   lineHeight: 1.5,
                   wordBreak: 'break-word',
                   boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
@@ -167,16 +178,25 @@ export function ChatMessageItem({
             )}
           </Box>
         ) : (
-          // LLM AI 답변 (좌측 전폭 카드)
-          <Box sx={{ display: 'flex', gap: 1.5, width: '100%', alignItems: 'flex-start' }}>
+          // LLM AI 답변 (좌측 끝 정렬)
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 1.5,
+              width: '100%',
+              maxWidth: isFull ? { xs: '100%', md: '80%', lg: '70%' } : '100%',
+              alignItems: 'flex-start',
+              alignSelf: 'flex-start',
+            }}
+          >
             <Avatar
               src={sender?.avatar || 'https://api.dicebear.com/7.x/bottts/svg?seed=AI'}
               alt="AI"
-              sx={{ width: 30, height: 30, bgcolor: themeMeta.badgeColor, mt: 0.3 }}
+              sx={{ width: 32, height: 32, bgcolor: themeMeta.badgeColor, mt: 0.3 }}
             />
             <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
               {/* 발신 AI 이름 */}
-              <Typography sx={{ fontSize: 13, fontWeight: 700, color: themeMeta.headerText }}>
+              <Typography sx={{ fontSize: 13.5, fontWeight: 700, color: themeMeta.headerText }}>
                 {sender?.name || themeMeta.name}
               </Typography>
 

@@ -67,30 +67,50 @@ export default async function RootLayout({ children }: RootLayoutProps) {
             __html: `
               // React 19 & React DevTools 내부 버그 (Suspense async info 경고) 콘솔 차단
               (function() {
-                if (typeof window !== 'undefined' && window.console) {
+                if (typeof window !== 'undefined') {
+                  window.suppressReactDevtoolsAsyncBoundaryWarning = true;
                   var isSuspenseBug = function(msg) {
-                    if (typeof msg === 'string') {
-                      return msg.indexOf('We are cleaning up async info') !== -1 || msg.indexOf('parent Suspense boundary') !== -1;
-                    }
-                    if (msg && typeof msg.message === 'string') {
-                      return msg.message.indexOf('We are cleaning up async info') !== -1 || msg.message.indexOf('parent Suspense boundary') !== -1;
-                    }
-                    return false;
+                    if (!msg) return false;
+                    var str = typeof msg === 'string' ? msg : msg.message || msg.stack || String(msg);
+                    return str.indexOf('We are cleaning up async info') !== -1 || str.indexOf('parent Suspense boundary') !== -1;
                   };
-                  var origError = console.error;
-                  console.error = function() {
-                    for (var i = 0; i < arguments.length; i++) {
-                      if (isSuspenseBug(arguments[i])) return;
-                    }
-                    return origError.apply(console, arguments);
-                  };
-                  var origWarn = console.warn;
-                  console.warn = function() {
-                    for (var i = 0; i < arguments.length; i++) {
-                      if (isSuspenseBug(arguments[i])) return;
-                    }
-                    return origWarn.apply(console, arguments);
-                  };
+                  if (window.console) {
+                    var origError = console.error;
+                    console.error = function() {
+                      for (var i = 0; i < arguments.length; i++) {
+                        if (isSuspenseBug(arguments[i])) return;
+                      }
+                      return origError.apply(console, arguments);
+                    };
+                    var origWarn = console.warn;
+                    console.warn = function() {
+                      for (var i = 0; i < arguments.length; i++) {
+                        if (isSuspenseBug(arguments[i])) return;
+                      }
+                      return origWarn.apply(console, arguments);
+                    };
+                  }
+                  window.addEventListener(
+                    'error',
+                    function(e) {
+                      if (isSuspenseBug(e.message) || isSuspenseBug(e.error)) {
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                        return true;
+                      }
+                    },
+                    true
+                  );
+                  window.addEventListener(
+                    'unhandledrejection',
+                    function(e) {
+                      if (isSuspenseBug(e.reason)) {
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                      }
+                    },
+                    true
+                  );
                 }
               })();
 
