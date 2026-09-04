@@ -8,12 +8,18 @@ import Card from '@mui/material/Card';
 import Button from '@mui/material/Button';
 import Slider from '@mui/material/Slider';
 import Switch from '@mui/material/Switch';
+import Tooltip from '@mui/material/Tooltip';
+import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import CircularProgress from '@mui/material/CircularProgress';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
+import PaletteRoundedIcon from '@mui/icons-material/PaletteRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
+import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
 import ViewModuleRoundedIcon from '@mui/icons-material/ViewModuleRounded';
 import CompareArrowsRoundedIcon from '@mui/icons-material/CompareArrowsRounded';
 
@@ -55,6 +61,15 @@ const PIXEL_SAMPLE_IMAGES: SampleImageItem[] = [
 ];
 
 type PaletteType = 'full' | 'gameboy' | 'nes' | 'cyberpunk' | 'mono' | 'sepia';
+
+const DEFAULT_PALETTE_COLORS: Record<PaletteType, string[]> = {
+  full: ['#EF4444', '#10B981', '#3B82F6', '#F59E0B'],
+  gameboy: ['#0F380F', '#306230', '#8BAC0F', '#9BBC0F'],
+  nes: ['#000000', '#FCFCFC', '#F83800', '#00A800', '#0058F8', '#F8B800'],
+  cyberpunk: ['#050505', '#FF007F', '#00F0FF', '#7000FF', '#FFE600'],
+  mono: ['#000000', '#FFFFFF'],
+  sepia: ['#2B1B10', '#5C3A21', '#966E44', '#D4B483', '#F2E8CF'],
+};
 
 interface PaletteOption {
   id: PaletteType;
@@ -141,10 +156,16 @@ export function PixelView() {
   const [imageSrc, setImageSrc] = useState<string>('');
   const [pixelSize, setPixelSize] = useState<number>(10);
   const [palette, setPalette] = useState<PaletteType>('full');
+  const [paletteColors, setPaletteColors] = useState<Record<PaletteType, string[]>>({
+    full: [...DEFAULT_PALETTE_COLORS.full],
+    gameboy: [...DEFAULT_PALETTE_COLORS.gameboy],
+    nes: [...DEFAULT_PALETTE_COLORS.nes],
+    cyberpunk: [...DEFAULT_PALETTE_COLORS.cyberpunk],
+    mono: [...DEFAULT_PALETTE_COLORS.mono],
+    sepia: [...DEFAULT_PALETTE_COLORS.sepia],
+  });
   const [showGrid, setShowGrid] = useState<boolean>(false);
   const [contrast, setContrast] = useState<number>(100);
-  const [dithering, setDithering] = useState<boolean>(true);
-  const [outline, setOutline] = useState<boolean>(false);
 
   const [previewMode, setPreviewMode] = useState<ComparePreviewMode>('split');
   const [splitOrientation, setSplitOrientation] = useState<SplitOrientation>('horizontal');
@@ -161,6 +182,50 @@ export function PixelView() {
   const resizeStartWidthRef = useRef<number>(360);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  const handleUpdatePaletteColor = (index: number, newColor: string) => {
+    setPaletteColors((prev) => ({
+      ...prev,
+      [palette]: prev[palette].map((c, i) => (i === index ? newColor : c)),
+    }));
+  };
+
+  const handleAddPaletteColor = () => {
+    if (paletteColors[palette].length >= 16) {
+      toast.warning('팔레트 색상은 최대 16개까지 가능합니다.');
+      return;
+    }
+    const currentList = paletteColors[palette];
+    const lastColor = currentList[currentList.length - 1] || '#FFFFFF';
+    setPaletteColors((prev) => ({
+      ...prev,
+      [palette]: [...prev[palette], lastColor],
+    }));
+    toast.success('새 색상이 추가되었습니다.');
+  };
+
+  const handleRemovePaletteColor = (index: number) => {
+    if (paletteColors[palette].length <= 2) {
+      toast.warning('최소 2개 이상의 색상이 필요합니다.');
+      return;
+    }
+    setPaletteColors((prev) => ({
+      ...prev,
+      [palette]: prev[palette].filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleResetCurrentPalette = () => {
+    const defaultColors = DEFAULT_PALETTE_COLORS[palette];
+    if (defaultColors) {
+      setPaletteColors((prev) => ({
+        ...prev,
+        [palette]: [...defaultColors],
+      }));
+      const palObj = PALETTES.find((p) => p.id === palette);
+      toast.success(`'${palObj?.name || palette}' 색상이 기본값으로 복원되었습니다.`);
+    }
+  };
 
   const handleDividerPointerDown = (e: React.PointerEvent) => {
     e.preventDefault();
@@ -242,8 +307,8 @@ export function PixelView() {
     const imgData = ctx.getImageData(0, 0, canvasW, canvasH);
     const data = imgData.data;
 
-    const currentPal = PALETTES.find((p) => p.id === palette) || PALETTES[0];
-    const paletteRgbs = currentPal.colors.map(hexToRgb);
+    const currentPalColors = paletteColors[palette] || PALETTES[0].colors;
+    const paletteRgbs = currentPalColors.map(hexToRgb);
 
     const blockSize = Math.max(2, pixelSize);
     const contrastFactor = (259 * (contrast + 255)) / (255 * (259 - contrast));
@@ -274,7 +339,7 @@ export function PixelView() {
 
         if (contrast !== 100) {
           avgR = Math.min(255, Math.max(0, contrastFactor * (avgR - 128) + 128));
-          avgG = Math.min(255, Math.max(0, contrastFactor * (avgG - 128) + 128));
+          avgG = Math.min(255, Math.max(0, contrastFactor * (avgR - 128) + 128));
           avgB = Math.min(255, Math.max(0, contrastFactor * (avgB - 128) + 128));
         }
 
@@ -307,7 +372,7 @@ export function PixelView() {
     }
 
     return canvas.toDataURL('image/png');
-  }, [imageSrc, pixelSize, palette, showGrid, contrast]);
+  }, [imageSrc, pixelSize, palette, showGrid, contrast, paletteColors]);
 
   useEffect(() => {
     let isMounted = true;
@@ -349,10 +414,7 @@ export function PixelView() {
         splitOrientation,
         splitMode,
       });
-      const res = await downloadDataUrl(
-        splitUrl,
-        `pixel_art_${palette}_split_comparison_${Date.now()}.png`
-      );
+      await downloadDataUrl(splitUrl, `pixel_art_${palette}_split_comparison_${Date.now()}.png`);
       toast.success('슬라이더 비교 상태 그대로 저장되었습니다.');
     } catch {
       toast.error('비교 상태 저장 중 오류가 발생했습니다.');
@@ -553,47 +615,244 @@ export function PixelView() {
             }}
           >
             <Card sx={{ p: 2.5, borderRadius: 3 }}>
-              {/* Palette Selector */}
+              {/* Palette Selector Header */}
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
                 1. 컬러 팔레트 선택
               </Typography>
-              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 1, mb: 2.5 }}>
-                {PALETTES.map((pal) => (
-                  <Button
-                    key={pal.id}
-                    size="small"
-                    variant={palette === pal.id ? 'contained' : 'outlined'}
-                    color={palette === pal.id ? 'primary' : 'inherit'}
-                    onClick={() => setPalette(pal.id)}
+
+              {/* 6-Card Palette Grid (Presets) */}
+              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 1, mb: 2 }}>
+                {PALETTES.map((pal) => {
+                  const isSelected = palette === pal.id;
+                  const palColors = paletteColors[pal.id] || pal.colors;
+                  return (
+                    <Button
+                      key={pal.id}
+                      size="small"
+                      variant={isSelected ? 'contained' : 'outlined'}
+                      color={isSelected ? 'primary' : 'inherit'}
+                      onClick={() => setPalette(pal.id)}
+                      sx={{
+                        borderRadius: 1.5,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'flex-start',
+                        p: 1,
+                        textTransform: 'none',
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', gap: 0.4, mb: 0.5 }}>
+                        {palColors.slice(0, 5).map((col, i) => (
+                          <Box
+                            key={i}
+                            sx={{
+                              width: 10,
+                              height: 10,
+                              borderRadius: '50%',
+                              bgcolor: col,
+                              border: '1px solid rgba(255,255,255,0.4)',
+                            }}
+                          />
+                        ))}
+                      </Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.78rem' }}>
+                        {pal.name}
+                      </Typography>
+                    </Button>
+                  );
+                })}
+              </Box>
+
+              {/* Full Color Info Notice */}
+              {palette === 'full' && (
+                <Typography
+                  variant="caption"
+                  sx={{ display: 'block', color: 'text.secondary', mb: 2, fontSize: '0.72rem' }}
+                >
+                  💡 풀 컬러 모드는 원본 사진의 모든 색상을 보존하여 픽셀화합니다.
+                </Typography>
+              )}
+
+              {/* In-Place Palette Color Customization Panel (for retro presets) */}
+              {palette !== 'full' && (
+                <Box
+                  sx={{
+                    p: 1.5,
+                    mb: 2.5,
+                    borderRadius: 2,
+                    bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'grey.900' : 'grey.100'),
+                    border: '1px solid',
+                    borderColor: 'divider',
+                  }}
+                >
+                  <Box
                     sx={{
-                      borderRadius: 1.5,
                       display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'flex-start',
-                      p: 1,
-                      textTransform: 'none',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      mb: 1,
                     }}
                   >
-                    <Box sx={{ display: 'flex', gap: 0.4, mb: 0.5 }}>
-                      {pal.colors.slice(0, 5).map((col, i) => (
-                        <Box
-                          key={i}
-                          sx={{
-                            width: 10,
-                            height: 10,
-                            borderRadius: '50%',
-                            bgcolor: col,
-                            border: '1px solid rgba(255,255,255,0.4)',
-                          }}
-                        />
-                      ))}
-                    </Box>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.78rem' }}>
-                      {pal.name}
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontWeight: 800,
+                        color: 'text.primary',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 0.5,
+                      }}
+                    >
+                      <PaletteRoundedIcon sx={{ fontSize: 16, color: 'primary.main' }} />
+                      {PALETTES.find((p) => p.id === palette)?.name} 색상 직접 변경 (
+                      {paletteColors[palette].length}색)
                     </Typography>
-                  </Button>
-                ))}
-              </Box>
+                    <Tooltip title="원래 기본 색상으로 되돌리기">
+                      <Button
+                        size="small"
+                        variant="text"
+                        color="inherit"
+                        onClick={handleResetCurrentPalette}
+                        startIcon={<RestartAltRoundedIcon sx={{ fontSize: 14 }} />}
+                        sx={{ fontSize: '0.7rem', py: 0.2, px: 0.6, minWidth: 0, fontWeight: 600 }}
+                      >
+                        기본값 복원
+                      </Button>
+                    </Tooltip>
+                  </Box>
+
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      display: 'block',
+                      color: 'text.secondary',
+                      mb: 1.2,
+                      fontSize: '0.7rem',
+                    }}
+                  >
+                    아래 색상 칩을 클릭하여 팔레트 색상을 직접 수정할 수 있습니다.
+                  </Typography>
+
+                  {/* Color Chips List */}
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: 1,
+                      alignItems: 'center',
+                    }}
+                  >
+                    {paletteColors[palette].map((color, index) => (
+                      <Box
+                        key={`${palette}-${index}-${color}`}
+                        sx={{
+                          position: 'relative',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: 0.3,
+                        }}
+                      >
+                        <Tooltip title="클릭하여 색상 변경">
+                          <Box
+                            component="label"
+                            sx={{
+                              position: 'relative',
+                              width: 34,
+                              height: 34,
+                              borderRadius: 1.5,
+                              bgcolor: color,
+                              border: '2px solid',
+                              borderColor: 'background.paper',
+                              boxShadow: 1,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              transition: 'transform 0.15s ease',
+                              '&:hover': {
+                                transform: 'scale(1.08)',
+                              },
+                            }}
+                          >
+                            <input
+                              type="color"
+                              value={color}
+                              onChange={(e) => handleUpdatePaletteColor(index, e.target.value)}
+                              style={{
+                                opacity: 0,
+                                position: 'absolute',
+                                width: '100%',
+                                height: '100%',
+                                cursor: 'pointer',
+                              }}
+                            />
+                          </Box>
+                        </Tooltip>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            fontSize: '0.65rem',
+                            fontFamily: 'monospace',
+                            color: 'text.secondary',
+                            fontWeight: 600,
+                          }}
+                        >
+                          {color.toUpperCase()}
+                        </Typography>
+                        {paletteColors[palette].length > 2 && (
+                          <IconButton
+                            size="small"
+                            onClick={() => handleRemovePaletteColor(index)}
+                            sx={{
+                              position: 'absolute',
+                              top: -6,
+                              right: -6,
+                              width: 16,
+                              height: 16,
+                              p: 0,
+                              bgcolor: 'error.main',
+                              color: '#ffffff',
+                              '&:hover': {
+                                bgcolor: 'error.dark',
+                              },
+                            }}
+                          >
+                            <CloseRoundedIcon sx={{ fontSize: 10 }} />
+                          </IconButton>
+                        )}
+                      </Box>
+                    ))}
+
+                    {/* Add Color Button */}
+                    {paletteColors[palette].length < 16 && (
+                      <Tooltip title="새 색상 추가 (최대 16색)">
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          onClick={handleAddPaletteColor}
+                          sx={{
+                            minWidth: 34,
+                            width: 34,
+                            height: 34,
+                            borderRadius: 1.5,
+                            p: 0,
+                            borderStyle: 'dashed',
+                            borderColor: 'text.disabled',
+                            color: 'text.secondary',
+                            '&:hover': {
+                              borderColor: 'primary.main',
+                              color: 'primary.main',
+                            },
+                          }}
+                        >
+                          <AddRoundedIcon sx={{ fontSize: 18 }} />
+                        </Button>
+                      </Tooltip>
+                    )}
+                  </Box>
+                </Box>
+              )}
 
               {/* Sliders */}
               <Box sx={{ mb: 2 }}>

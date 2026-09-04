@@ -136,6 +136,11 @@ export const TOOL_METADATA_MAP: Record<
     tag: '포맷 변환',
     badgeColor: 'info',
   },
+  [paths.photo.svg]: {
+    description: '이미지(PNG/JPG)를 벡터 SVG로 변환 & SVG 파일/코드 래스터 고화질 렌더링',
+    tag: 'NEW',
+    badgeColor: 'primary',
+  },
   [paths.photo.flip]: {
     description: '정밀 거울 대칭 좌우/상하 반전, 90° 각도 회전 & 만화경 대칭 합성',
     tag: 'NEW',

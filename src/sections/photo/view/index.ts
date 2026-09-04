@@ -20,6 +20,7 @@ export * from './photo-mosaic-view';
 export * from './photo-resize-view';
 
 export * from './photo-convert-view';
+export * from './photo-svg-view';
 export * from './photo-compress-view';
 
 export * from './photo-four-cut-view';
@@ -58,6 +59,7 @@ export { MosaicView as PhotoMosaicView } from './photo-mosaic-view';
 
 export { ResizeView as PhotoResizeView } from './photo-resize-view';
 export { ConvertView as PhotoConvertView } from './photo-convert-view';
+export { PhotoSvgView as SvgView } from './photo-svg-view';
 
 export { FourCutView as PhotoFourCutView } from './photo-four-cut-view';
 export { MemeLabView as PhotoMemeLabView } from './photo-meme-lab-view';

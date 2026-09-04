@@ -50,7 +50,7 @@ const GLITCH_SAMPLE_IMAGES: SampleImageItem[] = [
   {
     id: 'sample-statue',
     label: '조각상 (베이퍼웨이브/글리치)',
-    url: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=800&auto=format&fit=crop&q=80',
+    url: 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=800&auto=format&fit=crop&q=80',
     subLabel: '아트 & 오브제',
   },
 ];

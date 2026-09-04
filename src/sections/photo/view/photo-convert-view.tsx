@@ -52,7 +52,7 @@ const CONVERT_SAMPLE_IMAGES: SampleImageItem[] = [
   {
     id: 'sample-vector-art',
     label: '🎨 컬러 일러스트 아트 (PNG)',
-    url: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=1000&auto=format&fit=crop&q=80',
+    url: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=1000&auto=format&fit=crop&q=80',
     subLabel: 'PNG ➜ ICO 파비콘 & BMP',
   },
 ];

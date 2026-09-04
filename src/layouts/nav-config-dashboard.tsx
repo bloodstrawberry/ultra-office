@@ -49,6 +49,7 @@ import MovieCreationRoundedIcon from '@mui/icons-material/MovieCreationRounded';
 import SportsEsportsRoundedIcon from '@mui/icons-material/SportsEsportsRounded';
 import DocumentScannerRoundedIcon from '@mui/icons-material/DocumentScannerRounded';
 import DashboardCustomizeRoundedIcon from '@mui/icons-material/DashboardCustomizeRounded';
+import ApiRoundedIcon from '@mui/icons-material/ApiRounded';
 import SwapHorizontalCircleRoundedIcon from '@mui/icons-material/SwapHorizontalCircleRounded';
 
 import { paths } from 'src/routes/paths';
@@ -103,6 +104,7 @@ const ICONS = {
   matlab: <CalculateRoundedIcon fontSize="small" />,
   blackHole: <TrackChangesRoundedIcon fontSize="small" />,
   threejs: <ViewInArRoundedIcon fontSize="small" />,
+  publicApi: <ApiRoundedIcon fontSize="small" />,
   etc: <HandymanRoundedIcon fontSize="small" />,
 };
 
@@ -173,6 +175,7 @@ export const navData: NavSectionProps['data'] = [
           { title: '사진 용량 압축', path: paths.photo.compress },
           { title: '이미지 크기 조절', path: paths.photo.resize },
           { title: '확장자 변환', path: paths.photo.convert },
+          { title: 'SVG 변환', path: paths.photo.svg },
           { title: '상하 · 좌우 반전', path: paths.photo.flip },
           { title: '도형 자르기', path: paths.photo.shapeCrop },
           { title: '모자이크 & 블러', path: paths.photo.mosaic },
@@ -230,6 +233,7 @@ export const navData: NavSectionProps['data'] = [
           { title: 'Three.js Lab', path: paths.threejs },
           { title: '파일 변환기', path: paths.fileConvert },
           { title: '개발자 툴킷', path: paths.devTools },
+          { title: 'Public API', path: paths.publicApi },
         ],
       },
       {

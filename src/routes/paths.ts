@@ -34,6 +34,7 @@ export const paths = {
   diagram: '/diagram',
   schedule: '/schedule',
   devTools: '/dev-tools',
+  publicApi: '/public-api',
   codeRunner: '/code-runner',
   threejs: '/threejs',
   barcode: '/barcode',
@@ -134,5 +135,6 @@ export const paths = {
     resize: `/photo/resize`,
     padding: `/photo/padding`,
     ogImage: `/photo/og-image`,
+    svg: `/photo/svg`,
   },
 };

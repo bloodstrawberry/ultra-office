@@ -6,7 +6,6 @@ import React, { useRef, useMemo, useState, useEffect, useCallback } from 'react'
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
-import Chip from '@mui/material/Chip';
 import Typography from '@mui/material/Typography';
 import ToggleButton from '@mui/material/ToggleButton';
 import LinearProgress from '@mui/material/LinearProgress';
@@ -437,92 +436,8 @@ export function PhotoCompareViewport({
                     width: '100%',
                     height: '100%',
                     objectFit: 'cover',
-                    borderRadius: 0,
                   }}
                 />
-
-                {/* Floating Quick Pill Toggle on Canvas */}
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: 12,
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    zIndex: 12,
-                    bgcolor: 'background.paper',
-                    color: 'text.primary',
-                    border: '1.5px solid',
-                    borderColor: 'primary.main',
-                    borderRadius: 20,
-                    px: 1.5,
-                    py: 0.5,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    boxShadow: 3,
-                    userSelect: 'none',
-                  }}
-                >
-                  <Box
-                    onClick={() =>
-                      setSplitOrientation(
-                        splitOrientation === 'horizontal' ? 'vertical' : 'horizontal'
-                      )
-                    }
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 0.5,
-                      cursor: 'pointer',
-                      px: 0.8,
-                      py: 0.2,
-                      borderRadius: 1,
-                      bgcolor: 'action.hover',
-                      '&:hover': { bgcolor: 'primary.lighter' },
-                    }}
-                  >
-                    {splitOrientation === 'horizontal' ? (
-                      <SwapHorizRoundedIcon sx={{ fontSize: 18, color: 'primary.main' }} />
-                    ) : (
-                      <SwapVertRoundedIcon sx={{ fontSize: 18, color: 'primary.main' }} />
-                    )}
-                    <Typography variant="caption" sx={{ fontWeight: 800 }}>
-                      {splitOrientation === 'horizontal' ? '↔ 가로(좌우)' : '↕ 세로(상하)'}
-                    </Typography>
-                  </Box>
-
-                  <Box
-                    onClick={() => setSplitMode(splitMode === 'inside' ? 'outside' : 'inside')}
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 0.5,
-                      cursor: 'pointer',
-                      px: 0.8,
-                      py: 0.2,
-                      borderRadius: 1,
-                      bgcolor: 'action.hover',
-                      '&:hover': { bgcolor: 'primary.lighter' },
-                    }}
-                  >
-                    <Typography variant="caption" sx={{ fontWeight: 800, whiteSpace: 'nowrap' }}>
-                      {splitOrientation === 'horizontal'
-                        ? splitMode === 'inside'
-                          ? '→ [중앙 적용] ←'
-                          : '← [양끝 적용] →'
-                        : splitMode === 'inside'
-                          ? '↓ [중앙 적용] ↑'
-                          : '↑ [상하 적용] ↓'}
-                    </Typography>
-                    <Chip
-                      label="방향 전환"
-                      size="small"
-                      color="primary"
-                      variant="filled"
-                      sx={{ height: 18, fontSize: '0.65rem', fontWeight: 700 }}
-                    />
-                  </Box>
-                </Box>
 
                 {/* Foreground Layer: Original Image Clipped */}
                 {splitOrientation === 'horizontal' ? (

@@ -37,8 +37,11 @@ import AutoFixHighRoundedIcon from '@mui/icons-material/AutoFixHighRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import FindReplaceRoundedIcon from '@mui/icons-material/FindReplaceRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
+import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import IntegrationInstructionsRoundedIcon from '@mui/icons-material/IntegrationInstructionsRounded';
 
+import { paths } from 'src/routes/paths';
+import { useRouter } from 'src/routes/hooks/use-router';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import {
@@ -86,6 +89,7 @@ interface HubToolItem {
   icon: React.ReactNode;
   tag?: string;
   badgeColor?: 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success';
+  path?: string;
 }
 
 const HUB_SECTIONS: { category: string; desc: string; tools: HubToolItem[] }[] = [
@@ -244,6 +248,16 @@ const HUB_SECTIONS: { category: string; desc: string; tools: HubToolItem[] }[] =
         tag: 'NEW',
         badgeColor: 'secondary',
       },
+      {
+        id: 'web',
+        subId: 'publicApi',
+        title: 'Public API 탐색기 & 테스터',
+        desc: '한국 300개 + 글로벌 1,491개 공개 API 검색 및 브라우저 실시간 요청/응답 테스트',
+        icon: <PublicRoundedIcon sx={{ fontSize: 26, color: '#0ea5e9' }} />,
+        tag: 'HOT',
+        badgeColor: 'primary',
+        path: paths.publicApi,
+      },
     ],
   },
 ];
@@ -252,6 +266,7 @@ const HUB_SECTIONS: { category: string; desc: string; tools: HubToolItem[] }[] =
 // Main DevTools View Component
 // ----------------------------------------------------------------------
 export function DevToolsView() {
+  const router = useRouter();
   const [currentTab, setCurrentTab] = useState<ToolTabKey>('jwt');
   const [hasLoaded, setHasLoaded] = useState(false);
   const [splitWidth, setSplitWidth] = useState<number>(500);
@@ -604,7 +619,13 @@ export function DevToolsView() {
                   {sec.tools.map((tool, idx) => (
                     <Card
                       key={`${tool.id}-${idx}`}
-                      onClick={() => setCurrentTab(tool.id)}
+                      onClick={() => {
+                        if (tool.path) {
+                          router.push(tool.path);
+                        } else {
+                          setCurrentTab(tool.id);
+                        }
+                      }}
                       sx={{
                         p: 2.5,
                         borderRadius: 2.5,
