@@ -3,11 +3,20 @@
 import React, { useState, useEffect } from 'react';
 import Box from '@mui/material/Box';
 
-import { INITIAL_PRESETS } from '../constants/presets';
+import { INITIAL_PRESETS, ROOM_LIST_PRESETS } from '../constants/presets';
 import { THEMES_BY_CATEGORY } from '../constants/themes';
 import { ChatPreviewCanvas } from './chat-preview-canvas';
 import { ChatEditorDrawer } from './chat-editor-drawer';
-import type { ChatCategory, ChatData, ChatThemeId, ChatMessage, ChatRoomConfig } from '../types';
+import type {
+  ChatCategory,
+  ChatData,
+  ChatThemeId,
+  ChatMessage,
+  ChatRoomConfig,
+  ChatViewMode,
+  ChatRoomListItem,
+  MessengerThemeId,
+} from '../types';
 
 interface ChatStudioContainerProps {
   category: ChatCategory;
@@ -25,6 +34,10 @@ export function ChatStudioContainer({ category, defaultThemeId }: ChatStudioCont
     return data;
   });
 
+  // 메신저 카테고리는 기본적으로 채팅방 목록 화면('list')에서 시작
+  const [viewMode, setViewMode] = useState<ChatViewMode>(
+    category === 'messenger' ? 'list' : 'room'
+  );
   const [editorOpen, setEditorOpen] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
 
@@ -32,9 +45,49 @@ export function ChatStudioContainer({ category, defaultThemeId }: ChatStudioCont
     setHasMounted(true);
   }, []);
 
+  // 방 선택 핸들러 (목록에서 방 클릭 시 해당 방 대화창으로 진입)
+  const handleSelectRoom = (room: ChatRoomListItem) => {
+    if (room.roomData) {
+      setChatData(JSON.parse(JSON.stringify(room.roomData)));
+    } else {
+      setChatData((prev) => ({
+        ...prev,
+        config: {
+          ...prev.config,
+          roomTitle: room.title,
+          partnerName: room.partnerName || room.title,
+          memberCount: room.memberCount,
+        },
+      }));
+    }
+    setViewMode('room');
+  };
+
+  // 뒤로가기 핸들러 (대화방에서 목록으로 복귀)
+  const handleBackToList = () => {
+    setViewMode('list');
+  };
+
+  // 화면 모드 토글 (목록 <-> 대화방)
+  const handleToggleViewMode = () => {
+    setViewMode((prev) => (prev === 'list' ? 'room' : 'list'));
+  };
+
   // 테마 변경 핸들러
   const handleThemeChange = (themeId: ChatThemeId) => {
     const isWebTheme = themeId.endsWith('_web');
+    const messengerThemes = ['kakaotalk', 'knox', 'line', 'telegram', 'imessage', 'galaxy'];
+
+    // 메신저 테마 변경 시 해당 테마의 첫 번째 방 프리셋이 있으면 동기화
+    if (messengerThemes.includes(themeId)) {
+      const rooms = ROOM_LIST_PRESETS[themeId as MessengerThemeId];
+      if (rooms && rooms[0]?.roomData) {
+        const nextData = JSON.parse(JSON.stringify(rooms[0].roomData));
+        setChatData(nextData);
+        return;
+      }
+    }
+
     setChatData((prev) => ({
       ...prev,
       config: {
@@ -135,7 +188,9 @@ export function ChatStudioContainer({ category, defaultThemeId }: ChatStudioCont
     <Box
       sx={{
         width: '100%',
-        height: 'calc(100vh - 80px)',
+        height: '100%',
+        flex: '1 1 auto',
+        minHeight: 0,
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
@@ -145,6 +200,10 @@ export function ChatStudioContainer({ category, defaultThemeId }: ChatStudioCont
       <ChatPreviewCanvas
         data={chatData}
         category={category}
+        viewMode={viewMode}
+        onToggleViewMode={handleToggleViewMode}
+        onSelectRoom={handleSelectRoom}
+        onBackToList={handleBackToList}
         onOpenEditor={() => setEditorOpen(true)}
         onThemeChange={handleThemeChange}
         onSendMessage={handleSendMessage}

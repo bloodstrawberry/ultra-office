@@ -32,11 +32,24 @@ import { ChatDeviceFrame } from './chat-device-frame';
 import { ChatHeaderBar } from './chat-header-bar';
 import { ChatMessageItem } from './chat-message-item';
 import { ChatBottomInputBar } from './chat-bottom-input-bar';
-import type { ChatData, ChatThemeId, ChatCategory, ChatMessage, ChatRoomConfig } from '../types';
+import { ChatRoomListView } from './chat-room-list-view';
+import type {
+  ChatData,
+  ChatThemeId,
+  ChatCategory,
+  ChatMessage,
+  ChatRoomConfig,
+  ChatViewMode,
+  ChatRoomListItem,
+} from '../types';
 
 interface ChatPreviewCanvasProps {
   data: ChatData;
   category: ChatCategory;
+  viewMode?: ChatViewMode;
+  onToggleViewMode?: () => void;
+  onSelectRoom?: (room: ChatRoomListItem) => void;
+  onBackToList?: () => void;
   onOpenEditor: () => void;
   onThemeChange: (themeId: ChatThemeId) => void;
   onSendMessage: (text: string) => void;
@@ -49,6 +62,10 @@ interface ChatPreviewCanvasProps {
 export function ChatPreviewCanvas({
   data,
   category,
+  viewMode = 'list',
+  onToggleViewMode,
+  onSelectRoom,
+  onBackToList,
   onOpenEditor,
   onThemeChange,
   onSendMessage,
@@ -250,6 +267,23 @@ export function ChatPreviewCanvas({
 
         {/* 액션 버튼 그룹: 재생 시뮬레이터, Copy, 다운로드, 크기, 곡률, 편집, 초기화 */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+          {/* 🔄 메신저 화면 모드 전환: 대화방 목록 vs 대화 상세 */}
+          {category === 'messenger' && (
+            <Tooltip
+              title={viewMode === 'list' ? '대화방 상세창으로 전환' : '채팅방 목록 화면으로 복귀'}
+            >
+              <Button
+                size="small"
+                variant={viewMode === 'list' ? 'contained' : 'outlined'}
+                color="info"
+                onClick={onToggleViewMode}
+                sx={{ fontSize: 12, fontWeight: 700, py: 0.4, px: 1.2 }}
+              >
+                {viewMode === 'list' ? '📋 목록 화면' : '💬 대화방 화면'}
+              </Button>
+            </Tooltip>
+          )}
+
           {/* 🎬 실시간 대화 재생 컨트롤 그룹 */}
           <Box
             sx={{
@@ -526,7 +560,11 @@ export function ChatPreviewCanvas({
       <Box
         sx={{
           flex: 1,
+          width: '100%',
+          height: '100%',
+          minHeight: 0,
           overflowY: isFullViewport ? 'hidden' : 'auto',
+          overflowX: 'hidden',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -534,10 +572,9 @@ export function ChatPreviewCanvas({
             ? data.config.showDeviceFrame
               ? { xs: 1, md: 1.5 }
               : 0
-            : { xs: 1.5, md: 3 },
+            : { xs: 1.5, md: 2 },
           position: 'relative',
-          height: isFullViewport ? '100%' : 'auto',
-          minHeight: 0,
+          bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'grey.900' : 'grey.100'),
         }}
       >
         <Box
@@ -552,75 +589,84 @@ export function ChatPreviewCanvas({
           }}
         >
           <ChatDeviceFrame config={data.config}>
-            {/* 채팅방 내부 전체 래퍼 */}
-            <Box
-              sx={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                height: '100%',
-                bgcolor: themeMeta.defaultBg,
-                background: themeMeta.defaultBg,
-                position: 'relative',
-                overflow: 'hidden',
-              }}
-            >
-              {/* 상단 헤더 */}
-              <ChatHeaderBar
+            {/* 메신저 카테고리 & 목록 화면 모드일 때는 대화방 목록 뷰 렌더링 */}
+            {category === 'messenger' && viewMode === 'list' ? (
+              <ChatRoomListView
                 config={data.config}
-                partner={data.users.find((u) => u.role === 'other' || u.role === 'bot')}
+                onSelectRoom={(room) => onSelectRoom?.(room)}
               />
-
-              {/* 메시지 스트림 스크롤 영역 (Full 모드 시 좌/우 전폭 활용, 기본 모드 시 중앙 840px 컨테이너) */}
+            ) : (
+              /* 채팅방 내부 전체 래퍼 */
               <Box
-                ref={messagesScrollRef}
                 sx={{
                   flex: 1,
-                  overflowY: 'auto',
-                  py: 1.5,
                   display: 'flex',
                   flexDirection: 'column',
-                  alignItems: isFullViewport ? 'stretch' : 'center',
-                  scrollBehavior: 'smooth',
-                  width: '100%',
+                  height: '100%',
+                  bgcolor: themeMeta.defaultBg,
+                  background: themeMeta.defaultBg,
+                  position: 'relative',
+                  overflow: 'hidden',
                 }}
               >
+                {/* 상단 헤더 */}
+                <ChatHeaderBar
+                  config={data.config}
+                  partner={data.users.find((u) => u.role === 'other' || u.role === 'bot')}
+                  onBackToList={onBackToList}
+                />
+
+                {/* 메시지 스트림 스크롤 영역 (Full 모드 시 좌/우 전폭 활용, 기본 모드 시 중앙 840px 컨테이너) */}
                 <Box
+                  ref={messagesScrollRef}
                   sx={{
-                    width: '100%',
-                    maxWidth: isFullViewport
-                      ? '100%'
-                      : data.config.category === 'llm' || data.config.deviceType === 'desktop'
-                        ? 840
-                        : '100%',
+                    flex: 1,
+                    overflowY: 'auto',
+                    py: 1.5,
                     display: 'flex',
                     flexDirection: 'column',
+                    alignItems: isFullViewport ? 'stretch' : 'center',
+                    scrollBehavior: 'smooth',
+                    width: '100%',
                   }}
                 >
-                  {displayedMessages.map((msg, idx) => {
-                    const sender = data.users.find((u) => u.id === msg.senderId);
-                    const previousMessage = idx > 0 ? displayedMessages[idx - 1] : null;
-                    const nextMessage =
-                      idx < displayedMessages.length - 1 ? displayedMessages[idx + 1] : null;
+                  <Box
+                    sx={{
+                      width: '100%',
+                      maxWidth: isFullViewport
+                        ? '100%'
+                        : data.config.category === 'llm' || data.config.deviceType === 'desktop'
+                          ? 840
+                          : '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                    }}
+                  >
+                    {displayedMessages.map((msg, idx) => {
+                      const sender = data.users.find((u) => u.id === msg.senderId);
+                      const previousMessage = idx > 0 ? displayedMessages[idx - 1] : null;
+                      const nextMessage =
+                        idx < displayedMessages.length - 1 ? displayedMessages[idx + 1] : null;
 
-                    return (
-                      <ChatMessageItem
-                        key={msg.id}
-                        message={msg}
-                        sender={sender}
-                        config={data.config}
-                        previousMessage={previousMessage}
-                        nextMessage={nextMessage}
-                        onSelectMessage={onSelectMessage}
-                      />
-                    );
-                  })}
+                      return (
+                        <ChatMessageItem
+                          key={msg.id}
+                          message={msg}
+                          sender={sender}
+                          config={data.config}
+                          previousMessage={previousMessage}
+                          nextMessage={nextMessage}
+                          onSelectMessage={onSelectMessage}
+                        />
+                      );
+                    })}
+                  </Box>
                 </Box>
-              </Box>
 
-              {/* 하단 입력바 */}
-              <ChatBottomInputBar config={data.config} onSendMessage={onSendMessage} />
-            </Box>
+                {/* 하단 입력바 */}
+                <ChatBottomInputBar config={data.config} onSendMessage={onSendMessage} />
+              </Box>
+            )}
           </ChatDeviceFrame>
         </Box>
       </Box>

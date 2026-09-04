@@ -1,10 +1,10 @@
 import type { NavMainProps } from './main/nav/types';
 import type { NavSectionProps } from 'src/components/nav-section';
 
+import Chip from '@mui/material/Chip';
 import GifRoundedIcon from '@mui/icons-material/GifRounded';
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
 import CodeRoundedIcon from '@mui/icons-material/CodeRounded';
-import AppsRoundedIcon from '@mui/icons-material/AppsRounded';
 import HiveRoundedIcon from '@mui/icons-material/HiveRounded';
 import WavesRoundedIcon from '@mui/icons-material/WavesRounded';
 import ForumRoundedIcon from '@mui/icons-material/ForumRounded';
@@ -99,13 +99,28 @@ const ICONS = {
   cellularAutomata: <HiveRoundedIcon fontSize="small" />,
   waveOptics: <WavesRoundedIcon fontSize="small" />,
   monteCarlo: <ScatterPlotRoundedIcon fontSize="small" />,
-  appsInToss: <AppsRoundedIcon fontSize="small" />,
   chat: <ForumRoundedIcon fontSize="small" />,
   matlab: <CalculateRoundedIcon fontSize="small" />,
   blackHole: <TrackChangesRoundedIcon fontSize="small" />,
   threejs: <ViewInArRoundedIcon fontSize="small" />,
   etc: <HandymanRoundedIcon fontSize="small" />,
 };
+
+const appsInTossBadge = (
+  <Chip
+    size="small"
+    variant="soft"
+    color="info"
+    label="앱인토스"
+    sx={{
+      height: 20,
+      fontSize: '0.6875rem',
+      fontWeight: 700,
+      pointerEvents: 'none',
+      '& .MuiChip-label': { px: 0.75 },
+    }}
+  />
+);
 
 // ----------------------------------------------------------------------
 
@@ -128,18 +143,6 @@ export const navData: NavSectionProps['data'] = [
     subheader: 'Workspace',
     items: [
       {
-        title: '앱인토스',
-        path: paths.photo.logo,
-        icon: ICONS.appsInToss,
-        children: [
-          { title: '로고 만들기', path: paths.photo.logo },
-          { title: '배경색 변경', path: paths.photo.color },
-          { title: '세로 스크린샷', path: paths.photo.sero },
-          { title: '가로 스크린샷', path: paths.photo.garo },
-          { title: 'ogImage 크기 조절', path: paths.photo.ogImage },
-        ],
-      },
-      {
         title: '사진 필터 및 효과',
         path: paths.photo.artStyle,
         icon: ICONS.imageTool,
@@ -158,6 +161,11 @@ export const navData: NavSectionProps['data'] = [
         path: paths.photo.root,
         icon: ICONS.photo,
         children: [
+          { title: '로고 만들기', path: paths.photo.logo, info: appsInTossBadge },
+          { title: '배경색 변경', path: paths.photo.color, info: appsInTossBadge },
+          { title: '세로 스크린샷', path: paths.photo.sero, info: appsInTossBadge },
+          { title: '가로 스크린샷', path: paths.photo.garo, info: appsInTossBadge },
+          { title: 'ogImage 크기 조절', path: paths.photo.ogImage, info: appsInTossBadge },
           { title: 'AI 배경 제거', path: paths.photo.bgRemove },
           { title: '여백 조정', path: paths.photo.padding },
           { title: '스마트 OCR', path: paths.ocr },

@@ -1,6 +1,6 @@
 export type ChatCategory = 'messenger' | 'sns' | 'llm';
 
-export type MessengerThemeId = 'kakaotalk' | 'line' | 'knox' | 'telegram' | 'imessage';
+export type MessengerThemeId = 'kakaotalk' | 'knox' | 'line' | 'telegram' | 'imessage' | 'galaxy';
 export type SnsThemeId = 'instagram' | 'threads' | 'facebook' | 'twitter';
 export type LlmThemeId =
   | 'chatgpt'
@@ -13,6 +13,24 @@ export type LlmThemeId =
   | 'grok';
 
 export type ChatThemeId = MessengerThemeId | SnsThemeId | LlmThemeId;
+
+export type ChatViewMode = 'list' | 'room';
+
+export interface ChatRoomListItem {
+  id: string;
+  title: string;
+  partnerName?: string;
+  avatar?: string;
+  avatarBg?: string;
+  lastMessage: string;
+  lastTime: string;
+  unreadCount?: number;
+  isPinned?: boolean;
+  memberCount?: number;
+  isOpenChat?: boolean;
+  categoryTag?: string;
+  roomData?: ChatData;
+}
 
 export type UserRole = 'me' | 'other' | 'bot' | 'system';
 

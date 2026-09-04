@@ -98,6 +98,26 @@ export const THEME_OPTIONS: Record<ChatThemeId, ThemeOption> = {
       hasReaction: true,
     },
   },
+  galaxy: {
+    id: 'galaxy',
+    name: '갤럭시 문자',
+    subtitle: '삼성 One UI 메시지 스타일',
+    category: 'messenger',
+    iconName: 'ri:android-fill',
+    badgeColor: '#1F69FF',
+    defaultBg: '#F2F4F8',
+    myBubbleBg: '#2C7BFE',
+    myBubbleText: '#FFFFFF',
+    otherBubbleBg: '#FFFFFF',
+    otherBubbleText: '#191919',
+    headerBg: '#F2F4F8',
+    headerText: '#191919',
+    features: {
+      hasReadStatus: true,
+      hasUnreadBadge: true,
+      hasReaction: true,
+    },
+  },
 
   // 2. SNS Themes
   instagram: {
@@ -337,6 +357,7 @@ export const THEMES_BY_CATEGORY: Record<ChatCategory, ThemeOption[]> = {
     THEME_OPTIONS.line,
     THEME_OPTIONS.telegram,
     THEME_OPTIONS.imessage,
+    THEME_OPTIONS.galaxy,
   ],
   sns: [
     THEME_OPTIONS.instagram,

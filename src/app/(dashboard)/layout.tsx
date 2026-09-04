@@ -11,9 +11,5 @@ type Props = {
 };
 
 export default function Layout({ children }: Props) {
-  return (
-    <DashboardLayout>
-      <Suspense fallback={<LoadingScreen />}>{children}</Suspense>
-    </DashboardLayout>
-  );
+  return <DashboardLayout>{children}</DashboardLayout>;
 }

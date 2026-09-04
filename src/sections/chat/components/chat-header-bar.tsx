@@ -22,9 +22,10 @@ import type { ChatRoomConfig, ChatUser } from '../types';
 interface ChatHeaderBarProps {
   config: ChatRoomConfig;
   partner?: ChatUser;
+  onBackToList?: () => void;
 }
 
-export function ChatHeaderBar({ config, partner }: ChatHeaderBarProps) {
+export function ChatHeaderBar({ config, partner, onBackToList }: ChatHeaderBarProps) {
   const { themeId, roomTitle, partnerName, memberCount, partnerStatus } = config;
   const themeMeta = THEME_OPTIONS[themeId] || THEME_OPTIONS.kakaotalk;
 
@@ -155,15 +156,26 @@ export function ChatHeaderBar({ config, partner }: ChatHeaderBarProps) {
     >
       {/* 뒤로가기 & 프로필 정보 */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1, minWidth: 0 }}>
-        <IconButton size="small" sx={{ color: 'inherit', p: 0.5 }}>
-          {themeId === 'kakaotalk' ? (
-            <ArrowBackRoundedIcon sx={{ fontSize: 22, color: '#111111' }} />
+        <IconButton
+          size="small"
+          onClick={onBackToList}
+          sx={{
+            color: 'inherit',
+            p: 0.5,
+            cursor: onBackToList ? 'pointer' : 'default',
+            '&:hover': onBackToList ? { bgcolor: 'action.hover' } : undefined,
+          }}
+        >
+          {themeId === 'kakaotalk' || themeId === 'galaxy' ? (
+            <ArrowBackRoundedIcon
+              sx={{ fontSize: 22, color: themeId === 'kakaotalk' ? '#111111' : '#1E293B' }}
+            />
           ) : (
             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
           )}
         </IconButton>
 
-        {/* 아바타 (인스타, 라인, Knox, 텔레그램, iMessage 등) */}
+        {/* 아바타 (인스타, 라인, Knox, 텔레그램, iMessage, 갤럭시 등) */}
         {themeId !== 'kakaotalk' && (
           <Avatar
             src={displayAvatar}
@@ -172,8 +184,16 @@ export function ChatHeaderBar({ config, partner }: ChatHeaderBarProps) {
               width: 34,
               height: 34,
               border: themeId === 'instagram' ? '2px solid #E1306C' : 'none',
+              ...(themeId === 'galaxy' && {
+                bgcolor: '#2C7BFE',
+                color: '#FFFFFF',
+                fontWeight: 700,
+                fontSize: 14,
+              }),
             }}
-          />
+          >
+            {themeId === 'galaxy' && !displayAvatar ? displayName.charAt(0) : undefined}
+          </Avatar>
         )}
 
         <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
@@ -181,7 +201,7 @@ export function ChatHeaderBar({ config, partner }: ChatHeaderBarProps) {
             <Typography
               noWrap
               sx={{
-                fontSize: themeId === 'kakaotalk' ? 16.5 : 15,
+                fontSize: themeId === 'kakaotalk' ? 16.5 : themeId === 'galaxy' ? 15.5 : 15,
                 fontWeight: 700,
                 color: themeMeta.headerText,
                 letterSpacing: -0.3,
@@ -207,7 +227,7 @@ export function ChatHeaderBar({ config, partner }: ChatHeaderBarProps) {
             <Typography
               noWrap
               sx={{
-                fontSize: 10,
+                fontSize: 10.5,
                 opacity: 0.65,
                 color: themeMeta.headerText,
               }}
@@ -227,6 +247,20 @@ export function ChatHeaderBar({ config, partner }: ChatHeaderBarProps) {
             </IconButton>
             <IconButton size="small" sx={{ color: '#111111', p: 0.6 }}>
               <MenuRoundedIcon sx={{ fontSize: 24 }} />
+            </IconButton>
+          </>
+        )}
+
+        {themeId === 'galaxy' && (
+          <>
+            <IconButton size="small" sx={{ color: '#1E293B', p: 0.6 }}>
+              <CallRoundedIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+            <IconButton size="small" sx={{ color: '#1E293B', p: 0.6 }}>
+              <SearchRoundedIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+            <IconButton size="small" sx={{ color: '#1E293B', p: 0.6 }}>
+              <MoreVertRoundedIcon sx={{ fontSize: 20 }} />
             </IconButton>
           </>
         )}

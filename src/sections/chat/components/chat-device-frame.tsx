@@ -207,7 +207,7 @@ export function ChatDeviceFrame({ config, children }: ChatDeviceFrameProps) {
 
   const isIphone = deviceType === 'iphone';
   const width = config.deviceWidth || 390;
-  const height = Math.round(width * 2);
+  const height = Math.round(width * 1.85);
   const scale = (config.deviceScale || 100) / 100;
 
   const outerRadius =

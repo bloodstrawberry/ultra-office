@@ -336,7 +336,120 @@ export function ChatBottomInputBar({ config, onSendMessage }: ChatBottomInputBar
     );
   }
 
-  // 3. 기타 메신저 및 SNS 하단 입력바
+  // 3. 갤럭시 문자 (Samsung One UI 메시지 입력바)
+  if (themeId === 'galaxy') {
+    return (
+      <Box
+        sx={{
+          px: 1.5,
+          py: 1,
+          bgcolor: darkMode ? '#121212' : '#FFFFFF',
+          borderTop: `1px solid ${darkMode ? 'rgba(255,255,255,0.08)' : '#E2E8F0'}`,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+        }}
+      >
+        {/* 첨부 + 버튼 */}
+        <Box
+          sx={{
+            width: 34,
+            height: 34,
+            borderRadius: '50%',
+            bgcolor: darkMode ? '#262626' : '#F1F5F9',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            flexShrink: 0,
+            color: '#64748B',
+          }}
+        >
+          <AddRoundedIcon sx={{ fontSize: 22 }} />
+        </Box>
+
+        {/* 갤러리/이미지 버튼 */}
+        <Box
+          sx={{
+            width: 34,
+            height: 34,
+            borderRadius: '50%',
+            bgcolor: darkMode ? '#262626' : '#F1F5F9',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            flexShrink: 0,
+            color: '#64748B',
+          }}
+        >
+          <ImageRoundedIcon sx={{ fontSize: 20 }} />
+        </Box>
+
+        {/* 중앙 입력 필드 (One UI 알약 버블) */}
+        <Box
+          sx={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            bgcolor: darkMode ? '#262626' : '#F1F5F9',
+            borderRadius: 4,
+            px: 1.8,
+            py: 0.35,
+          }}
+        >
+          <InputBase
+            fullWidth
+            placeholder="문자 메시지"
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            onKeyDown={handleKeyDown}
+            sx={{
+              color: darkMode ? '#FFFFFF' : '#0F172A',
+              fontSize: 13.5,
+            }}
+          />
+          <IconButton size="small" sx={{ color: '#64748B', p: 0.3 }}>
+            <SentimentSatisfiedAltRoundedIcon sx={{ fontSize: 20 }} />
+          </IconButton>
+        </Box>
+
+        {/* 우측 버튼 (전송 또는 마이크) */}
+        {inputText.trim() ? (
+          <IconButton
+            size="small"
+            onClick={handleSend}
+            sx={{
+              bgcolor: '#1F69FF',
+              color: '#FFFFFF',
+              '&:hover': { bgcolor: '#1657E0' },
+              p: 0.7,
+            }}
+          >
+            <SendRoundedIcon sx={{ fontSize: 17 }} />
+          </IconButton>
+        ) : (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 34,
+              height: 34,
+              borderRadius: '50%',
+              bgcolor: darkMode ? '#262626' : '#F1F5F9',
+              color: '#64748B',
+              cursor: 'pointer',
+            }}
+          >
+            <MicRoundedIcon sx={{ fontSize: 20 }} />
+          </Box>
+        )}
+      </Box>
+    );
+  }
+
+  // 4. 기타 메신저 및 SNS 하단 입력바
   return (
     <Box
       sx={{

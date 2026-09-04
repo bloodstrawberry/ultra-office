@@ -51,6 +51,7 @@ export function ChatMessageItem({
 
   const isKakao = themeId === 'kakaotalk';
   const isKnox = themeId === 'knox';
+  const isGalaxy = themeId === 'galaxy';
 
   // 1. 연속 발신자 메시지 감지 로직
   const isConsecutive = Boolean(
@@ -391,6 +392,9 @@ export function ChatMessageItem({
   // 버블 배경색 & 텍스트 색상 결정 (svs-web 기준 정밀 일치)
   const getBubbleBg = () => {
     if (message.mediaUrl && !message.text) return 'transparent';
+    if (isGalaxy) {
+      return isMe ? '#2C7BFE' : '#FFFFFF'; // 갤럭시 One UI 발신: 블루, 수신: 화이트
+    }
     if (isKnox) {
       return isMe ? '#D9E5FF' : '#FFFFFF'; // Knox sent: 파스텔 라이트블루, received: 화이트
     }
@@ -401,12 +405,16 @@ export function ChatMessageItem({
   };
 
   const getBubbleTextColor = () => {
+    if (isGalaxy) return isMe ? '#FFFFFF' : '#191919';
     if (isKnox || isKakao) return '#000000';
     return isMe ? themeMeta.myBubbleText : themeMeta.otherBubbleText;
   };
 
   // 모서리 둥글기 (Border Radius) 계산
   const getBorderRadius = () => {
+    if (isGalaxy) {
+      return isMe ? '18px 18px 4px 18px' : '18px 18px 18px 4px';
+    }
     if (isKnox) {
       const radius = '12px';
       if (isMe) {
@@ -549,7 +557,8 @@ export function ChatMessageItem({
                 : !message.text && message.mediaUrl
                   ? 'none'
                   : '0 1px 2px rgba(0,0,0,0.1)',
-              border: isKnox && !isMe && !message.mediaUrl ? '1px solid #E2E8F0' : 'none',
+              border:
+                (isKnox || (isGalaxy && !isMe)) && !message.mediaUrl ? '1px solid #E2E8F0' : 'none',
               fontSize: 13.5,
               lineHeight: 1.45,
               wordBreak: 'break-word',
@@ -674,9 +683,16 @@ export function ChatMessageItem({
             </Typography>
           )}
 
-          {/* 라인 또는 텔레그램/iMessage 읽음 표시 */}
+          {/* 라인 또는 텔레그램/iMessage/갤럭시 읽음 표시 */}
           {isMe && themeMeta.features.hasReadStatus && message.isRead && (
-            <Typography sx={{ fontSize: 9, color: '#16A34A', fontWeight: 600, lineHeight: 1 }}>
+            <Typography
+              sx={{
+                fontSize: 9.5,
+                color: isGalaxy ? '#1F69FF' : '#16A34A',
+                fontWeight: 600,
+                lineHeight: 1,
+              }}
+            >
               읽음
             </Typography>
           )}
