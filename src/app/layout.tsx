@@ -1,7 +1,8 @@
 import 'src/global.css';
 
-import { Suspense } from 'react';
 import type { Metadata, Viewport } from 'next';
+
+import { Suspense } from 'react';
 
 import InitColorSchemeScript from '@mui/material/InitColorSchemeScript';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';

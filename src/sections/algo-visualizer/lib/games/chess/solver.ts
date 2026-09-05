@@ -1,15 +1,15 @@
 import type {
+  ChessMove,
   ChessColor,
   ChessBoard,
-  ChessMove,
   ChessAIAnalysis,
   ChessSolutionNode,
 } from './types';
 
 import {
+  isSameSquare,
   isKingInCheck,
   makeChessMove,
-  isSameSquare,
   squareToAlgebraic,
   CHESS_PIECE_VALUES,
   getAllLegalChessMoves,
@@ -46,7 +46,7 @@ export function evaluateChessBoard(board: ChessBoard): number {
     for (let c = 0; c < 8; c += 1) {
       const piece = board[r][c];
       if (piece) {
-        let pieceVal = CHESS_PIECE_VALUES[piece.type];
+        const pieceVal = CHESS_PIECE_VALUES[piece.type];
         let pstVal = 0;
 
         if (piece.type === 'p') {

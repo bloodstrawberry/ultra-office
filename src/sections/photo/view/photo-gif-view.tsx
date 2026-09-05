@@ -29,8 +29,8 @@ import FilterAltRoundedIcon from '@mui/icons-material/FilterAltRounded';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
-import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
 import ContentPasteRoundedIcon from '@mui/icons-material/ContentPasteRounded';
+import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
 
 import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
 

@@ -1,36 +1,38 @@
 'use client';
 
+import type { ChatRoomConfig, ChatRoomListItem, MessengerThemeId } from '../types';
+
 import React, { useState } from 'react';
+
 import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
 import Avatar from '@mui/material/Avatar';
-import IconButton from '@mui/material/IconButton';
 import InputBase from '@mui/material/InputBase';
+import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import ForumOutlinedIcon from '@mui/icons-material/ForumOutlined';
-import AddCommentOutlinedIcon from '@mui/icons-material/AddCommentOutlined';
-import MinimizeRoundedIcon from '@mui/icons-material/MinimizeRounded';
-import CropSquareRoundedIcon from '@mui/icons-material/CropSquareRounded';
-import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
-import PersonOutlineRoundedIcon from '@mui/icons-material/PersonOutlineRounded';
-import ChatBubbleRoundedIcon from '@mui/icons-material/ChatBubbleRounded';
-import MoreHorizRoundedIcon from '@mui/icons-material/MoreHorizRounded';
-import SentimentSatisfiedRoundedIcon from '@mui/icons-material/SentimentSatisfiedRounded';
-import NotificationsOffOutlinedIcon from '@mui/icons-material/NotificationsOffOutlined';
-import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+import ShieldRoundedIcon from '@mui/icons-material/ShieldRounded';
+import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import PushPinRoundedIcon from '@mui/icons-material/PushPinRounded';
+import MinimizeRoundedIcon from '@mui/icons-material/MinimizeRounded';
 import LanguageRoundedIcon from '@mui/icons-material/LanguageRounded';
-import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import MoreVertRoundedIcon from '@mui/icons-material/MoreVertRounded';
 import EditNoteRoundedIcon from '@mui/icons-material/EditNoteRounded';
+import MoreHorizRoundedIcon from '@mui/icons-material/MoreHorizRounded';
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+import CropSquareRoundedIcon from '@mui/icons-material/CropSquareRounded';
+import ChatBubbleRoundedIcon from '@mui/icons-material/ChatBubbleRounded';
+import AddCommentOutlinedIcon from '@mui/icons-material/AddCommentOutlined';
+import PersonOutlineRoundedIcon from '@mui/icons-material/PersonOutlineRounded';
 import ArrowForwardIosRoundedIcon from '@mui/icons-material/ArrowForwardIosRounded';
-import ShieldRoundedIcon from '@mui/icons-material/ShieldRounded';
-import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
-import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
+import NotificationsOffOutlinedIcon from '@mui/icons-material/NotificationsOffOutlined';
+import SentimentSatisfiedRoundedIcon from '@mui/icons-material/SentimentSatisfiedRounded';
 
-import { ROOM_LIST_PRESETS } from '../constants/presets';
 import { THEME_OPTIONS } from '../constants/themes';
-import type { ChatRoomConfig, ChatRoomListItem, MessengerThemeId } from '../types';
+import { ROOM_LIST_PRESETS } from '../constants/presets';
 
 interface ChatRoomListViewProps {
   config: ChatRoomConfig;
@@ -641,109 +643,107 @@ export function ChatRoomListView({ config, onSelectRoom }: ChatRoomListViewProps
             gap: 0.8,
           }}
         >
-          {roomList.map((room) => {
-            return (
-              <Box
-                key={room.id}
-                onClick={() => onSelectRoom(room)}
+          {roomList.map((room) => (
+            <Box
+              key={room.id}
+              onClick={() => onSelectRoom(room)}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                bgcolor: '#FFFFFF',
+                borderRadius: 3.5,
+                px: 2,
+                py: 1.5,
+                gap: 1.5,
+                cursor: 'pointer',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                '&:hover': { bgcolor: '#F8FAFC' },
+                transition: 'background-color 0.15s ease',
+              }}
+            >
+              {/* 삼성 One UI 원형 아바타 (첫 글자) */}
+              <Avatar
                 sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  bgcolor: '#FFFFFF',
-                  borderRadius: 3.5,
-                  px: 2,
-                  py: 1.5,
-                  gap: 1.5,
-                  cursor: 'pointer',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-                  '&:hover': { bgcolor: '#F8FAFC' },
-                  transition: 'background-color 0.15s ease',
+                  width: 44,
+                  height: 44,
+                  bgcolor:
+                    room.categoryTag === '카드'
+                      ? '#E8F2FF'
+                      : room.categoryTag === '배송'
+                        ? '#FEF3C7'
+                        : '#EFF6FF',
+                  color:
+                    room.categoryTag === '카드'
+                      ? '#1F69FF'
+                      : room.categoryTag === '배송'
+                        ? '#D97706'
+                        : '#2563EB',
+                  fontSize: 16,
+                  fontWeight: 800,
                 }}
               >
-                {/* 삼성 One UI 원형 아바타 (첫 글자) */}
-                <Avatar
+                {room.title.charAt(0)}
+              </Avatar>
+
+              {/* 중앙 메시지 정보 */}
+              <Box
+                sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.3 }}
+              >
+                <Typography
+                  noWrap
                   sx={{
-                    width: 44,
-                    height: 44,
-                    bgcolor:
-                      room.categoryTag === '카드'
-                        ? '#E8F2FF'
-                        : room.categoryTag === '배송'
-                          ? '#FEF3C7'
-                          : '#EFF6FF',
-                    color:
-                      room.categoryTag === '카드'
-                        ? '#1F69FF'
-                        : room.categoryTag === '배송'
-                          ? '#D97706'
-                          : '#2563EB',
-                    fontSize: 16,
-                    fontWeight: 800,
+                    fontSize: 15,
+                    fontWeight: 700,
+                    color: '#0F172A',
                   }}
                 >
-                  {room.title.charAt(0)}
-                </Avatar>
-
-                {/* 중앙 메시지 정보 */}
-                <Box
-                  sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.3 }}
-                >
-                  <Typography
-                    noWrap
-                    sx={{
-                      fontSize: 15,
-                      fontWeight: 700,
-                      color: '#0F172A',
-                    }}
-                  >
-                    {room.title}
-                  </Typography>
-                  <Typography
-                    noWrap
-                    sx={{
-                      fontSize: 13,
-                      color: room.unreadCount ? '#1E293B' : '#64748B',
-                      fontWeight: room.unreadCount ? 600 : 400,
-                    }}
-                  >
-                    {room.lastMessage}
-                  </Typography>
-                </Box>
-
-                {/* 우측 시간 및 파란색 원형 뱃지 */}
-                <Box
+                  {room.title}
+                </Typography>
+                <Typography
+                  noWrap
                   sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'flex-end',
-                    gap: 0.6,
-                    flexShrink: 0,
+                    fontSize: 13,
+                    color: room.unreadCount ? '#1E293B' : '#64748B',
+                    fontWeight: room.unreadCount ? 600 : 400,
                   }}
                 >
-                  <Typography sx={{ fontSize: 11, color: '#94A3B8' }}>{room.lastTime}</Typography>
-                  {Boolean(room.unreadCount && room.unreadCount > 0) && (
-                    <Box
-                      sx={{
-                        bgcolor: '#1F69FF',
-                        color: '#FFFFFF',
-                        borderRadius: 5,
-                        minWidth: 18,
-                        height: 18,
-                        px: 0.5,
-                        fontSize: 10.5,
-                        fontWeight: 800,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      {room.unreadCount}
-                    </Box>
-                  )}
-                </Box>
+                  {room.lastMessage}
+                </Typography>
               </Box>
-            );
-          })}
+
+              {/* 우측 시간 및 파란색 원형 뱃지 */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'flex-end',
+                  gap: 0.6,
+                  flexShrink: 0,
+                }}
+              >
+                <Typography sx={{ fontSize: 11, color: '#94A3B8' }}>{room.lastTime}</Typography>
+                {Boolean(room.unreadCount && room.unreadCount > 0) && (
+                  <Box
+                    sx={{
+                      bgcolor: '#1F69FF',
+                      color: '#FFFFFF',
+                      borderRadius: 5,
+                      minWidth: 18,
+                      height: 18,
+                      px: 0.5,
+                      fontSize: 10.5,
+                      fontWeight: 800,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    {room.unreadCount}
+                  </Box>
+                )}
+              </Box>
+            </Box>
+          ))}
         </Box>
 
         {/* 우측 하단 One UI 플로팅 메시지 작성 버튼 */}
@@ -832,67 +832,65 @@ export function ChatRoomListView({ config, onSelectRoom }: ChatRoomListViewProps
 
         {/* 대화방 목록 */}
         <Box sx={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-          {roomList.map((room) => {
-            return (
+          {roomList.map((room) => (
+            <Box
+              key={room.id}
+              onClick={() => onSelectRoom(room)}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                px: 2,
+                py: 1.3,
+                gap: 1.5,
+                cursor: 'pointer',
+                borderBottom: '1px solid #E5E5EA',
+                '&:hover': { bgcolor: '#F2F2F7' },
+              }}
+            >
+              {/* 파란색 점 (안읽음 인디케이터) */}
               <Box
-                key={room.id}
-                onClick={() => onSelectRoom(room)}
                 sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  px: 2,
-                  py: 1.3,
-                  gap: 1.5,
-                  cursor: 'pointer',
-                  borderBottom: '1px solid #E5E5EA',
-                  '&:hover': { bgcolor: '#F2F2F7' },
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  bgcolor: room.unreadCount ? '#007AFF' : 'transparent',
+                }}
+              />
+
+              {/* iOS 이니셜 아바타 */}
+              <Avatar
+                src={room.avatar}
+                sx={{
+                  width: 44,
+                  height: 44,
+                  bgcolor: '#8E8E93',
+                  color: '#FFFFFF',
+                  fontWeight: 700,
                 }}
               >
-                {/* 파란색 점 (안읽음 인디케이터) */}
-                <Box
-                  sx={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: '50%',
-                    bgcolor: room.unreadCount ? '#007AFF' : 'transparent',
-                  }}
-                />
+                {room.title.charAt(0)}
+              </Avatar>
 
-                {/* iOS 이니셜 아바타 */}
-                <Avatar
-                  src={room.avatar}
-                  sx={{
-                    width: 44,
-                    height: 44,
-                    bgcolor: '#8E8E93',
-                    color: '#FFFFFF',
-                    fontWeight: 700,
-                  }}
-                >
-                  {room.title.charAt(0)}
-                </Avatar>
-
-                {/* 발신자 및 메시지 본문 */}
+              {/* 발신자 및 메시지 본문 */}
+              <Box
+                sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.2 }}
+              >
                 <Box
-                  sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.2 }}
+                  sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                 >
-                  <Box
-                    sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                  >
-                    <Typography noWrap sx={{ fontSize: 15, fontWeight: 700, color: '#000000' }}>
-                      {room.title}
-                    </Typography>
-                    <Typography sx={{ fontSize: 12, color: '#8E8E93' }}>{room.lastTime}</Typography>
-                  </Box>
-                  <Typography noWrap sx={{ fontSize: 13, color: '#8E8E93' }}>
-                    {room.lastMessage}
+                  <Typography noWrap sx={{ fontSize: 15, fontWeight: 700, color: '#000000' }}>
+                    {room.title}
                   </Typography>
+                  <Typography sx={{ fontSize: 12, color: '#8E8E93' }}>{room.lastTime}</Typography>
                 </Box>
-
-                <ArrowForwardIosRoundedIcon sx={{ fontSize: 13, color: '#C7C7CC', ml: 0.5 }} />
+                <Typography noWrap sx={{ fontSize: 13, color: '#8E8E93' }}>
+                  {room.lastMessage}
+                </Typography>
               </Box>
-            );
-          })}
+
+              <ArrowForwardIosRoundedIcon sx={{ fontSize: 13, color: '#C7C7CC', ml: 0.5 }} />
+            </Box>
+          ))}
         </Box>
       </Box>
     );
@@ -937,78 +935,72 @@ export function ChatRoomListView({ config, onSelectRoom }: ChatRoomListViewProps
 
       {/* 목록 본문 */}
       <Box sx={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-        {roomList.map((room) => {
-          return (
-            <Box
-              key={room.id}
-              onClick={() => onSelectRoom(room)}
+        {roomList.map((room) => (
+          <Box
+            key={room.id}
+            onClick={() => onSelectRoom(room)}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              px: 2,
+              py: 1.4,
+              gap: 1.5,
+              cursor: 'pointer',
+              borderBottom: '1px solid rgba(0,0,0,0.05)',
+              '&:hover': { bgcolor: 'rgba(0,0,0,0.03)' },
+            }}
+          >
+            <Avatar
+              src={room.avatar}
               sx={{
-                display: 'flex',
-                alignItems: 'center',
-                px: 2,
-                py: 1.4,
-                gap: 1.5,
-                cursor: 'pointer',
-                borderBottom: '1px solid rgba(0,0,0,0.05)',
-                '&:hover': { bgcolor: 'rgba(0,0,0,0.03)' },
+                width: 44,
+                height: 44,
+                bgcolor: themeMeta.badgeColor,
+                color: '#FFFFFF',
+                fontWeight: 700,
               }}
             >
-              <Avatar
-                src={room.avatar}
-                sx={{
-                  width: 44,
-                  height: 44,
-                  bgcolor: themeMeta.badgeColor,
-                  color: '#FFFFFF',
-                  fontWeight: 700,
-                }}
-              >
-                {room.title.charAt(0)}
-              </Avatar>
+              {room.title.charAt(0)}
+            </Avatar>
 
-              <Box
-                sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.3 }}
-              >
-                <Box
-                  sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+            <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.3 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography
+                  noWrap
+                  sx={{ fontSize: 14.5, fontWeight: 700, color: themeMeta.headerText }}
                 >
-                  <Typography
-                    noWrap
-                    sx={{ fontSize: 14.5, fontWeight: 700, color: themeMeta.headerText }}
-                  >
-                    {room.title}
-                  </Typography>
-                  <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>
-                    {room.lastTime}
-                  </Typography>
-                </Box>
-                <Typography noWrap sx={{ fontSize: 12.5, color: 'text.secondary' }}>
-                  {room.lastMessage}
+                  {room.title}
+                </Typography>
+                <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>
+                  {room.lastTime}
                 </Typography>
               </Box>
-
-              {Boolean(room.unreadCount && room.unreadCount > 0) && (
-                <Box
-                  sx={{
-                    bgcolor: themeMeta.badgeColor,
-                    color: '#FFFFFF',
-                    borderRadius: 5,
-                    minWidth: 18,
-                    height: 18,
-                    px: 0.5,
-                    fontSize: 10.5,
-                    fontWeight: 800,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  {room.unreadCount}
-                </Box>
-              )}
+              <Typography noWrap sx={{ fontSize: 12.5, color: 'text.secondary' }}>
+                {room.lastMessage}
+              </Typography>
             </Box>
-          );
-        })}
+
+            {Boolean(room.unreadCount && room.unreadCount > 0) && (
+              <Box
+                sx={{
+                  bgcolor: themeMeta.badgeColor,
+                  color: '#FFFFFF',
+                  borderRadius: 5,
+                  minWidth: 18,
+                  height: 18,
+                  px: 0.5,
+                  fontSize: 10.5,
+                  fontWeight: 800,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {room.unreadCount}
+              </Box>
+            )}
+          </Box>
+        ))}
       </Box>
     </Box>
   );

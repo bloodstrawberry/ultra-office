@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -14,31 +14,30 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import FormControlLabel from '@mui/material/FormControlLabel';
-import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
-import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
 import StopRoundedIcon from '@mui/icons-material/StopRounded';
+import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
+import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
+import ClearRoundedIcon from '@mui/icons-material/ClearRounded';
+import SpeedRoundedIcon from '@mui/icons-material/SpeedRounded';
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
-import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import SwapVertRoundedIcon from '@mui/icons-material/SwapVertRounded';
-import ClearRoundedIcon from '@mui/icons-material/ClearRounded';
-import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
-import SpeedRoundedIcon from '@mui/icons-material/SpeedRounded';
+import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import GraphicEqRoundedIcon from '@mui/icons-material/GraphicEqRounded';
-import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
+import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 
-import {
-  textToMorse,
-  morseToText,
-  isMorseCodeText,
-  generateMorseWavBlob,
-  type MorseFormatOptions,
-} from '../utils/morse-core';
 import { ResizablePanel, ResizableHandle, ResizablePanelGroup } from 'src/components/resizable';
 
 import { MorseAudioPlayer } from '../utils/morse-audio';
-import { MorseSignalLamp, type LampColorTheme } from './morse-signal-lamp';
 import { MorseStrobeOverlay } from './morse-strobe-overlay';
+import { MorseSignalLamp, type LampColorTheme } from './morse-signal-lamp';
+import {
+  textToMorse,
+  morseToText,
+  generateMorseWavBlob,
+  type MorseFormatOptions,
+} from '../utils/morse-core';
 
 // ----------------------------------------------------------------------
 

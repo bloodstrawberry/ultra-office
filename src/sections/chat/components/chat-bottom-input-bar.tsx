@@ -1,23 +1,24 @@
 'use client';
 
-import React, { useState } from 'react';
-import Box from '@mui/material/Box';
-import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
-import AddRoundedIcon from '@mui/icons-material/AddRounded';
-import SentimentSatisfiedAltRoundedIcon from '@mui/icons-material/SentimentSatisfiedAltRounded';
-import SendRoundedIcon from '@mui/icons-material/SendRounded';
-import MicRoundedIcon from '@mui/icons-material/MicRounded';
-import ImageRoundedIcon from '@mui/icons-material/ImageRounded';
-import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
-import TagRoundedIcon from '@mui/icons-material/TagRounded';
-import GraphicEqRoundedIcon from '@mui/icons-material/GraphicEqRounded';
-import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
+import type { ChatRoomConfig } from '../types';
 
+import React, { useState } from 'react';
+
+import Box from '@mui/material/Box';
 import InputBase from '@mui/material/InputBase';
 import IconButton from '@mui/material/IconButton';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import MicRoundedIcon from '@mui/icons-material/MicRounded';
+import TagRoundedIcon from '@mui/icons-material/TagRounded';
+import SendRoundedIcon from '@mui/icons-material/SendRounded';
+import ImageRoundedIcon from '@mui/icons-material/ImageRounded';
+import GraphicEqRoundedIcon from '@mui/icons-material/GraphicEqRounded';
+import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
+import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
+import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
+import SentimentSatisfiedAltRoundedIcon from '@mui/icons-material/SentimentSatisfiedAltRounded';
 
 import { THEME_OPTIONS } from '../constants/themes';
-import type { ChatRoomConfig } from '../types';
 
 interface ChatBottomInputBarProps {
   config: ChatRoomConfig;

@@ -1,4 +1,4 @@
-import type { PublicApiItem, ApiPreset } from '../types';
+import type { ApiPreset, PublicApiItem } from '../types';
 
 /**
  * public-apis-4Kr 기반 전체 공개 API 목록 (총 1791개)

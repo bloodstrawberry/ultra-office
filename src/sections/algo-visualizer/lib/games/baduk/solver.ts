@@ -7,7 +7,7 @@ import type {
   BadukSolutionNode,
 } from './types';
 
-import { findGroups, playMove, isSamePoint, formatBadukCoord, calculateInfluence } from './engine';
+import { playMove, findGroups, isSamePoint, formatBadukCoord, calculateInfluence } from './engine';
 
 /** Evaluate board state score for playerColor (+: player favorable, -: opponent favorable) */
 export function evaluateBoardHeuristic(board: BoardGrid, playerColor: StoneColor): number {

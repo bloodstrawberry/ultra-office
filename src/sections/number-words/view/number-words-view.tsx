@@ -8,6 +8,7 @@ import Typography from '@mui/material/Typography';
 import AttachMoneyRoundedIcon from '@mui/icons-material/AttachMoneyRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
+
 import { NumberWordsConverter } from '../components/number-words-converter';
 
 // ----------------------------------------------------------------------

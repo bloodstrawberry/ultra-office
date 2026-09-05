@@ -1,7 +1,9 @@
 'use client';
 
 import React from 'react';
+
 import { DashboardContent } from 'src/layouts/dashboard';
+
 import { ChatStudioContainer } from '../components/chat-studio-container';
 
 export function ChatSnsView() {

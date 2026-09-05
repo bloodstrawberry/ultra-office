@@ -3,34 +3,33 @@
 import React, { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import Grid from '@mui/material/Grid';
-import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
+import Card from '@mui/material/Card';
+import Tabs from '@mui/material/Tabs';
 import Chip from '@mui/material/Chip';
 import Slider from '@mui/material/Slider';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
-import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
-import SwapVertRoundedIcon from '@mui/icons-material/SwapVertRounded';
+import LockRoundedIcon from '@mui/icons-material/LockRounded';
 import ClearRoundedIcon from '@mui/icons-material/ClearRounded';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
-import LockRoundedIcon from '@mui/icons-material/LockRounded';
+import SwapVertRoundedIcon from '@mui/icons-material/SwapVertRounded';
 import LockOpenRoundedIcon from '@mui/icons-material/LockOpenRounded';
+import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 
 import { ResizablePanel, ResizableHandle, ResizablePanelGroup } from 'src/components/resizable';
 
+import { CipherWheelVisualizer } from './cipher-wheel-visualizer';
 import {
-  caesarCipher,
   rot13Cipher,
+  caesarCipher,
   atbashCipher,
   vigenereCipher,
   railFenceEncrypt,
   railFenceDecrypt,
 } from '../utils/cipher-core';
-import { CipherWheelVisualizer } from './cipher-wheel-visualizer';
 
 // ----------------------------------------------------------------------
 

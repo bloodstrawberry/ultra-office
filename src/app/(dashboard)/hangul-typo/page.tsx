@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import { CONFIG } from 'src/global-config';
+
 import { HangulTypoView } from 'src/sections/hangul-typo/view';
 
 // ----------------------------------------------------------------------

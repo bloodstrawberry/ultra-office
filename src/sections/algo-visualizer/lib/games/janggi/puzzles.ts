@@ -1,4 +1,4 @@
-import type { JanggiBakboProblem, JanggiPiece } from './types';
+import type { JanggiPiece, JanggiBakboProblem } from './types';
 
 function createJanggiProblem(
   id: string,

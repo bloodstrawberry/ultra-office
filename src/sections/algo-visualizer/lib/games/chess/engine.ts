@@ -1,11 +1,4 @@
-import type {
-  ChessColor,
-  ChessPiece,
-  ChessBoard,
-  ChessSquare,
-  ChessMove,
-  ChessPieceType,
-} from './types';
+import type { ChessMove, ChessColor, ChessBoard, ChessSquare, ChessPieceType } from './types';
 
 export function createEmptyChessBoard(): ChessBoard {
   return Array.from({ length: 8 }, () => Array.from({ length: 8 }, () => null));

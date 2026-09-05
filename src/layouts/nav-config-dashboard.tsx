@@ -3,6 +3,7 @@ import type { NavSectionProps } from 'src/components/nav-section';
 
 import Chip from '@mui/material/Chip';
 import GifRoundedIcon from '@mui/icons-material/GifRounded';
+import ApiRoundedIcon from '@mui/icons-material/ApiRounded';
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
 import CodeRoundedIcon from '@mui/icons-material/CodeRounded';
 import HiveRoundedIcon from '@mui/icons-material/HiveRounded';
@@ -29,6 +30,7 @@ import DataArrayRoundedIcon from '@mui/icons-material/DataArrayRounded';
 import SlideshowRoundedIcon from '@mui/icons-material/SlideshowRounded';
 import AutoGraphRoundedIcon from '@mui/icons-material/AutoGraphRounded';
 import CalculateRoundedIcon from '@mui/icons-material/CalculateRounded';
+import TranslateRoundedIcon from '@mui/icons-material/TranslateRounded';
 import TextFieldsRoundedIcon from '@mui/icons-material/TextFieldsRounded';
 import WorkspacesRoundedIcon from '@mui/icons-material/WorkspacesRounded';
 import AccountTreeRoundedIcon from '@mui/icons-material/AccountTreeRounded';
@@ -49,7 +51,6 @@ import MovieCreationRoundedIcon from '@mui/icons-material/MovieCreationRounded';
 import SportsEsportsRoundedIcon from '@mui/icons-material/SportsEsportsRounded';
 import DocumentScannerRoundedIcon from '@mui/icons-material/DocumentScannerRounded';
 import DashboardCustomizeRoundedIcon from '@mui/icons-material/DashboardCustomizeRounded';
-import ApiRoundedIcon from '@mui/icons-material/ApiRounded';
 import SwapHorizontalCircleRoundedIcon from '@mui/icons-material/SwapHorizontalCircleRounded';
 
 import { paths } from 'src/routes/paths';
@@ -84,6 +85,7 @@ const ICONS = {
   hwpMaster: <ArticleRoundedIcon fontSize="small" />,
   markdown: <DescriptionRoundedIcon fontSize="small" />,
   office365: <WorkspacesRoundedIcon fontSize="small" />,
+  translator: <TranslateRoundedIcon fontSize="small" />,
   stampStudio: <ApprovalRoundedIcon fontSize="small" />,
   screenRecorder: <VideocamRoundedIcon fontSize="small" />,
   videoMaster: <MovieCreationRoundedIcon fontSize="small" />,
@@ -114,6 +116,22 @@ const appsInTossBadge = (
     variant="soft"
     color="info"
     label="앱인토스"
+    sx={{
+      height: 20,
+      fontSize: '0.6875rem',
+      fontWeight: 700,
+      pointerEvents: 'none',
+      '& .MuiChip-label': { px: 0.75 },
+    }}
+  />
+);
+
+const newFeatureBadge = (
+  <Chip
+    size="small"
+    variant="soft"
+    color="primary"
+    label="NEW"
     sx={{
       height: 20,
       fontSize: '0.6875rem',
@@ -163,6 +181,7 @@ export const navData: NavSectionProps['data'] = [
         path: paths.photo.root,
         icon: ICONS.photo,
         children: [
+          { title: '갤럭시 & 아이폰 사진 편집', path: paths.photo.editor, info: newFeatureBadge },
           { title: '로고 만들기', path: paths.photo.logo, info: appsInTossBadge },
           { title: '배경색 변경', path: paths.photo.color, info: appsInTossBadge },
           { title: '세로 스크린샷', path: paths.photo.sero, info: appsInTossBadge },
@@ -203,6 +222,7 @@ export const navData: NavSectionProps['data'] = [
         icon: ICONS.videoMaster,
         children: [
           { title: '동영상 편집기', path: paths.videoMaster.root },
+          { title: '자막 편집기', path: paths.videoMaster.subtitle },
           { title: 'MP4 → MP3 변환', path: paths.videoMaster.mp4ToMp3 },
           { title: '동영상 일괄 변환기', path: paths.videoMaster.batch },
           { title: '동영상 AI 워터마크 각인', path: paths.videoMaster.aiWatermark },
@@ -218,6 +238,7 @@ export const navData: NavSectionProps['data'] = [
           { title: '스프레드시트 (Excel)', path: paths.spreadsheet },
           { title: '마크다운', path: paths.markdown },
           { title: '한글 파일 문서', path: paths.hwpMaster },
+          { title: '다국어 번역기 (Translator)', path: paths.translator },
         ],
       },
       {

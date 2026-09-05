@@ -36,8 +36,8 @@ import { DashboardContent } from 'src/layouts/dashboard';
 import { SafeNumberInput } from '../components/safe-number-input';
 import { downloadZipFile, type ZipFileEntry } from '../utils/zip-exporter';
 import { AppsInTossNavHeader } from '../components/apps-in-toss-nav-header';
-import { type CropRect, InteractiveCropBox } from '../components/interactive-crop-box';
 import { getOgCropSettings, saveOgCropSettings } from '../utils/thumbnail-storage';
+import { type CropRect, InteractiveCropBox } from '../components/interactive-crop-box';
 import { PhotoUploadWorkspace, type SampleImageItem } from '../components/photo-upload-workspace';
 import {
   formatBytes,

@@ -1,4 +1,4 @@
-import type { ThemeOption, ChatCategory, ChatThemeId } from '../types';
+import type { ThemeOption, ChatThemeId, ChatCategory } from '../types';
 
 export const THEME_OPTIONS: Record<ChatThemeId, ThemeOption> = {
   // 1. Messenger Themes

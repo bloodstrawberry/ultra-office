@@ -6,13 +6,12 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
 import Chip from '@mui/material/Chip';
-import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
-import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
-import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import KeyRoundedIcon from '@mui/icons-material/KeyRounded';
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
+import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 
 import { bruteForceCaesar } from '../utils/cipher-core';
 

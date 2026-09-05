@@ -1,27 +1,30 @@
 'use client';
 
+import type { ChatUser, ChatMessage, ChatRoomConfig } from '../types';
+
 import React, { useState } from 'react';
+
 import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
 import Avatar from '@mui/material/Avatar';
 import Collapse from '@mui/material/Collapse';
+import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
-import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
-import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
-import ExpandLessRoundedIcon from '@mui/icons-material/ExpandLessRounded';
-import DoneAllRoundedIcon from '@mui/icons-material/DoneAllRounded';
-import LightbulbRoundedIcon from '@mui/icons-material/LightbulbRounded';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
-import AddReactionRoundedIcon from '@mui/icons-material/AddReactionRounded';
+import DoneAllRoundedIcon from '@mui/icons-material/DoneAllRounded';
 import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded';
 import ThumbUpOutlinedIcon from '@mui/icons-material/ThumbUpOutlined';
-import ThumbDownOutlinedIcon from '@mui/icons-material/ThumbDownOutlined';
+import LightbulbRoundedIcon from '@mui/icons-material/LightbulbRounded';
 import AutorenewRoundedIcon from '@mui/icons-material/AutorenewRounded';
+import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
+import ExpandLessRoundedIcon from '@mui/icons-material/ExpandLessRounded';
+import ThumbDownOutlinedIcon from '@mui/icons-material/ThumbDownOutlined';
+import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
+import AddReactionRoundedIcon from '@mui/icons-material/AddReactionRounded';
 
 import { generateAvatarColor } from 'src/utils/avatar-colors';
+
 import { THEME_OPTIONS } from '../constants/themes';
-import type { ChatMessage, ChatRoomConfig, ChatUser } from '../types';
 
 interface ChatMessageItemProps {
   message: ChatMessage;

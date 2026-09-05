@@ -9,16 +9,16 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
-import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
-import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
 import StopRoundedIcon from '@mui/icons-material/StopRounded';
-import ClearRoundedIcon from '@mui/icons-material/ClearRounded';
 import FlagRoundedIcon from '@mui/icons-material/FlagRounded';
+import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
+import ClearRoundedIcon from '@mui/icons-material/ClearRounded';
+import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 
 import { ResizablePanel, ResizableHandle, ResizablePanelGroup } from 'src/components/resizable';
 
-import { textToSemaphore, REST_SEMAPHORE, type SemaphoreItem } from '../utils/semaphore-data';
 import { SemaphoreFlagCanvas } from './semaphore-flag-canvas';
+import { REST_SEMAPHORE, textToSemaphore, type SemaphoreItem } from '../utils/semaphore-data';
 
 // ----------------------------------------------------------------------
 

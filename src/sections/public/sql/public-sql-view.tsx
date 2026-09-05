@@ -5,7 +5,6 @@ import type { SqlProblem, QueryResult, VerificationResult } from './types';
 import { toast } from 'sonner';
 import React, { useState, useCallback } from 'react';
 import { Group, Panel } from 'react-resizable-panels';
-import { ResizableHandle } from 'src/components/resizable';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -26,6 +25,8 @@ import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
 import WorkspacePremiumRoundedIcon from '@mui/icons-material/WorkspacePremiumRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
+
+import { ResizableHandle } from 'src/components/resizable';
 
 import { SQLD_PROBLEMS } from './sqld-problems';
 import { SQLP_PROBLEMS } from './sqlp-problems';

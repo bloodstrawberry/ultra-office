@@ -6,16 +6,17 @@ import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
 import Typography from '@mui/material/Typography';
-import GraphicEqRoundedIcon from '@mui/icons-material/GraphicEqRounded';
 import RadioRoundedIcon from '@mui/icons-material/RadioRounded';
 import MenuBookRoundedIcon from '@mui/icons-material/MenuBookRounded';
+import GraphicEqRoundedIcon from '@mui/icons-material/GraphicEqRounded';
 import LightbulbRoundedIcon from '@mui/icons-material/LightbulbRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
-import { MorseConverterTab } from '../components/morse-converter-tab';
-import { MorseMnemonicsTab } from '../components/morse-mnemonics-tab';
+
 import { MorseKeyerTab } from '../components/morse-keyer-tab';
 import { MorseChartTab } from '../components/morse-chart-tab';
+import { MorseConverterTab } from '../components/morse-converter-tab';
+import { MorseMnemonicsTab } from '../components/morse-mnemonics-tab';
 
 // ----------------------------------------------------------------------
 

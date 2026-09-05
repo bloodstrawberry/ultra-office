@@ -11,8 +11,9 @@ import TouchAppRoundedIcon from '@mui/icons-material/TouchAppRounded';
 import MenuBookRoundedIcon from '@mui/icons-material/MenuBookRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
-import { BrailleConverterTab } from '../components/braille-converter-tab';
+
 import { BrailleChartTab } from '../components/braille-chart-tab';
+import { BrailleConverterTab } from '../components/braille-converter-tab';
 
 // ----------------------------------------------------------------------
 

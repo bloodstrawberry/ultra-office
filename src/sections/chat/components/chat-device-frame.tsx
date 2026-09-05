@@ -1,14 +1,15 @@
 'use client';
 
+import type { ChatRoomConfig } from '../types';
+
 import React from 'react';
+
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import BatteryChargingFullRoundedIcon from '@mui/icons-material/BatteryChargingFullRounded';
-import BatteryStdRoundedIcon from '@mui/icons-material/BatteryStdRounded';
 import WifiRoundedIcon from '@mui/icons-material/WifiRounded';
+import BatteryStdRoundedIcon from '@mui/icons-material/BatteryStdRounded';
 import SignalCellularAltRoundedIcon from '@mui/icons-material/SignalCellularAltRounded';
-
-import type { ChatRoomConfig } from '../types';
+import BatteryChargingFullRoundedIcon from '@mui/icons-material/BatteryChargingFullRounded';
 
 interface ChatDeviceFrameProps {
   config: ChatRoomConfig;

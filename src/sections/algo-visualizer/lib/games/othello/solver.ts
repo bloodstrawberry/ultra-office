@@ -5,6 +5,7 @@ import type {
   OthelloAIAnalysis,
   OthelloSolutionNode,
 } from './types';
+
 import {
   OTHELLO_SIZE,
   applyOthelloMove,

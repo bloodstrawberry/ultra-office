@@ -20,14 +20,14 @@ import IconButton from '@mui/material/IconButton';
 import FormControl from '@mui/material/FormControl';
 import MicRoundedIcon from '@mui/icons-material/MicRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
-import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
+import SubtitlesRoundedIcon from '@mui/icons-material/SubtitlesRounded';
+import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import StopCircleRoundedIcon from '@mui/icons-material/StopCircleRounded';
 import PlayCircleRoundedIcon from '@mui/icons-material/PlayCircleRounded';
-import SubtitlesRoundedIcon from '@mui/icons-material/SubtitlesRounded';
-import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
+import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import DescriptionRoundedIcon from '@mui/icons-material/DescriptionRounded';
-import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
+import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 
 import {
   transcriptsToSrt,
@@ -66,7 +66,7 @@ export function SttExtractPanel({
   const [playbackRate, setPlaybackRate] = useState<number>(1.0);
 
   // Recognition Reference
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const recognitionRef = useRef<any>(null);
   const isManuallyStoppedRef = useRef<boolean>(false);
   const currentSegmentStartRef = useRef<number>(0);
@@ -121,7 +121,7 @@ export function SttExtractPanel({
     currentSegmentStartRef.current = videoRef.current.currentTime || 0;
 
     // Window recognition constructor
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const SpeechRecognitionClass =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     const recognition = new SpeechRecognitionClass();
@@ -131,7 +131,6 @@ export function SttExtractPanel({
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     recognition.onresult = (event: any) => {
       let finalSpeech = '';
       let currentInterim = '';
@@ -167,7 +166,6 @@ export function SttExtractPanel({
       }
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     recognition.onerror = (event: any) => {
       if (event.error === 'no-speech') {
         // Continuous listening: no error toast needed

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import { CONFIG } from 'src/global-config';
+
 import { NatoPhoneticView } from 'src/sections/nato-phonetic/view';
 
 // ----------------------------------------------------------------------

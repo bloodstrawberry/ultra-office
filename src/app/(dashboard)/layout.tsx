@@ -1,8 +1,4 @@
-import { Suspense } from 'react';
-
 import { DashboardLayout } from 'src/layouts/dashboard';
-
-import { LoadingScreen } from 'src/components/loading-screen';
 
 // ----------------------------------------------------------------------
 

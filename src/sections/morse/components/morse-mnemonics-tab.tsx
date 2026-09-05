@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -8,23 +8,22 @@ import Grid from '@mui/material/Grid';
 import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
-import Tooltip from '@mui/material/Tooltip';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
-import LightbulbRoundedIcon from '@mui/icons-material/LightbulbRounded';
-import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
-import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
-import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import TimerRoundedIcon from '@mui/icons-material/TimerRounded';
-import RecordVoiceOverRoundedIcon from '@mui/icons-material/RecordVoiceOverRounded';
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded';
+import LightbulbRoundedIcon from '@mui/icons-material/LightbulbRounded';
 import EqualizerRoundedIcon from '@mui/icons-material/EqualizerRounded';
+import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
+import RecordVoiceOverRoundedIcon from '@mui/icons-material/RecordVoiceOverRounded';
 
-import { MORSE_MNEMONICS, type MorseMnemonicItem } from '../data/morse-mnemonics-data';
 import { MorseMnemonicCard } from './morse-mnemonic-card';
 import { getSharedMorsePlayer } from '../utils/morse-audio';
+import { MORSE_MNEMONICS, type MorseMnemonicItem } from '../data/morse-mnemonics-data';
 
 // ----------------------------------------------------------------------
 

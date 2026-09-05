@@ -16,6 +16,7 @@ import AssessmentRoundedIcon from '@mui/icons-material/AssessmentRounded';
 import PersonSearchRoundedIcon from '@mui/icons-material/PersonSearchRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
+
 import { ResizablePanel, ResizableHandle, ResizablePanelGroup } from 'src/components/resizable';
 
 import { AgentChatArea } from '../components/agent-chat-area';

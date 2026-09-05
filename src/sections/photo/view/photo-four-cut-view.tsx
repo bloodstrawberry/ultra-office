@@ -4,18 +4,26 @@ import { toast } from 'sonner';
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
+import Tab from '@mui/material/Tab';
 import Card from '@mui/material/Card';
+import Tabs from '@mui/material/Tabs';
 import Button from '@mui/material/Button';
+import Slider from '@mui/material/Slider';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import ToggleButton from '@mui/material/ToggleButton';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import CircularProgress from '@mui/material/CircularProgress';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
+import RemoveRoundedIcon from '@mui/icons-material/RemoveRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
+import GridViewRoundedIcon from '@mui/icons-material/GridViewRounded';
+import StraightenRoundedIcon from '@mui/icons-material/StraightenRounded';
+import AspectRatioRoundedIcon from '@mui/icons-material/AspectRatioRounded';
 import PhotoFilterRoundedIcon from '@mui/icons-material/PhotoFilterRounded';
 import AddPhotoAlternateRoundedIcon from '@mui/icons-material/AddPhotoAlternateRounded';
 
@@ -25,7 +33,9 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import { downloadDataUrl, shareToKakaoTalk } from '../utils/image-processor';
 
-type LayoutType = 'strip4' | 'grid4' | 'strip2' | 'polaroid1';
+type LayoutType = 'strip4' | 'grid4' | 'polaroid1' | 'custom';
+type CustomSlotRatio = '4:3' | '1:1' | '3:4';
+type ControlTab = 'layout' | 'themeFilter' | 'text' | 'stickers';
 type FrameTheme =
   | 'classic-dark'
   | 'pure-white'
@@ -86,6 +96,11 @@ const FOUR_CUT_SAMPLES = {
 
 export function FourCutView() {
   const [layout, setLayout] = useState<LayoutType>('strip4');
+  const [customRows, setCustomRows] = useState<number>(3);
+  const [customCols, setCustomCols] = useState<number>(2);
+  const [customRatio, setCustomRatio] = useState<CustomSlotRatio>('4:3');
+  const [controlTab, setControlTab] = useState<ControlTab>('layout');
+  const [slotGap, setSlotGap] = useState<number>(24);
   const [theme, setTheme] = useState<FrameTheme>('classic-dark');
   const [filter, setFilter] = useState<PhotoFilter>('none');
   const [dateText, setDateText] = useState<string>(() => {
@@ -133,7 +148,12 @@ export function FourCutView() {
     }
   };
 
-  const maxSlots = layout === 'strip4' || layout === 'grid4' ? 4 : layout === 'strip2' ? 2 : 1;
+  const maxSlots =
+    layout === 'strip4' || layout === 'grid4'
+      ? 4
+      : layout === 'polaroid1'
+        ? 1
+        : customRows * customCols;
 
   const addFiles = useCallback(
     (selectedFiles: File[]) => {
@@ -174,7 +194,11 @@ export function FourCutView() {
   };
 
   const handleLoadSampleSet = (type: 'portrait' | 'pets') => {
-    const list = FOUR_CUT_SAMPLES[type].slice(0, maxSlots);
+    const base = FOUR_CUT_SAMPLES[type];
+    const list: string[] = [];
+    for (let i = 0; i < maxSlots; i += 1) {
+      list.push(base[i % base.length]);
+    }
     setImages(list);
     toast.success(
       `${type === 'portrait' ? '감성 인물' : '귀여운 펫'} 예시 사진 ${list.length}장을 불러왔습니다.`
@@ -203,16 +227,42 @@ export function FourCutView() {
 
     if (layout === 'strip4') {
       width = 600;
-      height = 1900;
+      const marginTop = 50;
+      const photoH = 380;
+      const gap = slotGap;
+      const footerHeight = 170;
+      height = marginTop + 4 * photoH + 3 * gap + footerHeight;
     } else if (layout === 'grid4') {
       width = 900;
-      height = 1200;
-    } else if (layout === 'strip2') {
-      width = 600;
-      height = 1100;
+      const marginTop = 60;
+      const gap = slotGap;
+      const photoH = 430;
+      const footerHeight = 130;
+      height = marginTop + 2 * photoH + gap + footerHeight;
     } else if (layout === 'polaroid1') {
       width = 700;
       height = 900;
+    } else if (layout === 'custom') {
+      let slotW = 380;
+      let slotH = 285;
+      if (customRatio === '1:1') {
+        slotW = 360;
+        slotH = 360;
+      } else if (customRatio === '3:4') {
+        slotW = 330;
+        slotH = 440;
+      }
+
+      const marginX = 45;
+      const marginTop = 50;
+      const gap = slotGap;
+      const footerHeight = 130;
+
+      const contentW = customCols * slotW + (customCols - 1) * gap;
+      const contentH = customRows * slotH + (customRows - 1) * gap;
+
+      width = Math.max(600, contentW + marginX * 2);
+      height = marginTop + contentH + footerHeight;
     }
 
     canvas.width = width;
@@ -244,7 +294,7 @@ export function FourCutView() {
       const marginTop = 50;
       const photoW = width - marginX * 2;
       const photoH = 380;
-      const gap = 30;
+      const gap = slotGap;
 
       for (let i = 0; i < 4; i += 1) {
         slots.push({
@@ -257,7 +307,7 @@ export function FourCutView() {
     } else if (layout === 'grid4') {
       const marginX = 50;
       const marginTop = 60;
-      const gap = 30;
+      const gap = slotGap;
       const photoW = (width - marginX * 2 - gap) / 2;
       const photoH = 430;
 
@@ -265,27 +315,38 @@ export function FourCutView() {
       slots.push({ x: marginX + photoW + gap, y: marginTop, w: photoW, h: photoH });
       slots.push({ x: marginX, y: marginTop + photoH + gap, w: photoW, h: photoH });
       slots.push({ x: marginX + photoW + gap, y: marginTop + photoH + gap, w: photoW, h: photoH });
-    } else if (layout === 'strip2') {
-      const marginX = 45;
-      const marginTop = 60;
-      const photoW = width - marginX * 2;
-      const photoH = 390;
-      const gap = 35;
-
-      for (let i = 0; i < 2; i += 1) {
-        slots.push({
-          x: marginX,
-          y: marginTop + i * (photoH + gap),
-          w: photoW,
-          h: photoH,
-        });
-      }
     } else if (layout === 'polaroid1') {
       const marginX = 50;
       const marginTop = 60;
       const photoW = width - marginX * 2;
       const photoH = 620;
       slots.push({ x: marginX, y: marginTop, w: photoW, h: photoH });
+    } else if (layout === 'custom') {
+      let slotW = 380;
+      let slotH = 285;
+      if (customRatio === '1:1') {
+        slotW = 360;
+        slotH = 360;
+      } else if (customRatio === '3:4') {
+        slotW = 330;
+        slotH = 440;
+      }
+
+      const marginTop = 50;
+      const gap = slotGap;
+      const contentW = customCols * slotW + (customCols - 1) * gap;
+      const actualMarginX = (width - contentW) / 2;
+
+      for (let r = 0; r < customRows; r += 1) {
+        for (let c = 0; c < customCols; c += 1) {
+          slots.push({
+            x: actualMarginX + c * (slotW + gap),
+            y: marginTop + r * (slotH + gap),
+            w: slotW,
+            h: slotH,
+          });
+        }
+      }
     }
 
     const loadImg = (src: string) =>
@@ -395,18 +456,19 @@ export function FourCutView() {
       ctx.fillText(captionText, width / 2, footerY);
       ctx.font = '600 22px monospace';
       ctx.fillText(dateText, width / 2, footerY + 45);
-    } else if (layout === 'strip2') {
-      const footerY = height - 100;
-      ctx.font = 'bold 34px "Public Sans", sans-serif';
-      ctx.fillText(captionText, width / 2, footerY);
-      ctx.font = '600 20px monospace';
-      ctx.fillText(dateText, width / 2, footerY + 40);
     } else if (layout === 'polaroid1') {
       const footerY = height - 100;
       ctx.font = 'bold 36px "Public Sans", sans-serif';
       ctx.fillText(captionText, width / 2, footerY);
       ctx.font = '600 22px monospace';
       ctx.fillText(dateText, width / 2, footerY + 45);
+    } else if (layout === 'custom') {
+      const footerY = height - 75;
+      const fontSize = Math.max(26, Math.min(38, Math.round(width / 24)));
+      ctx.font = `bold ${fontSize}px "Public Sans", sans-serif`;
+      ctx.fillText(captionText, width / 2, footerY);
+      ctx.font = `600 ${Math.round(fontSize * 0.6)}px monospace`;
+      ctx.fillText(dateText, width / 2, footerY + Math.round(fontSize * 1.15));
     }
 
     if (stickers.length > 0) {
@@ -422,7 +484,19 @@ export function FourCutView() {
 
     const dataUrl = canvas.toDataURL('image/png');
     return dataUrl;
-  }, [images, layout, theme, filter, dateText, captionText, stickers]);
+  }, [
+    images,
+    layout,
+    theme,
+    filter,
+    dateText,
+    captionText,
+    stickers,
+    customRows,
+    customCols,
+    customRatio,
+    slotGap,
+  ]);
 
   useEffect(() => {
     let isMounted = true;
@@ -482,7 +556,8 @@ export function FourCutView() {
           인생네컷 포토부스 (Photo Booth)
         </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          4컷 스트립, 2x2 격자, 폴라로이드 감성 프레임에 사진을 배치하고 스티커와 문구를 꾸밉니다.
+          4컷 스트립, 2×2 격자, 폴라로이드 및 N×M 사용자 정의 격자 프레임에 사진을 배치하고 스티커와
+          문구를 꾸밉니다.
         </Typography>
       </Box>
 
@@ -647,212 +722,589 @@ export function FourCutView() {
             minWidth: { md: `${rightPanelWidth}px` },
             maxWidth: { md: `${rightPanelWidth}px` },
             flexShrink: 0,
-            gap: 2,
+            gap: 1.5,
             minHeight: 0,
-            overflow: 'auto',
+            height: '100%',
+            overflow: 'hidden',
             pl: { md: 1 },
             pr: 0.5,
           }}
         >
-          <Card sx={{ p: 2.5, borderRadius: 3 }}>
-            {/* Layout selector */}
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
-              1. 프레임 레이아웃
-            </Typography>
-            <ToggleButtonGroup
-              value={layout}
-              exclusive
-              onChange={(_, v) => v && setLayout(v)}
-              fullWidth
-              size="small"
-              sx={{ mb: 2 }}
+          {/* Top Pinned: Photo Slots Manager */}
+          <Card sx={{ p: 2, borderRadius: 2.5, flexShrink: 0 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mb: 1,
+              }}
             >
-              <ToggleButton value="strip4">4컷 세로</ToggleButton>
-              <ToggleButton value="grid4">2×2 격자</ToggleButton>
-              <ToggleButton value="strip2">2컷 세로</ToggleButton>
-              <ToggleButton value="polaroid1">폴라로이드</ToggleButton>
-            </ToggleButtonGroup>
-
-            {/* Photo Slots Manager */}
-            <Box sx={{ mb: 2 }}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  mb: 1,
-                }}
+              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                사진 등록 ({Math.min(images.length, maxSlots)}/{maxSlots})
+              </Typography>
+              <Button
+                size="small"
+                startIcon={<AddPhotoAlternateRoundedIcon />}
+                onClick={() => fileInputRef.current?.click()}
+                disabled={images.length >= maxSlots}
               >
-                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                  2. 사진 등록 ({images.length}/{maxSlots})
-                </Typography>
-                <Button
-                  size="small"
-                  startIcon={<AddPhotoAlternateRoundedIcon />}
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={images.length >= maxSlots}
-                >
-                  사진 추가
-                </Button>
-              </Box>
+                사진 추가
+              </Button>
+            </Box>
 
-              <Box
-                sx={{ display: 'grid', gridTemplateColumns: `repeat(${maxSlots}, 1fr)`, gap: 1 }}
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns:
+                  maxSlots <= 4
+                    ? `repeat(${maxSlots}, 1fr)`
+                    : `repeat(${Math.min(customCols > 0 ? customCols : 4, 6)}, 1fr)`,
+                gap: 0.8,
+                maxHeight: 130,
+                overflowY: maxSlots > 4 ? 'auto' : 'visible',
+                pr: maxSlots > 4 ? 0.5 : 0,
+              }}
+            >
+              {Array.from({ length: maxSlots }).map((_, idx) => {
+                const img = images[idx];
+                return (
+                  <Box
+                    key={idx}
+                    onClick={() => !img && fileInputRef.current?.click()}
+                    sx={{
+                      aspectRatio: '1',
+                      borderRadius: 1.5,
+                      bgcolor: 'action.hover',
+                      border: '1px dashed',
+                      borderColor: img ? 'transparent' : 'divider',
+                      overflow: 'hidden',
+                      position: 'relative',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: img ? 'default' : 'pointer',
+                    }}
+                  >
+                    {img ? (
+                      <>
+                        <img
+                          src={img}
+                          alt={`Slot ${idx + 1}`}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                        <IconButton
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeImage(idx);
+                          }}
+                          sx={{
+                            position: 'absolute',
+                            top: 2,
+                            right: 2,
+                            p: 0.3,
+                            bgcolor: 'rgba(0,0,0,0.6)',
+                            color: '#fff',
+                            '&:hover': { bgcolor: '#ef4444' },
+                          }}
+                        >
+                          <DeleteRoundedIcon sx={{ fontSize: 13 }} />
+                        </IconButton>
+                      </>
+                    ) : (
+                      <PhotoFilterRoundedIcon sx={{ color: 'text.disabled', fontSize: 18 }} />
+                    )}
+                  </Box>
+                );
+              })}
+            </Box>
+
+            {/* Sample Preset Buttons */}
+            <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
+              <Button
+                size="small"
+                variant="outlined"
+                color="primary"
+                onClick={() => handleLoadSampleSet('portrait')}
+                sx={{ flex: 1, fontSize: '0.7rem', py: 0.4, borderRadius: 1.5, fontWeight: 700 }}
               >
-                {Array.from({ length: maxSlots }).map((_, idx) => {
-                  const img = images[idx];
-                  return (
+                ✨ 감성 인물 예시
+              </Button>
+              <Button
+                size="small"
+                variant="outlined"
+                color="secondary"
+                onClick={() => handleLoadSampleSet('pets')}
+                sx={{ flex: 1, fontSize: '0.7rem', py: 0.4, borderRadius: 1.5, fontWeight: 700 }}
+              >
+                🐱 펫 예시
+              </Button>
+            </Box>
+          </Card>
+
+          {/* Middle: Tabbed Settings Card */}
+          <Card
+            sx={{
+              borderRadius: 2.5,
+              flex: '1 1 0px',
+              minHeight: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+            }}
+          >
+            <Tabs
+              value={controlTab}
+              onChange={(_, v) => setControlTab(v)}
+              variant="fullWidth"
+              sx={{
+                borderBottom: '1px solid',
+                borderColor: 'divider',
+                minHeight: 42,
+                flexShrink: 0,
+                '& .MuiTab-root': {
+                  minHeight: 42,
+                  py: 0.8,
+                  px: 0.5,
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                },
+              }}
+            >
+              <Tab label="프레임 레이아웃" value="layout" />
+              <Tab label="테마, 필터" value="themeFilter" />
+              <Tab label="텍스트 문구" value="text" />
+              <Tab label="스티커" value="stickers" />
+            </Tabs>
+
+            {/* Tab Panels */}
+            <Box sx={{ p: 2, flex: '1 1 0px', minHeight: 0, overflowY: 'auto' }}>
+              {/* TAB 1: 프레임 레이아웃 */}
+              {controlTab === 'layout' && (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {/* Layout Selector */}
+                  <Box>
+                    <Typography
+                      variant="caption"
+                      sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.75 }}
+                    >
+                      프레임 레이아웃 선택
+                    </Typography>
+                    <ToggleButtonGroup
+                      value={layout}
+                      exclusive
+                      onChange={(_, v) => v && setLayout(v)}
+                      fullWidth
+                      size="small"
+                    >
+                      <ToggleButton value="strip4">4컷 세로</ToggleButton>
+                      <ToggleButton value="grid4">2×2 격자</ToggleButton>
+                      <ToggleButton value="polaroid1">폴라로이드</ToggleButton>
+                      <ToggleButton value="custom">사용자 정의</ToggleButton>
+                    </ToggleButtonGroup>
+                  </Box>
+
+                  {/* Custom N×M Grid Controls */}
+                  {layout === 'custom' && (
                     <Box
-                      key={idx}
-                      onClick={() => !img && fileInputRef.current?.click()}
                       sx={{
-                        aspectRatio: '1',
+                        p: 1.5,
                         borderRadius: 2,
-                        bgcolor: 'action.hover',
-                        border: '1px dashed',
-                        borderColor: img ? 'transparent' : 'divider',
-                        overflow: 'hidden',
-                        position: 'relative',
+                        bgcolor: (t) =>
+                          t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'grey.100',
+                        border: '1px solid',
+                        borderColor: 'divider',
                         display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: img ? 'default' : 'pointer',
+                        flexDirection: 'column',
+                        gap: 1.25,
                       }}
                     >
-                      {img ? (
-                        <>
-                          <img
-                            src={img}
-                            alt={`Slot ${idx + 1}`}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          />
-                          <IconButton
-                            size="small"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeImage(idx);
-                            }}
+                      {/* Header info */}
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontWeight: 700,
+                          color: 'text.secondary',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 0.5,
+                        }}
+                      >
+                        <GridViewRoundedIcon sx={{ fontSize: 16 }} /> N×M 격자 설정 ({customRows}행
+                        × {customCols}열, 총 {customRows * customCols}컷)
+                      </Typography>
+
+                      {/* Preset Chips */}
+                      <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
+                        {[
+                          { label: '2×3 (6컷)', r: 3, c: 2 },
+                          { label: '3×2 (6컷)', r: 2, c: 3 },
+                          { label: '3×3 (9컷)', r: 3, c: 3 },
+                          { label: '2×4 (8컷)', r: 4, c: 2 },
+                          { label: '1×3 (3컷)', r: 3, c: 1 },
+                        ].map((preset) => {
+                          const isSelected = customRows === preset.r && customCols === preset.c;
+                          return (
+                            <Button
+                              key={preset.label}
+                              size="small"
+                              variant={isSelected ? 'contained' : 'outlined'}
+                              color={isSelected ? 'primary' : 'inherit'}
+                              onClick={() => {
+                                setCustomRows(preset.r);
+                                setCustomCols(preset.c);
+                              }}
+                              sx={{
+                                py: 0.3,
+                                px: 0.8,
+                                fontSize: '0.7rem',
+                                borderRadius: 1.5,
+                                fontWeight: isSelected ? 700 : 500,
+                              }}
+                            >
+                              {preset.label}
+                            </Button>
+                          );
+                        })}
+                      </Box>
+
+                      {/* Rows & Cols Stepper Controls */}
+                      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
+                        {/* Cols (가로 칸 수, M) */}
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 0.5,
+                            p: 0.8,
+                            borderRadius: 1.5,
+                            bgcolor: 'background.paper',
+                            border: '1px solid',
+                            borderColor: 'divider',
+                          }}
+                        >
+                          <Typography
+                            variant="caption"
+                            sx={{ color: 'text.secondary', fontWeight: 600 }}
+                          >
+                            가로 칸 수 (열, M)
+                          </Typography>
+                          <Box
                             sx={{
-                              position: 'absolute',
-                              top: 2,
-                              right: 2,
-                              bgcolor: 'rgba(0,0,0,0.6)',
-                              color: '#fff',
-                              '&:hover': { bgcolor: '#ef4444' },
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
                             }}
                           >
-                            <DeleteRoundedIcon fontSize="inherit" />
-                          </IconButton>
-                        </>
-                      ) : (
-                        <PhotoFilterRoundedIcon sx={{ color: 'text.disabled' }} />
-                      )}
+                            <IconButton
+                              size="small"
+                              onClick={() => setCustomCols((prev) => Math.max(1, prev - 1))}
+                              disabled={customCols <= 1}
+                              sx={{ p: 0.3 }}
+                            >
+                              <RemoveRoundedIcon fontSize="small" />
+                            </IconButton>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+                              {customCols}칸
+                            </Typography>
+                            <IconButton
+                              size="small"
+                              onClick={() => setCustomCols((prev) => Math.min(6, prev + 1))}
+                              disabled={customCols >= 6}
+                              sx={{ p: 0.3 }}
+                            >
+                              <AddRoundedIcon fontSize="small" />
+                            </IconButton>
+                          </Box>
+                        </Box>
+
+                        {/* Rows (세로 칸 수, N) */}
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 0.5,
+                            p: 0.8,
+                            borderRadius: 1.5,
+                            bgcolor: 'background.paper',
+                            border: '1px solid',
+                            borderColor: 'divider',
+                          }}
+                        >
+                          <Typography
+                            variant="caption"
+                            sx={{ color: 'text.secondary', fontWeight: 600 }}
+                          >
+                            세로 칸 수 (행, N)
+                          </Typography>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                            }}
+                          >
+                            <IconButton
+                              size="small"
+                              onClick={() => setCustomRows((prev) => Math.max(1, prev - 1))}
+                              disabled={customRows <= 1}
+                              sx={{ p: 0.3 }}
+                            >
+                              <RemoveRoundedIcon fontSize="small" />
+                            </IconButton>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+                              {customRows}칸
+                            </Typography>
+                            <IconButton
+                              size="small"
+                              onClick={() => setCustomRows((prev) => Math.min(6, prev + 1))}
+                              disabled={customRows >= 6}
+                              sx={{ p: 0.3 }}
+                            >
+                              <AddRoundedIcon fontSize="small" />
+                            </IconButton>
+                          </Box>
+                        </Box>
+                      </Box>
+
+                      {/* Photo Aspect Ratio */}
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: 'text.secondary',
+                            fontWeight: 600,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 0.5,
+                          }}
+                        >
+                          <AspectRatioRoundedIcon sx={{ fontSize: 14 }} /> 사진 칸 비율
+                        </Typography>
+                        <ToggleButtonGroup
+                          value={customRatio}
+                          exclusive
+                          onChange={(_, v) => v && setCustomRatio(v)}
+                          fullWidth
+                          size="small"
+                        >
+                          <ToggleButton value="4:3" sx={{ py: 0.4, fontSize: '0.72rem' }}>
+                            4:3 (가로형)
+                          </ToggleButton>
+                          <ToggleButton value="1:1" sx={{ py: 0.4, fontSize: '0.72rem' }}>
+                            1:1 (정사각)
+                          </ToggleButton>
+                          <ToggleButton value="3:4" sx={{ py: 0.4, fontSize: '0.72rem' }}>
+                            3:4 (세로형)
+                          </ToggleButton>
+                        </ToggleButtonGroup>
+                      </Box>
                     </Box>
-                  );
-                })}
-              </Box>
+                  )}
 
-              {/* Sample Preset Buttons */}
-              <Box sx={{ mt: 1.25, display: 'flex', gap: 1 }}>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  color="primary"
-                  onClick={() => handleLoadSampleSet('portrait')}
-                  sx={{ flex: 1, fontSize: '0.72rem', py: 0.6, borderRadius: 1.5, fontWeight: 700 }}
-                >
-                  ✨ 감성 인물 예시
-                </Button>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  color="secondary"
-                  onClick={() => handleLoadSampleSet('pets')}
-                  sx={{ flex: 1, fontSize: '0.72rem', py: 0.6, borderRadius: 1.5, fontWeight: 700 }}
-                >
-                  🐱 펫 예시
-                </Button>
-              </Box>
-            </Box>
+                  {/* Frame Gap Controls */}
+                  <Box
+                    sx={{
+                      p: 1.5,
+                      borderRadius: 2,
+                      bgcolor: (t) =>
+                        t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'grey.100',
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 1.25,
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontWeight: 700,
+                          color: 'text.secondary',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 0.5,
+                        }}
+                      >
+                        <StraightenRoundedIcon sx={{ fontSize: 16 }} /> 프레임 사진 간격 (Gap)
+                      </Typography>
+                      <Typography variant="caption" sx={{ fontWeight: 800, color: 'primary.main' }}>
+                        {slotGap}px
+                      </Typography>
+                    </Box>
 
-            {/* Theme & Filter */}
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
-              3. 프레임 테마 & 필터
-            </Typography>
-            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1, mb: 2 }}>
-              {THEMES.map((t) => (
-                <Button
-                  key={t.id}
-                  size="small"
-                  variant={theme === t.id ? 'contained' : 'outlined'}
-                  color={theme === t.id ? 'primary' : 'inherit'}
-                  onClick={() => setTheme(t.id)}
-                  sx={{ borderRadius: 1.5, fontSize: '0.75rem', p: 0.8 }}
-                >
-                  {t.name}
-                </Button>
-              ))}
-            </Box>
+                    <Slider
+                      value={slotGap}
+                      min={0}
+                      max={60}
+                      step={2}
+                      onChange={(_, v) => setSlotGap(v as number)}
+                      valueLabelDisplay="auto"
+                      size="small"
+                      sx={{ mx: 0.5 }}
+                    />
 
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
-              4. 사진 필터
-            </Typography>
-            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 0.8, mb: 2 }}>
-              {FILTERS.map((f) => (
-                <Button
-                  key={f.id}
-                  size="small"
-                  variant={filter === f.id ? 'contained' : 'outlined'}
-                  color={filter === f.id ? 'primary' : 'inherit'}
-                  onClick={() => setFilter(f.id)}
-                  sx={{ borderRadius: 1.5, fontSize: '0.7rem', p: 0.6 }}
-                >
-                  {f.name}
-                </Button>
-              ))}
-            </Box>
+                    {/* Gap Preset Buttons */}
+                    <Box sx={{ display: 'flex', gap: 0.8 }}>
+                      {[
+                        { label: '없음 (0px)', val: 0 },
+                        { label: '좁게 (16px)', val: 16 },
+                        { label: '보통 (24px)', val: 24 },
+                        { label: '넓게 (36px)', val: 36 },
+                      ].map((p) => {
+                        const isSelected = slotGap === p.val;
+                        return (
+                          <Button
+                            key={p.val}
+                            size="small"
+                            variant={isSelected ? 'contained' : 'outlined'}
+                            color={isSelected ? 'primary' : 'inherit'}
+                            onClick={() => setSlotGap(p.val)}
+                            sx={{
+                              flex: 1,
+                              py: 0.3,
+                              px: 0.5,
+                              fontSize: '0.68rem',
+                              borderRadius: 1.5,
+                              fontWeight: isSelected ? 700 : 500,
+                            }}
+                          >
+                            {p.label}
+                          </Button>
+                        );
+                      })}
+                    </Box>
+                  </Box>
+                </Box>
+              )}
 
-            {/* Text and Date */}
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
-              5. 텍스트 문구 & 날짜
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 1.5, mb: 2 }}>
-              <TextField
-                size="small"
-                fullWidth
-                label="하단 문구"
-                value={captionText}
-                onChange={(e) => setCaptionText(e.target.value)}
-              />
-              <TextField
-                size="small"
-                sx={{ width: 140 }}
-                label="날짜"
-                value={dateText}
-                onChange={(e) => setDateText(e.target.value)}
-              />
-            </Box>
+              {/* TAB 2: 테마, 필터 */}
+              {controlTab === 'themeFilter' && (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {/* Theme */}
+                  <Box>
+                    <Typography
+                      variant="caption"
+                      sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 1 }}
+                    >
+                      프레임 배경 테마
+                    </Typography>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0.8 }}>
+                      {THEMES.map((t) => (
+                        <Button
+                          key={t.id}
+                          size="small"
+                          variant={theme === t.id ? 'contained' : 'outlined'}
+                          color={theme === t.id ? 'primary' : 'inherit'}
+                          onClick={() => setTheme(t.id)}
+                          sx={{ borderRadius: 1.5, fontSize: '0.72rem', p: 0.7 }}
+                        >
+                          {t.name}
+                        </Button>
+                      ))}
+                    </Box>
+                  </Box>
 
-            {/* Stickers */}
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
-              6. 스티커 붙이기
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 0.8, flexWrap: 'wrap' }}>
-              {STICKER_PRESETS.map((emoji) => (
-                <Button
-                  key={emoji}
-                  size="small"
-                  variant="outlined"
-                  onClick={() => addSticker(emoji)}
-                  sx={{ minWidth: 36, px: 0.8, fontSize: '1.2rem', borderRadius: 1.5 }}
-                >
-                  {emoji}
-                </Button>
-              ))}
-              {stickers.length > 0 && (
-                <Button size="small" color="error" onClick={() => setStickers([])}>
-                  스티커 초기화
-                </Button>
+                  {/* Filter */}
+                  <Box>
+                    <Typography
+                      variant="caption"
+                      sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 1 }}
+                    >
+                      사진 필터 효과
+                    </Typography>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 0.8 }}>
+                      {FILTERS.map((f) => (
+                        <Button
+                          key={f.id}
+                          size="small"
+                          variant={filter === f.id ? 'contained' : 'outlined'}
+                          color={filter === f.id ? 'primary' : 'inherit'}
+                          onClick={() => setFilter(f.id)}
+                          sx={{ borderRadius: 1.5, fontSize: '0.72rem', p: 0.7 }}
+                        >
+                          {f.name}
+                        </Button>
+                      ))}
+                    </Box>
+                  </Box>
+                </Box>
+              )}
+
+              {/* TAB 3: 텍스트 문구 */}
+              {controlTab === 'text' && (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>
+                    프레임 하단 문구 & 날짜
+                  </Typography>
+                  <TextField
+                    size="small"
+                    fullWidth
+                    label="하단 문구"
+                    value={captionText}
+                    onChange={(e) => setCaptionText(e.target.value)}
+                    placeholder="예: LIFE FOUR CUTS"
+                  />
+                  <TextField
+                    size="small"
+                    fullWidth
+                    label="날짜 표시"
+                    value={dateText}
+                    onChange={(e) => setDateText(e.target.value)}
+                    placeholder="예: 2026.09.05"
+                  />
+                </Box>
+              )}
+
+              {/* TAB 4: 스티커 */}
+              {controlTab === 'stickers' && (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                  <Box
+                    sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                  >
+                    <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>
+                      스티커 추가 (클릭 시 사진 위에 배치)
+                    </Typography>
+                    {stickers.length > 0 && (
+                      <Button
+                        size="small"
+                        color="error"
+                        onClick={() => setStickers([])}
+                        sx={{ fontSize: '0.72rem', p: 0.3 }}
+                      >
+                        스티커 초기화
+                      </Button>
+                    )}
+                  </Box>
+
+                  <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 0.8 }}>
+                    {STICKER_PRESETS.map((emoji) => (
+                      <Button
+                        key={emoji}
+                        size="small"
+                        variant="outlined"
+                        onClick={() => addSticker(emoji)}
+                        sx={{ minWidth: 36, py: 0.8, fontSize: '1.3rem', borderRadius: 1.5 }}
+                      >
+                        {emoji}
+                      </Button>
+                    ))}
+                  </Box>
+                  <Typography
+                    variant="caption"
+                    sx={{ color: 'text.disabled', textAlign: 'center', mt: 0.5 }}
+                  >
+                    붙인 스티커: {stickers.length}개
+                  </Typography>
+                </Box>
               )}
             </Box>
           </Card>
@@ -862,8 +1314,8 @@ export function FourCutView() {
             sx={{
               display: 'flex',
               flexDirection: 'column',
-              gap: 1.25,
-              mt: 'auto',
+              gap: 1,
+              flexShrink: 0,
               pt: 0.5,
             }}
           >
@@ -876,38 +1328,40 @@ export function FourCutView() {
                 setStickers([]);
               }}
               startIcon={<RefreshRoundedIcon />}
-              sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+              sx={{ py: 1, borderRadius: 2, fontWeight: 600, fontSize: '0.85rem' }}
             >
               다른 사진
             </Button>
-            <Button
-              fullWidth
-              variant="contained"
-              color="primary"
-              onClick={handleSave}
-              disabled={isProcessing || !resultDataUrl}
-              startIcon={
-                isProcessing ? (
-                  <CircularProgress size={18} color="inherit" />
-                ) : (
-                  <DownloadRoundedIcon />
-                )
-              }
-              sx={{ py: 1.4, borderRadius: 2, fontWeight: 700, fontSize: '0.95rem' }}
-            >
-              저장
-            </Button>
-            <Button
-              fullWidth
-              variant="contained"
-              color="secondary"
-              onClick={handleShare}
-              disabled={isProcessing || !resultDataUrl}
-              startIcon={<ShareRoundedIcon />}
-              sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
-            >
-              공유
-            </Button>
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
+              <Button
+                fullWidth
+                variant="contained"
+                color="primary"
+                onClick={handleSave}
+                disabled={isProcessing || !resultDataUrl}
+                startIcon={
+                  isProcessing ? (
+                    <CircularProgress size={16} color="inherit" />
+                  ) : (
+                    <DownloadRoundedIcon />
+                  )
+                }
+                sx={{ py: 1.1, borderRadius: 2, fontWeight: 700, fontSize: '0.9rem' }}
+              >
+                저장
+              </Button>
+              <Button
+                fullWidth
+                variant="contained"
+                color="secondary"
+                onClick={handleShare}
+                disabled={isProcessing || !resultDataUrl}
+                startIcon={<ShareRoundedIcon />}
+                sx={{ py: 1.1, borderRadius: 2, fontWeight: 600, fontSize: '0.9rem' }}
+              >
+                공유
+              </Button>
+            </Box>
           </Box>
         </Box>
       </Box>

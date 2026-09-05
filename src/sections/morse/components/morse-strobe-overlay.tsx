@@ -1,5 +1,7 @@
 'use client';
 
+import type { LampColorTheme } from './morse-signal-lamp';
+
 import React, { useEffect } from 'react';
 
 import Box from '@mui/material/Box';
@@ -8,8 +10,6 @@ import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import FlashlightOnRoundedIcon from '@mui/icons-material/FlashlightOnRounded';
-
-import type { LampColorTheme } from './morse-signal-lamp';
 
 // ----------------------------------------------------------------------
 

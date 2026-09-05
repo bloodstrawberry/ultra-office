@@ -36,6 +36,12 @@ export const TOOL_METADATA_MAP: Record<
     badgeColor?: 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success';
   }
 > = {
+  [paths.photo.editor]: {
+    description:
+      '갤럭시 One UI & 아이폰 iOS 감성 보정, AI 편집, 8채널 HSL, 인물 리터칭 올인원 스튜디오',
+    tag: '올인원 스튜디오',
+    badgeColor: 'primary',
+  },
   // 앱인토스
   [paths.photo.logo]: {
     description: '정사각형 크롭 및 600x600 고해상도 앱 아이콘/프로필 생성',
@@ -251,6 +257,11 @@ export const TOOL_METADATA_MAP: Record<
     description: '무설치 HWP/HWPX 공문서 즉시 열람 및 본문/표(Excel)/이미지 완벽 추출',
     tag: '공공/실무',
     badgeColor: 'primary',
+  },
+  [paths.translator]: {
+    description: '180+개국 실시간 다국어 번역, 동시 비교 번역, 오피스 문서 번역 & 음성 TTS',
+    tag: '글로벌 필수',
+    badgeColor: 'warning',
   },
 
   // 개발자 도구

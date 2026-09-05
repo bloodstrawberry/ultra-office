@@ -17,8 +17,9 @@ import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import AutoFixHighRoundedIcon from '@mui/icons-material/AutoFixHighRounded';
 
-import { sanitizeAllText, scanPrivacyInText } from '../utils/privacy-utils';
 import { ResizablePanel, ResizableHandle, ResizablePanelGroup } from 'src/components/resizable';
+
+import { sanitizeAllText, scanPrivacyInText } from '../utils/privacy-utils';
 
 // ----------------------------------------------------------------------
 

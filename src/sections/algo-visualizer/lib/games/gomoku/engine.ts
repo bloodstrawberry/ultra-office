@@ -1,4 +1,4 @@
-import type { GomokuGrid, GomokuPoint, GomokuColor, GomokuWinLine } from './types';
+import type { GomokuGrid, GomokuPoint, GomokuWinLine } from './types';
 
 export const GOMOKU_SIZE = 15;
 

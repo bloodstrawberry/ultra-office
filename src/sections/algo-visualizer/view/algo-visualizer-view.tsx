@@ -9,16 +9,16 @@ import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
+import LensRoundedIcon from '@mui/icons-material/LensRounded';
 import SchemaRoundedIcon from '@mui/icons-material/SchemaRounded';
+import ShieldRoundedIcon from '@mui/icons-material/ShieldRounded';
 import StorageRoundedIcon from '@mui/icons-material/StorageRounded';
 import BarChartRoundedIcon from '@mui/icons-material/BarChartRounded';
 import TerminalRoundedIcon from '@mui/icons-material/TerminalRounded';
 import TableChartRoundedIcon from '@mui/icons-material/TableChartRounded';
+import MilitaryTechRoundedIcon from '@mui/icons-material/MilitaryTechRounded';
 import CompareArrowsRoundedIcon from '@mui/icons-material/CompareArrowsRounded';
 import SportsEsportsRoundedIcon from '@mui/icons-material/SportsEsportsRounded';
-import LensRoundedIcon from '@mui/icons-material/LensRounded';
-import ShieldRoundedIcon from '@mui/icons-material/ShieldRounded';
-import MilitaryTechRoundedIcon from '@mui/icons-material/MilitaryTechRounded';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
@@ -34,13 +34,13 @@ import { useVisualizerStore } from '../store/visualizerStore';
 import { ChallengeTab } from '../components/tabs/ChallengeTab';
 import { VisualizerTab } from '../components/tabs/VisualizerTab';
 import { PlaygroundTab } from '../components/tabs/PlaygroundTab';
+import { AlkkagiTab } from '../components/games/alkkagi/AlkkagiTab';
 import { DataStructuresTab } from '../components/tabs/DataStructuresTab';
 import { BadukSolverTab } from '../components/games/baduk/BadukSolverTab';
-import { JanggiSolverTab } from '../components/games/janggi/JanggiSolverTab';
 import { ChessSolverTab } from '../components/games/chess/ChessSolverTab';
-import { OthelloSolverTab } from '../components/games/othello/OthelloSolverTab';
+import { JanggiSolverTab } from '../components/games/janggi/JanggiSolverTab';
 import { GomokuSolverTab } from '../components/games/gomoku/GomokuSolverTab';
-import { AlkkagiTab } from '../components/games/alkkagi/AlkkagiTab';
+import { OthelloSolverTab } from '../components/games/othello/OthelloSolverTab';
 
 // ----------------------------------------------------------------------
 

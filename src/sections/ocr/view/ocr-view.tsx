@@ -26,6 +26,7 @@ import DocumentScannerRoundedIcon from '@mui/icons-material/DocumentScannerRound
 import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
 
 import { DashboardContent } from 'src/layouts/dashboard';
+
 import { ResizablePanel, ResizableHandle, ResizablePanelGroup } from 'src/components/resizable';
 
 import {

@@ -13,37 +13,29 @@ import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import Slider from '@mui/material/Slider';
 import Switch from '@mui/material/Switch';
-import Tooltip from '@mui/material/Tooltip';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
-import ToggleButton from '@mui/material/ToggleButton';
 import DialogTitle from '@mui/material/DialogTitle';
+import ToggleButton from '@mui/material/ToggleButton';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import CircularProgress from '@mui/material/CircularProgress';
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
 import CodeRoundedIcon from '@mui/icons-material/CodeRounded';
-import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import ImageRoundedIcon from '@mui/icons-material/ImageRounded';
-import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import ZoomInRoundedIcon from '@mui/icons-material/ZoomInRounded';
-import LayersRoundedIcon from '@mui/icons-material/LayersRounded';
 import ZoomOutRoundedIcon from '@mui/icons-material/ZoomOutRounded';
-import PaletteRoundedIcon from '@mui/icons-material/PaletteRounded';
 import CompareRoundedIcon from '@mui/icons-material/CompareRounded';
-import FormatAlignLeftRoundedIcon from '@mui/icons-material/FormatAlignLeftRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
-import UploadFileRoundedIcon from '@mui/icons-material/UploadFileRounded';
+import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
+import OpenInFullRoundedIcon from '@mui/icons-material/OpenInFullRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
-import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
 import ContentPasteRoundedIcon from '@mui/icons-material/ContentPasteRounded';
-import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
-import OpenInFullRoundedIcon from '@mui/icons-material/OpenInFullRounded';
-import CloseFullscreenRoundedIcon from '@mui/icons-material/CloseFullscreenRounded';
+import FormatAlignLeftRoundedIcon from '@mui/icons-material/FormatAlignLeftRounded';
 
 import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
 
@@ -58,8 +50,8 @@ import {
   SAMPLE_SVG_PRESETS,
   SAMPLE_RASTER_IMAGES,
   renderSvgToRasterImage,
-  type SvgRasterizeOptions,
   type SvgConversionMode,
+  type SvgRasterizeOptions,
 } from '../utils/svg-processor';
 
 // ----------------------------------------------------------------------

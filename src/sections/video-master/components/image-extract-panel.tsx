@@ -15,7 +15,6 @@ import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
-import FormLabel from '@mui/material/FormLabel';
 import InputLabel from '@mui/material/InputLabel';
 import RadioGroup from '@mui/material/RadioGroup';
 import Typography from '@mui/material/Typography';
@@ -23,11 +22,11 @@ import IconButton from '@mui/material/IconButton';
 import FormControl from '@mui/material/FormControl';
 import LinearProgress from '@mui/material/LinearProgress';
 import FormControlLabel from '@mui/material/FormControlLabel';
-import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import CameraAltRoundedIcon from '@mui/icons-material/CameraAltRounded';
 import FolderZipRoundedIcon from '@mui/icons-material/FolderZipRounded';
 import CollectionsRoundedIcon from '@mui/icons-material/CollectionsRounded';
+import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import PlayCircleOutlineRoundedIcon from '@mui/icons-material/PlayCircleOutlineRounded';
 
 import { formatTime } from '../utils/audio-processor';
@@ -35,8 +34,8 @@ import {
   createZipFromFrames,
   extractFramesFromVideo,
   extractFramesByInterval,
-  captureCurrentVideoFrame,
   captureVideoFrameAtTime,
+  captureCurrentVideoFrame,
 } from '../utils/frame-extractor';
 
 // ----------------------------------------------------------------------

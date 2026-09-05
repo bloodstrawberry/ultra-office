@@ -23,8 +23,8 @@ import AspectRatioRoundedIcon from '@mui/icons-material/AspectRatioRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import { AppsInTossNavHeader, PhotoUploadWorkspace, type SampleImageItem } from '../components';
 import { type CropRect, InteractiveCropBox } from '../components/interactive-crop-box';
+import { AppsInTossNavHeader, PhotoUploadWorkspace, type SampleImageItem } from '../components';
 import { downloadDataUrl, shareToKakaoTalk, cropAndResizeLogo } from '../utils/image-processor';
 
 const LOGO_SAMPLE_IMAGES: SampleImageItem[] = [

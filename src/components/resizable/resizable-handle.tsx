@@ -1,11 +1,12 @@
 'use client';
 
+import type { Theme, SxProps } from '@mui/material/styles';
+
 import React from 'react';
 import { Separator } from 'react-resizable-panels';
 
 import Box from '@mui/material/Box';
 import Tooltip from '@mui/material/Tooltip';
-import type { SxProps, Theme } from '@mui/material/styles';
 
 // ----------------------------------------------------------------------
 

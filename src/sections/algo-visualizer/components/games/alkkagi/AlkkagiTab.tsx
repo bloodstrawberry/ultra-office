@@ -1,47 +1,45 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
-import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
+import Slider from '@mui/material/Slider';
 import Typography from '@mui/material/Typography';
 import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import Slider from '@mui/material/Slider';
-import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
 import UndoRoundedIcon from '@mui/icons-material/UndoRounded';
-import EmojiEventsRoundedIcon from '@mui/icons-material/EmojiEventsRounded';
-import SportsEsportsRoundedIcon from '@mui/icons-material/SportsEsportsRounded';
-import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
-import PsychologyRoundedIcon from '@mui/icons-material/PsychologyRounded';
-import PeopleRoundedIcon from '@mui/icons-material/PeopleRounded';
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
+import PeopleRoundedIcon from '@mui/icons-material/PeopleRounded';
+import PsychologyRoundedIcon from '@mui/icons-material/PsychologyRounded';
+import EmojiEventsRoundedIcon from '@mui/icons-material/EmojiEventsRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
+import SportsEsportsRoundedIcon from '@mui/icons-material/SportsEsportsRounded';
 
 import { AlkkagiCanvas } from './AlkkagiCanvas';
 import { GameAlgorithmInspector } from '../common/GameAlgorithmInspector';
 import {
-  DEFAULT_PHYSICS,
-  createInitialStones,
-  updatePhysicsStep,
   calculateAIAim,
+  DEFAULT_PHYSICS,
+  updatePhysicsStep,
+  createInitialStones,
 } from '../../../lib/games/alkkagi/engine';
 import {
   playBadukStoneSound,
   playJanggiPieceSound,
-  playAlkkagiFlickSound,
   playAlkkagiFallSound,
+  playAlkkagiFlickSound,
   playPuzzleSolvedSound,
 } from '../../../lib/games/gameSounds';
 import {
+  type AlkkagiSide,
   type AlkkagiStone,
-  type AlkkagiBoardType,
   type AlkkagiGameMode,
+  type AlkkagiBoardType,
   type AlkkagiFormation,
   type AlkkagiPhysicsConfig,
-  type AlkkagiSide,
 } from '../../../lib/games/alkkagi/types';
 
 export function AlkkagiTab() {

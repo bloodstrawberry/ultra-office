@@ -150,6 +150,27 @@ export const TOOLS_DATA: ToolItem[] = [
     ],
   },
   {
+    id: 'translator',
+    title: '다국어 번역기 (Translator)',
+    subtitle: '180+ 언어 실시간 상호 번역 & 오피스 문서 번역',
+    description:
+      '설치 없이 브라우저에서 텍스트 및 오피스 문서를 180여 개국 언어로 즉시 번역하고, 동시 비교 및 음성 재생을 지원합니다.',
+    category: 'data',
+    path: paths.translator,
+    tag: '글로벌 필수',
+    tagColor: 'warning',
+    isFeatured: true,
+    featuredRank: 5,
+    accentColor: '#8B5CF6',
+    iconKey: 'translator',
+    features: [
+      '180+ 언어 실시간 양방향 번역',
+      '다국어 동시 비교 일괄 번역',
+      '오피스 문서 (TXT/MD/DOCX) 번역',
+      'Web Speech 음성 듣기(TTS) & STT',
+    ],
+  },
+  {
     id: 'compare',
     title: 'Diff Checker',
     subtitle: '실시간 Diff & 차이점 정밀 분석',

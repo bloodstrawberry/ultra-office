@@ -7,6 +7,7 @@ import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import { Box, Card, Tooltip, Typography, IconButton } from '@mui/material';
 
 import { DashboardContent } from 'src/layouts/dashboard';
+
 import { ResizablePanel, ResizableHandle, ResizablePanelGroup } from 'src/components/resizable';
 
 import { ImageViewerCard } from '../common/image-viewer-card';

@@ -28,6 +28,7 @@ import SendRoundedIcon from '@mui/icons-material/SendRounded';
 import KeyRoundedIcon from '@mui/icons-material/VpnKeyRounded';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import CasinoRoundedIcon from '@mui/icons-material/CasinoRounded';
+import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import GridViewRoundedIcon from '@mui/icons-material/GridViewRounded';
 import HandymanRoundedIcon from '@mui/icons-material/HandymanRounded';
 import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded';
@@ -37,11 +38,11 @@ import AutoFixHighRoundedIcon from '@mui/icons-material/AutoFixHighRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import FindReplaceRoundedIcon from '@mui/icons-material/FindReplaceRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
-import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import IntegrationInstructionsRoundedIcon from '@mui/icons-material/IntegrationInstructionsRounded';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks/use-router';
+
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import {

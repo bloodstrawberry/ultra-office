@@ -82,6 +82,7 @@ export const paths = {
     root: '/video-master',
     trim: '/video-master',
     merge: '/video-master',
+    subtitle: '/video-master/subtitle',
     mp4ToMp3: '/video-master/mp4-to-mp3',
     batch: '/video-master/batch',
     aiWatermark: '/video-master/ai-watermark',
@@ -91,6 +92,7 @@ export const paths = {
   spreadsheet: '/spreadsheet',
   markdown: '/markdown',
   powerpoint: '/powerpoint',
+  translator: '/translator',
   text: {
     root: `/text`,
     diff: `/text/diff`,
@@ -109,6 +111,7 @@ export const paths = {
   },
   photo: {
     root: `/photo`,
+    editor: `/photo/editor`,
     artStyle: `/photo/art-style`,
     ascii: `/photo/ascii`,
     pixel: `/photo/pixel`,

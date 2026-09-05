@@ -1,10 +1,4 @@
-import type {
-  HttpMethod,
-  ProxyMode,
-  KeyValueParam,
-  ApiResponseData,
-  ApiRequestConfig,
-} from '../types';
+import type { ProxyMode, KeyValueParam, ApiResponseData, ApiRequestConfig } from '../types';
 
 /**
  * URL에 활성화된 쿼리 파라미터를 결합하여 완성된 요청 URL을 생성합니다.

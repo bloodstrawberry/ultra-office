@@ -1,10 +1,4 @@
-import type {
-  ChatData,
-  ChatCategory,
-  ChatThemeId,
-  ChatRoomListItem,
-  MessengerThemeId,
-} from '../types';
+import type { ChatData, ChatCategory, ChatRoomListItem, MessengerThemeId } from '../types';
 
 export const INITIAL_PRESETS: Record<ChatCategory, Record<string, ChatData>> = {
   // 1. 메신저 프리셋

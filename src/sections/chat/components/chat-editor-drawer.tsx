@@ -1,44 +1,44 @@
 'use client';
 
-import React, { useState } from 'react';
-import { toast } from 'src/components/snackbar';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Drawer from '@mui/material/Drawer';
-import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
-import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
-import MenuItem from '@mui/material/MenuItem';
-import IconButton from '@mui/material/IconButton';
-import Switch from '@mui/material/Switch';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Slider from '@mui/material/Slider';
-import Avatar from '@mui/material/Avatar';
-import Card from '@mui/material/Card';
-import Divider from '@mui/material/Divider';
-import Tooltip from '@mui/material/Tooltip';
-import AddRoundedIcon from '@mui/icons-material/AddRounded';
-import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
-import ArrowUpwardRoundedIcon from '@mui/icons-material/ArrowUpwardRounded';
-import ArrowDownwardRoundedIcon from '@mui/icons-material/ArrowDownwardRounded';
-import EditRoundedIcon from '@mui/icons-material/EditRounded';
-import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
-import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
-import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
-import UploadFileRoundedIcon from '@mui/icons-material/UploadFileRounded';
-import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
-
-import { INITIAL_PRESETS } from '../constants/presets';
 import type {
   ChatData,
-  ChatMessage,
   ChatUser,
-  ChatRoomConfig,
-  ChatCategory,
   DeviceType,
+  ChatMessage,
   NetworkType,
+  ChatCategory,
+  ChatRoomConfig,
 } from '../types';
+
+import React, { useState } from 'react';
+
+import Box from '@mui/material/Box';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
+import Card from '@mui/material/Card';
+import Drawer from '@mui/material/Drawer';
+import Button from '@mui/material/Button';
+import Switch from '@mui/material/Switch';
+import Slider from '@mui/material/Slider';
+import Avatar from '@mui/material/Avatar';
+import MenuItem from '@mui/material/MenuItem';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import EditRoundedIcon from '@mui/icons-material/EditRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
+import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
+import UploadFileRoundedIcon from '@mui/icons-material/UploadFileRounded';
+import ArrowUpwardRoundedIcon from '@mui/icons-material/ArrowUpwardRounded';
+import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
+import ArrowDownwardRoundedIcon from '@mui/icons-material/ArrowDownwardRounded';
+
+import { toast } from 'src/components/snackbar';
+
+import { INITIAL_PRESETS } from '../constants/presets';
 
 interface ChatEditorDrawerProps {
   open: boolean;

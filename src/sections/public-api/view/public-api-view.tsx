@@ -1,9 +1,9 @@
 'use client';
 
 import type {
-  HttpMethod,
   ProxyMode,
   ApiPreset,
+  HttpMethod,
   PublicApiItem,
   KeyValueParam,
   ApiResponseData,
@@ -19,13 +19,12 @@ import Tab from '@mui/material/Tab';
 import Card from '@mui/material/Card';
 import Tabs from '@mui/material/Tabs';
 import Chip from '@mui/material/Chip';
-import Alert from '@mui/material/Alert';
+import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import Select from '@mui/material/Select';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
-import Table from '@mui/material/Table';
 import TableRow from '@mui/material/TableRow';
 import Checkbox from '@mui/material/Checkbox';
 import TableBody from '@mui/material/TableBody';
@@ -36,22 +35,20 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import InputLabel from '@mui/material/InputLabel';
 import Pagination from '@mui/material/Pagination';
-import TableContainer from '@mui/material/TableContainer';
 import FormControl from '@mui/material/FormControl';
-import ToggleButton from '@mui/material/ToggleButton';
-import InputAdornment from '@mui/material/InputAdornment';
-import LinearProgress from '@mui/material/LinearProgress';
 import DialogTitle from '@mui/material/DialogTitle';
+import ToggleButton from '@mui/material/ToggleButton';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
-import CircularProgress from '@mui/material/CircularProgress';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import TableContainer from '@mui/material/TableContainer';
+import InputAdornment from '@mui/material/InputAdornment';
+import LinearProgress from '@mui/material/LinearProgress';
 import ApiRoundedIcon from '@mui/icons-material/ApiRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import CircularProgress from '@mui/material/CircularProgress';
 import StarRoundedIcon from '@mui/icons-material/StarRounded';
-import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
 import SendRoundedIcon from '@mui/icons-material/SendRounded';
-import CodeRoundedIcon from '@mui/icons-material/CodeRounded';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import ClearRoundedIcon from '@mui/icons-material/ClearRounded';
 import SpeedRoundedIcon from '@mui/icons-material/SpeedRounded';
 import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
@@ -59,7 +56,6 @@ import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import CancelRoundedIcon from '@mui/icons-material/CancelRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded';
-import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import StarOutlineRoundedIcon from '@mui/icons-material/StarOutlineRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
@@ -71,16 +67,15 @@ import HealthAndSafetyRoundedIcon from '@mui/icons-material/HealthAndSafetyRound
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
+import { API_PRESETS, ALL_CATEGORIES, ALL_PUBLIC_APIS } from '../data/public-apis-data';
 import {
   generateCurl,
   generateAxios,
   generateFetch,
   generatePython,
-  buildRequestUrl,
   executeApiRequest,
   jsonToTypeScriptInterface,
 } from '../utils/api-tester-utils';
-import { API_PRESETS, ALL_CATEGORIES, ALL_PUBLIC_APIS } from '../data/public-apis-data';
 
 // ----------------------------------------------------------------------
 // Constants & Helper Helpers
@@ -225,43 +220,45 @@ export function PublicApiView() {
   };
 
   // Filtered APIs calculation
-  const filteredApis = useMemo(() => {
-    return ALL_PUBLIC_APIS.filter((item) => {
-      // Region Filter
-      if (regionFilter === 'korea' && item.source !== 'korea') return false;
-      if (regionFilter === 'global' && item.source !== 'global') return false;
-      if (regionFilter === 'favorites' && !favorites.includes(item.id)) return false;
+  const filteredApis = useMemo(
+    () =>
+      ALL_PUBLIC_APIS.filter((item) => {
+        // Region Filter
+        if (regionFilter === 'korea' && item.source !== 'korea') return false;
+        if (regionFilter === 'global' && item.source !== 'global') return false;
+        if (regionFilter === 'favorites' && !favorites.includes(item.id)) return false;
 
-      // Category Filter
-      if (selectedCategory !== 'all' && item.category !== selectedCategory) return false;
+        // Category Filter
+        if (selectedCategory !== 'all' && item.category !== selectedCategory) return false;
 
-      // Auth Filter
-      if (authFilter === 'no-auth') {
-        const isNo = item.auth.toLowerCase().includes('no') || item.auth.trim() === '';
-        if (!isNo) return false;
-      } else if (authFilter === 'apiKey') {
-        if (!item.auth.toLowerCase().includes('apikey')) return false;
-      } else if (authFilter === 'OAuth') {
-        if (!item.auth.toLowerCase().includes('oauth')) return false;
-      }
+        // Auth Filter
+        if (authFilter === 'no-auth') {
+          const isNo = item.auth.toLowerCase().includes('no') || item.auth.trim() === '';
+          if (!isNo) return false;
+        } else if (authFilter === 'apiKey') {
+          if (!item.auth.toLowerCase().includes('apikey')) return false;
+        } else if (authFilter === 'OAuth') {
+          if (!item.auth.toLowerCase().includes('oauth')) return false;
+        }
 
-      // CORS Filter
-      if (corsFilter === 'yes' && item.cors.toLowerCase() !== 'yes') return false;
-      if (corsFilter === 'no' && item.cors.toLowerCase() === 'yes') return false;
+        // CORS Filter
+        if (corsFilter === 'yes' && item.cors.toLowerCase() !== 'yes') return false;
+        if (corsFilter === 'no' && item.cors.toLowerCase() === 'yes') return false;
 
-      // Search Query
-      if (searchQuery.trim()) {
-        const query = searchQuery.trim().toLowerCase();
-        const matchesName = item.name.toLowerCase().includes(query);
-        const matchesDesc = item.description.toLowerCase().includes(query);
-        const matchesCategory = item.category.toLowerCase().includes(query);
-        const matchesUrl = item.url.toLowerCase().includes(query);
-        return matchesName || matchesDesc || matchesCategory || matchesUrl;
-      }
+        // Search Query
+        if (searchQuery.trim()) {
+          const query = searchQuery.trim().toLowerCase();
+          const matchesName = item.name.toLowerCase().includes(query);
+          const matchesDesc = item.description.toLowerCase().includes(query);
+          const matchesCategory = item.category.toLowerCase().includes(query);
+          const matchesUrl = item.url.toLowerCase().includes(query);
+          return matchesName || matchesDesc || matchesCategory || matchesUrl;
+        }
 
-      return true;
-    });
-  }, [regionFilter, selectedCategory, authFilter, corsFilter, searchQuery, favorites]);
+        return true;
+      }),
+    [regionFilter, selectedCategory, authFilter, corsFilter, searchQuery, favorites]
+  );
 
   // Reset pagination on filter change
   useEffect(() => {

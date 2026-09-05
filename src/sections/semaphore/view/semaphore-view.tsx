@@ -11,8 +11,9 @@ import FlagRoundedIcon from '@mui/icons-material/FlagRounded';
 import MenuBookRoundedIcon from '@mui/icons-material/MenuBookRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
-import { SemaphoreConverterTab } from '../components/semaphore-converter-tab';
+
 import { SemaphoreChartTab } from '../components/semaphore-chart-tab';
+import { SemaphoreConverterTab } from '../components/semaphore-converter-tab';
 
 // ----------------------------------------------------------------------
 

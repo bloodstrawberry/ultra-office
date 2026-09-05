@@ -9,9 +9,9 @@ import { playChessMoveSound } from '../../../lib/games/gameSounds';
 import { isSameSquare, getPieceRawChessMoves } from '../../../lib/games/chess/engine';
 import {
   type ChessColor,
-  type ChessBoard as ChessBoardType,
-  type ChessSquare,
   type ChessPiece,
+  type ChessSquare,
+  type ChessBoard as ChessBoardType,
 } from '../../../lib/games/chess/types';
 
 interface ChessBoardProps {

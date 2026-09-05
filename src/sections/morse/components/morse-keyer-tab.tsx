@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -10,16 +10,16 @@ import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
-import RadioButtonCheckedRoundedIcon from '@mui/icons-material/RadioButtonCheckedRounded';
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
+import SpaceBarRoundedIcon from '@mui/icons-material/SpaceBarRounded';
 import BackspaceRoundedIcon from '@mui/icons-material/BackspaceRounded';
 import DeleteSweepRoundedIcon from '@mui/icons-material/DeleteSweepRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
-import SpaceBarRoundedIcon from '@mui/icons-material/SpaceBarRounded';
-import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
+import RadioButtonCheckedRoundedIcon from '@mui/icons-material/RadioButtonCheckedRounded';
 
 import { morseToText } from '../utils/morse-core';
-import { getSharedMorsePlayer } from '../utils/morse-audio';
 import { MorseSignalLamp } from './morse-signal-lamp';
+import { getSharedMorsePlayer } from '../utils/morse-audio';
 
 // ----------------------------------------------------------------------
 

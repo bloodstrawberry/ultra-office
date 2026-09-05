@@ -5,7 +5,8 @@ import type {
   GomokuAIAnalysis,
   GomokuSolutionNode,
 } from './types';
-import { GOMOKU_SIZE, cloneGomokuBoard, checkGomokuWin } from './engine';
+
+import { GOMOKU_SIZE } from './engine';
 
 const PATTERN_SCORES = {
   FIVE: 100000,

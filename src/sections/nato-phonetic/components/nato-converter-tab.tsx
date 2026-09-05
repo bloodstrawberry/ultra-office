@@ -4,24 +4,22 @@ import React, { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
-import Grid from '@mui/material/Grid';
 import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
-import Tooltip from '@mui/material/Tooltip';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
-import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import StopRoundedIcon from '@mui/icons-material/StopRounded';
-import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import ClearRoundedIcon from '@mui/icons-material/ClearRounded';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded';
+import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
+import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 
 import { ResizablePanel, ResizableHandle, ResizablePanelGroup } from 'src/components/resizable';
 
-import { textToPhoneticList, type PhoneticItem } from '../utils/phonetic-data';
 import { walkieTalkie } from '../utils/walkie-talkie-audio';
+import { type PhoneticItem, textToPhoneticList } from '../utils/phonetic-data';
 
 // ----------------------------------------------------------------------
 

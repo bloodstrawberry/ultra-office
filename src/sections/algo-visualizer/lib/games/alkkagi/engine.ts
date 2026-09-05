@@ -1,9 +1,9 @@
 import {
+  type AlkkagiSide,
   type AlkkagiStone,
   type AlkkagiBoardType,
   type AlkkagiFormation,
   type AlkkagiPhysicsConfig,
-  type AlkkagiSide,
 } from './types';
 
 export const BOARD_WIDTH = 640;

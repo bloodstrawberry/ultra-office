@@ -1,11 +1,4 @@
-import type {
-  JanggiSide,
-  JanggiPiece,
-  JanggiPoint,
-  JanggiBoard,
-  JanggiMove,
-  JanggiPieceType,
-} from './types';
+import type { JanggiSide, JanggiMove, JanggiPoint, JanggiBoard, JanggiPieceType } from './types';
 
 export const JANGGI_ROWS = 10;
 export const JANGGI_COLS = 9;

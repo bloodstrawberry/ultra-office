@@ -1,23 +1,25 @@
 'use client';
 
+import type { ChatUser, ChatRoomConfig } from '../types';
+
 import React from 'react';
+
 import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
 import Avatar from '@mui/material/Avatar';
+import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
-import ArrowBackIosNewRoundedIcon from '@mui/icons-material/ArrowBackIosNewRounded';
-import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
-import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import CallRoundedIcon from '@mui/icons-material/CallRounded';
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import ShieldRoundedIcon from '@mui/icons-material/ShieldRounded';
 import VideocamRoundedIcon from '@mui/icons-material/VideocamRounded';
 import MoreVertRoundedIcon from '@mui/icons-material/MoreVertRounded';
-import ShieldRoundedIcon from '@mui/icons-material/ShieldRounded';
-import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded';
+import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
+import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
+import ArrowBackIosNewRoundedIcon from '@mui/icons-material/ArrowBackIosNewRounded';
 
 import { THEME_OPTIONS } from '../constants/themes';
-import type { ChatRoomConfig, ChatUser } from '../types';
 
 interface ChatHeaderBarProps {
   config: ChatRoomConfig;

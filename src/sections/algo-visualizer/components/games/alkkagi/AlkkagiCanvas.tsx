@@ -1,15 +1,15 @@
 'use client';
 
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 
 import { BOARD_WIDTH, BOARD_HEIGHT, BOARD_PADDING } from '../../../lib/games/alkkagi/engine';
 import {
+  type AlkkagiSide,
   type AlkkagiStone,
   type AlkkagiBoardType,
   type AlkkagiPhysicsConfig,
-  type AlkkagiSide,
 } from '../../../lib/games/alkkagi/types';
 
 interface AlkkagiCanvasProps {

@@ -7,10 +7,11 @@ import Tab from '@mui/material/Tab';
 import Chip from '@mui/material/Chip';
 import Tabs from '@mui/material/Tabs';
 import Typography from '@mui/material/Typography';
-import LockRoundedIcon from '@mui/icons-material/LockRounded';
 import KeyRoundedIcon from '@mui/icons-material/KeyRounded';
+import LockRoundedIcon from '@mui/icons-material/LockRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
+
 import { CipherConverterTab } from '../components/cipher-converter-tab';
 import { CipherBruteforceTab } from '../components/cipher-bruteforce-tab';
 

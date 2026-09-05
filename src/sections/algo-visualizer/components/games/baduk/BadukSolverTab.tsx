@@ -1,54 +1,46 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import TextField from '@mui/material/TextField';
-import InputAdornment from '@mui/material/InputAdornment';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
+import DialogTitle from '@mui/material/DialogTitle';
 import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
+import DialogContent from '@mui/material/DialogContent';
 import UndoRoundedIcon from '@mui/icons-material/UndoRounded';
-import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
-import CancelRoundedIcon from '@mui/icons-material/CancelRounded';
-import LightbulbRoundedIcon from '@mui/icons-material/LightbulbRounded';
-import HelpOutlineRoundedIcon from '@mui/icons-material/HelpOutlineRounded';
-import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
-import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
-import LayersRoundedIcon from '@mui/icons-material/LayersRounded';
-import InvertColorsRoundedIcon from '@mui/icons-material/InvertColorsRounded';
-import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
-import NavigateNextRoundedIcon from '@mui/icons-material/NavigateNextRounded';
-import NavigateBeforeRoundedIcon from '@mui/icons-material/NavigateBeforeRounded';
-import ShuffleRoundedIcon from '@mui/icons-material/ShuffleRounded';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
+import CancelRoundedIcon from '@mui/icons-material/CancelRounded';
+import LayersRoundedIcon from '@mui/icons-material/LayersRounded';
+import ShuffleRoundedIcon from '@mui/icons-material/ShuffleRounded';
 import ListAltRoundedIcon from '@mui/icons-material/ListAltRounded';
 import MenuBookRoundedIcon from '@mui/icons-material/MenuBookRounded';
-import SportsEsportsRoundedIcon from '@mui/icons-material/SportsEsportsRounded';
-import DeleteSweepRoundedIcon from '@mui/icons-material/DeleteSweepRounded';
-import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import GridViewRoundedIcon from '@mui/icons-material/GridViewRounded';
+import LightbulbRoundedIcon from '@mui/icons-material/LightbulbRounded';
+import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
+import HelpOutlineRoundedIcon from '@mui/icons-material/HelpOutlineRounded';
+import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
+import DeleteSweepRoundedIcon from '@mui/icons-material/DeleteSweepRounded';
+import InvertColorsRoundedIcon from '@mui/icons-material/InvertColorsRounded';
+import NavigateNextRoundedIcon from '@mui/icons-material/NavigateNextRounded';
+import SportsEsportsRoundedIcon from '@mui/icons-material/SportsEsportsRounded';
+import NavigateBeforeRoundedIcon from '@mui/icons-material/NavigateBeforeRounded';
 
 import { BadukBoard } from './BadukBoard';
-import { GameAlgorithmInspector } from '../common/GameAlgorithmInspector';
 import { BADUK_PUZZLE_LIST } from '../../../lib/games/baduk/puzzles';
-import {
-  playBadukStoneSound,
-  playPuzzleSolvedSound,
-  playPuzzleFailedSound,
-} from '../../../lib/games/gameSounds';
+import { GameAlgorithmInspector } from '../common/GameAlgorithmInspector';
 import { playMove, createEmptyBoard, formatBadukCoord } from '../../../lib/games/baduk/engine';
+import { playBadukStoneSound, playPuzzleSolvedSound } from '../../../lib/games/gameSounds';
 import {
-  analyzeBadukPosition,
   findBestBadukAIMove,
+  analyzeBadukPosition,
   findMatchingSolutionNode,
 } from '../../../lib/games/baduk/solver';
 import {

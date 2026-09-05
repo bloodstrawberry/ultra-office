@@ -1,47 +1,48 @@
 'use client';
 
-import React, { useRef, useState, useEffect } from 'react';
-import { toast } from 'sonner';
-import { toPng, toBlob } from 'html-to-image';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import Chip from '@mui/material/Chip';
-import IconButton from '@mui/material/IconButton';
-import Tooltip from '@mui/material/Tooltip';
-import Popover from '@mui/material/Popover';
-import Slider from '@mui/material/Slider';
-import EditRoundedIcon from '@mui/icons-material/EditRounded';
-import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
-import PhoneIphoneRoundedIcon from '@mui/icons-material/PhoneIphoneRounded';
-import CropFreeRoundedIcon from '@mui/icons-material/CropFreeRounded';
-import ZoomInRoundedIcon from '@mui/icons-material/ZoomInRounded';
-import ZoomOutRoundedIcon from '@mui/icons-material/ZoomOutRounded';
-import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
-import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
-import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
-import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
-import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
-import RoundedCornerRoundedIcon from '@mui/icons-material/RoundedCornerRounded';
-import FullscreenRoundedIcon from '@mui/icons-material/FullscreenRounded';
-import FullscreenExitRoundedIcon from '@mui/icons-material/FullscreenExitRounded';
-import DesktopWindowsRoundedIcon from '@mui/icons-material/DesktopWindowsRounded';
-
-import { THEME_OPTIONS, THEMES_BY_CATEGORY } from '../constants/themes';
-import { ChatDeviceFrame } from './chat-device-frame';
-import { ChatHeaderBar } from './chat-header-bar';
-import { ChatMessageItem } from './chat-message-item';
-import { ChatBottomInputBar } from './chat-bottom-input-bar';
-import { ChatRoomListView } from './chat-room-list-view';
 import type {
   ChatData,
   ChatThemeId,
-  ChatCategory,
   ChatMessage,
-  ChatRoomConfig,
+  ChatCategory,
   ChatViewMode,
+  ChatRoomConfig,
   ChatRoomListItem,
 } from '../types';
+
+import { toast } from 'sonner';
+import { toPng, toBlob } from 'html-to-image';
+import React, { useRef, useState, useEffect } from 'react';
+
+import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
+import Button from '@mui/material/Button';
+import Slider from '@mui/material/Slider';
+import Tooltip from '@mui/material/Tooltip';
+import Popover from '@mui/material/Popover';
+import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
+import EditRoundedIcon from '@mui/icons-material/EditRounded';
+import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
+import ZoomInRoundedIcon from '@mui/icons-material/ZoomInRounded';
+import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
+import ZoomOutRoundedIcon from '@mui/icons-material/ZoomOutRounded';
+import CropFreeRoundedIcon from '@mui/icons-material/CropFreeRounded';
+import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
+import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
+import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
+import FullscreenRoundedIcon from '@mui/icons-material/FullscreenRounded';
+import PhoneIphoneRoundedIcon from '@mui/icons-material/PhoneIphoneRounded';
+import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
+import RoundedCornerRoundedIcon from '@mui/icons-material/RoundedCornerRounded';
+import FullscreenExitRoundedIcon from '@mui/icons-material/FullscreenExitRounded';
+
+import { ChatHeaderBar } from './chat-header-bar';
+import { ChatDeviceFrame } from './chat-device-frame';
+import { ChatMessageItem } from './chat-message-item';
+import { ChatRoomListView } from './chat-room-list-view';
+import { ChatBottomInputBar } from './chat-bottom-input-bar';
+import { THEME_OPTIONS, THEMES_BY_CATEGORY } from '../constants/themes';
 
 interface ChatPreviewCanvasProps {
   data: ChatData;

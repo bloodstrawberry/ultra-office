@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import { CONFIG } from 'src/global-config';
+
 import { ChatLlmView } from 'src/sections/chat/view';
 
 // ----------------------------------------------------------------------

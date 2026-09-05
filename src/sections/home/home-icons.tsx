@@ -13,6 +13,7 @@ import TerminalRoundedIcon from '@mui/icons-material/TerminalRounded';
 import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded';
 import GridViewRoundedIcon from '@mui/icons-material/GridViewRounded';
 import SmartToyRoundedIcon from '@mui/icons-material/SmartToyRounded';
+import TranslateRoundedIcon from '@mui/icons-material/TranslateRounded';
 import TableViewRoundedIcon from '@mui/icons-material/TableViewRounded';
 import TextFieldsRoundedIcon from '@mui/icons-material/TextFieldsRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
@@ -81,8 +82,10 @@ export function renderHomeIcon(iconKey: string, props?: SvgIconProps) {
       return <GridViewRoundedIcon {...props} />;
     case 'ai':
       return <SmartToyRoundedIcon {...props} />;
-    case 'data':
+    case 'docMaster':
       return <DescriptionRoundedIcon {...props} />;
+    case 'translator':
+      return <TranslateRoundedIcon {...props} />;
     case 'pdf':
       return <PictureAsPdfRoundedIcon {...props} />;
     case 'media':

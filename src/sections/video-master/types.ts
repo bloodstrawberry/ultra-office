@@ -161,3 +161,42 @@ export interface VideoStudioExportSettings {
   fitMode: 'contain' | 'cover' | 'fill';
   backgroundColor: string;
 }
+
+// ----------------------------------------------------------------------
+// Subtitle Studio Types
+// ----------------------------------------------------------------------
+
+export interface SubtitleItem {
+  id: string;
+  startTime: number; // in seconds
+  endTime: number; // in seconds
+  text: string;
+}
+
+export interface SubtitleStyleSettings {
+  fontFamily: string;
+  fontSize: number; // 16 - 72 px
+  fontWeight: 400 | 600 | 700 | 800;
+  fontColor: string; // e.g. '#ffffff'
+  strokeColor: string; // e.g. '#000000'
+  strokeWidth: number; // 0 - 10 px
+  backgroundColor: string; // e.g. 'rgba(0, 0, 0, 0.65)'
+  backgroundEnabled: boolean;
+  backgroundPadding: number; // 4 - 20 px
+  backgroundRadius: number; // 0 - 16 px
+  shadowEnabled: boolean;
+  shadowColor: string;
+  shadowBlur: number;
+  position: 'bottom' | 'top' | 'center' | 'custom';
+  yPercent: number; // 0% - 100%
+  xPercent: number; // 0% - 100%
+  textAlign: 'left' | 'center' | 'right';
+}
+
+export interface SubtitlePreset {
+  id: string;
+  name: string;
+  description: string;
+  badge?: string;
+  style: Partial<SubtitleStyleSettings>;
+}

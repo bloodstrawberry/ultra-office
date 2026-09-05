@@ -3,21 +3,16 @@
 import React, { useState } from 'react';
 
 import Box from '@mui/material/Box';
+import Tab from '@mui/material/Tab';
 import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
 import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded';
 
-import {
-  NATO_ALPHABET_MAP,
-  NATO_NUMBER_MAP,
-  KOREAN_PHONETIC_MAP,
-  KOREAN_NUMBER_MAP,
-} from '../utils/phonetic-data';
 import { walkieTalkie } from '../utils/walkie-talkie-audio';
+import { NATO_NUMBER_MAP, NATO_ALPHABET_MAP, KOREAN_PHONETIC_MAP } from '../utils/phonetic-data';
 
 // ----------------------------------------------------------------------
 

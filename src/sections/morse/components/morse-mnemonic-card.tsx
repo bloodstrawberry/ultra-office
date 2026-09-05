@@ -4,13 +4,13 @@ import React, { useState } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
-import Tooltip from '@mui/material/Tooltip';
 import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded';
 
-import { type MorseMnemonicItem } from '../data/morse-mnemonics-data';
 import { getSharedMorsePlayer } from '../utils/morse-audio';
+import { type MorseMnemonicItem } from '../data/morse-mnemonics-data';
 
 // ----------------------------------------------------------------------
 

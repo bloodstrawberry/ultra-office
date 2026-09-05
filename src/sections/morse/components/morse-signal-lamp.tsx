@@ -8,9 +8,9 @@ import Chip from '@mui/material/Chip';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
+import FlashOnRoundedIcon from '@mui/icons-material/FlashOnRounded';
 import LightModeRoundedIcon from '@mui/icons-material/LightModeRounded';
 import FullscreenRoundedIcon from '@mui/icons-material/FullscreenRounded';
-import FlashOnRoundedIcon from '@mui/icons-material/FlashOnRounded';
 
 // ----------------------------------------------------------------------
 

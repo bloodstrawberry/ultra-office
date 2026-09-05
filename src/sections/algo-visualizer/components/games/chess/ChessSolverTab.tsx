@@ -1,66 +1,65 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
+import DialogTitle from '@mui/material/DialogTitle';
 import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
+import DialogContent from '@mui/material/DialogContent';
 import UndoRoundedIcon from '@mui/icons-material/UndoRounded';
-import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
-import CancelRoundedIcon from '@mui/icons-material/CancelRounded';
-import LightbulbRoundedIcon from '@mui/icons-material/LightbulbRounded';
-import HelpOutlineRoundedIcon from '@mui/icons-material/HelpOutlineRounded';
-import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
-import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
-import NavigateNextRoundedIcon from '@mui/icons-material/NavigateNextRounded';
-import NavigateBeforeRoundedIcon from '@mui/icons-material/NavigateBeforeRounded';
-import ShuffleRoundedIcon from '@mui/icons-material/ShuffleRounded';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
+import CancelRoundedIcon from '@mui/icons-material/CancelRounded';
+import ShuffleRoundedIcon from '@mui/icons-material/ShuffleRounded';
 import ListAltRoundedIcon from '@mui/icons-material/ListAltRounded';
 import MenuBookRoundedIcon from '@mui/icons-material/MenuBookRounded';
-import SportsEsportsRoundedIcon from '@mui/icons-material/SportsEsportsRounded';
-import DeleteSweepRoundedIcon from '@mui/icons-material/DeleteSweepRounded';
+import LightbulbRoundedIcon from '@mui/icons-material/LightbulbRounded';
+import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
+import HelpOutlineRoundedIcon from '@mui/icons-material/HelpOutlineRounded';
+import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
+import DeleteSweepRoundedIcon from '@mui/icons-material/DeleteSweepRounded';
+import NavigateNextRoundedIcon from '@mui/icons-material/NavigateNextRounded';
+import SportsEsportsRoundedIcon from '@mui/icons-material/SportsEsportsRounded';
+import NavigateBeforeRoundedIcon from '@mui/icons-material/NavigateBeforeRounded';
 
 import { ChessBoard } from './ChessBoard';
-import { GameAlgorithmInspector } from '../common/GameAlgorithmInspector';
 import { CHESS_PUZZLE_LIST } from '../../../lib/games/chess/puzzles';
+import { GameAlgorithmInspector } from '../common/GameAlgorithmInspector';
 import {
   playCheckSound,
   playChessMoveSound,
   playPuzzleSolvedSound,
-  playPuzzleFailedSound,
 } from '../../../lib/games/gameSounds';
 import {
-  parseFEN,
-  isKingInCheck,
-  makeChessMove,
-  isSameSquare,
-  squareToAlgebraic,
-  createEmptyChessBoard,
-} from '../../../lib/games/chess/engine';
-import {
-  analyzeChessPosition,
   findBestChessAIMove,
+  analyzeChessPosition,
   getAllLegalChessMoves,
   findMatchingChessNode,
 } from '../../../lib/games/chess/solver';
 import {
-  type ChessColor,
+  parseFEN,
+  isSameSquare,
+  isKingInCheck,
+  makeChessMove,
+  squareToAlgebraic,
+  createEmptyChessBoard,
+} from '../../../lib/games/chess/engine';
+import {
   type ChessMove,
-  type ChessSquare,
+  type ChessColor,
   type ChessPiece,
-  type ChessPieceType,
+  type ChessSquare,
   type ChessPuzzle,
+  type ChessPieceType,
   type ChessAIAnalysis,
   type ChessSolutionNode,
   type ChessBoard as ChessBoardType,

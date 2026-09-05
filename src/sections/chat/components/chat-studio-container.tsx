@@ -1,22 +1,23 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import Box from '@mui/material/Box';
-
-import { INITIAL_PRESETS, ROOM_LIST_PRESETS } from '../constants/presets';
-import { THEMES_BY_CATEGORY } from '../constants/themes';
-import { ChatPreviewCanvas } from './chat-preview-canvas';
-import { ChatEditorDrawer } from './chat-editor-drawer';
 import type {
-  ChatCategory,
   ChatData,
   ChatThemeId,
   ChatMessage,
-  ChatRoomConfig,
+  ChatCategory,
   ChatViewMode,
+  ChatRoomConfig,
   ChatRoomListItem,
   MessengerThemeId,
 } from '../types';
+
+import React, { useState, useEffect } from 'react';
+
+import Box from '@mui/material/Box';
+
+import { ChatEditorDrawer } from './chat-editor-drawer';
+import { ChatPreviewCanvas } from './chat-preview-canvas';
+import { INITIAL_PRESETS, ROOM_LIST_PRESETS } from '../constants/presets';
 
 interface ChatStudioContainerProps {
   category: ChatCategory;
