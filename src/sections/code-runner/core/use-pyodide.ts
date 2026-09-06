@@ -30,7 +30,8 @@ export interface PyodideHookReturn {
     code: string,
     onStdout: (data: string) => void,
     onStderr: (data: string) => void,
-    onPlot?: (dataUrl: string) => void
+    onPlot?: (dataUrl: string) => void,
+    files?: Record<string, string>
   ) => Promise<{ success: boolean; result?: any; error?: string }>;
 }
 
@@ -115,7 +116,8 @@ export function usePyodide(): PyodideHookReturn {
       code: string,
       onStdout: (data: string) => void,
       onStderr: (data: string) => void,
-      onPlot?: (dataUrl: string) => void
+      onPlot?: (dataUrl: string) => void,
+      files?: Record<string, string>
     ): Promise<{ success: boolean; result?: any; error?: string }> => {
       onPlotRef.current = onPlot || null;
 
@@ -123,6 +125,22 @@ export function usePyodide(): PyodideHookReturn {
         const pyodide = await loadPyodideRuntime((msg) => onStdout(msg));
         if (!pyodide) {
           throw new Error('Python 런타임을 초기화할 수 없습니다.');
+        }
+
+        // Virtual File System (pyodide.FS)에 작업 공간 파일 동기화
+        if (files) {
+          const emscripten = pyodide as unknown as {
+            FS?: { writeFile: (name: string, data: string) => void };
+          };
+          if (emscripten.FS) {
+            for (const [filename, fileContent] of Object.entries(files)) {
+              try {
+                emscripten.FS.writeFile(filename, fileContent);
+              } catch {
+                // ignore file write error
+              }
+            }
+          }
         }
 
         // Stdout/Stderr 스트림 연결

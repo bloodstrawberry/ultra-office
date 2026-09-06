@@ -1,21 +1,21 @@
 export * from './photo-view';
-export * from './photo-editor-view';
 export * from './photo-gif-view';
-
 export * from './photo-pdf-view';
+
 export * from './photo-svg-view';
-
 export * from './photo-garo-view';
+
 export * from './photo-logo-view';
-
 export * from './photo-scan-view';
+
 export * from './photo-sero-view';
-
 export * from './photo-flip-view';
-export * from './photo-ascii-view';
 
+export * from './photo-ascii-view';
 export * from './photo-color-view';
+
 export * from './photo-pixel-view';
+export * from './photo-editor-view';
 
 export * from './photo-glitch-view';
 export * from './photo-mosaic-view';
@@ -32,13 +32,14 @@ export * from './photo-og-image-view';
 
 export * from './photo-art-style-view';
 export * from './photo-bg-remove-view';
-
 export * from './photo-watermark-view';
-export * from './photo-shape-crop-view';
 
+export * from './photo-shape-crop-view';
 export * from './photo-weathering-view';
+
 export * from './photo-ai-watermark-view';
 export * from './photo-color-picker-view';
+export * from './photo-watermark-remove-view';
 
 export { PhotoHubView as PhotoView } from './photo-view';
 export { GifView as PhotoGifView } from './photo-gif-view';
@@ -73,9 +74,13 @@ export { CompressView as PhotoCompressView } from './photo-compress-view';
 
 export { ArtStyleView as PhotoArtStyleView } from './photo-art-style-view';
 export { BgRemoveView as PhotoBgRemoveView } from './photo-bg-remove-view';
-
 export { WatermarkView as PhotoWatermarkView } from './photo-watermark-view';
+
 export { ShapeCropView as PhotoShapeCropView } from './photo-shape-crop-view';
 export { WeatheringView as PhotoWeatheringView } from './photo-weathering-view';
 export { AiWatermarkView as PhotoAiWatermarkView } from './photo-ai-watermark-view';
 export { ColorPickerView as PhotoColorPickerView } from './photo-color-picker-view';
+export {
+  PhotoWatermarkRemoveView,
+  PhotoWatermarkRemoveView as WatermarkRemoveView,
+} from './photo-watermark-remove-view';

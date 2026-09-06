@@ -261,6 +261,21 @@ const HUB_SECTIONS: { category: string; desc: string; tools: HubToolItem[] }[] =
       },
     ],
   },
+  {
+    category: '7. IDE & 코드 시뮬레이터',
+    desc: 'Visual Studio Code 환경에서 소스코드가 한 글자씩 실시간 타이핑되는 타이핑 스튜디오입니다.',
+    tools: [
+      {
+        id: 'web',
+        title: 'VS Code 타이핑 IDE (Code Typing Player)',
+        desc: 'VS Code 테마 에디터에서 코드를 입력하고 재생 버튼을 누르면 실시간 타이핑 애니메이션과 타건음 출력',
+        icon: <CodeRoundedIcon sx={{ fontSize: 26, color: '#007acc' }} />,
+        tag: 'NEW',
+        badgeColor: 'primary',
+        path: paths.devToolsIde,
+      },
+    ],
+  },
 ];
 
 // ----------------------------------------------------------------------

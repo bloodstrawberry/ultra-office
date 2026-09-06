@@ -23,6 +23,8 @@ import IconButton from '@mui/material/IconButton';
 import FormControl from '@mui/material/FormControl';
 import LinearProgress from '@mui/material/LinearProgress';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import UndoRoundedIcon from '@mui/icons-material/UndoRounded';
+import RedoRoundedIcon from '@mui/icons-material/RedoRounded';
 import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
 import TitleRoundedIcon from '@mui/icons-material/TitleRounded';
 import ZoomInRoundedIcon from '@mui/icons-material/ZoomInRounded';
@@ -87,6 +89,85 @@ export function VideoMasterView() {
     },
   ]);
   const [selectedTextId, setSelectedTextId] = useState<string | null>('text-1');
+
+  // ─── History Stack for Undo / Redo (Ctrl+Z / Ctrl+Y) ───
+  const [history, setHistory] = useState<
+    { clips: VideoStudioClipItem[]; textClips: VideoStudioTextItem[] }[]
+  >([
+    {
+      clips: [],
+      textClips: [
+        {
+          id: 'text-1',
+          text: '동영상 제목 및 자막을 입력하세요',
+          startTime: 0,
+          duration: 4.0,
+          fontSize: 32,
+          fontColor: '#ffffff',
+          fontBgColor: 'rgba(0,0,0,0.6)',
+          fontFamily: 'Pretendard, -apple-system, sans-serif',
+          position: 'bottom',
+          xPercent: 50,
+          yPercent: 85,
+        },
+      ],
+    },
+  ]);
+  const [historyIndex, setHistoryIndex] = useState<number>(0);
+
+  const pushHistory = useCallback(
+    (nextClips: VideoStudioClipItem[], nextTextClips: VideoStudioTextItem[]) => {
+      setClips(nextClips);
+      setTextClips(nextTextClips);
+      setHistory((prev) => {
+        const next = prev.slice(0, historyIndex + 1);
+        next.push({
+          clips: nextClips.map((c) => ({ ...c })),
+          textClips: nextTextClips.map((t) => ({ ...t })),
+        });
+        if (next.length > 30) next.shift();
+        return next;
+      });
+      setHistoryIndex((prev) => Math.min(prev + 1, 29));
+    },
+    [historyIndex]
+  );
+
+  const handleUndo = useCallback(() => {
+    if (historyIndex <= 0) return;
+    const targetIdx = historyIndex - 1;
+    const snapshot = history[targetIdx];
+    if (snapshot) {
+      setClips(snapshot.clips);
+      setTextClips(snapshot.textClips);
+      setHistoryIndex(targetIdx);
+      if (selectedClipId && !snapshot.clips.some((c) => c.id === selectedClipId)) {
+        setSelectedClipId(snapshot.clips[0]?.id || null);
+      }
+      if (selectedTextId && !snapshot.textClips.some((t) => t.id === selectedTextId)) {
+        setSelectedTextId(snapshot.textClips[0]?.id || null);
+      }
+      toast.info('작업이 취소되었습니다. (실행 취소)');
+    }
+  }, [historyIndex, history, selectedClipId, selectedTextId]);
+
+  const handleRedo = useCallback(() => {
+    if (historyIndex >= history.length - 1) return;
+    const targetIdx = historyIndex + 1;
+    const snapshot = history[targetIdx];
+    if (snapshot) {
+      setClips(snapshot.clips);
+      setTextClips(snapshot.textClips);
+      setHistoryIndex(targetIdx);
+      if (selectedClipId && !snapshot.clips.some((c) => c.id === selectedClipId)) {
+        setSelectedClipId(snapshot.clips[0]?.id || null);
+      }
+      if (selectedTextId && !snapshot.textClips.some((t) => t.id === selectedTextId)) {
+        setSelectedTextId(snapshot.textClips[0]?.id || null);
+      }
+      toast.info('작업이 다시 실행되었습니다. (다시 실행)');
+    }
+  }, [historyIndex, history, selectedClipId, selectedTextId]);
 
   // ─── Timeline & Playhead State ───
   const [currentPlayheadTime, setCurrentPlayheadTime] = useState<number>(0);
@@ -168,12 +249,13 @@ export function VideoMasterView() {
           if (!selectedClipId && next.length > 0) {
             setSelectedClipId(next[0].id);
           }
+          pushHistory(next, textClips);
           return next;
         });
         toast.success(`${newClips.length}개의 클립이 타임라인에 추가되었습니다.`);
       }
     },
-    [selectedClipId]
+    [selectedClipId, textClips, pushHistory]
   );
 
   const handleSelectSample = async (sample: SampleVideoItem) => {
@@ -305,29 +387,31 @@ export function VideoMasterView() {
 
     const nextClips = [...clips];
     nextClips.splice(clipIndex, 1, clip1, clip2);
-    setClips(nextClips);
+    pushHistory(nextClips, textClips);
     setSelectedClipId(clip2.id);
     toast.success('클립이 2개로 분할되었습니다.');
   };
 
-  const handleDeleteSelectedClip = () => {
+  const handleDeleteSelectedClip = useCallback(() => {
     if (!selectedClipId) return;
-    setClips((prev) => prev.filter((c) => c.id !== selectedClipId));
+    const next = clips.filter((c) => c.id !== selectedClipId);
+    pushHistory(next, textClips);
     setSelectedClipId(null);
     toast.success('선택된 클립이 삭제되었습니다.');
-  };
+  }, [selectedClipId, clips, textClips, pushHistory]);
 
-  const handleDuplicateClip = () => {
+  const handleDuplicateClip = useCallback(() => {
     if (!selectedClip) return;
     const duplicated: VideoStudioClipItem = {
       ...selectedClip,
       id: `clip-${Date.now()}-dup`,
       name: `${selectedClip.name} (복사본)`,
     };
-    setClips((prev) => [...prev, duplicated]);
+    const next = [...clips, duplicated];
+    pushHistory(next, textClips);
     setSelectedClipId(duplicated.id);
     toast.success('클립이 복제되었습니다.');
-  };
+  }, [selectedClip, clips, textClips, pushHistory]);
 
   // ─── 4. Timeline Pointer Scrubbing ───
   const handleTimelinePointerDown = (e: React.PointerEvent) => {
@@ -364,7 +448,7 @@ export function VideoMasterView() {
   };
 
   // ─── 5. Text Item Manipulation ───
-  const handleAddTextClip = () => {
+  const handleAddTextClip = useCallback(() => {
     const cur = currentPlayheadTime;
     const newText: VideoStudioTextItem = {
       id: `text-${Date.now()}`,
@@ -379,17 +463,78 @@ export function VideoMasterView() {
       xPercent: 50,
       yPercent: 80,
     };
-    setTextClips((prev) => [...prev, newText]);
+    const next = [...textClips, newText];
+    pushHistory(clips, next);
     setSelectedTextId(newText.id);
     setInspectorTab('text');
     toast.success('새 자막 텍스트가 추가되었습니다.');
-  };
+  }, [currentPlayheadTime, textClips, clips, pushHistory]);
 
-  const handleDeleteTextClip = (id: string) => {
-    setTextClips((prev) => prev.filter((t) => t.id !== id));
-    if (selectedTextId === id) setSelectedTextId(null);
-    toast.success('자막이 삭제되었습니다.');
-  };
+  const handleDeleteTextClip = useCallback(
+    (id: string) => {
+      const next = textClips.filter((t) => t.id !== id);
+      pushHistory(clips, next);
+      if (selectedTextId === id) setSelectedTextId(null);
+      toast.success('자막이 삭제되었습니다.');
+    },
+    [textClips, clips, pushHistory, selectedTextId]
+  );
+
+  // ─── Keyboard Shortcuts: DEL, Ctrl+Z (Undo), Ctrl+Y (Redo) ───
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+      ) {
+        return;
+      }
+
+      // DEL or Backspace
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (inspectorTab === 'text' && selectedTextId) {
+          e.preventDefault();
+          handleDeleteTextClip(selectedTextId);
+          return;
+        }
+        if (selectedClipId) {
+          e.preventDefault();
+          handleDeleteSelectedClip();
+          return;
+        }
+      }
+
+      // Ctrl + Z (Undo)
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          handleRedo();
+        } else {
+          handleUndo();
+        }
+        return;
+      }
+
+      // Ctrl + Y (Redo)
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
+        e.preventDefault();
+        handleRedo();
+        return;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [
+    inspectorTab,
+    selectedTextId,
+    selectedClipId,
+    handleDeleteTextClip,
+    handleDeleteSelectedClip,
+    handleUndo,
+    handleRedo,
+  ]);
 
   // ─── 6. Video / GIF Export ───
   const handleStartExport = async () => {
@@ -438,9 +583,8 @@ export function VideoMasterView() {
   };
 
   const handleResetProject = () => {
-    setClips([]);
+    pushHistory([], []);
     setSelectedClipId(null);
-    setTextClips([]);
     setSelectedTextId(null);
     setCurrentPlayheadTime(0);
     setIsPlaying(false);
@@ -761,6 +905,19 @@ export function VideoMasterView() {
                                 )
                               );
                             }}
+                            onChangeCommitted={(_, v) => {
+                              const mult = v as number;
+                              const next = clips.map((c) =>
+                                c.id === selectedClip.id
+                                  ? {
+                                      ...c,
+                                      speedMultiplier: mult,
+                                      duration: (c.trimEnd - c.trimStart) / mult,
+                                    }
+                                  : c
+                              );
+                              pushHistory(next, textClips);
+                            }}
                           />
                         </Box>
 
@@ -777,11 +934,10 @@ export function VideoMasterView() {
                                 | 90
                                 | 180
                                 | 270;
-                              setClips((prev) =>
-                                prev.map((c) =>
-                                  c.id === selectedClip.id ? { ...c, rotation: nextRot } : c
-                                )
+                              const next = clips.map((c) =>
+                                c.id === selectedClip.id ? { ...c, rotation: nextRot } : c
                               );
+                              pushHistory(next, textClips);
                             }}
                             sx={{ flex: 1 }}
                           >
@@ -793,11 +949,10 @@ export function VideoMasterView() {
                             color="inherit"
                             startIcon={<FlipCameraAndroidRoundedIcon />}
                             onClick={() => {
-                              setClips((prev) =>
-                                prev.map((c) =>
-                                  c.id === selectedClip.id ? { ...c, flipH: !c.flipH } : c
-                                )
+                              const next = clips.map((c) =>
+                                c.id === selectedClip.id ? { ...c, flipH: !c.flipH } : c
                               );
+                              pushHistory(next, textClips);
                             }}
                           >
                             좌우 반전
@@ -814,17 +969,16 @@ export function VideoMasterView() {
                               const key = e.target.value;
                               const preset = FILTER_PRESETS.find((p) => p.id === key);
                               if (preset) {
-                                setClips((prev) =>
-                                  prev.map((c) =>
-                                    c.id === selectedClip.id
-                                      ? {
-                                          ...c,
-                                          filterPreset: preset.id,
-                                          filters: { ...preset.filter },
-                                        }
-                                      : c
-                                  )
+                                const next = clips.map((c) =>
+                                  c.id === selectedClip.id
+                                    ? {
+                                        ...c,
+                                        filterPreset: preset.id,
+                                        filters: { ...preset.filter },
+                                      }
+                                    : c
                                 );
+                                pushHistory(next, textClips);
                               }
                             }}
                           >
@@ -1126,6 +1280,34 @@ export function VideoMasterView() {
                     )}
                   </IconButton>
                 </Tooltip>
+
+                <Tooltip title="실행 취소 (Ctrl + Z)">
+                  <span>
+                    <IconButton
+                      size="small"
+                      sx={{ color: '#fff' }}
+                      onClick={handleUndo}
+                      disabled={historyIndex <= 0}
+                    >
+                      <UndoRoundedIcon fontSize="small" />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+
+                <Tooltip title="다시 실행 (Ctrl + Y)">
+                  <span>
+                    <IconButton
+                      size="small"
+                      sx={{ color: '#fff' }}
+                      onClick={handleRedo}
+                      disabled={historyIndex >= history.length - 1}
+                    >
+                      <RedoRoundedIcon fontSize="small" />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+
+                <Box sx={{ width: 1, height: 18, bgcolor: 'rgba(255, 255, 255, 0.2)', mx: 0.5 }} />
 
                 <Tooltip title="현재 위치에서 분할(자르기)">
                   <Button

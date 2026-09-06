@@ -96,3 +96,5 @@ export interface RunnerState {
   statusMessage: string;
   runningSince: number | null;
 }
+
+export type CodeRunnerStyleMode = 'classic' | 'vscode';

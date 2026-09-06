@@ -5,6 +5,7 @@ import type {
   RunnerState,
   CodeTemplate,
   SupportedLanguage,
+  CodeRunnerStyleMode,
   SystemDiagnosticInfo,
 } from '../types';
 
@@ -13,8 +14,17 @@ import React, { useRef, useState, useEffect, useCallback } from 'react';
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
+import Chip from '@mui/material/Chip';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
 import Tooltip from '@mui/material/Tooltip';
+import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import FullscreenRoundedIcon from '@mui/icons-material/FullscreenRounded';
 import VerticalSplitRoundedIcon from '@mui/icons-material/VerticalSplitRounded';
 import InsertDriveFileRoundedIcon from '@mui/icons-material/InsertDriveFileRounded';
@@ -27,16 +37,18 @@ import { useWebContainer } from '../core/use-webcontainer';
 import { PreviewPanel } from '../components/preview-panel';
 import { RunnerToolbar } from '../components/runner-toolbar';
 import { usePolyglotRunner } from '../core/use-polyglot-runner';
-import { TEMPLATES, getTemplatesByLanguage } from '../core/templates';
 import { TerminalView, type TerminalRef } from '../components/terminal-view';
+import { CodeRunnerVsCodeLayout } from '../components/code-runner-vscode-layout';
 import { IDE_THEMES, getThemeById, DEFAULT_THEME_ID } from '../core/editor-themes';
 import { buildHtmlPreview, buildReactPreviewHtml } from '../core/build-preview-html';
+import { TEMPLATES, getTemplatesByLanguage, getDefaultContentForFileName } from '../core/templates';
 
 // ----------------------------------------------------------------------
 
 const THEME_STORAGE_KEY = 'code-runner-theme';
 const SPLIT_X_STORAGE_KEY = 'code-runner-split-x';
 const SPLIT_Y_STORAGE_KEY = 'code-runner-split-y';
+const STYLE_MODE_STORAGE_KEY = 'code-runner-style-mode';
 
 export function CodeRunnerView() {
   const [selectedTemplate, setSelectedTemplate] = useState<CodeTemplate>(TEMPLATES[0]);
@@ -49,6 +61,8 @@ export function CodeRunnerView() {
   const [minimap, setMinimap] = useState(true);
   const [currentThemeId, setCurrentThemeId] = useState<string>(DEFAULT_THEME_ID);
   const [hasLoadedTheme, setHasLoadedTheme] = useState(false);
+  const [styleMode, setStyleMode] = useState<CodeRunnerStyleMode>('classic');
+  const [hasLoadedStyleMode, setHasLoadedStyleMode] = useState(false);
   const [layoutMode, setLayoutMode] = useState<'split' | 'editor-only' | 'terminal-only'>('split');
 
   // Split Panel Ratios & Resizing
@@ -129,6 +143,37 @@ export function CodeRunnerView() {
     }
   }, [currentThemeId, hasLoadedTheme]);
 
+  // Safe Hydration: Load saved style mode from localStorage
+  useEffect(() => {
+    try {
+      const savedMode = localStorage.getItem(STYLE_MODE_STORAGE_KEY);
+      if (savedMode === 'classic' || savedMode === 'vscode') {
+        setStyleMode(savedMode);
+      }
+    } catch {
+      // ignore storage access error
+    }
+    setHasLoadedStyleMode(true);
+  }, []);
+
+  // Sync style mode changes to localStorage
+  useEffect(() => {
+    if (hasLoadedStyleMode) {
+      try {
+        localStorage.setItem(STYLE_MODE_STORAGE_KEY, styleMode);
+      } catch {
+        // ignore storage access error
+      }
+    }
+  }, [styleMode, hasLoadedStyleMode]);
+
+  const handleStyleModeChange = (mode: CodeRunnerStyleMode) => {
+    setStyleMode(mode);
+    if (mode === 'vscode' && !currentThemeId.startsWith('vs-')) {
+      setCurrentThemeId('vs-dark');
+    }
+  };
+
   // Runner state
   const [runnerState, setRunnerState] = useState<RunnerState>({
     status: 'idle',
@@ -201,6 +246,90 @@ export function CodeRunnerView() {
       ...prev,
       [activeFileName]: newCode,
     }));
+  };
+
+  // Handle file creation
+  const handleCreateFile = useCallback(
+    (fileName: string, initialContent?: string) => {
+      const trimmed = fileName.trim();
+      if (!trimmed) return;
+
+      if (files[trimmed] !== undefined) {
+        terminalRef.current?.writeln(
+          `\r\n\x1b[33m⚠️ 이미 존재하는 파일 이름입니다: "${trimmed}"\x1b[0m\r\n`
+        );
+        return;
+      }
+
+      const content =
+        initialContent !== undefined ? initialContent : getDefaultContentForFileName(trimmed);
+      setFiles((prev) => ({
+        ...prev,
+        [trimmed]: content,
+      }));
+      setActiveFileName(trimmed);
+      terminalRef.current?.writeln(
+        `\r\n\x1b[32m📄 [새 파일 생성] "${trimmed}" 파일이 프로젝트에 추가되었습니다.\x1b[0m\r\n`
+      );
+    },
+    [files]
+  );
+
+  // Handle file deletion
+  const handleDeleteFile = useCallback(
+    (fileName: string) => {
+      const fileKeys = Object.keys(files);
+      if (fileKeys.length <= 1) {
+        terminalRef.current?.writeln(
+          '\r\n\x1b[33m⚠️ 프로젝트에는 최소 하나의 소스코드 파일이 유지되어야 합니다.\x1b[0m\r\n'
+        );
+        return;
+      }
+
+      setFiles((prev) => {
+        const next = { ...prev };
+        delete next[fileName];
+        return next;
+      });
+
+      // If active file is deleted, switch to another remaining file
+      if (fileName === activeFileName) {
+        const remaining = fileKeys.filter((k) => k !== fileName);
+        if (remaining.length > 0) {
+          setActiveFileName(remaining[0]);
+        }
+      }
+
+      terminalRef.current?.writeln(
+        `\r\n\x1b[31m🗑️ [파일 삭제] "${fileName}" 파일이 제거되었습니다.\x1b[0m\r\n`
+      );
+    },
+    [files, activeFileName]
+  );
+
+  // Modal dialog state for Classic theme
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [modalFileName, setModalFileName] = useState('');
+  const [modalError, setModalError] = useState<string | null>(null);
+
+  const handleModalCreateFile = () => {
+    const trimmed = modalFileName.trim();
+    if (!trimmed) {
+      setModalError('파일 이름을 입력해주세요.');
+      return;
+    }
+    if (/[\\/:*?"<>|]/.test(trimmed)) {
+      setModalError('파일명에 특수문자(/, :, * 등)는 사용할 수 없습니다.');
+      return;
+    }
+    if (files[trimmed] !== undefined) {
+      setModalError('이미 존재하는 파일명입니다.');
+      return;
+    }
+    handleCreateFile(trimmed);
+    setIsCreateModalOpen(false);
+    setModalFileName('');
+    setModalError(null);
   };
 
   // Stop running execution
@@ -281,7 +410,8 @@ export function CodeRunnerView() {
             terminalRef.current?.writeln(
               '\x1b[32m📈 [Matplotlib] 새 차트가 생성되어 결과 탭에 추가되었습니다.\x1b[0m'
             );
-          }
+          },
+          files
         );
 
         setRunnerState((prev) => ({
@@ -294,7 +424,7 @@ export function CodeRunnerView() {
 
       // 3. React Live Component & HTML Sandbox
       if (currentEngine === 'react-live' || currentLang === 'react') {
-        const previewDoc = buildReactPreviewHtml(mainCode);
+        const previewDoc = buildReactPreviewHtml(mainCode, files);
         setHtmlPreviewContent(previewDoc);
         terminalRef.current?.writeln(
           '\x1b[32m⚛️ [React Live] React 컴포넌트가 웹 미리보기에 성공적으로 마운트되었습니다.\x1b[0m\r\n'
@@ -308,7 +438,7 @@ export function CodeRunnerView() {
       }
 
       if (currentEngine === 'html-sandbox' || currentLang === 'html') {
-        const previewDoc = buildHtmlPreview(mainCode);
+        const previewDoc = buildHtmlPreview(mainCode, files);
         setHtmlPreviewContent(previewDoc);
         terminalRef.current?.writeln(
           '\x1b[32m🌐 [HTML Sandbox] 웹 미리보기가 렌더링되었습니다.\x1b[0m\r\n'
@@ -654,17 +784,75 @@ export function CodeRunnerView() {
     browserAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
   };
 
+  if (styleMode === 'vscode') {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          width: '100%',
+          height: '100%',
+          flex: '1 1 0%',
+          minHeight: 0,
+          bgcolor: '#1e1e1e',
+          overflow: 'hidden',
+        }}
+      >
+        <CodeRunnerVsCodeLayout
+          styleMode={styleMode}
+          onStyleModeChange={handleStyleModeChange}
+          currentLanguage={currentLanguage}
+          currentTemplateId={selectedTemplate.id}
+          selectedTemplate={selectedTemplate}
+          onLanguageChange={handleLanguageChange}
+          onTemplateChange={handleTemplateChange}
+          files={files}
+          activeFileName={activeFileName}
+          onSelectFile={setActiveFileName}
+          onCodeChange={handleCodeChange}
+          onCreateFile={handleCreateFile}
+          onDeleteFile={handleDeleteFile}
+          fontSize={fontSize}
+          minimap={minimap}
+          onFontSizeChange={setFontSize}
+          onMinimapToggle={() => setMinimap((p) => !p)}
+          currentThemeId={currentThemeId}
+          onThemeChange={setCurrentThemeId}
+          runnerState={runnerState}
+          onRun={handleRun}
+          onStop={handleStop}
+          onReset={handleReset}
+          onDownload={handleDownload}
+          onCopyCode={handleCopyCode}
+          terminalRef={terminalRef}
+          previewUrl={runnerState.previewUrl}
+          htmlPreviewContent={htmlPreviewContent}
+          isServerRunning={runnerState.status === 'running' && Boolean(runnerState.previewUrl)}
+          activePort={runnerState.activePort}
+          plots={plots}
+          onClearPlots={() => setPlots([])}
+          systemDiagnostic={systemDiagnostic}
+          splitRatioY={splitRatioY}
+          isDraggingY={isDraggingY}
+          onMouseDownY={handleMouseDownY}
+          onResetSplitY={handleResetSplitY}
+        />
+      </Box>
+    );
+  }
+
   return (
     <Box
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        height: { xs: 'auto', md: '100%' },
-        minHeight: { xs: '100dvh', md: 'auto' },
+        height: { xs: 'auto', lg: '100%' },
+        flex: '1 1 0%',
+        minHeight: 0,
         width: '100%',
         bgcolor: activeTheme.uiColors.bg,
         color: activeTheme.uiColors.text,
-        overflow: { xs: 'visible', md: 'hidden' },
+        overflow: { xs: 'visible', lg: 'hidden' },
       }}
     >
       {/* Top Toolbar */}
@@ -675,6 +863,8 @@ export function CodeRunnerView() {
         runnerState={runnerState}
         fontSize={fontSize}
         minimap={minimap}
+        styleMode={styleMode}
+        onStyleModeChange={handleStyleModeChange}
         onLanguageChange={handleLanguageChange}
         onTemplateChange={handleTemplateChange}
         onThemeChange={setCurrentThemeId}
@@ -747,41 +937,89 @@ export function CodeRunnerView() {
                 minHeight: 36,
               }}
             >
-              <Tabs
-                value={activeFileName}
-                onChange={(_, val) => setActiveFileName(val)}
-                sx={{
-                  minHeight: 36,
-                  '& .MuiTab-root': {
+              <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 0, overflowX: 'auto' }}>
+                <Tabs
+                  value={activeFileName}
+                  onChange={(_, val) => setActiveFileName(val)}
+                  sx={{
                     minHeight: 36,
-                    py: 0.5,
-                    px: 1.5,
-                    fontSize: '12px',
-                    color: activeTheme.uiColors.textMuted,
-                    fontFamily: 'monospace',
-                    textTransform: 'none',
-                    '&.Mui-selected': {
-                      bgcolor: activeTheme.previewBg,
-                      color: activeTheme.previewAccent,
-                      fontWeight: 600,
-                      borderTop: `2px solid ${activeTheme.previewAccent}`,
+                    '& .MuiTab-root': {
+                      minHeight: 36,
+                      py: 0.5,
+                      px: 1.5,
+                      fontSize: '12px',
+                      color: activeTheme.uiColors.textMuted,
+                      fontFamily: 'monospace',
+                      textTransform: 'none',
+                      '&.Mui-selected': {
+                        bgcolor: activeTheme.previewBg,
+                        color: activeTheme.previewAccent,
+                        fontWeight: 600,
+                        borderTop: `2px solid ${activeTheme.previewAccent}`,
+                      },
                     },
-                  },
-                  '& .MuiTabs-indicator': {
-                    display: 'none',
-                  },
-                }}
-              >
-                {fileNames.map((fileName) => (
-                  <Tab
-                    key={fileName}
-                    value={fileName}
-                    icon={<InsertDriveFileRoundedIcon sx={{ fontSize: 14 }} />}
-                    iconPosition="start"
-                    label={fileName}
-                  />
-                ))}
-              </Tabs>
+                    '& .MuiTabs-indicator': {
+                      display: 'none',
+                    },
+                  }}
+                >
+                  {fileNames.map((fileName) => (
+                    <Tab
+                      key={fileName}
+                      value={fileName}
+                      icon={<InsertDriveFileRoundedIcon sx={{ fontSize: 14 }} />}
+                      iconPosition="start"
+                      label={
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                          <span>{fileName}</span>
+                          {fileNames.length > 1 && (
+                            <Box
+                              component="span"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (window.confirm(`"${fileName}" 파일을 삭제하시겠습니까?`)) {
+                                  handleDeleteFile(fileName);
+                                }
+                              }}
+                              sx={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: 16,
+                                height: 16,
+                                borderRadius: '50%',
+                                cursor: 'pointer',
+                                color: activeTheme.uiColors.textMuted,
+                                '&:hover': {
+                                  bgcolor: 'rgba(239, 83, 80, 0.15)',
+                                  color: '#ef5350',
+                                },
+                              }}
+                            >
+                              <CloseRoundedIcon sx={{ fontSize: 12 }} />
+                            </Box>
+                          )}
+                        </Box>
+                      }
+                    />
+                  ))}
+                </Tabs>
+
+                {/* Add File Button */}
+                <Tooltip title="새 파일 추가">
+                  <IconButton
+                    size="small"
+                    onClick={() => setIsCreateModalOpen(true)}
+                    sx={{
+                      color: activeTheme.uiColors.textMuted,
+                      ml: 0.5,
+                      '&:hover': { color: activeTheme.previewAccent },
+                    }}
+                  >
+                    <AddRoundedIcon sx={{ fontSize: 18 }} />
+                  </IconButton>
+                </Tooltip>
+              </Box>
 
               {/* Layout controls */}
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -875,11 +1113,17 @@ export function CodeRunnerView() {
                           selectedTemplate.engine === 'react-live' ||
                           selectedTemplate.language === 'react'
                             ? htmlPreviewContent ||
-                              buildReactPreviewHtml(files['App.jsx'] || files[activeFileName] || '')
+                              buildReactPreviewHtml(
+                                files['App.jsx'] || files[activeFileName] || '',
+                                files
+                              )
                             : selectedTemplate.engine === 'html-sandbox' ||
                                 selectedTemplate.language === 'html'
                               ? htmlPreviewContent ||
-                                buildHtmlPreview(files['index.html'] || files[activeFileName] || '')
+                                buildHtmlPreview(
+                                  files['index.html'] || files[activeFileName] || '',
+                                  files
+                                )
                               : undefined
                         }
                         isServerRunning={
@@ -961,6 +1205,114 @@ export function CodeRunnerView() {
             );
           })()}
       </Box>
+
+      {/* Classic Theme New File Modal Dialog */}
+      <Dialog
+        open={isCreateModalOpen}
+        onClose={() => {
+          setIsCreateModalOpen(false);
+          setModalFileName('');
+          setModalError(null);
+        }}
+        maxWidth="xs"
+        fullWidth
+        sx={{
+          '& .MuiDialog-paper': {
+            bgcolor: activeTheme.previewBg,
+            color: activeTheme.uiColors.text,
+            border: `1px solid ${activeTheme.uiColors.border}`,
+            borderRadius: 2,
+          },
+        }}
+      >
+        <DialogTitle sx={{ fontSize: '1rem', fontWeight: 700, pb: 1 }}>
+          새 소스코드 파일 생성
+        </DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          <TextField
+            autoFocus
+            fullWidth
+            size="small"
+            label="파일명 (확장자 포함)"
+            placeholder="예: helper.js, data.json, styles.css"
+            value={modalFileName}
+            onChange={(e) => {
+              setModalFileName(e.target.value);
+              setModalError(null);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleModalCreateFile();
+              }
+            }}
+            error={Boolean(modalError)}
+            helperText={modalError || '확장자에 맞는 보일러플레이트 코드가 자동 생성됩니다.'}
+            sx={{
+              mt: 1,
+              '& .MuiInputBase-root': {
+                bgcolor: activeTheme.uiColors.surface,
+                color: activeTheme.uiColors.text,
+                fontFamily: 'monospace',
+                fontSize: '0.875rem',
+              },
+            }}
+          />
+
+          {/* Quick extension chips */}
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.8, mt: 2 }}>
+            {['.js', '.ts', '.py', '.css', '.json', '.jsx', '.html', '.sql'].map((ext) => (
+              <Chip
+                key={ext}
+                size="small"
+                label={ext}
+                onClick={() => {
+                  const base = modalFileName ? modalFileName.split('.')[0] : 'module';
+                  setModalFileName(`${base}${ext}`);
+                  setModalError(null);
+                }}
+                sx={{
+                  cursor: 'pointer',
+                  fontSize: '0.75rem',
+                  fontFamily: 'monospace',
+                  bgcolor: activeTheme.uiColors.surface,
+                  color: activeTheme.uiColors.text,
+                  border: `1px solid ${activeTheme.uiColors.border}`,
+                  '&:hover': {
+                    bgcolor: activeTheme.previewAccent,
+                    color: '#ffffff',
+                  },
+                }}
+              />
+            ))}
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            size="small"
+            onClick={() => {
+              setIsCreateModalOpen(false);
+              setModalFileName('');
+              setModalError(null);
+            }}
+            sx={{ color: activeTheme.uiColors.textMuted }}
+          >
+            취소
+          </Button>
+          <Button
+            size="small"
+            variant="contained"
+            onClick={handleModalCreateFile}
+            sx={{
+              bgcolor: activeTheme.previewAccent,
+              color: '#ffffff',
+              fontWeight: 700,
+              '&:hover': { bgcolor: activeTheme.previewAccent },
+            }}
+          >
+            파일 생성
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

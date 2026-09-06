@@ -188,6 +188,7 @@ export const navData: NavSectionProps['data'] = [
           { title: '가로 스크린샷', path: paths.photo.garo, info: appsInTossBadge },
           { title: 'ogImage 크기 조절', path: paths.photo.ogImage, info: appsInTossBadge },
           { title: 'AI 배경 제거', path: paths.photo.bgRemove },
+          { title: '워터마크 제거', path: paths.photo.watermarkRemove, info: newFeatureBadge },
           { title: '여백 조정', path: paths.photo.padding },
           { title: '스마트 OCR', path: paths.ocr },
           { title: 'Color Picker', path: paths.photo.colorPicker },
@@ -247,6 +248,7 @@ export const navData: NavSectionProps['data'] = [
         icon: ICONS.devTools,
         children: [
           { title: 'Online 컴파일러', path: paths.codeRunner },
+          { title: 'VS Code 타이핑 IDE', path: paths.devToolsIde, info: newFeatureBadge },
           { title: 'SQL Lab', path: paths.public.sql },
           { title: 'Diff Checker', path: paths.compare },
           { title: '정규표현식', path: paths.text.regex },

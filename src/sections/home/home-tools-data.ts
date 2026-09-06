@@ -447,6 +447,27 @@ export const TOOLS_DATA: ToolItem[] = [
     ],
   },
   {
+    id: 'dev-tools-ide',
+    title: 'VS Code 타이핑 IDE',
+    subtitle: '실시간 소스코드 타이핑 플레이어 & 시뮬레이터',
+    description:
+      'Visual Studio Code 스타일의 정통 IDE 환경에서 코드를 입력하고 재생 버튼을 누르면 실제 프로그래머처럼 한 글자씩 타이핑되는 효과와 타건음을 제공합니다.',
+    category: 'dev',
+    path: paths.devToolsIde,
+    tag: 'NEW',
+    tagColor: 'primary',
+    isFeatured: true,
+    featuredRank: 7,
+    accentColor: '#007ACC', // VS Code Blue
+    iconKey: 'codeRunner',
+    features: [
+      'Visual Studio Code UI/UX 테마',
+      '실시간 코드 타이핑(Type-writer) 애니메이션',
+      '기계식 키보드 타건음 사운드 효과',
+      '템플릿 프리셋 & 커스텀 코드 입력',
+    ],
+  },
+  {
     id: 'barcode',
     title: 'QR & 바코드 생성기',
     subtitle: '비즈니스 커스텀 QR & 바코드 생성/스캔',

@@ -2,8 +2,17 @@
 // Helper to transform React JSX / HTML code into a fully renderable HTML document
 // ----------------------------------------------------------------------
 
-export function buildReactPreviewHtml(rawJsxCode: string): string {
+export function buildReactPreviewHtml(rawJsxCode: string, files?: Record<string, string>): string {
   const jsonCode = JSON.stringify(rawJsxCode);
+
+  let extraCss = '';
+  if (files) {
+    for (const [name, content] of Object.entries(files)) {
+      if (name.endsWith('.css')) {
+        extraCss += `\n/* ${name} */\n${content}\n`;
+      }
+    }
+  }
 
   return `<!DOCTYPE html>
 <html lang="ko">
@@ -11,6 +20,7 @@ export function buildReactPreviewHtml(rawJsxCode: string): string {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>React Live Sandbox</title>
+  ${extraCss ? `<style>${extraCss}</style>` : ''}
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- React 18 & Babel Standalone CDN -->
@@ -184,6 +194,9 @@ export function buildReactPreviewHtml(rawJsxCode: string): string {
           filename: 'App.jsx'
         });
 
+        var workspaceFiles = ${JSON.stringify(files || {})};
+        var moduleCache = {};
+
         // CommonJS module environment
         var exports = {};
         var module = { exports: exports };
@@ -208,6 +221,54 @@ export function buildReactPreviewHtml(rawJsxCode: string): string {
           if (moduleName === 'mathjs' || moduleName === 'math') return window.math;
           if (moduleName === 'howler') return window.Howl;
           if (moduleName === 'framer-motion') return { motion: MotionComponentProxy, AnimatePresence: function(p) { return p.children; } };
+
+          // Multi-file workspace resolution
+          var cleanName = moduleName.startsWith('./') ? moduleName.slice(2) : (moduleName.startsWith('/') ? moduleName.slice(1) : moduleName);
+          var candidates = [
+            cleanName,
+            cleanName + '.js',
+            cleanName + '.jsx',
+            cleanName + '.ts',
+            cleanName + '.tsx',
+            cleanName + '.json'
+          ];
+          var resolvedKey = candidates.find(function(k) { return Boolean(workspaceFiles && Object.prototype.hasOwnProperty.call(workspaceFiles, k)); });
+          if (resolvedKey) {
+            if (moduleCache[resolvedKey]) {
+              return moduleCache[resolvedKey].exports;
+            }
+            if (resolvedKey.endsWith('.json')) {
+              try {
+                var parsed = JSON.parse(workspaceFiles[resolvedKey]);
+                moduleCache[resolvedKey] = { exports: parsed };
+                return parsed;
+              } catch (e) {
+                throw new Error('Failed to parse JSON file "' + resolvedKey + '": ' + e.message);
+              }
+            }
+            var subTrans = Babel.transform(workspaceFiles[resolvedKey], {
+              presets: [
+                ['react', { runtime: 'classic' }],
+                ['env', { modules: 'commonjs' }]
+              ],
+              filename: resolvedKey
+            });
+            var subModule = { exports: {} };
+            moduleCache[resolvedKey] = subModule;
+            var subFn = new Function(
+              'React', 'ReactDOM', 'require', 'module', 'exports',
+              'useState', 'useEffect', 'useReducer', 'useMemo', 'useCallback', 'useRef', 'useContext', 'createContext',
+              'confetti', '_', 'dayjs', 'Chart', 'rough', 'Tone', 'Fuse', 'Papa', 'chroma', 'anime', 'marked', 'katex', 'QRCode', 'math', 'Howl', 'motion', 'LucideReact',
+              subTrans.code
+            );
+            subFn(
+              React, ReactDOM, require, subModule, subModule.exports,
+              useState, useEffect, useReducer, useMemo, useCallback, useRef, useContext, createContext,
+              confetti, _, dayjs, Chart, rough, Tone, Fuse, Papa, chroma, anime, marked, katex, QRCode, math, Howl, motion, LucideReactProxy
+            );
+            return subModule.exports;
+          }
+
           return {};
         }
 
@@ -285,12 +346,30 @@ export function buildReactPreviewHtml(rawJsxCode: string): string {
 </html>`;
 }
 
-export function buildHtmlPreview(rawHtml: string): string {
+export function buildHtmlPreview(rawHtml: string, files?: Record<string, string>): string {
+  let extraCss = '';
+  let extraJs = '';
+  if (files) {
+    for (const [name, content] of Object.entries(files)) {
+      if (name.endsWith('.css')) {
+        extraCss += `\n/* ${name} */\n${content}\n`;
+      } else if (name.endsWith('.js')) {
+        extraJs += `\n// ${name}\n${content}\n`;
+      }
+    }
+  }
+
   const hasFullDocument = rawHtml.includes('<html') || rawHtml.includes('<!DOCTYPE');
 
   if (hasFullDocument) {
     // Inject scripts if not already present
     let doc = rawHtml;
+    if (extraCss) {
+      doc = doc.replace('</head>', `<style>${extraCss}</style>\\n</head>`);
+    }
+    if (extraJs) {
+      doc = doc.replace('</body>', `<script>${extraJs}</script>\\n</body>`);
+    }
     if (!doc.includes('cdn.tailwindcss.com')) {
       doc = doc.replace('<head>', '<head>\\n  <script src="https://cdn.tailwindcss.com"></script>');
     }

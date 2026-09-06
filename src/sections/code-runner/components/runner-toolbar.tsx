@@ -1,6 +1,6 @@
 'use client';
 
-import type { RunnerState, CodeTemplate, SupportedLanguage } from '../types';
+import type { RunnerState, CodeTemplate, SupportedLanguage, CodeRunnerStyleMode } from '../types';
 
 import React from 'react';
 
@@ -24,6 +24,7 @@ import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 
 import { getTemplatesByLanguage } from '../core/templates';
 import { IDE_THEMES, getThemeById } from '../core/editor-themes';
+import { CodeRunnerStyleToggle } from './code-runner-style-toggle';
 
 // ----------------------------------------------------------------------
 
@@ -34,6 +35,8 @@ export interface RunnerToolbarProps {
   runnerState: RunnerState;
   fontSize: number;
   minimap: boolean;
+  styleMode?: CodeRunnerStyleMode;
+  onStyleModeChange?: (mode: CodeRunnerStyleMode) => void;
   onLanguageChange: (lang: SupportedLanguage) => void;
   onTemplateChange: (template: CodeTemplate) => void;
   onThemeChange: (themeId: string) => void;
@@ -200,6 +203,8 @@ export function RunnerToolbar({
   runnerState,
   fontSize,
   minimap,
+  styleMode,
+  onStyleModeChange,
   onLanguageChange,
   onTemplateChange,
   onThemeChange,
@@ -448,6 +453,15 @@ export function RunnerToolbar({
 
       {/* Right Area: Action Buttons */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        {/* Style Mode Toggle (일반 테마 | VS CODE) */}
+        {onStyleModeChange && (
+          <CodeRunnerStyleToggle
+            styleMode={styleMode || 'classic'}
+            onChange={onStyleModeChange}
+            isDark={activeTheme.isDark}
+          />
+        )}
+
         {/* Run / Stop Button */}
         {isRunning ? (
           <Button

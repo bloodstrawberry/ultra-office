@@ -26,6 +26,8 @@ import FormControl from '@mui/material/FormControl';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import UndoRoundedIcon from '@mui/icons-material/UndoRounded';
+import RedoRoundedIcon from '@mui/icons-material/RedoRounded';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import CodeRoundedIcon from '@mui/icons-material/CodeRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
@@ -234,6 +236,60 @@ export function VideoMasterSubtitleView() {
   const [fileName, setFileName] = useState<string>('');
   const [subtitles, setSubtitles] = useState<SubtitleItem[]>([]);
   const [selectedSubId, setSelectedSubId] = useState<string | null>(null);
+
+  // ─── Undo / Redo History Stack (Ctrl+Z / Ctrl+Y) ───
+  const [subHistory, setSubHistory] = useState<SubtitleItem[][]>([]);
+  const [subHistoryIndex, setSubHistoryIndex] = useState<number>(-1);
+
+  const pushSubHistory = useCallback(
+    (nextSubs: SubtitleItem[]) => {
+      setSubtitles(nextSubs);
+      setSubHistory((prev) => {
+        const next = prev.slice(0, subHistoryIndex + 1);
+        next.push(nextSubs.map((s) => ({ ...s })));
+        if (next.length > 30) next.shift();
+        return next;
+      });
+      setSubHistoryIndex((prev) => Math.min(prev + 1, 29));
+    },
+    [subHistoryIndex]
+  );
+
+  const handleSubUndo = useCallback(() => {
+    if (subHistoryIndex <= 0) return;
+    const targetIdx = subHistoryIndex - 1;
+    const target = subHistory[targetIdx];
+    if (target) {
+      setSubtitles(target);
+      setSubHistoryIndex(targetIdx);
+      if (selectedSubId && !target.some((s) => s.id === selectedSubId)) {
+        setSelectedSubId(target[0]?.id || null);
+      }
+      toast.info('자막 작업이 취소되었습니다. (실행 취소)');
+    }
+  }, [subHistoryIndex, subHistory, selectedSubId]);
+
+  const handleSubRedo = useCallback(() => {
+    if (subHistoryIndex >= subHistory.length - 1) return;
+    const targetIdx = subHistoryIndex + 1;
+    const target = subHistory[targetIdx];
+    if (target) {
+      setSubtitles(target);
+      setSubHistoryIndex(targetIdx);
+      if (selectedSubId && !target.some((s) => s.id === selectedSubId)) {
+        setSelectedSubId(target[0]?.id || null);
+      }
+      toast.info('자막 작업이 다시 실행되었습니다. (다시 실행)');
+    }
+  }, [subHistoryIndex, subHistory, selectedSubId]);
+
+  const subtitlesRef = useRef<SubtitleItem[]>(subtitles);
+  subtitlesRef.current = subtitles;
+
+  const commitSubHistory = useCallback(() => {
+    pushSubHistory(subtitlesRef.current);
+  }, [pushSubHistory]);
+
   const [viewMode, setViewMode] = useState<EditorViewMode>('list');
   const [rightTab, setRightTab] = useState<RightPanelTab>('preview');
 
@@ -319,6 +375,8 @@ export function VideoMasterSubtitleView() {
 
       if (parsed.length > 0) {
         setSubtitles(parsed);
+        setSubHistory([parsed.map((s) => ({ ...s }))]);
+        setSubHistoryIndex(0);
         setFileName(file.name);
         setSelectedSubId(parsed[0].id);
         setCurrentTime(parsed[0].startTime);
@@ -336,6 +394,8 @@ export function VideoMasterSubtitleView() {
   // ─── Select Subtitle Sample ───
   const handleSelectSample = (sample: SubtitleSampleItem) => {
     setSubtitles(sample.subtitles);
+    setSubHistory([sample.subtitles.map((s) => ({ ...s }))]);
+    setSubHistoryIndex(0);
     setFileName(sample.fileName);
     setSelectedSubId(sample.subtitles[0]?.id || null);
     setCurrentTime(sample.subtitles[0]?.startTime || 0);
@@ -352,6 +412,8 @@ export function VideoMasterSubtitleView() {
       text: '첫 번째 자막 내용을 입력하세요',
     };
     setSubtitles([blankItem]);
+    setSubHistory([[blankItem]]);
+    setSubHistoryIndex(0);
     setFileName('untitled.srt');
     setSelectedSubId(blankItem.id);
     setCurrentTime(1.0);
@@ -399,7 +461,7 @@ export function VideoMasterSubtitleView() {
     }
     const parsed = parseSubtitleContent(rawTextContent);
     if (parsed.length > 0) {
-      setSubtitles(parsed);
+      pushSubHistory(parsed);
       setSelectedSubId(parsed[0].id);
       setViewMode('list');
       toast.success(`${parsed.length}개의 자막이 파싱되어 목록에 반영되었습니다.`);
@@ -506,33 +568,31 @@ export function VideoMasterSubtitleView() {
   // ─── Subtitle Item CRUD ───
 
   const handleAddNewSubtitle = (afterId?: string) => {
-    setSubtitles((prev) => {
-      let insertIndex = prev.length;
-      let start = 0;
+    let insertIndex = subtitles.length;
+    let start = 0;
 
-      if (afterId) {
-        const foundIdx = prev.findIndex((s) => s.id === afterId);
-        if (foundIdx !== -1) {
-          insertIndex = foundIdx + 1;
-          start = Math.round((prev[foundIdx].endTime + 0.1) * 10) / 10;
-        }
-      } else if (prev.length > 0) {
-        start = Math.round((prev[prev.length - 1].endTime + 0.2) * 10) / 10;
+    if (afterId) {
+      const foundIdx = subtitles.findIndex((s) => s.id === afterId);
+      if (foundIdx !== -1) {
+        insertIndex = foundIdx + 1;
+        start = Math.round((subtitles[foundIdx].endTime + 0.1) * 10) / 10;
       }
+    } else if (subtitles.length > 0) {
+      start = Math.round((subtitles[subtitles.length - 1].endTime + 0.2) * 10) / 10;
+    }
 
-      const end = Math.round((start + 2.5) * 10) / 10;
-      const newItem: SubtitleItem = {
-        id: `sub-${Date.now()}`,
-        startTime: start,
-        endTime: end,
-        text: '새로운 자막 텍스트',
-      };
+    const end = Math.round((start + 2.5) * 10) / 10;
+    const newItem: SubtitleItem = {
+      id: `sub-${Date.now()}`,
+      startTime: start,
+      endTime: end,
+      text: '새로운 자막 텍스트',
+    };
 
-      const copy = [...prev];
-      copy.splice(insertIndex, 0, newItem);
-      setSelectedSubId(newItem.id);
-      return copy;
-    });
+    const copy = [...subtitles];
+    copy.splice(insertIndex, 0, newItem);
+    setSelectedSubId(newItem.id);
+    pushSubHistory(copy);
     toast.success('새 자막 행이 추가되었습니다.');
   };
 
@@ -541,32 +601,35 @@ export function VideoMasterSubtitleView() {
   };
 
   const handleAdjustTimeStep = (id: string, field: 'startTime' | 'endTime', delta: number) => {
-    setSubtitles((prev) =>
-      prev.map((sub) => {
-        if (sub.id !== id) return sub;
-        const currentVal = sub[field];
-        const nextVal = Math.max(0, Math.round((currentVal + delta) * 100) / 100);
+    const updated = subtitles.map((sub) => {
+      if (sub.id !== id) return sub;
+      const currentVal = sub[field];
+      const nextVal = Math.max(0, Math.round((currentVal + delta) * 100) / 100);
 
-        if (field === 'startTime') {
-          return {
-            ...sub,
-            startTime: nextVal,
-            endTime: Math.max(nextVal + 0.2, sub.endTime),
-          };
-        }
+      if (field === 'startTime') {
         return {
           ...sub,
-          endTime: Math.max(sub.startTime + 0.2, nextVal),
+          startTime: nextVal,
+          endTime: Math.max(nextVal + 0.2, sub.endTime),
         };
-      })
-    );
+      }
+      return {
+        ...sub,
+        endTime: Math.max(sub.startTime + 0.2, nextVal),
+      };
+    });
+    pushSubHistory(updated);
   };
 
-  const handleDeleteItem = (id: string) => {
-    setSubtitles((prev) => prev.filter((s) => s.id !== id));
-    if (selectedSubId === id) setSelectedSubId(null);
-    toast.info('자막이 삭제되었습니다.');
-  };
+  const handleDeleteItem = useCallback(
+    (id: string) => {
+      const updated = subtitles.filter((s) => s.id !== id);
+      pushSubHistory(updated);
+      if (selectedSubId === id) setSelectedSubId(null);
+      toast.info('자막이 삭제되었습니다.');
+    },
+    [subtitles, pushSubHistory, selectedSubId]
+  );
 
   const handleDuplicateItem = (item: SubtitleItem) => {
     const duration = item.endTime - item.startTime;
@@ -576,12 +639,10 @@ export function VideoMasterSubtitleView() {
       endTime: Math.round((item.endTime + 0.2 + duration) * 10) / 10,
       text: item.text,
     };
-    setSubtitles((prev) => {
-      const idx = prev.findIndex((s) => s.id === item.id);
-      const copy = [...prev];
-      copy.splice(idx + 1, 0, newItem);
-      return copy;
-    });
+    const idx = subtitles.findIndex((s) => s.id === item.id);
+    const copy = [...subtitles];
+    copy.splice(idx + 1, 0, newItem);
+    pushSubHistory(copy);
     setSelectedSubId(newItem.id);
     toast.success('자막이 복제되었습니다.');
   };
@@ -606,13 +667,11 @@ export function VideoMasterSubtitleView() {
       splitPart2Text
     );
 
-    setSubtitles((prev) => {
-      const idx = prev.findIndex((s) => s.id === splittingItem.id);
-      if (idx === -1) return prev;
-      const copy = [...prev];
-      copy.splice(idx, 1, sub1, sub2);
-      return copy;
-    });
+    const idx = subtitles.findIndex((s) => s.id === splittingItem.id);
+    if (idx === -1) return;
+    const copy = [...subtitles];
+    copy.splice(idx, 1, sub1, sub2);
+    pushSubHistory(copy);
 
     setSplitDialogOpen(false);
     setSelectedSubId(sub2.id);
@@ -625,18 +684,59 @@ export function VideoMasterSubtitleView() {
     const second = subtitles[idx + 1];
     const merged = mergeSubtitleItems(first, second);
 
-    setSubtitles((prev) => {
-      const copy = [...prev];
-      copy.splice(idx, 2, merged);
-      return copy;
-    });
+    const copy = [...subtitles];
+    copy.splice(idx, 2, merged);
+    pushSubHistory(copy);
     toast.success('다음 자막과 하나로 합쳐졌습니다.');
   };
 
   const handleSortSubtitles = () => {
-    setSubtitles((prev) => [...prev].sort((a, b) => a.startTime - b.startTime));
+    const sorted = [...subtitles].sort((a, b) => a.startTime - b.startTime);
+    pushSubHistory(sorted);
     toast.success('모든 자막이 시작 시간순으로 정렬되었습니다.');
   };
+
+  // Keyboard Shortcuts: DEL (Delete selected subtitle), Ctrl+Z (Undo), Ctrl+Y (Redo)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+      ) {
+        return;
+      }
+
+      // DEL or Backspace
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (selectedSubId) {
+          e.preventDefault();
+          handleDeleteItem(selectedSubId);
+          return;
+        }
+      }
+
+      // Ctrl + Z (Undo)
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          handleSubRedo();
+        } else {
+          handleSubUndo();
+        }
+        return;
+      }
+
+      // Ctrl + Y (Redo)
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
+        e.preventDefault();
+        handleSubRedo();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedSubId, handleDeleteItem, handleSubUndo, handleSubRedo]);
 
   // ─── Bulk Text Editing Operations ───
 
@@ -735,8 +835,8 @@ export function VideoMasterSubtitleView() {
         }
       }
 
-      setSubtitles(updated);
       setBulkDialogOpen(false);
+      pushSubHistory(updated);
       toast.success(`${lines.length}줄의 자막 텍스트가 일괄 수정되었습니다.`);
     } else {
       const blocks = bulkTextContent
@@ -772,8 +872,8 @@ export function VideoMasterSubtitleView() {
         }
       }
 
-      setSubtitles(updated);
       setBulkDialogOpen(false);
+      pushSubHistory(updated);
       toast.success(`${blocks.length}개 블록의 자막 텍스트가 일괄 수정되었습니다.`);
     }
   };
@@ -789,7 +889,7 @@ export function VideoMasterSubtitleView() {
   };
 
   const handleApplyTranslatedSubtitles = (translated: SubtitleItem[]) => {
-    setSubtitles(translated);
+    pushSubHistory(translated);
   };
 
   // ─── Resizable Divider Pointer Handlers (너비 / 높이 조절) ───
@@ -841,18 +941,18 @@ export function VideoMasterSubtitleView() {
   // ─── Batch Operations ───
 
   const handleBatchShiftTime = (delta: number) => {
-    setSubtitles((prev) =>
-      prev.map((sub) => ({
-        ...sub,
-        startTime: Math.max(0, Math.round((sub.startTime + delta) * 100) / 100),
-        endTime: Math.max(0.3, Math.round((sub.endTime + delta) * 100) / 100),
-      }))
-    );
+    const updated = subtitles.map((sub) => ({
+      ...sub,
+      startTime: Math.max(0, Math.round((sub.startTime + delta) * 100) / 100),
+      endTime: Math.max(0.3, Math.round((sub.endTime + delta) * 100) / 100),
+    }));
+    pushSubHistory(updated);
     toast.success(`모든 자막의 시간이 ${delta > 0 ? `+${delta}` : delta}초 이동되었습니다.`);
   };
 
   const handleConvertFps = () => {
-    setSubtitles((prev) => convertSubtitleFramerate(prev, fpsFrom, fpsTo));
+    const updated = convertSubtitleFramerate(subtitles, fpsFrom, fpsTo);
+    pushSubHistory(updated);
     toast.success(`프레임 레이트 보정(${fpsFrom} FPS → ${fpsTo} FPS)이 완료되었습니다.`);
   };
 
@@ -862,18 +962,17 @@ export function VideoMasterSubtitleView() {
       return;
     }
     let count = 0;
-    setSubtitles((prev) =>
-      prev.map((sub) => {
-        if (sub.text.includes(searchQuery)) {
-          count += 1;
-          return {
-            ...sub,
-            text: sub.text.replaceAll(searchQuery, replaceQuery),
-          };
-        }
-        return sub;
-      })
-    );
+    const updated = subtitles.map((sub) => {
+      if (sub.text.includes(searchQuery)) {
+        count += 1;
+        return {
+          ...sub,
+          text: sub.text.replaceAll(searchQuery, replaceQuery),
+        };
+      }
+      return sub;
+    });
+    pushSubHistory(updated);
     toast.success(
       `${count}개의 자막에서 '${searchQuery}'을(를) '${replaceQuery}'(으)로 치환했습니다.`
     );
@@ -881,7 +980,7 @@ export function VideoMasterSubtitleView() {
 
   const handleAutoFix = () => {
     const { fixed, issuesFixedCount } = validateAndFixSubtitles(subtitles);
-    setSubtitles(fixed);
+    pushSubHistory(fixed);
     if (issuesFixedCount > 0) {
       toast.success(`${issuesFixedCount}개의 자막 시간 오버랩 및 오류를 자동으로 수정했습니다!`);
     } else {
@@ -890,7 +989,8 @@ export function VideoMasterSubtitleView() {
   };
 
   const handleCleanTexts = () => {
-    setSubtitles((prev) => cleanSubtitleTexts(prev));
+    const cleaned = cleanSubtitleTexts(subtitles);
+    pushSubHistory(cleaned);
     toast.success('모든 자막의 불필요한 HTML 태그와 양끝 공백이 정리되었습니다.');
   };
 
@@ -1530,6 +1630,42 @@ export function VideoMasterSubtitleView() {
 
                   {/* Action Tools */}
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                    {/* Undo / Redo */}
+                    <Tooltip title="실행 취소 (Ctrl + Z)">
+                      <span>
+                        <IconButton
+                          size="small"
+                          onClick={handleSubUndo}
+                          disabled={subHistoryIndex <= 0}
+                          sx={{
+                            border: '1px solid',
+                            borderColor: 'divider',
+                            borderRadius: 1,
+                            p: 0.6,
+                          }}
+                        >
+                          <UndoRoundedIcon fontSize="small" />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+                    <Tooltip title="다시 실행 (Ctrl + Y)">
+                      <span>
+                        <IconButton
+                          size="small"
+                          onClick={handleSubRedo}
+                          disabled={subHistoryIndex >= subHistory.length - 1}
+                          sx={{
+                            border: '1px solid',
+                            borderColor: 'divider',
+                            borderRadius: 1,
+                            p: 0.6,
+                          }}
+                        >
+                          <RedoRoundedIcon fontSize="small" />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+
                     <Tooltip title="시간순 자동 정렬">
                       <Button size="small" variant="soft" onClick={handleSortSubtitles}>
                         정렬
@@ -1796,6 +1932,7 @@ export function VideoMasterSubtitleView() {
                                     startTime: Math.max(0, Number(e.target.value)),
                                   })
                                 }
+                                onBlur={commitSubHistory}
                                 sx={{
                                   width: 95,
                                   '& .MuiInputBase-input': {
@@ -1867,6 +2004,7 @@ export function VideoMasterSubtitleView() {
                                     endTime: Math.max(0, Number(e.target.value)),
                                   })
                                 }
+                                onBlur={commitSubHistory}
                                 sx={{
                                   width: 95,
                                   '& .MuiInputBase-input': {
@@ -1935,6 +2073,7 @@ export function VideoMasterSubtitleView() {
                             placeholder="자막 텍스트를 입력하세요"
                             value={sub.text}
                             onChange={(e) => handleUpdateItem(sub.id, { text: e.target.value })}
+                            onBlur={commitSubHistory}
                             sx={{
                               '& .MuiInputBase-root': {
                                 fontSize: '0.875rem',
