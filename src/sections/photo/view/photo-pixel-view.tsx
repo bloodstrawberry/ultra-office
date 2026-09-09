@@ -707,31 +707,17 @@ export function PixelView() {
                       {PALETTES.find((p) => p.id === palette)?.name} 색상 직접 변경 (
                       {paletteColors[palette].length}색)
                     </Typography>
-                    <Tooltip title="원래 기본 색상으로 되돌리기">
-                      <Button
+                    <Tooltip title="기본값 복원">
+                      <IconButton
                         size="small"
-                        variant="text"
                         color="inherit"
                         onClick={handleResetCurrentPalette}
-                        startIcon={<RestartAltRoundedIcon sx={{ fontSize: 14 }} />}
-                        sx={{ fontSize: '0.7rem', py: 0.2, px: 0.6, minWidth: 0, fontWeight: 600 }}
+                        sx={{ p: 0.5 }}
                       >
-                        기본값 복원
-                      </Button>
+                        <RestartAltRoundedIcon sx={{ fontSize: 16 }} />
+                      </IconButton>
                     </Tooltip>
                   </Box>
-
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      display: 'block',
-                      color: 'text.secondary',
-                      mb: 1.2,
-                      fontSize: '0.7rem',
-                    }}
-                  >
-                    아래 색상 칩을 클릭하여 팔레트 색상을 직접 수정할 수 있습니다.
-                  </Typography>
 
                   {/* Color Chips List */}
                   <Box

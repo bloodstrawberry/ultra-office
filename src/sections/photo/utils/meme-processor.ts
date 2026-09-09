@@ -75,11 +75,10 @@ export const MEME_EFFECTS: MemeEffectMeta[] = [
   {
     id: 'wide',
     name: '와이드 푸틴 밈',
-    subtitle: 'Wide Stretch & Walk',
-    desc: '가로 300% 강제 스트레칭 및 위풍당당 워킹 바운스',
+    subtitle: 'Wide Stretch',
+    desc: '가로 최대 400% 강제 스트레칭 왜곡 효과',
     icon: '🚶‍♂️',
     badgeBg: '#3b82f6',
-    hasGifExport: true,
   },
   {
     id: 'fisheye',
@@ -143,7 +142,7 @@ export const MEME_EFFECTS: MemeEffectMeta[] = [
     name: '미니어처 틸트시프트',
     subtitle: 'Tilt-Shift Miniature',
     desc: '상하단 아웃포커싱 블러와 고채도로 장난감 디오라마 연출',
-    icon: '🤏',
+    icon: '🚂',
     badgeBg: '#eab308',
   },
   {

@@ -1,7 +1,7 @@
 'use client';
 
 import { toast } from 'sonner';
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
@@ -51,6 +51,13 @@ interface StickerItem {
   emoji: string;
   x: number; // percentage (0..100)
   y: number; // percentage (0..100)
+  size?: number; // base canvas size in pixels (default 52)
+}
+
+interface StickerCategory {
+  name: string;
+  isText?: boolean;
+  items: string[];
 }
 
 const THEMES: { id: FrameTheme; name: string; bg: string; text: string }[] = [
@@ -77,7 +84,25 @@ const FILTERS: { id: PhotoFilter; name: string }[] = [
   { id: 'film', name: '필름 감성' },
 ];
 
-const STICKER_PRESETS = ['✨', '💖', '🎀', '🧸', '🌸', '👑', '🕶️', '🐱', '🐶', '🔥', '⭐', '🎈'];
+const STICKER_CATEGORIES: StickerCategory[] = [
+  {
+    name: '인기 & 감성',
+    items: ['✨', '💖', '🎀', '🧸', '🌸', '👑', '🕶️', '🔥', '⭐', '🎈', '❤️', '💌'],
+  },
+  {
+    name: '동물 & 귀여움',
+    items: ['🐱', '🐶', '🐰', '🐻', '🐥', '🦊', '🍀', '🌻', '🌷', '🌿', '🍒', '🍓'],
+  },
+  {
+    name: '표정 & 포즈',
+    items: ['🥰', '😎', '🥳', '🥺', '✌️', '🫰', '🫶', '👀', '💋', '🎉', '🍰', '🍻'],
+  },
+  {
+    name: '감성 문구 태그',
+    isText: true,
+    items: ['인생샷', '우정해', '행복', 'LOVE', 'BEST', '짱!', '찰칵📸', '추억'],
+  },
+];
 
 const FOUR_CUT_SAMPLES = {
   portrait: [
@@ -110,9 +135,65 @@ export function FourCutView() {
   const [captionText, setCaptionText] = useState<string>('LIFE FOUR CUTS');
   const [images, setImages] = useState<string[]>([]);
   const [stickers, setStickers] = useState<StickerItem[]>([]);
+  const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
+  const [customEmojiInput, setCustomEmojiInput] = useState<string>('');
+  const [isDraggingSticker, setIsDraggingSticker] = useState<boolean>(false);
+  const [containerWidth, setContainerWidth] = useState<number>(0);
   const [resultDataUrl, setResultDataUrl] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [rightPanelWidth, setRightPanelWidth] = useState<number>(380);
+
+  const stickersRef = useRef<StickerItem[]>(stickers);
+  useEffect(() => {
+    stickersRef.current = stickers;
+  }, [stickers]);
+
+  const frameContainerRef = useRef<HTMLDivElement>(null);
+  const draggingRef = useRef<{
+    id: string;
+    startClientX: number;
+    startClientY: number;
+    startX: number;
+    startY: number;
+  } | null>(null);
+
+  // Measure container for WYSIWYG font scale
+  useEffect(() => {
+    const container = frameContainerRef.current;
+    if (!container) return undefined;
+
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.contentRect.width > 0) {
+          setContainerWidth(entry.contentRect.width);
+        }
+      }
+    });
+
+    ro.observe(container);
+    return () => ro.disconnect();
+  }, [resultDataUrl]);
+
+  // Keyboard shortcut: Delete selected sticker
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        document.activeElement?.tagName === 'INPUT' ||
+        document.activeElement?.tagName === 'TEXTAREA'
+      ) {
+        return;
+      }
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedStickerId) {
+        e.preventDefault();
+        setStickers((prev) => prev.filter((s) => s.id !== selectedStickerId));
+        setSelectedStickerId(null);
+        toast.info('스티커가 삭제되었습니다.');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedStickerId]);
 
   const isResizingRef = useRef<boolean>(false);
   const resizeStartXRef = useRef<number>(0);
@@ -205,23 +286,7 @@ export function FourCutView() {
     );
   };
 
-  const addSticker = (emoji: string) => {
-    const newSticker: StickerItem = {
-      id: `${Date.now()}_${Math.random()}`,
-      emoji,
-      x: 30 + Math.random() * 40,
-      y: 30 + Math.random() * 40,
-    };
-    setStickers((prev) => [...prev, newSticker]);
-    toast.success(`${emoji} 스티커가 추가되었습니다.`);
-  };
-
-  const renderFrame = useCallback(async () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return '';
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return '';
-
+  const frameDimensions = useMemo(() => {
     let width = 600;
     let height = 1900;
 
@@ -265,242 +330,390 @@ export function FourCutView() {
       height = marginTop + contentH + footerHeight;
     }
 
-    canvas.width = width;
-    canvas.height = height;
+    return { width, height };
+  }, [layout, slotGap, customRows, customCols, customRatio]);
 
-    const currentTheme = THEMES.find((t) => t.id === theme) || THEMES[0];
+  const displayScale =
+    containerWidth > 0 ? containerWidth / frameDimensions.width : 360 / frameDimensions.width;
 
-    if (theme === 'gradient') {
-      const grad = ctx.createLinearGradient(0, 0, width, height);
-      grad.addColorStop(0, '#EC4899');
-      grad.addColorStop(0.5, '#8B5CF6');
-      grad.addColorStop(1, '#3B82F6');
-      ctx.fillStyle = grad;
-    } else {
-      ctx.fillStyle = currentTheme.bg;
+  const selectedSticker = stickers.find((s) => s.id === selectedStickerId);
+
+  const addSticker = (emoji: string) => {
+    const newSticker: StickerItem = {
+      id: `${Date.now()}_${Math.random()}`,
+      emoji,
+      x: Math.round((35 + Math.random() * 30) * 10) / 10,
+      y: Math.round((35 + Math.random() * 30) * 10) / 10,
+      size: 52,
+    };
+    setStickers((prev) => [...prev, newSticker]);
+    setSelectedStickerId(newSticker.id);
+    toast.success(`${emoji} 스티커가 추가되었습니다. 드래그하여 원하는 위치로 옮겨보세요!`);
+  };
+
+  const handleAddCustomSticker = (text?: string) => {
+    const val = (text ?? customEmojiInput).trim();
+    if (!val) {
+      toast.error('스티커로 사용할 이모지나 문구를 입력해주세요.');
+      return;
     }
-    ctx.fillRect(0, 0, width, height);
+    const newSticker: StickerItem = {
+      id: `${Date.now()}_${Math.random()}`,
+      emoji: val,
+      x: Math.round((35 + Math.random() * 30) * 10) / 10,
+      y: Math.round((35 + Math.random() * 30) * 10) / 10,
+      size: 52,
+    };
+    setStickers((prev) => [...prev, newSticker]);
+    setSelectedStickerId(newSticker.id);
+    setCustomEmojiInput('');
+    toast.success(`'${val}' 스티커가 추가되었습니다. 원하는 위치로 드래그해보세요!`);
+  };
 
-    interface SlotRect {
-      x: number;
-      y: number;
-      w: number;
-      h: number;
+  const duplicateSticker = (st: StickerItem) => {
+    const newSticker: StickerItem = {
+      ...st,
+      id: `${Date.now()}_${Math.random()}`,
+      x: Math.min(95, Math.round((st.x + 5) * 10) / 10),
+      y: Math.min(95, Math.round((st.y + 5) * 10) / 10),
+    };
+    setStickers((prev) => [...prev, newSticker]);
+    setSelectedStickerId(newSticker.id);
+    toast.success('스티커가 복제되었습니다.');
+  };
+
+  const handleStickerPointerDown = (e: React.PointerEvent, st: StickerItem) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectedStickerId(st.id);
+    setIsDraggingSticker(true);
+    try {
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    } catch {
+      // ignore
     }
-    const slots: SlotRect[] = [];
+    draggingRef.current = {
+      id: st.id,
+      startClientX: e.clientX,
+      startClientY: e.clientY,
+      startX: st.x,
+      startY: st.y,
+    };
+  };
 
-    if (layout === 'strip4') {
-      const marginX = 40;
-      const marginTop = 50;
-      const photoW = width - marginX * 2;
-      const photoH = 380;
-      const gap = slotGap;
+  const handleStickerPointerMove = (e: React.PointerEvent, st: StickerItem) => {
+    if (!draggingRef.current || draggingRef.current.id !== st.id) return;
+    e.preventDefault();
+    e.stopPropagation();
 
-      for (let i = 0; i < 4; i += 1) {
+    const container = frameContainerRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+
+    const deltaX = e.clientX - draggingRef.current.startClientX;
+    const deltaY = e.clientY - draggingRef.current.startClientY;
+
+    const deltaXPercent = (deltaX / rect.width) * 100;
+    const deltaYPercent = (deltaY / rect.height) * 100;
+
+    const newX = Math.max(2, Math.min(98, draggingRef.current.startX + deltaXPercent));
+    const newY = Math.max(2, Math.min(98, draggingRef.current.startY + deltaYPercent));
+
+    setStickers((prev) =>
+      prev.map((item) =>
+        item.id === st.id
+          ? {
+              ...item,
+              x: Math.round(newX * 10) / 10,
+              y: Math.round(newY * 10) / 10,
+            }
+          : item
+      )
+    );
+  };
+
+  const handleStickerPointerUp = (e: React.PointerEvent) => {
+    if (draggingRef.current) {
+      try {
+        (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+      } catch {
+        // ignore
+      }
+      draggingRef.current = null;
+      setIsDraggingSticker(false);
+    }
+  };
+
+  const handleContainerPointerDown = (e: React.PointerEvent) => {
+    if (e.target === e.currentTarget || (e.target as HTMLElement).tagName === 'IMG') {
+      setSelectedStickerId(null);
+    }
+  };
+
+  const renderFrame = useCallback(
+    async (includeStickers: boolean = false) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return '';
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return '';
+
+      const { width, height } = frameDimensions;
+
+      canvas.width = width;
+      canvas.height = height;
+
+      const currentTheme = THEMES.find((t) => t.id === theme) || THEMES[0];
+
+      if (theme === 'gradient') {
+        const grad = ctx.createLinearGradient(0, 0, width, height);
+        grad.addColorStop(0, '#EC4899');
+        grad.addColorStop(0.5, '#8B5CF6');
+        grad.addColorStop(1, '#3B82F6');
+        ctx.fillStyle = grad;
+      } else {
+        ctx.fillStyle = currentTheme.bg;
+      }
+      ctx.fillRect(0, 0, width, height);
+
+      interface SlotRect {
+        x: number;
+        y: number;
+        w: number;
+        h: number;
+      }
+      const slots: SlotRect[] = [];
+
+      if (layout === 'strip4') {
+        const marginX = 40;
+        const marginTop = 50;
+        const photoW = width - marginX * 2;
+        const photoH = 380;
+        const gap = slotGap;
+
+        for (let i = 0; i < 4; i += 1) {
+          slots.push({
+            x: marginX,
+            y: marginTop + i * (photoH + gap),
+            w: photoW,
+            h: photoH,
+          });
+        }
+      } else if (layout === 'grid4') {
+        const marginX = 50;
+        const marginTop = 60;
+        const gap = slotGap;
+        const photoW = (width - marginX * 2 - gap) / 2;
+        const photoH = 430;
+
+        slots.push({ x: marginX, y: marginTop, w: photoW, h: photoH });
+        slots.push({ x: marginX + photoW + gap, y: marginTop, w: photoW, h: photoH });
+        slots.push({ x: marginX, y: marginTop + photoH + gap, w: photoW, h: photoH });
         slots.push({
-          x: marginX,
-          y: marginTop + i * (photoH + gap),
+          x: marginX + photoW + gap,
+          y: marginTop + photoH + gap,
           w: photoW,
           h: photoH,
         });
-      }
-    } else if (layout === 'grid4') {
-      const marginX = 50;
-      const marginTop = 60;
-      const gap = slotGap;
-      const photoW = (width - marginX * 2 - gap) / 2;
-      const photoH = 430;
-
-      slots.push({ x: marginX, y: marginTop, w: photoW, h: photoH });
-      slots.push({ x: marginX + photoW + gap, y: marginTop, w: photoW, h: photoH });
-      slots.push({ x: marginX, y: marginTop + photoH + gap, w: photoW, h: photoH });
-      slots.push({ x: marginX + photoW + gap, y: marginTop + photoH + gap, w: photoW, h: photoH });
-    } else if (layout === 'polaroid1') {
-      const marginX = 50;
-      const marginTop = 60;
-      const photoW = width - marginX * 2;
-      const photoH = 620;
-      slots.push({ x: marginX, y: marginTop, w: photoW, h: photoH });
-    } else if (layout === 'custom') {
-      let slotW = 380;
-      let slotH = 285;
-      if (customRatio === '1:1') {
-        slotW = 360;
-        slotH = 360;
-      } else if (customRatio === '3:4') {
-        slotW = 330;
-        slotH = 440;
-      }
-
-      const marginTop = 50;
-      const gap = slotGap;
-      const contentW = customCols * slotW + (customCols - 1) * gap;
-      const actualMarginX = (width - contentW) / 2;
-
-      for (let r = 0; r < customRows; r += 1) {
-        for (let c = 0; c < customCols; c += 1) {
-          slots.push({
-            x: actualMarginX + c * (slotW + gap),
-            y: marginTop + r * (slotH + gap),
-            w: slotW,
-            h: slotH,
-          });
+      } else if (layout === 'polaroid1') {
+        const marginX = 50;
+        const marginTop = 60;
+        const photoW = width - marginX * 2;
+        const photoH = 620;
+        slots.push({ x: marginX, y: marginTop, w: photoW, h: photoH });
+      } else if (layout === 'custom') {
+        let slotW = 380;
+        let slotH = 285;
+        if (customRatio === '1:1') {
+          slotW = 360;
+          slotH = 360;
+        } else if (customRatio === '3:4') {
+          slotW = 330;
+          slotH = 440;
         }
-      }
-    }
 
-    const loadImg = (src: string) =>
-      new Promise<HTMLImageElement>((resolve, reject) => {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => resolve(img);
-        img.onerror = reject;
-        img.src = src;
-      });
+        const marginTop = 50;
+        const gap = slotGap;
+        const contentW = customCols * slotW + (customCols - 1) * gap;
+        const actualMarginX = (width - contentW) / 2;
 
-    for (let i = 0; i < slots.length; i += 1) {
-      const slot = slots[i];
-      const imgSrc = images[i];
-
-      ctx.save();
-      const radius = 16;
-      ctx.beginPath();
-      ctx.moveTo(slot.x + radius, slot.y);
-      ctx.lineTo(slot.x + slot.w - radius, slot.y);
-      ctx.quadraticCurveTo(slot.x + slot.w, slot.y, slot.x + slot.w, slot.y + radius);
-      ctx.lineTo(slot.x + slot.w, slot.y + slot.h - radius);
-      ctx.quadraticCurveTo(
-        slot.x + slot.w,
-        slot.y + slot.h,
-        slot.x + slot.w - radius,
-        slot.y + slot.h
-      );
-      ctx.lineTo(slot.x + radius, slot.y + slot.h);
-      ctx.quadraticCurveTo(slot.x, slot.y + slot.h, slot.x, slot.y + slot.h - radius);
-      ctx.lineTo(slot.x, slot.y + radius);
-      ctx.quadraticCurveTo(slot.x, slot.y, slot.x + radius, slot.y);
-      ctx.closePath();
-      ctx.clip();
-
-      if (imgSrc) {
-        try {
-          const img = await loadImg(imgSrc);
-
-          const scale = Math.max(slot.w / img.width, slot.h / img.height);
-          const drawW = img.width * scale;
-          const drawH = img.height * scale;
-          const drawX = slot.x + (slot.w - drawW) / 2;
-          const drawY = slot.y + (slot.h - drawH) / 2;
-
-          ctx.drawImage(img, drawX, drawY, drawW, drawH);
-
-          if (filter !== 'none') {
-            const slotData = ctx.getImageData(slot.x, slot.y, slot.w, slot.h);
-            const data = slotData.data;
-
-            for (let j = 0; j < data.length; j += 4) {
-              const r = data[j];
-              const g = data[j + 1];
-              const b = data[j + 2];
-
-              if (filter === 'mono') {
-                const gray = 0.299 * r + 0.587 * g + 0.114 * b;
-                data[j] = gray;
-                data[j + 1] = gray;
-                data[j + 2] = gray;
-              } else if (filter === 'vintage') {
-                data[j] = Math.min(255, r * 1.1 + 20);
-                data[j + 1] = Math.min(255, g * 0.95 + 10);
-                data[j + 2] = Math.max(0, b * 0.8 - 10);
-              } else if (filter === 'warm') {
-                data[j] = Math.min(255, r * 1.1 + 15);
-                data[j + 1] = Math.min(255, g * 1.05 + 10);
-              } else if (filter === 'cool') {
-                data[j + 2] = Math.min(255, b * 1.15 + 20);
-              } else if (filter === 'film') {
-                data[j] = Math.min(255, (r - 128) * 1.2 + 128);
-                data[j + 1] = Math.min(255, (g - 128) * 1.2 + 128);
-                data[j + 2] = Math.min(255, (b - 128) * 1.2 + 128);
-              }
-            }
-            ctx.putImageData(slotData, slot.x, slot.y);
+        for (let r = 0; r < customRows; r += 1) {
+          for (let c = 0; c < customCols; c += 1) {
+            slots.push({
+              x: actualMarginX + c * (slotW + gap),
+              y: marginTop + r * (slotH + gap),
+              w: slotW,
+              h: slotH,
+            });
           }
-        } catch {
-          // image load error
         }
-      } else {
-        ctx.fillStyle = theme === 'pure-white' ? '#F4F4F5' : '#27272A';
-        ctx.fillRect(slot.x, slot.y, slot.w, slot.h);
-        ctx.fillStyle = '#71717A';
-        ctx.font = 'bold 24px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(`Slot #${i + 1}`, slot.x + slot.w / 2, slot.y + slot.h / 2);
       }
 
-      ctx.restore();
-    }
+      const loadImg = (src: string) =>
+        new Promise<HTMLImageElement>((resolve, reject) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => resolve(img);
+          img.onerror = reject;
+          img.src = src;
+        });
 
-    ctx.fillStyle = currentTheme.text;
-    ctx.textAlign = 'center';
+      for (let i = 0; i < slots.length; i += 1) {
+        const slot = slots[i];
+        const imgSrc = images[i];
 
-    if (layout === 'strip4') {
-      const footerY = height - 120;
-      ctx.font = 'bold 36px "Public Sans", sans-serif';
-      ctx.fillText(captionText, width / 2, footerY);
-      ctx.font = '600 22px monospace';
-      ctx.fillText(dateText, width / 2, footerY + 45);
-    } else if (layout === 'grid4') {
-      const footerY = height - 85;
-      ctx.font = 'bold 38px "Public Sans", sans-serif';
-      ctx.fillText(captionText, width / 2, footerY);
-      ctx.font = '600 22px monospace';
-      ctx.fillText(dateText, width / 2, footerY + 45);
-    } else if (layout === 'polaroid1') {
-      const footerY = height - 100;
-      ctx.font = 'bold 36px "Public Sans", sans-serif';
-      ctx.fillText(captionText, width / 2, footerY);
-      ctx.font = '600 22px monospace';
-      ctx.fillText(dateText, width / 2, footerY + 45);
-    } else if (layout === 'custom') {
-      const footerY = height - 75;
-      const fontSize = Math.max(26, Math.min(38, Math.round(width / 24)));
-      ctx.font = `bold ${fontSize}px "Public Sans", sans-serif`;
-      ctx.fillText(captionText, width / 2, footerY);
-      ctx.font = `600 ${Math.round(fontSize * 0.6)}px monospace`;
-      ctx.fillText(dateText, width / 2, footerY + Math.round(fontSize * 1.15));
-    }
+        ctx.save();
+        const radius = 16;
+        ctx.beginPath();
+        ctx.moveTo(slot.x + radius, slot.y);
+        ctx.lineTo(slot.x + slot.w - radius, slot.y);
+        ctx.quadraticCurveTo(slot.x + slot.w, slot.y, slot.x + slot.w, slot.y + radius);
+        ctx.lineTo(slot.x + slot.w, slot.y + slot.h - radius);
+        ctx.quadraticCurveTo(
+          slot.x + slot.w,
+          slot.y + slot.h,
+          slot.x + slot.w - radius,
+          slot.y + slot.h
+        );
+        ctx.lineTo(slot.x + radius, slot.y + slot.h);
+        ctx.quadraticCurveTo(slot.x, slot.y + slot.h, slot.x, slot.y + slot.h - radius);
+        ctx.lineTo(slot.x, slot.y + radius);
+        ctx.quadraticCurveTo(slot.x, slot.y, slot.x + radius, slot.y);
+        ctx.closePath();
+        ctx.clip();
 
-    if (stickers.length > 0) {
-      ctx.font = '52px sans-serif';
+        if (imgSrc) {
+          try {
+            const img = await loadImg(imgSrc);
+
+            const scale = Math.max(slot.w / img.width, slot.h / img.height);
+            const drawW = img.width * scale;
+            const drawH = img.height * scale;
+            const drawX = slot.x + (slot.w - drawW) / 2;
+            const drawY = slot.y + (slot.h - drawH) / 2;
+
+            ctx.drawImage(img, drawX, drawY, drawW, drawH);
+
+            if (filter !== 'none') {
+              const slotData = ctx.getImageData(slot.x, slot.y, slot.w, slot.h);
+              const data = slotData.data;
+
+              for (let j = 0; j < data.length; j += 4) {
+                const r = data[j];
+                const g = data[j + 1];
+                const b = data[j + 2];
+
+                if (filter === 'mono') {
+                  const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+                  data[j] = gray;
+                  data[j + 1] = gray;
+                  data[j + 2] = gray;
+                } else if (filter === 'vintage') {
+                  data[j] = Math.min(255, r * 1.1 + 20);
+                  data[j + 1] = Math.min(255, g * 0.95 + 10);
+                  data[j + 2] = Math.max(0, b * 0.8 - 10);
+                } else if (filter === 'warm') {
+                  data[j] = Math.min(255, r * 1.1 + 15);
+                  data[j + 1] = Math.min(255, g * 1.05 + 10);
+                } else if (filter === 'cool') {
+                  data[j + 2] = Math.min(255, b * 1.15 + 20);
+                } else if (filter === 'film') {
+                  data[j] = Math.min(255, (r - 128) * 1.2 + 128);
+                  data[j + 1] = Math.min(255, (g - 128) * 1.2 + 128);
+                  data[j + 2] = Math.min(255, (b - 128) * 1.2 + 128);
+                }
+              }
+              ctx.putImageData(slotData, slot.x, slot.y);
+            }
+          } catch {
+            // image load error
+          }
+        } else {
+          ctx.fillStyle = theme === 'pure-white' ? '#F4F4F5' : '#27272A';
+          ctx.fillRect(slot.x, slot.y, slot.w, slot.h);
+          ctx.fillStyle = '#71717A';
+          ctx.font = 'bold 24px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(`Slot #${i + 1}`, slot.x + slot.w / 2, slot.y + slot.h / 2);
+        }
+
+        ctx.restore();
+      }
+
+      ctx.fillStyle = currentTheme.text;
       ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      stickers.forEach((st) => {
-        const x = (st.x / 100) * width;
-        const y = (st.y / 100) * height;
-        ctx.fillText(st.emoji, x, y);
-      });
-    }
 
-    const dataUrl = canvas.toDataURL('image/png');
-    return dataUrl;
-  }, [
-    images,
-    layout,
-    theme,
-    filter,
-    dateText,
-    captionText,
-    stickers,
-    customRows,
-    customCols,
-    customRatio,
-    slotGap,
-  ]);
+      if (layout === 'strip4') {
+        const footerY = height - 120;
+        ctx.font = 'bold 36px "Public Sans", sans-serif';
+        ctx.fillText(captionText, width / 2, footerY);
+        ctx.font = '600 22px monospace';
+        ctx.fillText(dateText, width / 2, footerY + 45);
+      } else if (layout === 'grid4') {
+        const footerY = height - 85;
+        ctx.font = 'bold 38px "Public Sans", sans-serif';
+        ctx.fillText(captionText, width / 2, footerY);
+        ctx.font = '600 22px monospace';
+        ctx.fillText(dateText, width / 2, footerY + 45);
+      } else if (layout === 'polaroid1') {
+        const footerY = height - 100;
+        ctx.font = 'bold 36px "Public Sans", sans-serif';
+        ctx.fillText(captionText, width / 2, footerY);
+        ctx.font = '600 22px monospace';
+        ctx.fillText(dateText, width / 2, footerY + 45);
+      } else if (layout === 'custom') {
+        const footerY = height - 75;
+        const fontSize = Math.max(26, Math.min(38, Math.round(width / 24)));
+        ctx.font = `bold ${fontSize}px "Public Sans", sans-serif`;
+        ctx.fillText(captionText, width / 2, footerY);
+        ctx.font = `600 ${Math.round(fontSize * 0.6)}px monospace`;
+        ctx.fillText(dateText, width / 2, footerY + Math.round(fontSize * 1.15));
+      }
+
+      if (includeStickers && stickersRef.current.length > 0) {
+        stickersRef.current.forEach((st) => {
+          const size = st.size || 52;
+          ctx.save();
+          ctx.font = `bold ${size}px "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          const x = (st.x / 100) * width;
+          const y = (st.y / 100) * height;
+
+          const hasLettersOrDigits = /[\p{L}\p{N}]/u.test(st.emoji);
+          if (hasLettersOrDigits) {
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.lineWidth = Math.max(2, Math.round(size * 0.08));
+            ctx.strokeText(st.emoji, x, y);
+          }
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillText(st.emoji, x, y);
+          ctx.restore();
+        });
+      }
+
+      const dataUrl = canvas.toDataURL('image/png');
+      return dataUrl;
+    },
+    [
+      frameDimensions,
+      images,
+      layout,
+      theme,
+      filter,
+      dateText,
+      captionText,
+      customRows,
+      customCols,
+      customRatio,
+      slotGap,
+    ]
+  );
 
   useEffect(() => {
     let isMounted = true;
-    renderFrame().then((url) => {
+    renderFrame(false).then((url) => {
       if (isMounted && url) {
         setResultDataUrl(url);
       }
@@ -511,10 +724,14 @@ export function FourCutView() {
   }, [renderFrame]);
 
   const handleSave = async () => {
-    if (!resultDataUrl) return;
     setIsProcessing(true);
     try {
-      const res = await downloadDataUrl(resultDataUrl, `four_cut_${layout}_${Date.now()}.png`);
+      const fullDataUrl = await renderFrame(true);
+      if (!fullDataUrl) {
+        toast.error('이미지를 생성할 수 없습니다.');
+        return;
+      }
+      const res = await downloadDataUrl(fullDataUrl, `four_cut_${layout}_${Date.now()}.png`);
       toast.success(res.message);
     } catch {
       toast.error('저장 중 오류가 발생했습니다.');
@@ -524,14 +741,14 @@ export function FourCutView() {
   };
 
   const handleShare = async () => {
-    if (!resultDataUrl) return;
     setIsProcessing(true);
     try {
-      const res = await shareToKakaoTalk(
-        resultDataUrl,
-        '인생네컷 사진',
-        `fourcut_${Date.now()}.png`
-      );
+      const fullDataUrl = await renderFrame(true);
+      if (!fullDataUrl) {
+        toast.error('이미지를 생성할 수 없습니다.');
+        return;
+      }
+      const res = await shareToKakaoTalk(fullDataUrl, '인생네컷 사진', `fourcut_${Date.now()}.png`);
       toast.success(res.message);
     } catch {
       toast.error('공유 중 오류가 발생했습니다.');
@@ -611,20 +828,141 @@ export function FourCutView() {
               minHeight: 0,
               height: '100%',
               transition: (t) => t.transitions.create(['border-color', 'background-color']),
+              overflow: 'hidden',
+              position: 'relative',
             }}
           >
             {resultDataUrl ? (
-              <img
-                src={resultDataUrl}
-                alt="Four Cut Frame"
-                style={{
-                  maxHeight: '100%',
+              <Box
+                ref={frameContainerRef}
+                onPointerDown={handleContainerPointerDown}
+                sx={{
+                  position: 'relative',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   maxWidth: '100%',
-                  objectFit: 'contain',
-                  borderRadius: 0,
+                  maxHeight: '100%',
                   boxShadow: '0 20px 25px -5px rgba(0,0,0,0.5)',
+                  userSelect: 'none',
+                  touchAction: 'none',
+                  lineHeight: 0,
                 }}
-              />
+              >
+                <img
+                  src={resultDataUrl}
+                  alt="Four Cut Frame"
+                  style={{
+                    maxHeight: '100%',
+                    maxWidth: '100%',
+                    objectFit: 'contain',
+                    display: 'block',
+                    userSelect: 'none',
+                    pointerEvents: 'none',
+                  }}
+                />
+
+                {/* Interactive Stickers Overlay */}
+                {stickers.map((st) => {
+                  const isSelected = selectedStickerId === st.id;
+                  const stickerFontSize = Math.max(14, Math.round((st.size ?? 52) * displayScale));
+
+                  return (
+                    <Box
+                      key={st.id}
+                      onPointerDown={(e) => handleStickerPointerDown(e, st)}
+                      onPointerMove={(e) => handleStickerPointerMove(e, st)}
+                      onPointerUp={handleStickerPointerUp}
+                      onPointerCancel={handleStickerPointerUp}
+                      sx={{
+                        position: 'absolute',
+                        left: `${st.x}%`,
+                        top: `${st.y}%`,
+                        transform: 'translate(-50%, -50%)',
+                        cursor: isDraggingSticker && isSelected ? 'grabbing' : 'grab',
+                        userSelect: 'none',
+                        touchAction: 'none',
+                        zIndex: isSelected ? 30 : 20,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        p: '4px',
+                        borderRadius: '8px',
+                        border: isSelected ? '2px dashed #00B8D9' : '2px dashed transparent',
+                        bgcolor: isSelected ? 'rgba(0, 184, 217, 0.16)' : 'transparent',
+                        transition: isDraggingSticker
+                          ? 'none'
+                          : 'border-color 0.15s, background-color 0.15s',
+                        '&:hover': {
+                          border: isSelected
+                            ? '2px dashed #00B8D9'
+                            : '1.5px dashed rgba(255, 255, 255, 0.7)',
+                          bgcolor: isSelected
+                            ? 'rgba(0, 184, 217, 0.16)'
+                            : 'rgba(255, 255, 255, 0.15)',
+                        },
+                      }}
+                    >
+                      <Typography
+                        component="span"
+                        sx={{
+                          fontSize: `${stickerFontSize}px`,
+                          lineHeight: 1,
+                          display: 'block',
+                          userSelect: 'none',
+                          pointerEvents: 'none',
+                          filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.35))',
+                          fontWeight: 800,
+                          color: '#ffffff',
+                          textShadow: '0 0 4px rgba(0,0,0,0.8), 0 1px 2px rgba(0,0,0,0.9)',
+                        }}
+                      >
+                        {st.emoji}
+                      </Typography>
+
+                      {/* Quick Delete Badge on Selected Sticker */}
+                      {isSelected && (
+                        <Box
+                          component="button"
+                          onPointerDown={(e) => e.stopPropagation()}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setStickers((prev) => prev.filter((s) => s.id !== st.id));
+                            setSelectedStickerId(null);
+                          }}
+                          sx={{
+                            position: 'absolute',
+                            top: -10,
+                            right: -10,
+                            width: 22,
+                            height: 22,
+                            borderRadius: '50%',
+                            bgcolor: 'error.main',
+                            color: '#ffffff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '13px',
+                            fontWeight: 'bold',
+                            border: '2px solid #ffffff',
+                            boxShadow: '0 2px 5px rgba(0,0,0,0.4)',
+                            cursor: 'pointer',
+                            p: 0,
+                            lineHeight: 1,
+                            zIndex: 35,
+                            '&:hover': {
+                              bgcolor: 'error.dark',
+                              transform: 'scale(1.15)',
+                            },
+                          }}
+                        >
+                          ×
+                        </Box>
+                      )}
+                    </Box>
+                  );
+                })}
+              </Box>
             ) : (
               <CircularProgress color="inherit" />
             )}
@@ -1266,43 +1604,313 @@ export function FourCutView() {
 
               {/* TAB 4: 스티커 */}
               {controlTab === 'stickers' && (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                  <Box
-                    sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                  >
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {/* Custom Input */}
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.8 }}>
                     <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>
-                      스티커 추가 (클릭 시 사진 위에 배치)
+                      직접 이모지 / 문구 입력
                     </Typography>
-                    {stickers.length > 0 && (
-                      <Button
+                    <Box sx={{ display: 'flex', gap: 0.8 }}>
+                      <TextField
                         size="small"
-                        color="error"
-                        onClick={() => setStickers([])}
-                        sx={{ fontSize: '0.72rem', p: 0.3 }}
+                        fullWidth
+                        placeholder="이모지 또는 문구 (예: 💖, 짱!, 🎂)"
+                        value={customEmojiInput}
+                        onChange={(e) => setCustomEmojiInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddCustomSticker();
+                          }
+                        }}
+                      />
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => handleAddCustomSticker()}
+                        disabled={!customEmojiInput.trim()}
+                        startIcon={<AddRoundedIcon />}
+                        sx={{ flexShrink: 0, px: 1.8, fontWeight: 700, borderRadius: 1.5 }}
                       >
-                        스티커 초기화
+                        추가
                       </Button>
-                    )}
+                    </Box>
                   </Box>
 
-                  <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 0.8 }}>
-                    {STICKER_PRESETS.map((emoji) => (
-                      <Button
-                        key={emoji}
-                        size="small"
-                        variant="outlined"
-                        onClick={() => addSticker(emoji)}
-                        sx={{ minWidth: 36, py: 0.8, fontSize: '1.3rem', borderRadius: 1.5 }}
+                  {/* Selected Sticker Controls */}
+                  {selectedSticker && (
+                    <Box
+                      sx={{
+                        p: 1.5,
+                        borderRadius: 2,
+                        bgcolor: (t) =>
+                          t.palette.mode === 'dark'
+                            ? 'rgba(0, 184, 217, 0.12)'
+                            : 'rgba(0, 184, 217, 0.08)',
+                        border: '1px solid',
+                        borderColor: 'primary.main',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 1.2,
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                        }}
                       >
-                        {emoji}
-                      </Button>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography
+                            variant="caption"
+                            sx={{ fontWeight: 700, color: 'text.secondary' }}
+                          >
+                            선택된 스티커
+                          </Typography>
+                          <Box
+                            sx={{
+                              px: 1,
+                              py: 0.2,
+                              borderRadius: 1,
+                              bgcolor: 'background.paper',
+                              fontSize: '1.1rem',
+                              fontWeight: 700,
+                              border: '1px solid',
+                              borderColor: 'divider',
+                              lineHeight: 1.2,
+                            }}
+                          >
+                            {selectedSticker.emoji}
+                          </Box>
+                        </Box>
+                        <Box sx={{ display: 'flex', gap: 0.5 }}>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color="inherit"
+                            onClick={() => duplicateSticker(selectedSticker)}
+                            sx={{ fontSize: '0.7rem', py: 0.2, px: 0.8, borderRadius: 1 }}
+                          >
+                            복제
+                          </Button>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color="error"
+                            startIcon={<DeleteRoundedIcon sx={{ fontSize: 14 }} />}
+                            onClick={() => {
+                              setStickers((prev) =>
+                                prev.filter((s) => s.id !== selectedSticker.id)
+                              );
+                              setSelectedStickerId(null);
+                            }}
+                            sx={{ fontSize: '0.7rem', py: 0.2, px: 0.8, borderRadius: 1 }}
+                          >
+                            삭제
+                          </Button>
+                        </Box>
+                      </Box>
+
+                      {/* Size slider */}
+                      <Box>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            mb: 0.5,
+                          }}
+                        >
+                          <Typography
+                            variant="caption"
+                            sx={{ color: 'text.secondary', fontWeight: 600 }}
+                          >
+                            크기 조절
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            sx={{ fontWeight: 700, color: 'primary.main' }}
+                          >
+                            {selectedSticker.size ?? 52}px
+                          </Typography>
+                        </Box>
+                        <Slider
+                          value={selectedSticker.size ?? 52}
+                          min={24}
+                          max={120}
+                          step={2}
+                          onChange={(_, val) => {
+                            const newSize = val as number;
+                            setStickers((prev) =>
+                              prev.map((s) =>
+                                s.id === selectedSticker.id ? { ...s, size: newSize } : s
+                              )
+                            );
+                          }}
+                          size="small"
+                        />
+                      </Box>
+                    </Box>
+                  )}
+
+                  {/* Preset Stickers by Category */}
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                    <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>
+                      추천 스티커 & 문구
+                    </Typography>
+
+                    {STICKER_CATEGORIES.map((cat) => (
+                      <Box key={cat.name}>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            fontWeight: 600,
+                            color: 'text.secondary',
+                            display: 'block',
+                            mb: 0.6,
+                            fontSize: '0.7rem',
+                          }}
+                        >
+                          {cat.name}
+                        </Typography>
+                        <Box
+                          sx={{
+                            display: 'grid',
+                            gridTemplateColumns: cat.isText ? 'repeat(4, 1fr)' : 'repeat(6, 1fr)',
+                            gap: 0.6,
+                          }}
+                        >
+                          {cat.items.map((item) => (
+                            <Button
+                              key={item}
+                              size="small"
+                              variant="outlined"
+                              color="inherit"
+                              onClick={() => addSticker(item)}
+                              sx={{
+                                minWidth: cat.isText ? 'unset' : 34,
+                                py: cat.isText ? 0.4 : 0.6,
+                                px: cat.isText ? 0.6 : 0.4,
+                                fontSize: cat.isText ? '0.72rem' : '1.2rem',
+                                fontWeight: cat.isText ? 700 : 400,
+                                borderRadius: 1.5,
+                                bgcolor: 'background.paper',
+                                borderColor: 'divider',
+                                '&:hover': {
+                                  borderColor: 'primary.main',
+                                  bgcolor: 'action.hover',
+                                  transform: 'scale(1.05)',
+                                },
+                                transition: 'all 0.1s ease',
+                              }}
+                            >
+                              {item}
+                            </Button>
+                          ))}
+                        </Box>
+                      </Box>
                     ))}
                   </Box>
+
+                  {/* Placed Stickers List */}
+                  {stickers.length > 0 && (
+                    <Box
+                      sx={{
+                        p: 1.2,
+                        borderRadius: 2,
+                        bgcolor: (t) =>
+                          t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'grey.100',
+                        border: '1px solid',
+                        borderColor: 'divider',
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          mb: 1,
+                        }}
+                      >
+                        <Typography
+                          variant="caption"
+                          sx={{ fontWeight: 700, color: 'text.secondary' }}
+                        >
+                          배치된 스티커 ({stickers.length}개)
+                        </Typography>
+                        <Button
+                          size="small"
+                          color="error"
+                          onClick={() => {
+                            setStickers([]);
+                            setSelectedStickerId(null);
+                          }}
+                          sx={{ fontSize: '0.7rem', p: 0.2 }}
+                        >
+                          전체 초기화
+                        </Button>
+                      </Box>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.6 }}>
+                        {stickers.map((st) => (
+                          <Box
+                            key={st.id}
+                            onClick={() => setSelectedStickerId(st.id)}
+                            sx={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 0.6,
+                              px: 1,
+                              py: 0.3,
+                              borderRadius: 1.5,
+                              cursor: 'pointer',
+                              bgcolor:
+                                selectedStickerId === st.id ? 'primary.main' : 'background.paper',
+                              color:
+                                selectedStickerId === st.id
+                                  ? 'primary.contrastText'
+                                  : 'text.primary',
+                              border: '1px solid',
+                              borderColor: selectedStickerId === st.id ? 'primary.main' : 'divider',
+                              fontSize: '0.8rem',
+                              fontWeight: 600,
+                              transition: 'all 0.15s',
+                            }}
+                          >
+                            <span>{st.emoji}</span>
+                            <Box
+                              component="span"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setStickers((prev) => prev.filter((s) => s.id !== st.id));
+                                if (selectedStickerId === st.id) setSelectedStickerId(null);
+                              }}
+                              sx={{
+                                fontSize: '13px',
+                                opacity: 0.7,
+                                lineHeight: 1,
+                                ml: 0.2,
+                                '&:hover': { opacity: 1, color: 'error.main' },
+                              }}
+                            >
+                              ×
+                            </Box>
+                          </Box>
+                        ))}
+                      </Box>
+                    </Box>
+                  )}
+
                   <Typography
                     variant="caption"
-                    sx={{ color: 'text.disabled', textAlign: 'center', mt: 0.5 }}
+                    sx={{
+                      color: 'text.disabled',
+                      textAlign: 'center',
+                      mt: 0.5,
+                      fontSize: '0.72rem',
+                    }}
                   >
-                    붙인 스티커: {stickers.length}개
+                    💡 사진 위의 스티커를 마우스나 터치로 드래그하여 옮길 수 있습니다.
                   </Typography>
                 </Box>
               )}
@@ -1326,6 +1934,7 @@ export function FourCutView() {
               onClick={() => {
                 setImages([]);
                 setStickers([]);
+                setSelectedStickerId(null);
               }}
               startIcon={<RefreshRoundedIcon />}
               sx={{ py: 1, borderRadius: 2, fontWeight: 600, fontSize: '0.85rem' }}

@@ -11,6 +11,7 @@ import Slider from '@mui/material/Slider';
 import Switch from '@mui/material/Switch';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
@@ -432,70 +433,117 @@ export function WeatheringView() {
             }}
           >
             {/* Preset Selector */}
-            <Card sx={{ p: 2.5, borderRadius: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-                <AutoAwesomeRoundedIcon sx={{ color: 'success.main', fontSize: 20 }} />
-                <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
-                  1. 풍화 프리셋 선택
-                </Typography>
+            <Card sx={{ p: 2, borderRadius: 2.5 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  mb: 1.25,
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                  <AutoAwesomeRoundedIcon sx={{ color: 'success.main', fontSize: 18 }} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.875rem' }}>
+                    1. 풍화 프리셋 선택
+                  </Typography>
+                </Box>
+                {activePresetId && (
+                  <Chip
+                    label={WEATHERING_PRESETS.find((p) => p.id === activePresetId)?.name}
+                    color="success"
+                    size="small"
+                    sx={{ height: 20, fontSize: '0.675rem', fontWeight: 700 }}
+                  />
+                )}
               </Box>
 
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                {WEATHERING_PRESETS.map((p) => {
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  gap: 0.75,
+                }}
+              >
+                {WEATHERING_PRESETS.map((p, index) => {
                   const isSelected = activePresetId === p.id;
+                  const isLastOdd =
+                    WEATHERING_PRESETS.length % 2 !== 0 && index === WEATHERING_PRESETS.length - 1;
+
                   return (
-                    <Box
+                    <Tooltip
                       key={p.id}
-                      onClick={() => applyPreset(p.id)}
-                      sx={{
-                        p: 1.5,
-                        borderRadius: 2,
-                        border: '2px solid',
-                        borderColor: isSelected ? 'success.main' : 'divider',
-                        bgcolor: isSelected ? 'success.lighter' : 'background.paper',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s',
-                        '&:hover': {
-                          borderColor: 'success.main',
-                        },
-                      }}
+                      title={`${p.name} (${p.subtitle}): ${p.desc}`}
+                      placement="top"
+                      arrow
                     >
                       <Box
+                        onClick={() => applyPreset(p.id)}
                         sx={{
+                          gridColumn: isLastOdd ? 'span 2' : 'span 1',
+                          p: 1,
+                          borderRadius: 1.5,
+                          border: '1.5px solid',
+                          borderColor: isSelected ? 'success.main' : 'divider',
+                          bgcolor: isSelected ? 'success.lighter' : 'background.paper',
+                          cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'space-between',
-                          mb: 0.5,
+                          gap: 0.75,
+                          minWidth: 0,
+                          transition: 'all 0.15s ease',
+                          '&:hover': {
+                            borderColor: 'success.main',
+                            bgcolor: isSelected ? 'success.lighter' : 'action.hover',
+                          },
                         }}
                       >
-                        <Typography
-                          variant="subtitle2"
-                          sx={{
-                            fontWeight: 800,
-                            color: isSelected ? 'success.dark' : 'text.primary',
-                          }}
-                        >
-                          {p.name}
+                        <Typography sx={{ fontSize: '1.2rem', lineHeight: 1, flexShrink: 0 }}>
+                          {p.icon}
                         </Typography>
+                        <Box sx={{ minWidth: 0, flex: '1 1 auto' }}>
+                          <Typography
+                            variant="subtitle2"
+                            sx={{
+                              fontWeight: isSelected ? 800 : 700,
+                              fontSize: '0.75rem',
+                              color: isSelected ? 'success.dark' : 'text.primary',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              lineHeight: 1.25,
+                            }}
+                          >
+                            {p.name}
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: isSelected ? 'success.darker' : 'text.secondary',
+                              fontSize: '0.675rem',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              display: 'block',
+                              lineHeight: 1.2,
+                            }}
+                          >
+                            {p.subtitle}
+                          </Typography>
+                        </Box>
                         {isSelected && (
-                          <Chip
-                            label="선택됨"
-                            color="success"
-                            size="small"
-                            sx={{ height: 20, fontSize: '0.7rem', fontWeight: 700 }}
+                          <Box
+                            sx={{
+                              width: 6,
+                              height: 6,
+                              borderRadius: '50%',
+                              bgcolor: 'success.main',
+                              flexShrink: 0,
+                            }}
                           />
                         )}
                       </Box>
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          color: isSelected ? 'success.darker' : 'text.secondary',
-                          display: 'block',
-                        }}
-                      >
-                        {p.desc}
-                      </Typography>
-                    </Box>
+                    </Tooltip>
                   );
                 })}
               </Box>

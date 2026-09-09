@@ -65,6 +65,14 @@ const CHARSETS: CharsetOption[] = [
   { id: 'binary', name: '2진수 0/1', chars: ' 01' },
 ];
 
+const CHARSET_BUTTONS: Array<{ id: CharsetType; lines: [string, string] }> = [
+  { id: 'standard', lines: ['표준', '문자'] },
+  { id: 'dense', lines: ['고밀도', '영문'] },
+  { id: 'korean', lines: ['한글', '자모'] },
+  { id: 'binary', lines: ['2진수', '0/1'] },
+  { id: 'custom', lines: ['직접', '입력'] },
+];
+
 export function AsciiView() {
   const [imageSrc, setImageSrc] = useState<string>('');
   const [charset, setCharset] = useState<CharsetType>('standard');
@@ -545,14 +553,34 @@ export function AsciiView() {
                 onChange={(_, v) => v && setCharset(v)}
                 fullWidth
                 size="small"
-                sx={{ mb: 2 }}
+                sx={{
+                  mb: 2,
+                  '& .MuiToggleButton-root': {
+                    px: 0.5,
+                    py: 0.75,
+                    fontSize: '0.75rem',
+                    textTransform: 'none',
+                    lineHeight: 1.25,
+                  },
+                }}
               >
-                {CHARSETS.map((c) => (
-                  <ToggleButton key={c.id} value={c.id}>
-                    {c.name}
+                {CHARSET_BUTTONS.map((item) => (
+                  <ToggleButton key={item.id} value={item.id}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        lineHeight: 1.25,
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      <Box component="span">{item.lines[0]}</Box>
+                      <Box component="span">{item.lines[1]}</Box>
+                    </Box>
                   </ToggleButton>
                 ))}
-                <ToggleButton value="custom">직접 입력</ToggleButton>
               </ToggleButtonGroup>
 
               {charset === 'custom' && (

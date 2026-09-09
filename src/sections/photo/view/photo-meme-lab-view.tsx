@@ -9,6 +9,7 @@ import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
 import Slider from '@mui/material/Slider';
 import Select from '@mui/material/Select';
+import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
 import InputLabel from '@mui/material/InputLabel';
@@ -25,8 +26,18 @@ import CompareArrowsRoundedIcon from '@mui/icons-material/CompareArrowsRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import { PhotoUploadWorkspace } from '../components';
-import { downloadDataUrl, shareToKakaoTalk } from '../utils/image-processor';
+import {
+  type SplitMode,
+  PhotoUploadWorkspace,
+  PhotoCompareViewport,
+  type SplitOrientation,
+  type ComparePreviewMode,
+} from '../components';
+import {
+  downloadDataUrl,
+  shareToKakaoTalk,
+  renderGenericSplitComparisonImage,
+} from '../utils/image-processor';
 import {
   MEME_EFFECTS,
   MEME_SAMPLES,
@@ -35,6 +46,7 @@ import {
   type LaserEyePoint,
   type MemeEffectType,
   createMemeAnimatedGif,
+  renderSpinning3DFrame,
 } from '../utils/meme-processor';
 
 export function MemeLabView() {
@@ -66,8 +78,12 @@ export function MemeLabView() {
 
   const [spinningShape, setSpinningShape] = useState<'cube' | 'cylinder' | 'flat'>('cube');
   const [spinningSpeed, setSpinningSpeed] = useState<number>(3);
-  const [spinningAngle, setSpinningAngle] = useState<number>(35);
   const [isSpinningLive, setIsSpinningLive] = useState<boolean>(true);
+
+  // 3D Live Spinning refs
+  const spinningCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const spinningImageRef = useRef<HTMLImageElement | null>(null);
+  const spinningAngleRef = useRef<number>(35);
 
   const [tiltShiftPosition, setTiltShiftPosition] = useState<number>(50);
   const [tiltShiftBlur, setTiltShiftBlur] = useState<number>(8);
@@ -77,8 +93,11 @@ export function MemeLabView() {
   const [ps1Jitter, setPs1Jitter] = useState<number>(4);
 
   // Compare & Result states
-  const [comparePos, setComparePos] = useState<number>(50);
-  const [isDraggingCompare, setIsDraggingCompare] = useState<boolean>(false);
+  const [previewMode, setPreviewMode] = useState<ComparePreviewMode>('split');
+  const [splitOrientation, setSplitOrientation] = useState<SplitOrientation>('horizontal');
+  const [splitMode, setSplitMode] = useState<SplitMode>('inside');
+  const [splitStart, setSplitStart] = useState<number>(25);
+  const [splitEnd, setSplitEnd] = useState<number>(75);
 
   const [resultDataUrl, setResultDataUrl] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
@@ -89,8 +108,50 @@ export function MemeLabView() {
   const resizeStartXRef = useRef<number>(0);
   const resizeStartWidthRef = useRef<number>(380);
 
-  const compareContainerRef = useRef<HTMLDivElement>(null);
   const animFrameRef = useRef<number | null>(null);
+
+  // Object dragging refs & state
+  const draggingLaserIndexRef = useRef<number | null>(null);
+  const isDraggingTiltShiftRef = useRef<boolean>(false);
+  const lastDragEndTimeRef = useRef<number>(0);
+  const [activeLaserIndex, setActiveLaserIndex] = useState<number | null>(null);
+
+  // Click on image area to add a new laser eye point
+  const handleImageOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (
+      activeEffect !== 'laser_eyes' ||
+      draggingLaserIndexRef.current !== null ||
+      Date.now() - lastDragEndTimeRef.current < 350 ||
+      e.target !== e.currentTarget
+    ) {
+      return;
+    }
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+
+    setLaserPoints((prev) => {
+      if (prev.length >= 8) {
+        toast.info('레이저 눈은 최대 8개까지 배치할 수 있습니다.');
+        return prev;
+      }
+      toast.success(
+        `새로운 레이저 눈 #${prev.length + 1}이 추가되었습니다! 드래그하여 이동할 수 있습니다.`
+      );
+      return [...prev, { x, y }];
+    });
+  };
+
+  const handleAddLaserPoint = () => {
+    setLaserPoints((prev) => {
+      if (prev.length >= 8) {
+        toast.info('레이저 눈은 최대 8개까지 배치할 수 있습니다.');
+        return prev;
+      }
+      toast.success('새로운 레이저 눈이 중앙에 추가되었습니다! 드래그하여 이동하세요.');
+      return [...prev, { x: 0.5, y: 0.5 }];
+    });
+  };
 
   const handleDividerPointerDown = (e: React.PointerEvent) => {
     e.preventDefault();
@@ -119,20 +180,6 @@ export function MemeLabView() {
     }
   };
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!compareContainerRef.current) return;
-    const rect = compareContainerRef.current.getBoundingClientRect();
-    const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
-    setComparePos((x / rect.width) * 100);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (!compareContainerRef.current || !e.touches[0]) return;
-    const rect = compareContainerRef.current.getBoundingClientRect();
-    const x = Math.max(0, Math.min(e.touches[0].clientX - rect.left, rect.width));
-    setComparePos((x / rect.width) * 100);
-  };
-
   const processFile = useCallback((file: File) => {
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -141,26 +188,80 @@ export function MemeLabView() {
     reader.readAsDataURL(file);
   }, []);
 
-  // 3D Live Spinning loop
+  // Preload image for 3D spinning canvas
   useEffect(() => {
-    if (activeEffect !== 'spinning_3d' || !isSpinningLive) {
+    if (!imageSrc) {
+      spinningImageRef.current = null;
+      return;
+    }
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      spinningImageRef.current = img;
+    };
+    img.src = imageSrc;
+  }, [imageSrc]);
+
+  // 3D Live Spinning loop (direct canvas rendering without React state updates)
+  useEffect(() => {
+    if (activeEffect !== 'spinning_3d') {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
       return () => {};
     }
 
     let lastTime = performance.now();
+
+    const drawFrame = () => {
+      const canvas = spinningCanvasRef.current;
+      const img = spinningImageRef.current;
+      if (canvas && img && img.complete && img.naturalWidth > 0) {
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          const rect = canvas.getBoundingClientRect();
+          const w = Math.round(rect.width) || 600;
+          const h = Math.round(rect.height) || 600;
+          if (canvas.width !== w || canvas.height !== h) {
+            canvas.width = w;
+            canvas.height = h;
+          }
+
+          renderSpinning3DFrame(
+            ctx,
+            img,
+            w,
+            h,
+            (spinningAngleRef.current * Math.PI) / 180,
+            spinningShape
+          );
+        }
+      }
+    };
+
     const loop = (time: number) => {
       const delta = (time - lastTime) / 1000;
       lastTime = time;
-      setSpinningAngle((prev) => (prev + delta * spinningSpeed * 60) % 360);
-      animFrameRef.current = requestAnimationFrame(loop);
+
+      if (isSpinningLive) {
+        spinningAngleRef.current = (spinningAngleRef.current + delta * spinningSpeed * 60) % 360;
+      }
+
+      drawFrame();
+
+      if (isSpinningLive) {
+        animFrameRef.current = requestAnimationFrame(loop);
+      }
     };
 
-    animFrameRef.current = requestAnimationFrame(loop);
+    drawFrame();
+
+    if (isSpinningLive) {
+      animFrameRef.current = requestAnimationFrame(loop);
+    }
+
     return () => {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     };
-  }, [activeEffect, isSpinningLive, spinningSpeed]);
+  }, [activeEffect, isSpinningLive, spinningSpeed, spinningShape, imageSrc]);
 
   // Master Render Callback
   const renderMeme = useCallback(async () => {
@@ -183,7 +284,7 @@ export function MemeLabView() {
       emojiDensity,
       spinningShape,
       spinningSpeed,
-      spinningAngleDeg: spinningAngle,
+      spinningAngleDeg: spinningAngleRef.current,
       tiltShiftPosition,
       tiltShiftBlur,
       ps1Resolution,
@@ -209,7 +310,6 @@ export function MemeLabView() {
     emojiDensity,
     spinningShape,
     spinningSpeed,
-    spinningAngle,
     tiltShiftPosition,
     tiltShiftBlur,
     ps1Resolution,
@@ -221,60 +321,77 @@ export function MemeLabView() {
     let isMounted = true;
     if (!imageSrc) {
       setResultDataUrl('');
-    } else {
-      if (activeEffect !== 'spinning_3d') {
-        setIsProcessing(true);
-      }
-      renderMeme()
-        .then((url) => {
-          if (isMounted) {
-            setResultDataUrl(url);
-          }
-        })
-        .catch((err) => {
-          console.error('Meme render error:', err);
-          toast.error('밈 변환 처리 중 오류가 발생했습니다.');
-        })
-        .finally(() => {
-          if (isMounted) {
-            setIsProcessing(false);
-          }
-        });
+      return;
     }
+
+    if (activeEffect === 'spinning_3d') {
+      setIsProcessing(false);
+      return;
+    }
+
+    setIsProcessing(true);
+    renderMeme()
+      .then((url) => {
+        if (isMounted) {
+          setResultDataUrl(url);
+        }
+      })
+      .catch((err) => {
+        console.error('Meme render error:', err);
+        toast.error('밈 변환 처리 중 오류가 발생했습니다.');
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsProcessing(false);
+        }
+      });
 
     return () => {
       isMounted = false;
     };
   }, [imageSrc, renderMeme, activeEffect]);
 
-  // Handle Laser Eye Canvas Click
-  const handleCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (activeEffect !== 'laser_eyes' || !compareContainerRef.current) return;
-    const rect = compareContainerRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = (e.clientY - rect.top) / rect.height;
-
-    setLaserPoints((prev) => {
-      if (prev.length >= 4) {
-        return [{ x, y }];
+  // Download Split Comparison
+  const handleDownloadSplit = async () => {
+    let currentResult = resultDataUrl;
+    if (activeEffect === 'spinning_3d' && spinningCanvasRef.current) {
+      currentResult = spinningCanvasRef.current.toDataURL('image/png');
+    }
+    if (!imageSrc || !currentResult) return;
+    setIsProcessing(true);
+    try {
+      const splitUrl = await renderGenericSplitComparisonImage({
+        originalSrc: imageSrc,
+        resultSrc: currentResult,
+        splitStart,
+        splitEnd,
+        splitOrientation,
+        splitMode,
+      });
+      const res = await downloadDataUrl(
+        splitUrl,
+        `meme_${activeEffect}_split_comparison_${Date.now()}.png`
+      );
+      if (res.success) {
+        toast.success('슬라이더 비교 상태 그대로 저장되었습니다.');
+      } else {
+        toast.error(res.message);
       }
-      return [...prev, { x, y }];
-    });
-    toast.info('레이저 눈 위치가 추가되었습니다! (최대 4개)');
+    } catch {
+      toast.error('비교 상태 저장 중 오류가 발생했습니다.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
-
-  // Compare Drag
-  const handleCompareMove = useCallback((clientX: number) => {
-    if (!compareContainerRef.current) return;
-    const rect = compareContainerRef.current.getBoundingClientRect();
-    const x = Math.max(0, Math.min(clientX - rect.left, rect.width));
-    setComparePos(Math.round((x / rect.width) * 100));
-  }, []);
 
   // Download Image
   const handleDownload = async () => {
-    if (!resultDataUrl) return;
-    const res = await downloadDataUrl(resultDataUrl, `meme_lab_${activeEffect}_${Date.now()}.png`);
+    let targetDataUrl = resultDataUrl;
+    if (activeEffect === 'spinning_3d' && spinningCanvasRef.current) {
+      targetDataUrl = spinningCanvasRef.current.toDataURL('image/png');
+    }
+    if (!targetDataUrl) return;
+    const res = await downloadDataUrl(targetDataUrl, `meme_lab_${activeEffect}_${Date.now()}.png`);
     if (res.success) {
       toast.success(res.message);
     } else {
@@ -282,7 +399,7 @@ export function MemeLabView() {
     }
   };
 
-  // Export GIF (for Wide Walk & 3D Spin)
+  // Export GIF (for 3D Spin)
   const handleExportGif = async () => {
     if (!imageSrc) return;
     setIsGeneratingGif(true);
@@ -292,7 +409,7 @@ export function MemeLabView() {
       const config: MemeLabConfig = {
         effectType: activeEffect,
         wideStretch,
-        wideWalkAnim: true,
+        wideWalkAnim: false,
         fisheyeStrength,
         fisheyeRadius,
         laserPoints,
@@ -306,7 +423,7 @@ export function MemeLabView() {
         emojiDensity,
         spinningShape,
         spinningSpeed,
-        spinningAngleDeg: spinningAngle,
+        spinningAngleDeg: spinningAngleRef.current,
         tiltShiftPosition,
         tiltShiftBlur,
         ps1Resolution,
@@ -329,9 +446,13 @@ export function MemeLabView() {
 
   // Copy Clipboard
   const handleCopyClipboard = async () => {
-    if (!resultDataUrl) return;
+    let targetDataUrl = resultDataUrl;
+    if (activeEffect === 'spinning_3d' && spinningCanvasRef.current) {
+      targetDataUrl = spinningCanvasRef.current.toDataURL('image/png');
+    }
+    if (!targetDataUrl) return;
     try {
-      const blob = await (await fetch(resultDataUrl)).blob();
+      const blob = await (await fetch(targetDataUrl)).blob();
       await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
       toast.success('밈 이미지가 클립보드에 복사되었습니다!');
     } catch {
@@ -341,10 +462,14 @@ export function MemeLabView() {
 
   // Share KakaoTalk
   const handleShare = async () => {
-    if (!resultDataUrl) return;
+    let targetDataUrl = resultDataUrl;
+    if (activeEffect === 'spinning_3d' && spinningCanvasRef.current) {
+      targetDataUrl = spinningCanvasRef.current.toDataURL('image/png');
+    }
+    if (!targetDataUrl) return;
     try {
       await shareToKakaoTalk(
-        resultDataUrl,
+        targetDataUrl,
         '밈 연구소 짤방 완성! 🧪',
         '밈 공장에서 생성된 특수 왜곡 짤방입니다.'
       );
@@ -422,154 +547,316 @@ export function MemeLabView() {
               pr: { lg: 1 },
             }}
           >
-            {/* Preview Card */}
-            <Card
-              ref={compareContainerRef}
-              onClick={handleCanvasClick}
-              onMouseDown={() => {
-                if (activeEffect !== 'laser_eyes') setIsDraggingCompare(true);
-              }}
-              onMouseUp={() => setIsDraggingCompare(false)}
-              onMouseLeave={() => setIsDraggingCompare(false)}
-              onMouseMove={(e) => {
-                if (isDraggingCompare) handleMouseMove(e);
-              }}
-              onTouchMove={(e) => {
-                if (isDraggingCompare) handleTouchMove(e);
-              }}
-              sx={{
-                position: 'relative',
-                width: '100%',
-                flex: '1 1 auto',
-                minHeight: 0,
-                height: '100%',
-                bgcolor: '#0a0a0a',
-                borderRadius: 3,
-                overflow: 'hidden',
-                userSelect: 'none',
-                cursor: activeEffect === 'laser_eyes' ? 'crosshair' : 'ew-resize',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: (theme) => theme.customShadows?.z16 || theme.shadows[16],
-              }}
+            <PhotoCompareViewport
+              originalSrc={imageSrc}
+              resultSrc={resultDataUrl || imageSrc}
+              isLoading={isProcessing && activeEffect !== 'spinning_3d'}
+              loadingProgress={{ progress: 0, text: '밈 왜곡 연산 중...' }}
+              previewMode={previewMode}
+              onPreviewModeChange={setPreviewMode}
+              splitOrientation={splitOrientation}
+              onSplitOrientationChange={setSplitOrientation}
+              splitMode={splitMode}
+              onSplitModeChange={setSplitMode}
+              splitStart={splitStart}
+              onSplitStartChange={setSplitStart}
+              splitEnd={splitEnd}
+              onSplitEndChange={setSplitEnd}
+              bgStyle="neutral"
+              extraTopActions={
+                <Chip
+                  label={currentMeta?.name}
+                  size="small"
+                  sx={{
+                    fontWeight: 700,
+                    bgcolor: currentMeta?.badgeBg || 'primary.main',
+                    color: '#ffffff',
+                    fontSize: '0.75rem',
+                  }}
+                />
+              }
             >
-              {/* 1. After (Transformed Image) */}
-              {resultDataUrl && (
+              {/* 3D Spinning Live Canvas Layer */}
+              {activeEffect === 'spinning_3d' && (
                 <Box
-                  component="img"
-                  src={resultDataUrl}
-                  alt="Meme Result"
+                  component="canvas"
+                  ref={spinningCanvasRef}
                   sx={{
                     position: 'absolute',
+                    inset: 0,
                     width: '100%',
                     height: '100%',
-                    objectFit: 'contain',
+                    zIndex: 5,
                     pointerEvents: 'none',
                   }}
                 />
               )}
 
-              {/* 2. Before (Original Image) - Split Slider (except for 3D spin) */}
-              {activeEffect !== 'spinning_3d' && activeEffect !== 'laser_eyes' && (
+              {/* Interactive Object Layer (Laser Eyes & Tilt Shift Guideline) */}
+              {(activeEffect === 'laser_eyes' || activeEffect === 'tilt_shift') && (
                 <Box
+                  onClick={activeEffect === 'laser_eyes' ? handleImageOverlayClick : undefined}
                   sx={{
                     position: 'absolute',
-                    top: 0,
-                    left: 0,
+                    inset: 0,
                     width: '100%',
                     height: '100%',
-                    overflow: 'hidden',
-                    clipPath: `polygon(0 0, ${comparePos}% 0, ${comparePos}% 100%, 0 100%)`,
-                    pointerEvents: 'none',
+                    cursor: activeEffect === 'laser_eyes' ? 'crosshair' : 'default',
+                    pointerEvents: activeEffect === 'laser_eyes' ? 'auto' : 'none',
                   }}
                 >
-                  <Box
-                    component="img"
-                    src={imageSrc}
-                    alt="Original Source"
-                    sx={{
-                      position: 'absolute',
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'contain',
-                    }}
-                  />
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: 16,
-                      left: 16,
-                      bgcolor: 'rgba(0,0,0,0.65)',
-                      color: 'white',
-                      px: 1.5,
-                      py: 0.5,
-                      borderRadius: 1,
-                      fontSize: '0.75rem',
-                      fontWeight: 700,
-                    }}
-                  >
-                    원본 (Original)
-                  </Box>
+                  {/* Laser Eye Points */}
+                  {activeEffect === 'laser_eyes' &&
+                    laserPoints.map((pt, index) => {
+                      const isDragging = activeLaserIndex === index;
+                      const colorHex =
+                        laserColor === 'red'
+                          ? '#ef4444'
+                          : laserColor === 'blue'
+                            ? '#3b82f6'
+                            : laserColor === 'gold'
+                              ? '#eab308'
+                              : '#22c55e';
+
+                      return (
+                        <Box
+                          key={index}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}
+                          onPointerDown={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            lastDragEndTimeRef.current = Date.now();
+                            (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+                            draggingLaserIndexRef.current = index;
+                            setActiveLaserIndex(index);
+                          }}
+                          onPointerMove={(e) => {
+                            if (draggingLaserIndexRef.current !== index) return;
+                            e.stopPropagation();
+                            lastDragEndTimeRef.current = Date.now();
+                            const parent = e.currentTarget.parentElement;
+                            if (!parent) return;
+                            const rect = parent.getBoundingClientRect();
+                            const newX = Math.max(
+                              0,
+                              Math.min(1, (e.clientX - rect.left) / rect.width)
+                            );
+                            const newY = Math.max(
+                              0,
+                              Math.min(1, (e.clientY - rect.top) / rect.height)
+                            );
+                            setLaserPoints((prev) => {
+                              const next = [...prev];
+                              next[index] = { x: newX, y: newY };
+                              return next;
+                            });
+                          }}
+                          onPointerUp={(e) => {
+                            e.stopPropagation();
+                            lastDragEndTimeRef.current = Date.now();
+                            if (draggingLaserIndexRef.current === index) {
+                              draggingLaserIndexRef.current = null;
+                              setActiveLaserIndex(null);
+                              try {
+                                (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+                              } catch {}
+                            }
+                          }}
+                          sx={{
+                            position: 'absolute',
+                            left: `${pt.x * 100}%`,
+                            top: `${pt.y * 100}%`,
+                            transform: 'translate(-50%, -50%)',
+                            width: 32,
+                            height: 32,
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: isDragging ? 'grabbing' : 'grab',
+                            touchAction: 'none',
+                            userSelect: 'none',
+                            pointerEvents: 'auto',
+                            zIndex: 20,
+                            '&:hover .laser-del-btn': {
+                              display: 'flex',
+                            },
+                          }}
+                        >
+                          {/* Outer Glow Ring */}
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              inset: 0,
+                              borderRadius: '50%',
+                              border: `2px solid ${colorHex}`,
+                              bgcolor: 'rgba(0, 0, 0, 0.45)',
+                              boxShadow: `0 0 12px 2px ${colorHex}`,
+                            }}
+                          />
+                          {/* Crosshairs */}
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              width: '1px',
+                              height: '100%',
+                              bgcolor: '#ffffff',
+                              opacity: 0.8,
+                            }}
+                          />
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              height: '1px',
+                              width: '100%',
+                              bgcolor: '#ffffff',
+                              opacity: 0.8,
+                            }}
+                          />
+                          {/* Center core dot */}
+                          <Box
+                            sx={{
+                              width: 8,
+                              height: 8,
+                              borderRadius: '50%',
+                              bgcolor: '#ffffff',
+                              boxShadow: `0 0 6px ${colorHex}`,
+                              zIndex: 1,
+                            }}
+                          />
+                          {/* Point Index Badge */}
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              top: -6,
+                              left: -6,
+                              width: 16,
+                              height: 16,
+                              borderRadius: '50%',
+                              bgcolor: colorHex,
+                              color: '#ffffff',
+                              fontSize: '0.65rem',
+                              fontWeight: 800,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              boxShadow: 1,
+                              zIndex: 2,
+                            }}
+                          >
+                            {index + 1}
+                          </Box>
+                          {/* Delete button (on hover) */}
+                          <Box
+                            className="laser-del-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setLaserPoints((prev) => prev.filter((_, i) => i !== index));
+                              toast.info(`레이저 눈 #${index + 1}이 삭제되었습니다.`);
+                            }}
+                            sx={{
+                              display: 'none',
+                              position: 'absolute',
+                              bottom: -6,
+                              right: -6,
+                              width: 16,
+                              height: 16,
+                              borderRadius: '50%',
+                              bgcolor: '#ef4444',
+                              color: '#ffffff',
+                              fontSize: '0.7rem',
+                              fontWeight: 900,
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              cursor: 'pointer',
+                              boxShadow: 1,
+                              zIndex: 2,
+                              '&:hover': {
+                                transform: 'scale(1.15)',
+                              },
+                            }}
+                            title="삭제"
+                          >
+                            ×
+                          </Box>
+                        </Box>
+                      );
+                    })}
+
+                  {/* Tilt Shift Horizontal Draggable Line */}
+                  {activeEffect === 'tilt_shift' && (
+                    <Box
+                      onPointerDown={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+                        isDraggingTiltShiftRef.current = true;
+                      }}
+                      onPointerMove={(e) => {
+                        if (!isDraggingTiltShiftRef.current) return;
+                        const parent = e.currentTarget.parentElement;
+                        if (!parent) return;
+                        const rect = parent.getBoundingClientRect();
+                        const pos = Math.round(
+                          Math.max(10, Math.min(90, ((e.clientY - rect.top) / rect.height) * 100))
+                        );
+                        setTiltShiftPosition(pos);
+                      }}
+                      onPointerUp={(e) => {
+                        if (isDraggingTiltShiftRef.current) {
+                          isDraggingTiltShiftRef.current = false;
+                          try {
+                            (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+                          } catch {}
+                        }
+                      }}
+                      sx={{
+                        position: 'absolute',
+                        left: 0,
+                        width: '100%',
+                        top: `${tiltShiftPosition}%`,
+                        transform: 'translateY(-50%)',
+                        height: 28,
+                        display: 'flex',
+                        alignItems: 'center',
+                        cursor: 'ns-resize',
+                        zIndex: 20,
+                        touchAction: 'none',
+                        userSelect: 'none',
+                        pointerEvents: 'auto',
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: '100%',
+                          borderTop: '2px dashed #ffffff',
+                          boxShadow: '0 0 8px rgba(0,0,0,0.8)',
+                        }}
+                      />
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          right: 12,
+                          bgcolor: 'rgba(0,0,0,0.75)',
+                          color: '#ffffff',
+                          fontSize: '0.675rem',
+                          fontWeight: 700,
+                          px: 1,
+                          py: 0.25,
+                          borderRadius: 1,
+                          pointerEvents: 'none',
+                          border: '1px solid rgba(255,255,255,0.2)',
+                        }}
+                      >
+                        초점 영역: {tiltShiftPosition}% (상하 드래그)
+                      </Box>
+                    </Box>
+                  )}
                 </Box>
               )}
-
-              {/* Effect Badge */}
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: 16,
-                  right: 16,
-                  bgcolor: currentMeta?.badgeBg || 'primary.main',
-                  color: 'white',
-                  px: 1.5,
-                  py: 0.5,
-                  borderRadius: 1,
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
-                  backdropFilter: 'blur(4px)',
-                }}
-              >
-                {currentMeta?.name}
-              </Box>
-
-              {/* Compare Divider Line */}
-              {activeEffect !== 'spinning_3d' && activeEffect !== 'laser_eyes' && (
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: 0,
-                    bottom: 0,
-                    left: `${comparePos}%`,
-                    width: '2px',
-                    bgcolor: '#ffffff',
-                    transform: 'translateX(-50%)',
-                    zIndex: 10,
-                    boxShadow: '0 0 8px rgba(0,0,0,0.5)',
-                  }}
-                >
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)',
-                      width: 36,
-                      height: 36,
-                      borderRadius: '50%',
-                      bgcolor: '#ffffff',
-                      color: '#111827',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
-                    }}
-                  >
-                    <CompareArrowsRoundedIcon sx={{ fontSize: 20 }} />
-                  </Box>
-                </Box>
-              )}
-            </Card>
+            </PhotoCompareViewport>
           </Box>
 
           {/* Draggable Divider (Desktop) */}
@@ -671,74 +958,133 @@ export function MemeLabView() {
             }}
           >
             {/* 1. Meme Effect Tab Selector */}
-            <Card sx={{ p: 2.5, borderRadius: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-                <AutoAwesomeRoundedIcon sx={{ color: 'primary.main', fontSize: 20 }} />
-                <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
-                  1. 밈 왜곡 효과 선택
-                </Typography>
+            <Card sx={{ p: 2, borderRadius: 2.5 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  mb: 1.25,
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                  <AutoAwesomeRoundedIcon sx={{ color: 'primary.main', fontSize: 18 }} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.875rem' }}>
+                    1. 밈 왜곡 효과 선택
+                  </Typography>
+                </Box>
+                {currentMeta && (
+                  <Chip
+                    label={currentMeta.name}
+                    color="primary"
+                    size="small"
+                    sx={{ height: 20, fontSize: '0.675rem', fontWeight: 700 }}
+                  />
+                )}
               </Box>
 
               <Box
                 sx={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(2, 1fr)',
-                  gap: 1,
+                  gap: 0.75,
                 }}
               >
                 {MEME_EFFECTS.map((eff) => {
                   const isSelected = activeEffect === eff.id;
                   return (
-                    <Box
+                    <Tooltip
                       key={eff.id}
-                      onClick={() => setActiveEffect(eff.id)}
-                      sx={{
-                        p: 1.25,
-                        borderRadius: 2,
-                        border: '2px solid',
-                        borderColor: isSelected ? 'primary.main' : 'divider',
-                        bgcolor: isSelected ? 'primary.lighter' : 'background.paper',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 0.5,
-                        transition: 'all 0.2s',
-                        '&:hover': {
-                          borderColor: 'primary.main',
-                        },
-                      }}
+                      title={`${eff.name} (${eff.subtitle}): ${eff.desc}`}
+                      placement="top"
+                      arrow
                     >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography sx={{ fontSize: '1.2rem' }}>{eff.icon}</Typography>
-                        <Typography
-                          variant="subtitle2"
-                          sx={{ fontWeight: 700, fontSize: '0.8rem' }}
-                        >
-                          {eff.name}
-                        </Typography>
-                      </Box>
-                      <Typography
-                        variant="caption"
-                        sx={{ color: 'text.secondary', fontSize: '0.7rem', lineClamp: 1 }}
+                      <Box
+                        onClick={() => {
+                          setActiveEffect(eff.id);
+                          if (eff.id === 'spinning_3d') {
+                            setPreviewMode('single');
+                          }
+                        }}
+                        sx={{
+                          p: 0.85,
+                          borderRadius: 1.5,
+                          border: '1.5px solid',
+                          borderColor: isSelected ? 'primary.main' : 'divider',
+                          bgcolor: isSelected ? 'primary.lighter' : 'background.paper',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 0.75,
+                          minWidth: 0,
+                          transition: 'all 0.15s ease',
+                          '&:hover': {
+                            borderColor: 'primary.main',
+                            bgcolor: isSelected ? 'primary.lighter' : 'action.hover',
+                          },
+                        }}
                       >
-                        {eff.subtitle}
-                      </Typography>
-                    </Box>
+                        <Typography sx={{ fontSize: '1.15rem', lineHeight: 1, flexShrink: 0 }}>
+                          {eff.icon}
+                        </Typography>
+                        <Box sx={{ minWidth: 0, flex: '1 1 auto' }}>
+                          <Typography
+                            variant="subtitle2"
+                            sx={{
+                              fontWeight: isSelected ? 800 : 700,
+                              fontSize: '0.75rem',
+                              color: isSelected ? 'primary.dark' : 'text.primary',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              lineHeight: 1.25,
+                            }}
+                          >
+                            {eff.name}
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: isSelected ? 'primary.darker' : 'text.secondary',
+                              fontSize: '0.675rem',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              display: 'block',
+                              lineHeight: 1.2,
+                            }}
+                          >
+                            {eff.subtitle}
+                          </Typography>
+                        </Box>
+                        {isSelected && (
+                          <Box
+                            sx={{
+                              width: 6,
+                              height: 6,
+                              borderRadius: '50%',
+                              bgcolor: 'primary.main',
+                              flexShrink: 0,
+                            }}
+                          />
+                        )}
+                      </Box>
+                    </Tooltip>
                   );
                 })}
               </Box>
             </Card>
 
             {/* 2. Specific Fine Tuning Controls */}
-            <Card sx={{ p: 2.5, borderRadius: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <TuneRoundedIcon sx={{ color: 'primary.main', fontSize: 20 }} />
-                <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+            <Card sx={{ p: 2, borderRadius: 2.5 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 1.5 }}>
+                <TuneRoundedIcon sx={{ color: 'primary.main', fontSize: 18 }} />
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.875rem' }}>
                   2. 세부 파라미터 조절
                 </Typography>
               </Box>
 
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.75 }}>
                 {/* 1. Wide Putin Controls */}
                 {activeEffect === 'wide' && (
                   <Box>
@@ -757,13 +1103,6 @@ export function MemeLabView() {
                       step={0.1}
                       onChange={(_, val) => setWideStretch(val as number)}
                     />
-                    <Typography
-                      variant="caption"
-                      sx={{ color: 'text.secondary', display: 'block', mt: 1 }}
-                    >
-                      💡 &apos;움짤(GIF) 다운로드&apos;를 누르면 좌우로 위풍당당하게 걷는 바운스
-                      짤이 생성됩니다!
-                    </Typography>
                   </Box>
                 )}
 
@@ -809,7 +1148,30 @@ export function MemeLabView() {
 
                 {/* 3. Laser Eyes Controls */}
                 {activeEffect === 'laser_eyes' && (
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                    {/* Interactive Drag Tip */}
+                    <Box
+                      sx={{
+                        p: 1,
+                        borderRadius: 1.5,
+                        bgcolor: 'action.hover',
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 0.75,
+                      }}
+                    >
+                      <Typography sx={{ fontSize: '1rem', flexShrink: 0 }}>🎯</Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: 'text.secondary', lineHeight: 1.3, fontSize: '0.7rem' }}
+                      >
+                        사진 위 조준점을 <strong>드래그</strong>하여 레이저 위치를 이동할 수
+                        있습니다. (사진 빈 곳 클릭 시 추가)
+                      </Typography>
+                    </Box>
+
                     <FormControl fullWidth size="small">
                       <InputLabel id="laser-color-label">레이저 빔 색상</InputLabel>
                       <Select
@@ -829,7 +1191,7 @@ export function MemeLabView() {
 
                     <Box>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.8rem' }}>
                           레이저 발광 크기
                         </Typography>
                         <Typography variant="caption" sx={{ fontWeight: 700 }}>
@@ -841,20 +1203,70 @@ export function MemeLabView() {
                         min={15}
                         max={80}
                         step={2}
+                        size="small"
                         onChange={(_, val) => setLaserBeamSize(val as number)}
                       />
                     </Box>
 
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        color="error"
-                        fullWidth
-                        onClick={() => setLaserPoints([])}
+                    {/* Active Points List */}
+                    <Box>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          mb: 0.75,
+                        }}
                       >
-                        레이저 초기화 ({laserPoints.length}개)
-                      </Button>
+                        <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                          배치된 레이저 눈 ({laserPoints.length}개)
+                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color="primary"
+                            onClick={handleAddLaserPoint}
+                            sx={{
+                              fontSize: '0.7rem',
+                              py: 0.2,
+                              px: 0.8,
+                              minWidth: 0,
+                              fontWeight: 700,
+                            }}
+                          >
+                            + 눈 추가
+                          </Button>
+                          {laserPoints.length > 0 && (
+                            <Button
+                              size="small"
+                              color="error"
+                              onClick={() => setLaserPoints([])}
+                              sx={{ fontSize: '0.7rem', py: 0.2, px: 0.8, minWidth: 0 }}
+                            >
+                              모두 삭제
+                            </Button>
+                          )}
+                        </Box>
+                      </Box>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                        {laserPoints.map((_, i) => (
+                          <Chip
+                            key={i}
+                            label={`눈 #${i + 1}`}
+                            size="small"
+                            onDelete={() =>
+                              setLaserPoints((prev) => prev.filter((_, idx) => idx !== i))
+                            }
+                            sx={{ height: 22, fontSize: '0.7rem' }}
+                          />
+                        ))}
+                        {laserPoints.length === 0 && (
+                          <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+                            사진을 클릭하여 레이저 눈을 추가하세요
+                          </Typography>
+                        )}
+                      </Box>
                     </Box>
                   </Box>
                 )}
@@ -1145,7 +1557,7 @@ export function MemeLabView() {
               sx={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 1.25,
+                gap: 1,
                 mt: 'auto',
                 pt: 0.5,
               }}
@@ -1156,7 +1568,7 @@ export function MemeLabView() {
                 color="inherit"
                 startIcon={<RefreshRoundedIcon />}
                 onClick={() => setImageSrc('')}
-                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+                sx={{ py: 0.9, borderRadius: 1.5, fontWeight: 600, fontSize: '0.85rem' }}
               >
                 다른 사진
               </Button>
@@ -1166,9 +1578,20 @@ export function MemeLabView() {
                 color="primary"
                 startIcon={<DownloadRoundedIcon />}
                 onClick={handleDownload}
-                sx={{ py: 1.4, fontWeight: 700, borderRadius: 2, fontSize: '0.95rem' }}
+                sx={{ py: 1, fontWeight: 700, borderRadius: 1.5, fontSize: '0.9rem' }}
               >
                 저장
+              </Button>
+              <Button
+                fullWidth
+                variant="outlined"
+                color="primary"
+                startIcon={<CompareArrowsRoundedIcon />}
+                onClick={handleDownloadSplit}
+                disabled={!resultDataUrl}
+                sx={{ py: 0.9, borderRadius: 1.5, fontWeight: 600, fontSize: '0.85rem' }}
+              >
+                비교 상태 저장 (Split View)
               </Button>
               <Button
                 fullWidth
@@ -1176,7 +1599,7 @@ export function MemeLabView() {
                 color="secondary"
                 startIcon={<ShareRoundedIcon />}
                 onClick={handleShare}
-                sx={{ py: 1.2, borderRadius: 2, fontWeight: 600 }}
+                sx={{ py: 0.9, borderRadius: 1.5, fontWeight: 600, fontSize: '0.85rem' }}
               >
                 공유
               </Button>
@@ -1188,7 +1611,7 @@ export function MemeLabView() {
                   startIcon={<GifBoxRoundedIcon />}
                   onClick={handleExportGif}
                   disabled={isGeneratingGif}
-                  sx={{ py: 1, borderRadius: 2, fontWeight: 600 }}
+                  sx={{ py: 0.8, borderRadius: 1.5, fontWeight: 600, fontSize: '0.85rem' }}
                 >
                   움짤(GIF) 다운로드
                 </Button>
