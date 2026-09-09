@@ -19,7 +19,7 @@ const customTabsIndicatorStyles = {
     const cssVars = {
       '--item-padding-x': '16px',
       '--list-padding-x': '8px',
-      '--indicator-radius': '8px',
+      '--indicator-radius': '3px',
       '--indicator-shadow': theme.vars.customShadows.z1,
       '--indicator-bg': theme.vars.palette.common.white,
       ...theme.applyStyles('dark', {

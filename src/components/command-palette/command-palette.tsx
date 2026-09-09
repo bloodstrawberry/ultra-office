@@ -74,7 +74,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
       maxWidth="sm"
       sx={{
         '& .MuiDialog-paper': {
-          borderRadius: 2.5,
+          borderRadius: 2,
           overflow: 'hidden',
           bgcolor: 'background.paper',
           backgroundImage: 'none',

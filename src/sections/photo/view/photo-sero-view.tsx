@@ -313,7 +313,7 @@ export function SeroView() {
               pr: { md: 1 },
             }}
           >
-            <Card sx={{ p: 2.5, borderRadius: 3 }}>
+            <Card sx={{ p: 2.5, borderRadius: 2 }}>
               <Box
                 sx={{
                   display: 'flex',
@@ -342,7 +342,7 @@ export function SeroView() {
                     textAlign: 'center',
                     fontWeight: 800,
                     padding: '6px 8px',
-                    borderRadius: 6,
+                    borderRadius: 2,
                     border: '1px solid #cbd5e1',
                   }}
                 />
@@ -360,7 +360,7 @@ export function SeroView() {
                     textAlign: 'center',
                     fontWeight: 800,
                     padding: '6px 8px',
-                    borderRadius: 6,
+                    borderRadius: 2,
                     border: '1px solid #cbd5e1',
                   }}
                 />
@@ -530,7 +530,7 @@ export function SeroView() {
             <Card
               sx={{
                 p: 2.5,
-                borderRadius: 3,
+                borderRadius: 2,
                 flex: '1 1 auto',
                 minHeight: 0,
                 height: '100%',
@@ -573,7 +573,7 @@ export function SeroView() {
                     variant="outlined"
                     sx={{
                       p: { xs: 1.5, sm: 2 },
-                      borderRadius: 3,
+                      borderRadius: 2,
                       bgcolor: 'background.paper',
                       borderColor: 'divider',
                       display: 'flex',
@@ -734,7 +734,7 @@ export function SeroView() {
                       variant="outlined"
                       sx={{
                         p: 1.5,
-                        borderRadius: 2.5,
+                        borderRadius: 2,
                         bgcolor: 'background.paper',
                         borderColor: 'divider',
                         display: 'flex',

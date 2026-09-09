@@ -644,7 +644,7 @@ export function DevToolsView() {
                       }}
                       sx={{
                         p: 2.5,
-                        borderRadius: 2.5,
+                        borderRadius: 2,
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'space-between',
@@ -757,7 +757,7 @@ export function DevToolsView() {
           >
             {/* JWT Input Card */}
             <Card
-              sx={{ p: 2.5, borderRadius: 2.5, display: 'flex', flexDirection: 'column', gap: 1.5 }}
+              sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}
             >
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography
@@ -814,7 +814,7 @@ export function DevToolsView() {
 
             {/* Base64 & URL Studio Card */}
             <Card
-              sx={{ p: 2.5, borderRadius: 2.5, display: 'flex', flexDirection: 'column', gap: 1.5 }}
+              sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}
             >
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
@@ -956,7 +956,7 @@ export function DevToolsView() {
             <Card
               sx={{
                 p: 2.5,
-                borderRadius: 2.5,
+                borderRadius: 2,
                 flex: '1 1 auto',
                 display: 'flex',
                 flexDirection: 'column',
@@ -1173,7 +1173,7 @@ export function DevToolsView() {
         >
           {/* Hash Generator */}
           <Card
-            sx={{ p: 2.5, borderRadius: 2.5, display: 'flex', flexDirection: 'column', gap: 2 }}
+            sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography
@@ -1320,7 +1320,7 @@ export function DevToolsView() {
 
           {/* AES-256 Symmetric Encryption Card */}
           <Card
-            sx={{ p: 2.5, borderRadius: 2.5, display: 'flex', flexDirection: 'column', gap: 2 }}
+            sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}
           >
             <Typography
               variant="subtitle1"
@@ -1460,7 +1460,7 @@ export function DevToolsView() {
             <Card
               sx={{
                 p: 2.5,
-                borderRadius: 2.5,
+                borderRadius: 2,
                 display: 'flex',
                 flexDirection: 'column',
                 flex: '1 1 auto',
@@ -1604,7 +1604,7 @@ export function DevToolsView() {
             <Card
               sx={{
                 p: 2.5,
-                borderRadius: 2.5,
+                borderRadius: 2,
                 display: 'flex',
                 flexDirection: 'column',
                 flex: '1 1 auto',
@@ -1727,7 +1727,7 @@ export function DevToolsView() {
           }}
         >
           <Card
-            sx={{ p: 2.5, borderRadius: 2.5, display: 'flex', flexDirection: 'column', gap: 2 }}
+            sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography
@@ -1885,7 +1885,7 @@ export function DevToolsView() {
         >
           {/* Password Generator */}
           <Card
-            sx={{ p: 2.5, borderRadius: 2.5, display: 'flex', flexDirection: 'column', gap: 2 }}
+            sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography
@@ -2035,7 +2035,7 @@ export function DevToolsView() {
 
           {/* UUID / NanoID / CUID Generator */}
           <Card
-            sx={{ p: 2.5, borderRadius: 2.5, display: 'flex', flexDirection: 'column', gap: 2 }}
+            sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography
@@ -2122,7 +2122,7 @@ export function DevToolsView() {
 
           {/* Lorem Ipsum Generator */}
           <Card
-            sx={{ p: 2.5, borderRadius: 2.5, display: 'flex', flexDirection: 'column', gap: 2 }}
+            sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
@@ -2195,7 +2195,7 @@ export function DevToolsView() {
         >
           {/* Epoch Timestamp Converter */}
           <Card
-            sx={{ p: 2.5, borderRadius: 2.5, display: 'flex', flexDirection: 'column', gap: 2 }}
+            sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography
@@ -2294,7 +2294,7 @@ export function DevToolsView() {
 
           {/* cURL to Fetch / Axios Converter */}
           <Card
-            sx={{ p: 2.5, borderRadius: 2.5, display: 'flex', flexDirection: 'column', gap: 2 }}
+            sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography
@@ -2362,7 +2362,7 @@ export function DevToolsView() {
 
           {/* HTTP Status Catalog */}
           <Card
-            sx={{ p: 2.5, borderRadius: 2.5, display: 'flex', flexDirection: 'column', gap: 2 }}
+            sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography

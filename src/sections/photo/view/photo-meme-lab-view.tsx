@@ -958,7 +958,7 @@ export function MemeLabView() {
             }}
           >
             {/* 1. Meme Effect Tab Selector */}
-            <Card sx={{ p: 2, borderRadius: 2.5 }}>
+            <Card sx={{ p: 2, borderRadius: 2 }}>
               <Box
                 sx={{
                   display: 'flex',
@@ -1076,7 +1076,7 @@ export function MemeLabView() {
             </Card>
 
             {/* 2. Specific Fine Tuning Controls */}
-            <Card sx={{ p: 2, borderRadius: 2.5 }}>
+            <Card sx={{ p: 2, borderRadius: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 1.5 }}>
                 <TuneRoundedIcon sx={{ color: 'primary.main', fontSize: 18 }} />
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.875rem' }}>

@@ -264,7 +264,7 @@ export function GifStudioSplitView() {
               cursor: 'pointer',
               border: '2px dashed',
               borderColor: 'divider',
-              borderRadius: 3,
+              borderRadius: 2,
               flex: '1 1 auto',
               minHeight: 180,
               transition: 'all 0.2s',
@@ -335,7 +335,7 @@ export function GifStudioSplitView() {
             <Card
               sx={{
                 p: 2,
-                borderRadius: 3,
+                borderRadius: 2,
                 display: 'flex',
                 flexDirection: 'column',
                 flex: '1 1 auto',
@@ -572,7 +572,7 @@ export function GifStudioSplitView() {
             <Card
               sx={{
                 p: 2,
-                borderRadius: 3,
+                borderRadius: 2,
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 1.5,
@@ -665,7 +665,7 @@ export function GifStudioSplitView() {
             <Card
               sx={{
                 p: 2.5,
-                borderRadius: 3,
+                borderRadius: 2,
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 1.5,
@@ -795,7 +795,7 @@ export function GifStudioSplitView() {
 
             {/* Extraction Summary */}
             <Card
-              sx={{ p: 2.5, borderRadius: 3, display: 'flex', flexDirection: 'column', gap: 2 }}
+              sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}
             >
               <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                 프레임 추출 요약

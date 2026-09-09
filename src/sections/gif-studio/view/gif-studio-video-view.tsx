@@ -216,7 +216,7 @@ export function GifStudioVideoView() {
             <Card
               sx={{
                 p: 2,
-                borderRadius: 3,
+                borderRadius: 2,
                 display: 'flex',
                 flexDirection: 'column',
                 flex: '1 1 auto',
@@ -297,7 +297,7 @@ export function GifStudioVideoView() {
             }}
           >
             <Card
-              sx={{ p: 2.5, borderRadius: 3, display: 'flex', flexDirection: 'column', gap: 2 }}
+              sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}
             >
               <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>

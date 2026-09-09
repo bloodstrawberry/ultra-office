@@ -53,7 +53,7 @@ export function TranslatorTemplateDialog({
       fullWidth
       sx={{
         '& .MuiDialog-paper': {
-          borderRadius: 3,
+          borderRadius: 2,
           p: 1,
         },
       }}

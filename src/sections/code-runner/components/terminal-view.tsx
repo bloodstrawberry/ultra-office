@@ -232,7 +232,7 @@ export const TerminalView = forwardRef<TerminalRef, TerminalViewProps>(
                 sx={{
                   px: 1,
                   py: 0.2,
-                  borderRadius: '10px',
+                  borderRadius: '3px',
                   fontSize: '11px',
                   fontWeight: 600,
                   bgcolor:
@@ -319,7 +319,7 @@ export const TerminalView = forwardRef<TerminalRef, TerminalViewProps>(
               },
               '&::-webkit-scrollbar-thumb': {
                 bgcolor: activeTheme.isDark ? '#30363d' : '#d0d7de',
-                borderRadius: 4,
+                borderRadius: 2,
               },
             },
           }}

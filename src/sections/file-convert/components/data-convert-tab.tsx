@@ -214,7 +214,7 @@ export function DataConvertTab() {
                 style={{
                   width: '100%',
                   padding: 10,
-                  borderRadius: 6,
+                  borderRadius: 2,
                   border: '1px solid var(--palette-divider, #e2e8f0)',
                   backgroundColor: 'transparent',
                   color: 'inherit',
@@ -276,7 +276,7 @@ export function DataConvertTab() {
                 style={{
                   width: '100%',
                   padding: 10,
-                  borderRadius: 6,
+                  borderRadius: 2,
                   border: '1px solid var(--palette-divider, #e2e8f0)',
                   backgroundColor: 'action.hover',
                   color: 'inherit',
@@ -322,7 +322,7 @@ export function DataConvertTab() {
             style={{
               width: '100%',
               padding: 12,
-              borderRadius: 6,
+              borderRadius: 2,
               backgroundColor: '#090d16',
               color: '#67e8f9',
               fontFamily: 'monospace',
@@ -366,7 +366,7 @@ export function DataConvertTab() {
               style={{
                 width: '100%',
                 padding: 10,
-                borderRadius: 6,
+                borderRadius: 2,
                 backgroundColor: '#090d16',
                 color: '#a5b4fc',
                 fontFamily: 'monospace',
@@ -395,7 +395,7 @@ export function DataConvertTab() {
               style={{
                 width: '100%',
                 padding: 10,
-                borderRadius: 6,
+                borderRadius: 2,
                 backgroundColor: '#090d16',
                 color: '#86efac',
                 fontFamily: 'monospace',
@@ -446,7 +446,7 @@ export function DataConvertTab() {
                 style={{
                   width: '100%',
                   padding: 10,
-                  borderRadius: 6,
+                  borderRadius: 2,
                   border: '1px solid var(--palette-divider, #e2e8f0)',
                   backgroundColor: 'transparent',
                   color: 'inherit',
@@ -481,7 +481,7 @@ export function DataConvertTab() {
                 style={{
                   width: '100%',
                   padding: 10,
-                  borderRadius: 6,
+                  borderRadius: 2,
                   border: '1px solid var(--palette-divider, #e2e8f0)',
                   backgroundColor: 'action.hover',
                   color: 'inherit',

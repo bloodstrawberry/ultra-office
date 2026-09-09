@@ -350,7 +350,7 @@ export function TimerTab() {
             onClick={handleStart}
             startIcon={<PlayArrowRoundedIcon sx={{ fontSize: 24 }} />}
             disabled={getParsedTotalSeconds() <= 0}
-            sx={{ px: 5, py: 1.4, borderRadius: 2.5, fontSize: '1.05rem', fontWeight: 800 }}
+            sx={{ px: 5, py: 1.4, borderRadius: 1.5, fontSize: '1.05rem', fontWeight: 800 }}
           >
             타이머 시작
           </Button>
@@ -479,7 +479,7 @@ export function TimerTab() {
                 size="large"
                 onClick={handlePause}
                 startIcon={<PauseRoundedIcon sx={{ fontSize: 24 }} />}
-                sx={{ px: 4, py: 1.2, borderRadius: 2.5, fontSize: '1rem', fontWeight: 800 }}
+                sx={{ px: 4, py: 1.2, borderRadius: 1.5, fontSize: '1rem', fontWeight: 800 }}
               >
                 일시정지
               </Button>
@@ -492,7 +492,7 @@ export function TimerTab() {
                 size="large"
                 onClick={handleStart}
                 startIcon={<PlayArrowRoundedIcon sx={{ fontSize: 24 }} />}
-                sx={{ px: 4, py: 1.2, borderRadius: 2.5, fontSize: '1rem', fontWeight: 800 }}
+                sx={{ px: 4, py: 1.2, borderRadius: 1.5, fontSize: '1rem', fontWeight: 800 }}
               >
                 계속
               </Button>
@@ -505,7 +505,7 @@ export function TimerTab() {
                 size="large"
                 onClick={handleReset}
                 startIcon={<RefreshRoundedIcon sx={{ fontSize: 24 }} />}
-                sx={{ px: 4, py: 1.2, borderRadius: 2.5, fontSize: '1rem', fontWeight: 800 }}
+                sx={{ px: 4, py: 1.2, borderRadius: 1.5, fontSize: '1rem', fontWeight: 800 }}
               >
                 새 타이머
               </Button>
@@ -518,7 +518,7 @@ export function TimerTab() {
                 size="large"
                 onClick={() => handleAddMinute(60)}
                 startIcon={<AddRoundedIcon />}
-                sx={{ borderRadius: 2.5, fontWeight: 700, px: 2.5 }}
+                sx={{ borderRadius: 1.5, fontWeight: 700, px: 2.5 }}
               >
                 +1분
               </Button>

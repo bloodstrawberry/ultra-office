@@ -529,7 +529,7 @@ export function FlipView() {
         {currentTab === 'single' && (
           <>
             {!singleOrigUrl ? (
-              <Card sx={{ p: 3, borderRadius: 3, height: '100%', minHeight: 500 }}>
+              <Card sx={{ p: 3, borderRadius: 2, height: '100%', minHeight: 500 }}>
                 <PhotoUploadWorkspace
                   sampleImages={FLIP_SAMPLE_IMAGES}
                   onSelectSample={handleSelectSingleSample}
@@ -561,7 +561,7 @@ export function FlipView() {
                   <Card
                     sx={{
                       p: 2,
-                      borderRadius: 3,
+                      borderRadius: 2,
                       flex: '1 1 auto',
                       display: 'flex',
                       flexDirection: 'column',
@@ -676,7 +676,7 @@ export function FlipView() {
                   }}
                 >
                   {/* 1. Flip Controls Card */}
-                  <Card sx={{ p: 2.5, borderRadius: 3 }}>
+                  <Card sx={{ p: 2.5, borderRadius: 2 }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1.5 }}>
                       1. 거울 대칭 반전 (Flip)
                     </Typography>
@@ -705,7 +705,7 @@ export function FlipView() {
                   </Card>
 
                   {/* 2. Rotate & Angle Adjustment Card */}
-                  <Card sx={{ p: 2.5, borderRadius: 3 }}>
+                  <Card sx={{ p: 2.5, borderRadius: 2 }}>
                     <Box
                       sx={{
                         display: 'flex',
@@ -775,7 +775,7 @@ export function FlipView() {
                   </Card>
 
                   {/* 3. Output Format Card */}
-                  <Card sx={{ p: 2.5, borderRadius: 3 }}>
+                  <Card sx={{ p: 2.5, borderRadius: 2 }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1.5 }}>
                       3. 저장 포맷 & 품질
                     </Typography>
@@ -823,7 +823,7 @@ export function FlipView() {
                   </Card>
 
                   {/* 4. Status Chips Card */}
-                  <Card sx={{ p: 2, borderRadius: 3, bgcolor: 'background.neutral' }}>
+                  <Card sx={{ p: 2, borderRadius: 2, bgcolor: 'background.neutral' }}>
                     <Typography variant="caption" sx={{ fontWeight: 700, mb: 1, display: 'block' }}>
                       적용 상태 요약
                     </Typography>
@@ -918,7 +918,7 @@ export function FlipView() {
         {currentTab === 'batch' && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
             {/* Batch Options Card */}
-            <Card sx={{ p: 2.5, borderRadius: 3 }}>
+            <Card sx={{ p: 2.5, borderRadius: 2 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 2 }}>
                 다중 파일 일괄 반전 설정
               </Typography>
@@ -987,7 +987,7 @@ export function FlipView() {
                   <LinearProgress
                     variant="determinate"
                     value={batchProgress}
-                    sx={{ height: 8, borderRadius: 4 }}
+                    sx={{ height: 8, borderRadius: 1 }}
                   />
                 </Box>
               )}
@@ -1044,7 +1044,7 @@ export function FlipView() {
               {...batchDrop.getRootProps()}
               sx={{
                 p: 3,
-                borderRadius: 3,
+                borderRadius: 2,
                 minHeight: 320,
                 bgcolor: batchDrop.isDragActive ? 'action.hover' : 'background.paper',
                 border: batchDrop.isDragActive ? '2px dashed' : 'none',
@@ -1143,7 +1143,7 @@ export function FlipView() {
         {currentTab === 'mirror' && (
           <>
             {!mirrorOrigUrl ? (
-              <Card sx={{ p: 3, borderRadius: 3, height: '100%', minHeight: 500 }}>
+              <Card sx={{ p: 3, borderRadius: 2, height: '100%', minHeight: 500 }}>
                 <PhotoUploadWorkspace
                   sampleImages={FLIP_SAMPLE_IMAGES}
                   onSelectSample={(url) => setMirrorOrigUrl(url)}
@@ -1175,7 +1175,7 @@ export function FlipView() {
                   <Card
                     sx={{
                       p: 2,
-                      borderRadius: 3,
+                      borderRadius: 2,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -1297,7 +1297,7 @@ export function FlipView() {
                     pl: { lg: 1.5 },
                   }}
                 >
-                  <Card sx={{ p: 2.5, borderRadius: 3 }}>
+                  <Card sx={{ p: 2.5, borderRadius: 2 }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1.5 }}>
                       거울 대칭 모드 선택
                     </Typography>

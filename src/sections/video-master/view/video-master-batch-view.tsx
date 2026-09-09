@@ -377,7 +377,7 @@ export function VideoMasterBatchView() {
             backdropFilter: 'blur(8px)',
             border: '3px dashed',
             borderColor: 'primary.main',
-            borderRadius: 3,
+            borderRadius: 2,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',

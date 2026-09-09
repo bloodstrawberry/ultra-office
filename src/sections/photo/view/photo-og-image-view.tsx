@@ -579,7 +579,7 @@ export function PhotoOgImageView() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   bgcolor: 'background.neutral',
-                  borderRadius: 3,
+                  borderRadius: 2,
                   p: { xs: 1.5, sm: 2.5 },
                   minHeight: 0,
                   position: 'relative',
@@ -720,7 +720,7 @@ export function PhotoOgImageView() {
                       sx={{
                         width: '100%',
                         maxWidth: 440,
-                        borderRadius: 3.5,
+                        borderRadius: 2,
                         overflow: 'hidden',
                         boxShadow: '0 16px 36px rgba(0,0,0,0.14)',
                         border: '1px solid',
@@ -866,7 +866,7 @@ export function PhotoOgImageView() {
               }}
             >
               {/* Card 1: Output Resolution */}
-              <Card sx={{ p: 2.2, borderRadius: 2.5 }}>
+              <Card sx={{ p: 2.2, borderRadius: 2 }}>
                 <Box
                   sx={{
                     display: 'flex',
@@ -908,7 +908,7 @@ export function PhotoOgImageView() {
                         fontWeight: 800,
                         fontSize: '1rem',
                         padding: '8px',
-                        borderRadius: 8,
+                        borderRadius: 2,
                         border: '1px solid #cbd5e1',
                       }}
                     />
@@ -947,7 +947,7 @@ export function PhotoOgImageView() {
                         fontWeight: 800,
                         fontSize: '1rem',
                         padding: '8px',
-                        borderRadius: 8,
+                        borderRadius: 2,
                         border: '1px solid #cbd5e1',
                       }}
                     />
@@ -975,7 +975,7 @@ export function PhotoOgImageView() {
               </Card>
 
               {/* Card 2: Fit Mode & Canvas Adjustments */}
-              <Card sx={{ p: 2.2, borderRadius: 2.5 }}>
+              <Card sx={{ p: 2.2, borderRadius: 2 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1.5 }}>
                   크기 맞춤 방식 (Fit Mode)
                 </Typography>
@@ -1079,7 +1079,7 @@ export function PhotoOgImageView() {
                               width: 26,
                               height: 26,
                               border: 'none',
-                              borderRadius: 6,
+                              borderRadius: 2,
                               cursor: 'pointer',
                             }}
                           />
@@ -1128,7 +1128,7 @@ export function PhotoOgImageView() {
               </Card>
 
               {/* Card 3: Format & Export Settings */}
-              <Card sx={{ p: 2.2, borderRadius: 2.5 }}>
+              <Card sx={{ p: 2.2, borderRadius: 2 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1.5 }}>
                   저장 포맷 및 품질
                 </Typography>
@@ -1229,7 +1229,7 @@ export function PhotoOgImageView() {
           <Card
             sx={{
               p: 2,
-              borderRadius: 2.5,
+              borderRadius: 2,
               display: 'flex',
               flexWrap: 'wrap',
               justifyContent: 'space-between',
@@ -1296,7 +1296,7 @@ export function PhotoOgImageView() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 p: 4,
-                borderRadius: 3,
+                borderRadius: 2,
                 border: '2px dashed',
                 borderColor: isDragActive ? 'primary.main' : 'divider',
                 bgcolor: isDragActive ? 'primary.lighter' : 'background.neutral',
@@ -1334,7 +1334,7 @@ export function PhotoOgImageView() {
                   key={file.id}
                   sx={{
                     p: 1.75,
-                    borderRadius: 2.5,
+                    borderRadius: 2,
                     display: 'flex',
                     flexDirection: 'column',
                     gap: 1.25,

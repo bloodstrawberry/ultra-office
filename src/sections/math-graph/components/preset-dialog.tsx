@@ -61,7 +61,7 @@ export function PresetDialog({ open, onClose, onSelectPreset }: PresetDialogProp
       fullWidth
       sx={{
         '& .MuiDialog-paper': {
-          borderRadius: 2.5,
+          borderRadius: 2,
           p: 1,
           maxHeight: '85vh',
         },

@@ -443,7 +443,7 @@ export function LogoView() {
             <Card
               sx={{
                 p: 2,
-                borderRadius: 3,
+                borderRadius: 2,
                 display: 'flex',
                 flexDirection: 'column',
                 flex: '1 1 auto',
@@ -594,7 +594,7 @@ export function LogoView() {
             }}
           >
             {/* Resolution Setting Card */}
-            <Card sx={{ p: 2.5, borderRadius: 3 }}>
+            <Card sx={{ p: 2.5, borderRadius: 2 }}>
               <Box
                 sx={{
                   display: 'flex',
@@ -701,7 +701,7 @@ export function LogoView() {
             <Card
               sx={{
                 p: 2.5,
-                borderRadius: 3,
+                borderRadius: 2,
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',

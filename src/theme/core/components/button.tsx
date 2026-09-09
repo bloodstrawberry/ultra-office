@@ -194,6 +194,7 @@ const MuiButton: Components<Theme>['MuiButton'] = {
   // ▼▼▼▼▼▼▼▼ 🎨 STYLE ▼▼▼▼▼▼▼▼
   styleOverrides: {
     root: {
+      borderRadius: 3,
       variants: [
         ...containedVariants,
         ...outlinedVariants,

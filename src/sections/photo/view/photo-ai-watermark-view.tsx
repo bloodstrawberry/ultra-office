@@ -938,7 +938,7 @@ export function AiWatermarkView() {
             <Card
               sx={{
                 p: { xs: 1.5, sm: 2 },
-                borderRadius: 3,
+                borderRadius: 2,
                 display: 'flex',
                 flexDirection: 'column',
                 flex: '1 1 auto',
@@ -1009,7 +1009,7 @@ export function AiWatermarkView() {
                   minHeight: 0,
                   height: '100%',
                   bgcolor: '#090d16',
-                  borderRadius: 2.5,
+                  borderRadius: 2,
                   overflow: 'hidden',
                   display: 'flex',
                   alignItems: 'center',
@@ -1033,7 +1033,7 @@ export function AiWatermarkView() {
                       color: '#ffffff',
                       backdropFilter: 'blur(8px)',
                       border: '1px solid rgba(255,255,255,0.2)',
-                      borderRadius: 999,
+                      borderRadius: 2,
                       fontSize: '0.72rem',
                       fontWeight: 700,
                       px: 1.5,
@@ -1058,7 +1058,7 @@ export function AiWatermarkView() {
                       backdropFilter: 'blur(8px)',
                       border: '1px solid',
                       borderColor: 'primary.main',
-                      borderRadius: 999,
+                      borderRadius: 2,
                       fontSize: '0.75rem',
                       fontWeight: 800,
                       px: 1.5,
@@ -1129,7 +1129,7 @@ export function AiWatermarkView() {
             </Card>
 
             {/* Bottom Multi-Photo Strip */}
-            <Card sx={{ p: 1.5, borderRadius: 3, flexShrink: 0, maxHeight: 170 }}>
+            <Card sx={{ p: 1.5, borderRadius: 2, flexShrink: 0, maxHeight: 170 }}>
               <Box
                 sx={{
                   display: 'flex',
@@ -1339,7 +1339,7 @@ export function AiWatermarkView() {
             }}
           >
             {/* Tab Navigation */}
-            <Card sx={{ p: 1, borderRadius: 2.5, flexShrink: 0 }}>
+            <Card sx={{ p: 1, borderRadius: 2, flexShrink: 0 }}>
               <ToggleButtonGroup
                 value={activeTab}
                 exclusive
@@ -1353,7 +1353,7 @@ export function AiWatermarkView() {
                   '& .MuiToggleButtonGroup-grouped': {
                     border: '1px solid',
                     borderColor: 'divider',
-                    borderRadius: '8px !important',
+                    borderRadius: '3px !important',
                     whiteSpace: 'nowrap',
                     py: 0.8,
                     fontWeight: 700,
@@ -1378,7 +1378,7 @@ export function AiWatermarkView() {
             {activeTab === 'logo' && (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {/* AI Model Logo Grid */}
-                <Card sx={{ p: 2, borderRadius: 2.5 }}>
+                <Card sx={{ p: 2, borderRadius: 2 }}>
                   <Box
                     sx={{
                       display: 'flex',
@@ -1521,7 +1521,7 @@ export function AiWatermarkView() {
                 </Card>
 
                 {/* Hand-Drawn Annotations 3-Way Selector */}
-                <Card sx={{ p: 2, borderRadius: 2.5 }}>
+                <Card sx={{ p: 2, borderRadius: 2 }}>
                   <Box
                     sx={{
                       display: 'flex',
@@ -1600,7 +1600,7 @@ export function AiWatermarkView() {
 
             {/* TAB 2: Style (Opacity, Scale, Rotation) */}
             {activeTab === 'style' && (
-              <Card sx={{ p: 2, borderRadius: 2.5 }}>
+              <Card sx={{ p: 2, borderRadius: 2 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2 }}>
                   워터마크 크기 및 투명도 설정
                 </Typography>
@@ -1669,7 +1669,7 @@ export function AiWatermarkView() {
 
             {/* TAB 3: Position Grid & Coordinates */}
             {activeTab === 'position' && (
-              <Card sx={{ p: 2, borderRadius: 2.5 }}>
+              <Card sx={{ p: 2, borderRadius: 2 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
                   위치 선택 & 정렬
                 </Typography>
@@ -1731,7 +1731,7 @@ export function AiWatermarkView() {
 
             {/* TAB 4: Subtext Options */}
             {activeTab === 'text' && (
-              <Card sx={{ p: 2, borderRadius: 2.5 }}>
+              <Card sx={{ p: 2, borderRadius: 2 }}>
                 <Box
                   sx={{
                     display: 'flex',
@@ -1902,7 +1902,7 @@ export function AiWatermarkView() {
         fullWidth
         sx={{
           '& .MuiDialog-paper': {
-            borderRadius: 3,
+            borderRadius: 2,
             p: 2.5,
           },
         }}
@@ -2035,7 +2035,7 @@ export function AiWatermarkView() {
           <Box
             sx={{
               width: '100%',
-              borderRadius: 999,
+              borderRadius: 2,
               bgcolor: logoAnnotationColor,
               opacity: logoAnnotationOpacity,
               height: `${Math.max(2, Math.round(logoAnnotationLineWidth * 4 * logoAnnotationSize))}px`,

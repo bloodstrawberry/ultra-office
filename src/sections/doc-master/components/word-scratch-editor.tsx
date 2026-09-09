@@ -387,7 +387,7 @@ export function WordScratchEditor() {
               '&::-webkit-scrollbar': { width: 6 },
               '&::-webkit-scrollbar-thumb': {
                 bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'grey.800' : 'grey.300'),
-                borderRadius: 3,
+                borderRadius: 1.5,
               },
             }}
           >
@@ -611,7 +611,7 @@ export function WordScratchEditor() {
               '&::-webkit-scrollbar': { width: 6 },
               '&::-webkit-scrollbar-thumb': {
                 bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'grey.800' : 'grey.300'),
-                borderRadius: 3,
+                borderRadius: 1.5,
               },
             }}
           >
@@ -770,7 +770,7 @@ export function WordScratchEditor() {
             '&::-webkit-scrollbar': { width: 8 },
             '&::-webkit-scrollbar-thumb': {
               bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'grey.700' : 'grey.400'),
-              borderRadius: 4,
+              borderRadius: 1.5,
             },
           }}
         >
@@ -920,7 +920,7 @@ export function WordScratchEditor() {
                           p: 1.5,
                           bgcolor: '#f8fafc',
                           borderLeft: `4px solid ${metadata.themeColor}`,
-                          borderRadius: '0 8px 8px 0',
+                          borderRadius: '0 4px 4px 0',
                           fontStyle: 'italic',
                           color: '#475569',
                           fontSize: '0.9rem',

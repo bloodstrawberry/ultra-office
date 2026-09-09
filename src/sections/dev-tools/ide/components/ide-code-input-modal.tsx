@@ -184,7 +184,7 @@ export function IdeCodeInputModal({
               '& .MuiInputBase-input': {
                 color: '#e0e0e0',
                 '&::-webkit-scrollbar': { width: 8 },
-                '&::-webkit-scrollbar-thumb': { bgcolor: '#333333', borderRadius: 4 },
+                '&::-webkit-scrollbar-thumb': { bgcolor: '#333333', borderRadius: 2 },
               },
               '& .MuiOutlinedInput-notchedOutline': { borderColor: '#333333' },
               '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#007acc' },

@@ -506,7 +506,7 @@ export function VideoMasterMergeView() {
             <Card
               sx={{
                 position: 'relative',
-                borderRadius: 2.5,
+                borderRadius: 2,
                 overflow: 'hidden',
                 bgcolor: '#000000',
                 display: 'flex',
@@ -972,7 +972,7 @@ export function VideoMasterMergeView() {
         onClose={handleCancelExport}
         maxWidth="sm"
         fullWidth
-        sx={{ '& .MuiDialog-paper': { borderRadius: 2.5, p: 1 } }}
+        sx={{ '& .MuiDialog-paper': { borderRadius: 2, p: 1 } }}
       >
         <DialogTitle
           sx={{
@@ -1023,7 +1023,7 @@ export function VideoMasterMergeView() {
                   style={{
                     width: '100%',
                     maxHeight: 280,
-                    borderRadius: 12,
+                    borderRadius: 2,
                     backgroundColor: '#000000',
                   }}
                 />
@@ -1072,7 +1072,7 @@ export function VideoMasterMergeView() {
         onClose={() => setPreviewModalClip(null)}
         maxWidth="md"
         fullWidth
-        sx={{ '& .MuiDialog-paper': { borderRadius: 2.5 } }}
+        sx={{ '& .MuiDialog-paper': { borderRadius: 2 } }}
       >
         <DialogTitle sx={{ fontWeight: 800 }}>{previewModalClip?.name}</DialogTitle>
         <DialogContent dividers>
@@ -1081,7 +1081,7 @@ export function VideoMasterMergeView() {
               controls
               autoPlay
               src={previewModalClip.previewUrl}
-              style={{ width: '100%', maxHeight: 400, borderRadius: 8, backgroundColor: '#000000' }}
+              style={{ width: '100%', maxHeight: 400, borderRadius: 4, backgroundColor: '#000000' }}
             />
           )}
         </DialogContent>

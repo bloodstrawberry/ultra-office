@@ -561,7 +561,7 @@ export function WatermarkView() {
               <Card
                 sx={{
                   p: 2,
-                  borderRadius: 3,
+                  borderRadius: 2,
                   display: 'flex',
                   flexDirection: 'column',
                   flex: '1 1 auto',
@@ -612,7 +612,7 @@ export function WatermarkView() {
             )}
 
             {/* List Strip */}
-            <Card sx={{ p: 2, borderRadius: 3, flexShrink: 0, maxHeight: 180 }}>
+            <Card sx={{ p: 2, borderRadius: 2, flexShrink: 0, maxHeight: 180 }}>
               <Box
                 sx={{
                   display: 'flex',
@@ -798,7 +798,7 @@ export function WatermarkView() {
               pr: 0.5,
             }}
           >
-            <Card sx={{ p: 2.5, borderRadius: 3, flexShrink: 0 }}>
+            <Card sx={{ p: 2.5, borderRadius: 2, flexShrink: 0 }}>
               {/* 1. Watermark Type */}
               <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1.2 }}>
                 1. 워터마크 종류
@@ -880,7 +880,7 @@ export function WatermarkView() {
                         style={{
                           width: 40,
                           height: 38,
-                          borderRadius: 8,
+                          borderRadius: 2,
                           border: '1px solid #ccc',
                           cursor: 'pointer',
                         }}

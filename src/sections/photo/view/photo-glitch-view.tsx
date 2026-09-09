@@ -472,7 +472,7 @@ export function GlitchView() {
               pr: 0.5,
             }}
           >
-            <Card sx={{ p: 2.5, borderRadius: 3 }}>
+            <Card sx={{ p: 2.5, borderRadius: 2 }}>
               <Box
                 sx={{
                   display: 'flex',

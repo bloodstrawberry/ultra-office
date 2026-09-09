@@ -330,7 +330,7 @@ export function VideoMergePanel() {
           <video
             controls
             src={mergedBlobUrl}
-            style={{ width: '100%', maxHeight: 300, borderRadius: 8, backgroundColor: '#000000' }}
+            style={{ width: '100%', maxHeight: 300, borderRadius: 4, backgroundColor: '#000000' }}
           />
 
           <Button

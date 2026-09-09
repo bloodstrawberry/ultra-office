@@ -21,7 +21,7 @@ export const HTML_TEMPLATES: CodeTemplate[] = [
   <style>
     body { font-family: system-ui, sans-serif; margin: 0; background: #f8fafc; color: #1e293b; }
     header { background: #0284c7; color: white; padding: 16px; text-align: center; }
-    main { max-width: 600px; margin: 20px auto; padding: 16px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    main { max-width: 600px; margin: 20px auto; padding: 16px; background: white; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     footer { text-align: center; padding: 16px; color: #94a3b8; font-size: 12px; }
   </style>
 </head>
@@ -55,7 +55,7 @@ export const HTML_TEMPLATES: CodeTemplate[] = [
   <style>
     body { font-family: sans-serif; padding: 20px; background: #0f172a; color: white; }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
-    .card { background: #1e293b; padding: 16px; border-radius: 8px; border: 1px solid #334155; text-align: center; }
+    .card { background: #1e293b; padding: 16px; border-radius: 4px; border: 1px solid #334155; text-align: center; }
     .card:hover { border-color: #38bdf8; }
   </style>
 </head>
@@ -146,7 +146,7 @@ export const HTML_TEMPLATES: CodeTemplate[] = [
 <html>
 <body style="font-family: sans-serif; padding: 20px; text-align: center;">
   <h3 id="txt">버튼을 클릭하세요</h3>
-  <button id="btn" style="padding: 8px 16px; background: #0284c7; color: white; border: none; border-radius: 6px; cursor: pointer;">
+  <button id="btn" style="padding: 8px 16px; background: #0284c7; color: white; border: none; border-radius: 3px; cursor: pointer;">
     클릭 이벤트
   </button>
   <script>
@@ -176,7 +176,7 @@ export const HTML_TEMPLATES: CodeTemplate[] = [
 <head>
   <style>
     body { margin: 0; height: 100vh; display: flex; justify-content: center; align-items: center; background: linear-gradient(45deg, #0ea5e9, #8b5cf6); font-family: sans-serif; }
-    .card { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 16px; padding: 24px; color: white; width: 260px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+    .card { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 4px; padding: 24px; color: white; width: 260px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
   </style>
 </head>
 <body>
@@ -235,7 +235,7 @@ export const HTML_TEMPLATES: CodeTemplate[] = [
 <html>
 <body style="font-family: sans-serif; padding: 20px;">
   <h3>📝 자동 저장 메모장</h3>
-  <textarea id="note" style="width: 100%; height: 100px; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1;" placeholder="메모 입력..."></textarea>
+  <textarea id="note" style="width: 100%; height: 100px; padding: 8px; border-radius: 3px; border: 1px solid #cbd5e1;" placeholder="메모 입력..."></textarea>
   <script>
     const el = document.getElementById('note');
     el.value = localStorage.getItem('omni_note') || '';
@@ -287,7 +287,7 @@ export const HTML_TEMPLATES: CodeTemplate[] = [
 <head>
   <style>
     body { font-family: sans-serif; display: flex; gap: 16px; padding: 20px; }
-    .box { width: 120px; height: 120px; border: 2px dashed #94a3b8; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+    .box { width: 120px; height: 120px; border: 2px dashed #94a3b8; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
     .item { padding: 8px 12px; background: #0284c7; color: white; border-radius: 4px; cursor: grab; }
   </style>
 </head>
@@ -376,7 +376,7 @@ export const HTML_TEMPLATES: CodeTemplate[] = [
   <div style="margin-bottom: 8px;">
     <button onclick="ctx.clearRect(0,0,320,180)" style="padding: 4px 12px; cursor: pointer;">지우기</button>
   </div>
-  <canvas id="pad" width="320" height="180" style="background: white; border: 1px solid #cbd5e1; border-radius: 8px; cursor: crosshair;"></canvas>
+  <canvas id="pad" width="320" height="180" style="background: white; border: 1px solid #cbd5e1; border-radius: 4px; cursor: crosshair;"></canvas>
   <script>
     const pad = document.getElementById('pad');
     const ctx = pad.getContext('2d');
@@ -461,7 +461,7 @@ export const HTML_TEMPLATES: CodeTemplate[] = [
       'index.html': `<!DOCTYPE html>
 <html>
 <body style="margin: 0; background: #0f172a; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif;">
-  <canvas id="gc" width="320" height="200" style="border: 1px solid #334155; border-radius: 8px;"></canvas>
+  <canvas id="gc" width="320" height="200" style="border: 1px solid #334155; border-radius: 4px;"></canvas>
   <script>
     const c = document.getElementById('gc'), ctx = c.getContext('2d');
     let x = 160, y = 160, dx = 2, dy = -2, px = 120;
@@ -840,7 +840,7 @@ export const HTML_TEMPLATES: CodeTemplate[] = [
       position: absolute; top: 16px; left: 16px;
       color: #38bdf8; font-family: monospace; font-size: 13px;
       background: rgba(15, 23, 42, 0.8); padding: 8px 14px;
-      border-radius: 8px; border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 4px; border: 1px solid rgba(56, 189, 248, 0.3);
       pointer-events: none;
     }
   </style>

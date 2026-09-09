@@ -268,7 +268,7 @@ export function ColorPickerView() {
             <Card
               sx={{
                 p: 2,
-                borderRadius: 3,
+                borderRadius: 2,
                 display: 'flex',
                 flexDirection: 'column',
                 flex: '1 1 auto',
@@ -422,7 +422,7 @@ export function ColorPickerView() {
             }}
           >
             {/* Main Swatch Card */}
-            <Card sx={{ p: 2, borderRadius: 2.5, flexShrink: 0 }}>
+            <Card sx={{ p: 2, borderRadius: 2, flexShrink: 0 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.75, mb: 1.5 }}>
                 <Box
                   sx={{
@@ -450,7 +450,7 @@ export function ColorPickerView() {
                   style={{
                     width: 40,
                     height: 40,
-                    borderRadius: 8,
+                    borderRadius: 2,
                     border: 'none',
                     cursor: 'pointer',
                     flexShrink: 0,
@@ -492,7 +492,7 @@ export function ColorPickerView() {
             <Card
               sx={{
                 p: 2,
-                borderRadius: 2.5,
+                borderRadius: 2,
                 display: 'flex',
                 flexDirection: 'column',
                 flex: '1 1 auto',

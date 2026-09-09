@@ -134,7 +134,7 @@ export function ParameterPanel({
                       style={{
                         width: 32,
                         height: 28,
-                        borderRadius: 6,
+                        borderRadius: 2,
                         border: '1px solid rgba(128,128,128,0.3)',
                         cursor: 'pointer',
                         background: 'none',

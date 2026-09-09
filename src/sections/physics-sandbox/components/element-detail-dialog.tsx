@@ -186,7 +186,7 @@ export function ElementDetailDialog({
       fullWidth
       sx={{
         '& .MuiDialog-paper': {
-          borderRadius: 3,
+          borderRadius: 2,
           bgcolor: 'background.paper',
           p: { xs: 2.5, sm: 3.5 },
           position: 'relative',
@@ -211,7 +211,7 @@ export function ElementDetailDialog({
             width: { xs: '100%', sm: 260 },
             height: 240,
             bgcolor: '#090d16',
-            borderRadius: 2.5,
+            borderRadius: 2,
             border: '1.5px solid rgba(255, 255, 255, 0.1)',
             position: 'relative',
             display: 'flex',

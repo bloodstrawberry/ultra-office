@@ -112,7 +112,7 @@ export function IdeSidebar({
         overflowY: 'auto',
         flexShrink: 0,
         '&::-webkit-scrollbar': { width: 6 },
-        '&::-webkit-scrollbar-thumb': { bgcolor: currentTheme.uiColors.border, borderRadius: 3 },
+        '&::-webkit-scrollbar-thumb': { bgcolor: currentTheme.uiColors.border, borderRadius: 2 },
       }}
     >
       {/* ============================================================ */}

@@ -305,7 +305,7 @@ export function ScanView() {
               <Card
                 sx={{
                   p: 2,
-                  borderRadius: 3,
+                  borderRadius: 2,
                   display: 'flex',
                   flexDirection: 'column',
                   flex: '1 1 auto',
@@ -378,7 +378,7 @@ export function ScanView() {
             )}
 
             {/* Document list strip */}
-            <Card sx={{ p: 2, borderRadius: 3, flexShrink: 0, maxHeight: 180 }}>
+            <Card sx={{ p: 2, borderRadius: 2, flexShrink: 0, maxHeight: 180 }}>
               <Box
                 sx={{
                   display: 'flex',
@@ -578,7 +578,7 @@ export function ScanView() {
             }}
           >
             {/* Presets Selector Card */}
-            <Card sx={{ p: 2, borderRadius: 3 }}>
+            <Card sx={{ p: 2, borderRadius: 2 }}>
               <Box
                 sx={{
                   display: 'flex',
@@ -650,7 +650,7 @@ export function ScanView() {
             </Card>
 
             {/* Detailed Sliders Card */}
-            <Card sx={{ p: 2, borderRadius: 3 }}>
+            <Card sx={{ p: 2, borderRadius: 2 }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2 }}>
                 정밀 스캔 파라미터 조절
               </Typography>

@@ -96,7 +96,7 @@ const StyledTreeItem = styled(TreeItem)(({ theme }) => ({
     margin: theme.spacing(0.2, 0),
     minHeight: 28,
     minWidth: 0,
-    borderRadius: '6px',
+    borderRadius: '3px',
     fontWeight: theme.typography.fontWeightMedium,
     transition: theme.transitions.create(['background-color', 'color'], {
       duration: theme.transitions.duration.shorter,
@@ -315,7 +315,7 @@ export function FileManagerSidebar({
     },
     '&::-webkit-scrollbar-thumb': {
       backgroundColor: (theme: any) => theme.vars.palette.divider,
-      borderRadius: 10,
+      borderRadius: 2,
     },
     '&::-webkit-scrollbar-thumb:hover': {
       backgroundColor: (theme: any) => theme.vars.palette.text.disabled,

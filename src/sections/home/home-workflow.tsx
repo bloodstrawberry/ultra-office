@@ -75,7 +75,7 @@ export function HomeWorkflow() {
                 sx={{
                   p: { xs: 3, md: 4 },
                   height: '100%',
-                  borderRadius: 3,
+                  borderRadius: 2,
                   position: 'relative',
                   overflow: 'hidden',
                   bgcolor: (t) => alpha(t.palette.background.paper, 0.7),

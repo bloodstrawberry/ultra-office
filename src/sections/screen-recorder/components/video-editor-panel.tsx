@@ -222,7 +222,7 @@ export function VideoEditorPanel({ media }: VideoEditorPanelProps) {
             <LinearProgress
               variant="determinate"
               value={gifProgress}
-              sx={{ height: 8, borderRadius: 4 }}
+              sx={{ height: 8, borderRadius: 1 }}
             />
           </Box>
         ) : (

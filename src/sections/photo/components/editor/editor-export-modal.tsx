@@ -98,7 +98,7 @@ export function EditorExportModal({ open, onClose, originalImage }: EditorExport
       fullWidth
       sx={{
         '& .MuiDialog-paper': {
-          borderRadius: 3,
+          borderRadius: 2,
           p: 2.5,
           bgcolor: 'background.paper',
         },

@@ -60,7 +60,7 @@ export function OthelloBoard({
         userSelect: 'none',
         p: { xs: 1, sm: 2 },
         bgcolor: '#14532d',
-        borderRadius: 3,
+        borderRadius: 2,
         boxShadow: '0 12px 32px rgba(0, 0, 0, 0.25)',
         border: '4px solid #0f391f',
       }}

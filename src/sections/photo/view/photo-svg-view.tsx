@@ -489,7 +489,7 @@ export function PhotoSvgView() {
         {currentTab === 'toSvg' && (
           <>
             {!rasterImageUrl ? (
-              <Card sx={{ p: 3, borderRadius: 3, height: '100%', minHeight: 500 }}>
+              <Card sx={{ p: 3, borderRadius: 2, height: '100%', minHeight: 500 }}>
                 <PhotoUploadWorkspace
                   sampleImages={SAMPLE_RASTER_IMAGES.map((s) => ({
                     id: s.id,
@@ -545,7 +545,7 @@ export function PhotoSvgView() {
                   <Card
                     sx={{
                       p: { xs: 1.5, sm: 2 },
-                      borderRadius: 3,
+                      borderRadius: 2,
                       flex: '1 1 auto',
                       minHeight: 0,
                       height: '100%',
@@ -920,7 +920,7 @@ export function PhotoSvgView() {
                   <Card
                     sx={{
                       p: 2.5,
-                      borderRadius: 3,
+                      borderRadius: 2,
                       display: 'flex',
                       flexDirection: 'column',
                       gap: 2.5,
@@ -954,7 +954,7 @@ export function PhotoSvgView() {
                           gridTemplateColumns: '1fr 1fr',
                           gap: 0.5,
                           '& .MuiToggleButton-root': {
-                            borderRadius: '8px !important',
+                            borderRadius: '3px !important',
                             border: '1px solid',
                             borderColor: 'divider',
                             fontWeight: 700,
@@ -1179,7 +1179,7 @@ export function PhotoSvgView() {
         {currentTab === 'toImage' && (
           <>
             {!svgInputCode ? (
-              <Card sx={{ p: 3, borderRadius: 3, height: '100%', minHeight: 500 }}>
+              <Card sx={{ p: 3, borderRadius: 2, height: '100%', minHeight: 500 }}>
                 {/* SVG 전용 업로드 워크스페이스 (다른 스튜디오와 동일 통일감) */}
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, height: '100%' }}>
                   <Box
@@ -1223,7 +1223,7 @@ export function PhotoSvgView() {
                         sx={{
                           p: 2,
                           cursor: 'pointer',
-                          borderRadius: 2.5,
+                          borderRadius: 2,
                           border: '1px solid',
                           borderColor: 'divider',
                           transition: 'all 0.2s',
@@ -1289,7 +1289,7 @@ export function PhotoSvgView() {
                       border: '2px dashed',
                       borderColor: isDragActive ? 'primary.main' : 'divider',
                       bgcolor: isDragActive ? 'primary.lighter' : 'background.neutral',
-                      borderRadius: 3,
+                      borderRadius: 2,
                       p: { xs: 3, sm: 4 },
                       textAlign: 'center',
                       cursor: 'pointer',
@@ -1365,7 +1365,7 @@ export function PhotoSvgView() {
                   <Card
                     sx={{
                       p: { xs: 1.5, sm: 2 },
-                      borderRadius: 3,
+                      borderRadius: 2,
                       flex: '1 1 auto',
                       minHeight: 0,
                       height: '100%',
@@ -1707,7 +1707,7 @@ export function PhotoSvgView() {
                   <Card
                     sx={{
                       p: 2.5,
-                      borderRadius: 3,
+                      borderRadius: 2,
                       display: 'flex',
                       flexDirection: 'column',
                       gap: 2.5,
@@ -1741,7 +1741,7 @@ export function PhotoSvgView() {
                           gridTemplateColumns: 'repeat(4, 1fr)',
                           gap: 0.5,
                           '& .MuiToggleButton-root': {
-                            borderRadius: '8px !important',
+                            borderRadius: '3px !important',
                             border: '1px solid',
                             borderColor: 'divider',
                             fontWeight: 700,
@@ -1787,7 +1787,7 @@ export function PhotoSvgView() {
                           gridTemplateColumns: 'repeat(3, 1fr)',
                           gap: 0.5,
                           '& .MuiToggleButton-root': {
-                            borderRadius: '8px !important',
+                            borderRadius: '3px !important',
                             border: '1px solid',
                             borderColor: 'divider',
                             fontWeight: 700,
@@ -1888,7 +1888,7 @@ export function PhotoSvgView() {
         fullWidth
         sx={{
           '& .MuiDialog-paper': {
-            borderRadius: 3,
+            borderRadius: 2,
             p: 1,
             height: '80vh',
             display: 'flex',
@@ -1992,7 +1992,7 @@ export function PhotoSvgView() {
         fullWidth
         sx={{
           '& .MuiDialog-paper': {
-            borderRadius: 3,
+            borderRadius: 2,
             p: 1,
           },
         }}

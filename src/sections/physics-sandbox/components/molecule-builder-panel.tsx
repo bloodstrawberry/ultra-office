@@ -489,7 +489,7 @@ export function MoleculeBuilderPanel({ onNavigateToCodex }: MoleculeBuilderPanel
           height: { xs: 380, sm: 460 },
           bgcolor: '#070b14',
           border: '1.5px solid #1e293b',
-          borderRadius: 2.5,
+          borderRadius: 2,
           position: 'relative',
           display: 'flex',
           alignItems: 'center',
@@ -627,7 +627,7 @@ export function MoleculeBuilderPanel({ onNavigateToCodex }: MoleculeBuilderPanel
           fullWidth
           sx={{
             '& .MuiDialog-paper': {
-              borderRadius: 3,
+              borderRadius: 2,
               p: 3.5,
               textAlign: 'center',
               bgcolor: 'background.paper',
@@ -686,7 +686,7 @@ export function MoleculeBuilderPanel({ onNavigateToCodex }: MoleculeBuilderPanel
         fullWidth
         sx={{
           '& .MuiDialog-paper': {
-            borderRadius: 3,
+            borderRadius: 2,
             p: 3,
             maxHeight: '80vh',
           },

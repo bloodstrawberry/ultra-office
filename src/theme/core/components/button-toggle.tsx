@@ -84,6 +84,7 @@ const MuiToggleButton: Components<Theme>['MuiToggleButton'] = {
   // ▼▼▼▼▼▼▼▼ 🎨 STYLE ▼▼▼▼▼▼▼▼
   styleOverrides: {
     root: ({ theme }) => ({
+      borderRadius: 3,
       gap: 8,
       minWidth: 'var(--size)',
       minHeight: 'var(--size)',
@@ -98,6 +99,7 @@ const MuiToggleButtonGroup: Components<Theme>['MuiToggleButtonGroup'] = {
   // ▼▼▼▼▼▼▼▼ 🎨 STYLE ▼▼▼▼▼▼▼▼
   styleOverrides: {
     root: ({ theme }) => ({
+      borderRadius: 3,
       ...DIMENSIONS.group,
       gap: 'var(--group-gap)',
       padding: 'var(--group-gap)',

@@ -875,7 +875,7 @@ export function OpicDriveView() {
     },
     '&::-webkit-scrollbar-thumb': {
       backgroundColor: (theme: any) => theme.vars.palette.divider,
-      borderRadius: 10,
+      borderRadius: 2,
     },
     '&::-webkit-scrollbar-thumb:hover': {
       backgroundColor: (theme: any) => theme.vars.palette.text.disabled,

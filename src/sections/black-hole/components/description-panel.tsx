@@ -37,7 +37,7 @@ export function DescriptionPanel({ config }: DescriptionPanelProps) {
         width: 'calc(100% - 32px)',
         maxWidth: 720,
         p: 2,
-        borderRadius: 3,
+        borderRadius: 2,
         backdropFilter: 'blur(16px)',
         bgcolor: 'rgba(15, 23, 42, 0.85)',
         border: '1px solid rgba(56, 189, 248, 0.35)',

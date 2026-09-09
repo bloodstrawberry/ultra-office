@@ -111,7 +111,7 @@ export function CodeExportDialog({
           bgcolor: currentTheme.uiColors.surface,
           color: currentTheme.uiColors.text,
           border: `1px solid ${currentTheme.uiColors.border}`,
-          borderRadius: 2.5,
+          borderRadius: 2,
           boxShadow: '0 24px 48px rgba(0, 0, 0, 0.4)',
         },
       }}

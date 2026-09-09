@@ -840,6 +840,14 @@ export function FourCutView() {
         minHeight: 0,
         height: '100%',
         pb: { xs: 2, sm: 3 },
+        '& .MuiCard-root': { borderRadius: '4px' },
+        '& .MuiButton-root': { borderRadius: '3px' },
+        '& .MuiToggleButtonGroup-root': { borderRadius: '3px' },
+        '& .MuiToggleButton-root': { borderRadius: '3px' },
+        '& .MuiOutlinedInput-root': { borderRadius: '3px' },
+        '& .MuiTab-root': { borderRadius: '3px' },
+        '& .MuiSlider-rail, & .MuiSlider-track': { borderRadius: '2px' },
+        '& .MuiSlider-thumb': { borderRadius: '3px' },
       }}
     >
       <Box sx={{ mb: 2, flexShrink: 0 }}>
@@ -890,7 +898,7 @@ export function FourCutView() {
             {...getRootProps()}
             sx={{
               p: 2,
-              borderRadius: 3,
+              borderRadius: '4px',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
@@ -961,7 +969,7 @@ export function FourCutView() {
                         alignItems: 'center',
                         justifyContent: 'center',
                         p: '4px',
-                        borderRadius: '8px',
+                        borderRadius: '3px',
                         border: isSelected ? '2px dashed #00B8D9' : '2px dashed transparent',
                         bgcolor: isSelected ? 'rgba(0, 184, 217, 0.16)' : 'transparent',
                         transition: isDraggingSticker
@@ -1010,7 +1018,7 @@ export function FourCutView() {
                             right: -10,
                             width: 22,
                             height: 22,
-                            borderRadius: '50%',
+                            borderRadius: '4px',
                             bgcolor: 'error.main',
                             color: '#ffffff',
                             display: 'flex',
@@ -1079,7 +1087,7 @@ export function FourCutView() {
               width: '2px',
               height: '100%',
               bgcolor: 'divider',
-              borderRadius: '1px',
+              borderRadius: '2px',
               transition: 'all 0.15s ease',
             }}
           />
@@ -1092,7 +1100,7 @@ export function FourCutView() {
               transform: 'translateY(-50%)',
               width: 14,
               height: 36,
-              borderRadius: 1,
+              borderRadius: '3px',
               bgcolor: 'background.paper',
               border: '1px solid',
               borderColor: 'divider',
@@ -1114,7 +1122,7 @@ export function FourCutView() {
                   width: 1.5,
                   height: '100%',
                   bgcolor: 'text.disabled',
-                  borderRadius: 1,
+                  borderRadius: '2px',
                   transition: 'all 0.15s ease',
                 },
               }}
@@ -1143,7 +1151,7 @@ export function FourCutView() {
           }}
         >
           {/* Top Pinned: Photo Slots Manager */}
-          <Card sx={{ p: 2, borderRadius: 2.5, flexShrink: 0 }}>
+          <Card sx={{ p: 2, borderRadius: '4px', flexShrink: 0 }}>
             <Box
               sx={{
                 display: 'flex',
@@ -1160,6 +1168,7 @@ export function FourCutView() {
                 startIcon={<AddPhotoAlternateRoundedIcon />}
                 onClick={() => fileInputRef.current?.click()}
                 disabled={images.length >= maxSlots}
+                sx={{ borderRadius: '3px' }}
               >
                 사진 추가
               </Button>
@@ -1186,7 +1195,7 @@ export function FourCutView() {
                     onClick={() => !img && fileInputRef.current?.click()}
                     sx={{
                       aspectRatio: '1',
-                      borderRadius: 1.5,
+                      borderRadius: '3px',
                       bgcolor: 'action.hover',
                       border: '1px dashed',
                       borderColor: img ? 'transparent' : 'divider',
@@ -1216,6 +1225,7 @@ export function FourCutView() {
                             top: 2,
                             right: 2,
                             p: 0.3,
+                            borderRadius: '3px',
                             bgcolor: 'rgba(0,0,0,0.6)',
                             color: '#fff',
                             '&:hover': { bgcolor: '#ef4444' },
@@ -1239,7 +1249,7 @@ export function FourCutView() {
                 variant="outlined"
                 color="primary"
                 onClick={() => handleLoadSampleSet('portrait')}
-                sx={{ flex: 1, fontSize: '0.7rem', py: 0.4, borderRadius: 1.5, fontWeight: 700 }}
+                sx={{ flex: 1, fontSize: '0.7rem', py: 0.4, borderRadius: '3px', fontWeight: 700 }}
               >
                 ✨ 감성 인물 예시
               </Button>
@@ -1248,7 +1258,7 @@ export function FourCutView() {
                 variant="outlined"
                 color="secondary"
                 onClick={() => handleLoadSampleSet('pets')}
-                sx={{ flex: 1, fontSize: '0.7rem', py: 0.4, borderRadius: 1.5, fontWeight: 700 }}
+                sx={{ flex: 1, fontSize: '0.7rem', py: 0.4, borderRadius: '3px', fontWeight: 700 }}
               >
                 🐱 펫 예시
               </Button>
@@ -1258,7 +1268,7 @@ export function FourCutView() {
           {/* Middle: Tabbed Settings Card */}
           <Card
             sx={{
-              borderRadius: 2.5,
+              borderRadius: '4px',
               flex: '1 1 0px',
               minHeight: 0,
               display: 'flex',
@@ -1281,6 +1291,7 @@ export function FourCutView() {
                   px: 0.5,
                   fontSize: '0.75rem',
                   fontWeight: 700,
+                  borderRadius: '3px',
                 },
               }}
             >
@@ -1309,6 +1320,10 @@ export function FourCutView() {
                       onChange={(_, v) => v && setLayout(v)}
                       fullWidth
                       size="small"
+                      sx={{
+                        borderRadius: '3px',
+                        '& .MuiToggleButton-root': { borderRadius: '3px' },
+                      }}
                     >
                       <ToggleButton value="strip4">4컷 세로</ToggleButton>
                       <ToggleButton value="grid4">2×2 격자</ToggleButton>
@@ -1322,7 +1337,7 @@ export function FourCutView() {
                     <Box
                       sx={{
                         p: 1.5,
-                        borderRadius: 2,
+                        borderRadius: '4px',
                         bgcolor: (t) =>
                           t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'grey.100',
                         border: '1px solid',
@@ -1371,7 +1386,7 @@ export function FourCutView() {
                                 py: 0.3,
                                 px: 0.8,
                                 fontSize: '0.7rem',
-                                borderRadius: 1.5,
+                                borderRadius: '3px',
                                 fontWeight: isSelected ? 700 : 500,
                               }}
                             >
@@ -1390,7 +1405,7 @@ export function FourCutView() {
                             flexDirection: 'column',
                             gap: 0.5,
                             p: 0.8,
-                            borderRadius: 1.5,
+                            borderRadius: '3px',
                             bgcolor: 'background.paper',
                             border: '1px solid',
                             borderColor: 'divider',
@@ -1413,7 +1428,7 @@ export function FourCutView() {
                               size="small"
                               onClick={() => setCustomCols((prev) => Math.max(1, prev - 1))}
                               disabled={customCols <= 1}
-                              sx={{ p: 0.3 }}
+                              sx={{ p: 0.3, borderRadius: '2px' }}
                             >
                               <RemoveRoundedIcon fontSize="small" />
                             </IconButton>
@@ -1424,7 +1439,7 @@ export function FourCutView() {
                               size="small"
                               onClick={() => setCustomCols((prev) => Math.min(6, prev + 1))}
                               disabled={customCols >= 6}
-                              sx={{ p: 0.3 }}
+                              sx={{ p: 0.3, borderRadius: '2px' }}
                             >
                               <AddRoundedIcon fontSize="small" />
                             </IconButton>
@@ -1438,7 +1453,7 @@ export function FourCutView() {
                             flexDirection: 'column',
                             gap: 0.5,
                             p: 0.8,
-                            borderRadius: 1.5,
+                            borderRadius: '3px',
                             bgcolor: 'background.paper',
                             border: '1px solid',
                             borderColor: 'divider',
@@ -1461,7 +1476,7 @@ export function FourCutView() {
                               size="small"
                               onClick={() => setCustomRows((prev) => Math.max(1, prev - 1))}
                               disabled={customRows <= 1}
-                              sx={{ p: 0.3 }}
+                              sx={{ p: 0.3, borderRadius: '2px' }}
                             >
                               <RemoveRoundedIcon fontSize="small" />
                             </IconButton>
@@ -1472,7 +1487,7 @@ export function FourCutView() {
                               size="small"
                               onClick={() => setCustomRows((prev) => Math.min(6, prev + 1))}
                               disabled={customRows >= 6}
-                              sx={{ p: 0.3 }}
+                              sx={{ p: 0.3, borderRadius: '2px' }}
                             >
                               <AddRoundedIcon fontSize="small" />
                             </IconButton>
@@ -1500,14 +1515,27 @@ export function FourCutView() {
                           onChange={(_, v) => v && setCustomRatio(v)}
                           fullWidth
                           size="small"
+                          sx={{
+                            borderRadius: '3px',
+                            '& .MuiToggleButton-root': { borderRadius: '3px' },
+                          }}
                         >
-                          <ToggleButton value="4:3" sx={{ py: 0.4, fontSize: '0.72rem' }}>
+                          <ToggleButton
+                            value="4:3"
+                            sx={{ py: 0.4, fontSize: '0.72rem', borderRadius: '3px' }}
+                          >
                             4:3 (가로형)
                           </ToggleButton>
-                          <ToggleButton value="1:1" sx={{ py: 0.4, fontSize: '0.72rem' }}>
+                          <ToggleButton
+                            value="1:1"
+                            sx={{ py: 0.4, fontSize: '0.72rem', borderRadius: '3px' }}
+                          >
                             1:1 (정사각)
                           </ToggleButton>
-                          <ToggleButton value="3:4" sx={{ py: 0.4, fontSize: '0.72rem' }}>
+                          <ToggleButton
+                            value="3:4"
+                            sx={{ py: 0.4, fontSize: '0.72rem', borderRadius: '3px' }}
+                          >
                             3:4 (세로형)
                           </ToggleButton>
                         </ToggleButtonGroup>
@@ -1519,7 +1547,7 @@ export function FourCutView() {
                   <Box
                     sx={{
                       p: 1.5,
-                      borderRadius: 2,
+                      borderRadius: '4px',
                       bgcolor: (t) =>
                         t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'grey.100',
                       border: '1px solid',
@@ -1561,7 +1589,11 @@ export function FourCutView() {
                       onChange={(_, v) => setSlotGap(v as number)}
                       valueLabelDisplay="auto"
                       size="small"
-                      sx={{ mx: 0.5 }}
+                      sx={{
+                        mx: 0.5,
+                        '& .MuiSlider-rail, & .MuiSlider-track': { borderRadius: '2px' },
+                        '& .MuiSlider-thumb': { borderRadius: '3px' },
+                      }}
                     />
 
                     {/* Gap Preset Buttons */}
@@ -1585,7 +1617,7 @@ export function FourCutView() {
                               py: 0.3,
                               px: 0.5,
                               fontSize: '0.68rem',
-                              borderRadius: 1.5,
+                              borderRadius: '3px',
                               fontWeight: isSelected ? 700 : 500,
                             }}
                           >
@@ -1617,7 +1649,7 @@ export function FourCutView() {
                           variant={theme === t.id ? 'contained' : 'outlined'}
                           color={theme === t.id ? 'primary' : 'inherit'}
                           onClick={() => setTheme(t.id)}
-                          sx={{ borderRadius: 1.5, fontSize: '0.72rem', p: 0.7 }}
+                          sx={{ borderRadius: '3px', fontSize: '0.72rem', p: 0.7 }}
                         >
                           {t.name}
                         </Button>
@@ -1641,7 +1673,7 @@ export function FourCutView() {
                           variant={filter === f.id ? 'contained' : 'outlined'}
                           color={filter === f.id ? 'primary' : 'inherit'}
                           onClick={() => setFilter(f.id)}
-                          sx={{ borderRadius: 1.5, fontSize: '0.72rem', p: 0.7 }}
+                          sx={{ borderRadius: '3px', fontSize: '0.72rem', p: 0.7 }}
                         >
                           {f.name}
                         </Button>
@@ -1675,7 +1707,7 @@ export function FourCutView() {
                       sx={{
                         p: 3,
                         textAlign: 'center',
-                        borderRadius: 2,
+                        borderRadius: '4px',
                         border: '1.5px dashed',
                         borderColor: 'divider',
                         bgcolor: 'action.hover',
@@ -1699,7 +1731,7 @@ export function FourCutView() {
                           variant="outlined"
                           sx={{
                             p: 1.8,
-                            borderRadius: 2,
+                            borderRadius: '4px',
                             display: 'flex',
                             flexDirection: 'column',
                             gap: 1.3,
@@ -1721,7 +1753,7 @@ export function FourCutView() {
                                 sx={{
                                   px: 1,
                                   py: 0.3,
-                                  borderRadius: 1,
+                                  borderRadius: '2px',
                                   fontSize: '0.68rem',
                                   fontWeight: 800,
                                   bgcolor:
@@ -1746,7 +1778,7 @@ export function FourCutView() {
                                     bgcolor: 'action.hover',
                                     px: 0.8,
                                     py: 0.2,
-                                    borderRadius: 0.8,
+                                    borderRadius: '2px',
                                   }}
                                 >
                                   날짜
@@ -1765,7 +1797,7 @@ export function FourCutView() {
                                 fontSize: '0.7rem',
                                 py: 0.3,
                                 px: 1,
-                                borderRadius: 1.2,
+                                borderRadius: '3px',
                                 minWidth: 'auto',
                               }}
                             >
@@ -1781,6 +1813,9 @@ export function FourCutView() {
                             value={item.text}
                             onChange={(e) => updateFrameText(item.id, { text: e.target.value })}
                             placeholder={item.isDate ? '2026.09.09' : '문구를 입력하세요'}
+                            sx={{
+                              '& .MuiOutlinedInput-root': { borderRadius: '3px' },
+                            }}
                           />
 
                           {/* Quick presets (Date or Captions) */}
@@ -1795,7 +1830,7 @@ export function FourCutView() {
                                   const today = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
                                   updateFrameText(item.id, { text: today });
                                 }}
-                                sx={{ flex: 1, fontSize: '0.7rem', py: 0.3, borderRadius: 1 }}
+                                sx={{ flex: 1, fontSize: '0.7rem', py: 0.3, borderRadius: '3px' }}
                               >
                                 오늘 날짜
                               </Button>
@@ -1804,7 +1839,7 @@ export function FourCutView() {
                                 variant="outlined"
                                 color="inherit"
                                 onClick={() => updateFrameText(item.id, { text: '' })}
-                                sx={{ flex: 1, fontSize: '0.7rem', py: 0.3, borderRadius: 1 }}
+                                sx={{ flex: 1, fontSize: '0.7rem', py: 0.3, borderRadius: '3px' }}
                               >
                                 날짜 비우기
                               </Button>
@@ -1829,7 +1864,7 @@ export function FourCutView() {
                                     fontSize: '0.66rem',
                                     py: 0.2,
                                     px: 0.7,
-                                    borderRadius: 1,
+                                    borderRadius: '3px',
                                     bgcolor: 'background.paper',
                                   }}
                                 >
@@ -1868,12 +1903,22 @@ export function FourCutView() {
                                   if (val) updateFrameText(item.id, { position: val });
                                 }}
                                 fullWidth
+                                sx={{
+                                  borderRadius: '3px',
+                                  '& .MuiToggleButton-root': { borderRadius: '3px' },
+                                }}
                               >
-                                <ToggleButton value="top" sx={{ fontSize: '0.72rem', py: 0.4 }}>
+                                <ToggleButton
+                                  value="top"
+                                  sx={{ fontSize: '0.72rem', py: 0.4, borderRadius: '3px' }}
+                                >
                                   <VerticalAlignTopRoundedIcon sx={{ fontSize: 16, mr: 0.5 }} />{' '}
                                   상단
                                 </ToggleButton>
-                                <ToggleButton value="bottom" sx={{ fontSize: '0.72rem', py: 0.4 }}>
+                                <ToggleButton
+                                  value="bottom"
+                                  sx={{ fontSize: '0.72rem', py: 0.4, borderRadius: '3px' }}
+                                >
                                   <VerticalAlignBottomRoundedIcon sx={{ fontSize: 16, mr: 0.5 }} />{' '}
                                   하단
                                 </ToggleButton>
@@ -1900,14 +1945,30 @@ export function FourCutView() {
                                   if (val) updateFrameText(item.id, { align: val });
                                 }}
                                 fullWidth
+                                sx={{
+                                  borderRadius: '3px',
+                                  '& .MuiToggleButton-root': { borderRadius: '3px' },
+                                }}
                               >
-                                <ToggleButton value="left" sx={{ py: 0.4 }} title="왼쪽 정렬">
+                                <ToggleButton
+                                  value="left"
+                                  sx={{ py: 0.4, borderRadius: '3px' }}
+                                  title="왼쪽 정렬"
+                                >
                                   <FormatAlignLeftRoundedIcon sx={{ fontSize: 16 }} />
                                 </ToggleButton>
-                                <ToggleButton value="center" sx={{ py: 0.4 }} title="가운데 정렬">
+                                <ToggleButton
+                                  value="center"
+                                  sx={{ py: 0.4, borderRadius: '3px' }}
+                                  title="가운데 정렬"
+                                >
                                   <FormatAlignCenterRoundedIcon sx={{ fontSize: 16 }} />
                                 </ToggleButton>
-                                <ToggleButton value="right" sx={{ py: 0.4 }} title="오른쪽 정렬">
+                                <ToggleButton
+                                  value="right"
+                                  sx={{ py: 0.4, borderRadius: '3px' }}
+                                  title="오른쪽 정렬"
+                                >
                                   <FormatAlignRightRoundedIcon sx={{ fontSize: 16 }} />
                                 </ToggleButton>
                               </ToggleButtonGroup>
@@ -1957,6 +2018,10 @@ export function FourCutView() {
                                 onChange={(_, val) =>
                                   updateFrameText(item.id, { fontSize: val as number })
                                 }
+                                sx={{
+                                  '& .MuiSlider-rail, & .MuiSlider-track': { borderRadius: '2px' },
+                                  '& .MuiSlider-thumb': { borderRadius: '3px' },
+                                }}
                               />
                             </Box>
 
@@ -2002,6 +2067,7 @@ export function FourCutView() {
                                         p: 0,
                                         minWidth: 'auto',
                                         textDecoration: 'underline',
+                                        borderRadius: '2px',
                                       }}
                                     >
                                       가운데
@@ -2018,6 +2084,10 @@ export function FourCutView() {
                                 onChange={(_, val) =>
                                   updateFrameText(item.id, { offsetY: val as number })
                                 }
+                                sx={{
+                                  '& .MuiSlider-rail, & .MuiSlider-track': { borderRadius: '2px' },
+                                  '& .MuiSlider-thumb': { borderRadius: '3px' },
+                                }}
                               />
                             </Box>
                           </Box>
@@ -2055,7 +2125,7 @@ export function FourCutView() {
                             offsetY: -14,
                           });
                         }}
-                        sx={{ borderRadius: 1.5, fontSize: '0.72rem', py: 0.6 }}
+                        sx={{ borderRadius: '3px', fontSize: '0.72rem', py: 0.6 }}
                       >
                         + 하단 문구
                       </Button>
@@ -2076,7 +2146,7 @@ export function FourCutView() {
                             isDate: true,
                           });
                         }}
-                        sx={{ borderRadius: 1.5, fontSize: '0.72rem', py: 0.6 }}
+                        sx={{ borderRadius: '3px', fontSize: '0.72rem', py: 0.6 }}
                       >
                         + 하단 날짜
                       </Button>
@@ -2094,7 +2164,7 @@ export function FourCutView() {
                             offsetY: -12,
                           });
                         }}
-                        sx={{ borderRadius: 1.5, fontSize: '0.72rem', py: 0.6 }}
+                        sx={{ borderRadius: '3px', fontSize: '0.72rem', py: 0.6 }}
                       >
                         + 상단 문구
                       </Button>
@@ -2115,7 +2185,7 @@ export function FourCutView() {
                             isDate: true,
                           });
                         }}
-                        sx={{ borderRadius: 1.5, fontSize: '0.72rem', py: 0.6 }}
+                        sx={{ borderRadius: '3px', fontSize: '0.72rem', py: 0.6 }}
                       >
                         + 상단 날짜
                       </Button>
@@ -2135,7 +2205,7 @@ export function FourCutView() {
                         });
                       }}
                       sx={{
-                        borderRadius: 1.5,
+                        borderRadius: '3px',
                         borderStyle: 'dashed',
                         borderWidth: 1.5,
                         borderColor: 'primary.main',
@@ -2178,6 +2248,9 @@ export function FourCutView() {
                             handleAddCustomSticker();
                           }
                         }}
+                        sx={{
+                          '& .MuiOutlinedInput-root': { borderRadius: '3px' },
+                        }}
                       />
                       <Button
                         variant="contained"
@@ -2185,7 +2258,7 @@ export function FourCutView() {
                         onClick={() => handleAddCustomSticker()}
                         disabled={!customEmojiInput.trim()}
                         startIcon={<AddRoundedIcon />}
-                        sx={{ flexShrink: 0, px: 1.8, fontWeight: 700, borderRadius: 1.5 }}
+                        sx={{ flexShrink: 0, px: 1.8, fontWeight: 700, borderRadius: '3px' }}
                       >
                         추가
                       </Button>
@@ -2197,7 +2270,7 @@ export function FourCutView() {
                     <Box
                       sx={{
                         p: 1.5,
-                        borderRadius: 2,
+                        borderRadius: '4px',
                         bgcolor: (t) =>
                           t.palette.mode === 'dark'
                             ? 'rgba(0, 184, 217, 0.12)'
@@ -2227,7 +2300,7 @@ export function FourCutView() {
                             sx={{
                               px: 1,
                               py: 0.2,
-                              borderRadius: 1,
+                              borderRadius: '3px',
                               bgcolor: 'background.paper',
                               fontSize: '1.1rem',
                               fontWeight: 700,
@@ -2245,7 +2318,7 @@ export function FourCutView() {
                             variant="outlined"
                             color="inherit"
                             onClick={() => duplicateSticker(selectedSticker)}
-                            sx={{ fontSize: '0.7rem', py: 0.2, px: 0.8, borderRadius: 1 }}
+                            sx={{ fontSize: '0.7rem', py: 0.2, px: 0.8, borderRadius: '3px' }}
                           >
                             복제
                           </Button>
@@ -2260,7 +2333,7 @@ export function FourCutView() {
                               );
                               setSelectedStickerId(null);
                             }}
-                            sx={{ fontSize: '0.7rem', py: 0.2, px: 0.8, borderRadius: 1 }}
+                            sx={{ fontSize: '0.7rem', py: 0.2, px: 0.8, borderRadius: '3px' }}
                           >
                             삭제
                           </Button>
@@ -2304,6 +2377,10 @@ export function FourCutView() {
                             );
                           }}
                           size="small"
+                          sx={{
+                            '& .MuiSlider-rail, & .MuiSlider-track': { borderRadius: '2px' },
+                            '& .MuiSlider-thumb': { borderRadius: '3px' },
+                          }}
                         />
                       </Box>
                     </Box>
@@ -2349,7 +2426,7 @@ export function FourCutView() {
                                 px: cat.isText ? 0.6 : 0.4,
                                 fontSize: cat.isText ? '0.72rem' : '1.2rem',
                                 fontWeight: cat.isText ? 700 : 400,
-                                borderRadius: 1.5,
+                                borderRadius: '3px',
                                 bgcolor: 'background.paper',
                                 borderColor: 'divider',
                                 '&:hover': {
@@ -2373,7 +2450,7 @@ export function FourCutView() {
                     <Box
                       sx={{
                         p: 1.2,
-                        borderRadius: 2,
+                        borderRadius: '4px',
                         bgcolor: (t) =>
                           t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'grey.100',
                         border: '1px solid',
@@ -2401,7 +2478,7 @@ export function FourCutView() {
                             setStickers([]);
                             setSelectedStickerId(null);
                           }}
-                          sx={{ fontSize: '0.7rem', p: 0.2 }}
+                          sx={{ fontSize: '0.7rem', p: 0.2, borderRadius: '2px' }}
                         >
                           전체 초기화
                         </Button>
@@ -2417,7 +2494,7 @@ export function FourCutView() {
                               gap: 0.6,
                               px: 1,
                               py: 0.3,
-                              borderRadius: 1.5,
+                              borderRadius: '3px',
                               cursor: 'pointer',
                               bgcolor:
                                 selectedStickerId === st.id ? 'primary.main' : 'background.paper',
@@ -2492,7 +2569,7 @@ export function FourCutView() {
                 setSelectedStickerId(null);
               }}
               startIcon={<RefreshRoundedIcon />}
-              sx={{ py: 1, borderRadius: 2, fontWeight: 600, fontSize: '0.85rem' }}
+              sx={{ py: 1, borderRadius: '3px', fontWeight: 600, fontSize: '0.85rem' }}
             >
               다른 사진
             </Button>
@@ -2510,7 +2587,7 @@ export function FourCutView() {
                     <DownloadRoundedIcon />
                   )
                 }
-                sx={{ py: 1.1, borderRadius: 2, fontWeight: 700, fontSize: '0.9rem' }}
+                sx={{ py: 1.1, borderRadius: '3px', fontWeight: 700, fontSize: '0.9rem' }}
               >
                 저장
               </Button>
@@ -2521,7 +2598,7 @@ export function FourCutView() {
                 onClick={handleShare}
                 disabled={isProcessing || !resultDataUrl}
                 startIcon={<ShareRoundedIcon />}
-                sx={{ py: 1.1, borderRadius: 2, fontWeight: 600, fontSize: '0.9rem' }}
+                sx={{ py: 1.1, borderRadius: '3px', fontWeight: 600, fontSize: '0.9rem' }}
               >
                 공유
               </Button>

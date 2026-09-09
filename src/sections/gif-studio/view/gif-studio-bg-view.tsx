@@ -197,7 +197,7 @@ export function GifStudioBgView() {
               cursor: 'pointer',
               border: '2px dashed',
               borderColor: 'divider',
-              borderRadius: 3,
+              borderRadius: 2,
               flex: '1 1 auto',
               minHeight: 180,
               transition: 'all 0.2s',
@@ -258,7 +258,7 @@ export function GifStudioBgView() {
             <Card
               sx={{
                 p: 2,
-                borderRadius: 3,
+                borderRadius: 2,
                 display: 'flex',
                 flexDirection: 'column',
                 flex: '1 1 auto',
@@ -329,7 +329,7 @@ export function GifStudioBgView() {
             }}
           >
             <Card
-              sx={{ p: 2.5, borderRadius: 3, display: 'flex', flexDirection: 'column', gap: 2 }}
+              sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}
             >
               <Typography variant="caption" sx={{ fontWeight: 600, display: 'block' }}>
                 배경 처리 모드
@@ -358,7 +358,7 @@ export function GifStudioBgView() {
                       style={{
                         width: 50,
                         height: 40,
-                        borderRadius: 6,
+                        borderRadius: 2,
                         border: 'none',
                         cursor: 'pointer',
                       }}
@@ -384,7 +384,7 @@ export function GifStudioBgView() {
                       style={{
                         width: 50,
                         height: 40,
-                        borderRadius: 6,
+                        borderRadius: 2,
                         border: 'none',
                         cursor: 'pointer',
                       }}

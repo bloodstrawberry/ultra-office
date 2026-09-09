@@ -101,7 +101,7 @@ export function ChatMessageItem({
             color: '#FFFFFF',
             px: 1.8,
             py: 0.6,
-            borderRadius: 5,
+            borderRadius: 1.5,
             fontSize: 11.5,
             fontWeight: 500,
             textAlign: 'center',

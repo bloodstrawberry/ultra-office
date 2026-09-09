@@ -358,7 +358,7 @@ export function AsciiView() {
             <Card
               sx={{
                 p: 2,
-                borderRadius: 3,
+                borderRadius: 2,
                 display: 'flex',
                 flexDirection: 'column',
                 flex: '1 1 auto',
@@ -542,7 +542,7 @@ export function AsciiView() {
               pr: 0.5,
             }}
           >
-            <Card sx={{ p: 2.5, borderRadius: 3 }}>
+            <Card sx={{ p: 2.5, borderRadius: 2 }}>
               {/* Charset Selector */}
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
                 1. 문자 세트

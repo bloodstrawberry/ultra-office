@@ -54,3 +54,81 @@ input[type='number']::-webkit-inner-spin-button {
   margin: 0;
   -webkit-appearance: none;
 }
+
+/** **************************************
+ * Border Radius Normalization (2px ~ 4px)
+ *************************************** */
+.MuiCard-root {
+  border-radius: 4px !important;
+}
+
+.MuiDialog-paper:not(.MuiDialog-paperFullScreen) {
+  border-radius: 4px !important;
+}
+
+.MuiPopover-paper,
+.MuiMenu-paper {
+  border-radius: 4px !important;
+}
+
+.MuiAlert-root {
+  border-radius: 4px !important;
+}
+
+.MuiAccordion-root {
+  border-radius: 4px !important;
+}
+
+.MuiButton-root:not(.MuiButton-fab):not([class*='rounded-full']):not([class*='circle']) {
+  border-radius: 3px !important;
+}
+
+.MuiButtonGroup-root {
+  border-radius: 3px !important;
+}
+
+.MuiToggleButton-root,
+.MuiToggleButtonGroup-root {
+  border-radius: 3px !important;
+}
+
+.MuiOutlinedInput-root,
+.MuiOutlinedInput-notchedOutline {
+  border-radius: 3px !important;
+}
+
+.MuiFilledInput-root {
+  border-radius: 3px !important;
+}
+
+.MuiChip-root {
+  border-radius: 3px !important;
+}
+
+.MuiLinearProgress-root,
+.MuiLinearProgress-bar {
+  border-radius: 2px !important;
+}
+
+.MuiSlider-rail,
+.MuiSlider-track {
+  border-radius: 2px !important;
+}
+
+.MuiSlider-valueLabel {
+  border-radius: 3px !important;
+}
+
+.MuiTabs-indicator,
+.MuiTabs-indicator::before {
+  border-radius: 3px !important;
+}
+
+.MuiTooltip-tooltip {
+  border-radius: 3px !important;
+}
+
+.MuiSkeleton-root:not(.MuiSkeleton-circular) {
+  border-radius: 4px !important;
+}
+

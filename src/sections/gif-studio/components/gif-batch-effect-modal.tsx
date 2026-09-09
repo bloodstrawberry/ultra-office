@@ -525,7 +525,7 @@ export function GifBatchEffectModal({ open, onClose, frames, onApplySuccess }: P
           maxWidth: '1600px',
           height: { xs: '98vh', md: '94vh' },
           maxHeight: '96vh',
-          borderRadius: 3,
+          borderRadius: 2,
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
@@ -674,7 +674,7 @@ export function GifBatchEffectModal({ open, onClose, frames, onApplySuccess }: P
               flexDirection: 'column',
               gap: 1,
               '&::-webkit-scrollbar': { width: 6 },
-              '&::-webkit-scrollbar-thumb': { bgcolor: 'divider', borderRadius: 3 },
+              '&::-webkit-scrollbar-thumb': { bgcolor: 'divider', borderRadius: 2 },
             }}
           >
             {filteredEffects.map((eff) => {
@@ -966,7 +966,7 @@ export function GifBatchEffectModal({ open, onClose, frames, onApplySuccess }: P
               flex: '1 1 auto',
               minHeight: 0,
               position: 'relative',
-              borderRadius: 2.5,
+              borderRadius: 2,
               overflow: 'hidden',
               display: 'flex',
               alignItems: 'center',
@@ -1339,7 +1339,7 @@ export function GifBatchEffectModal({ open, onClose, frames, onApplySuccess }: P
             sx={{
               p: 1.25,
               px: 2,
-              borderRadius: 2.5,
+              borderRadius: 2,
               bgcolor: 'rgba(255,255,255,0.04)',
               border: '1px solid rgba(255,255,255,0.08)',
               display: 'flex',
@@ -1549,11 +1549,11 @@ export function GifBatchEffectModal({ open, onClose, frames, onApplySuccess }: P
             gap: 2,
             bgcolor: 'background.paper',
             '&::-webkit-scrollbar': { width: 6 },
-            '&::-webkit-scrollbar-thumb': { bgcolor: 'divider', borderRadius: 3 },
+            '&::-webkit-scrollbar-thumb': { bgcolor: 'divider', borderRadius: 2 },
           }}
         >
           {/* 1. Selected Effect Specific Controls */}
-          <Card sx={{ p: 2, borderRadius: 2.5 }}>
+          <Card sx={{ p: 2, borderRadius: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
               <Typography sx={{ fontSize: '1.2rem' }}>{selectedEffect.icon}</Typography>
               <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
@@ -1575,7 +1575,7 @@ export function GifBatchEffectModal({ open, onClose, frames, onApplySuccess }: P
           </Card>
 
           {/* 2. Split Compare Range Sliders */}
-          <Card sx={{ p: 2, borderRadius: 2.5 }}>
+          <Card sx={{ p: 2, borderRadius: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
               <CompareArrowsRoundedIcon fontSize="small" color="primary" />
               <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
@@ -1650,7 +1650,7 @@ export function GifBatchEffectModal({ open, onClose, frames, onApplySuccess }: P
           </Card>
 
           {/* 3. Output GIF Controls */}
-          <Card sx={{ p: 2, borderRadius: 2.5 }}>
+          <Card sx={{ p: 2, borderRadius: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
               <TuneRoundedIcon fontSize="small" color="primary" />
               <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>

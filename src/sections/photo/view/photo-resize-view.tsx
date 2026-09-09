@@ -685,7 +685,7 @@ export function ResizeView() {
         {currentTab === 'single' && (
           <>
             {!singleOrigUrl ? (
-              <Card sx={{ p: 3, borderRadius: 3, height: '100%', minHeight: 500 }}>
+              <Card sx={{ p: 3, borderRadius: 2, height: '100%', minHeight: 500 }}>
                 <PhotoUploadWorkspace
                   sampleImages={RESIZE_SAMPLE_IMAGES}
                   onSelectSample={handleSelectSingleSample}
@@ -722,7 +722,7 @@ export function ResizeView() {
                   <Card
                     sx={{
                       p: { xs: 1.5, sm: 2 },
-                      borderRadius: 3,
+                      borderRadius: 2,
                       flex: '1 1 auto',
                       minHeight: 0,
                       height: '100%',
@@ -939,7 +939,7 @@ export function ResizeView() {
                   }}
                 >
                   {/* Mode Switcher Tabs: 픽셀별 vs 퍼센트별 */}
-                  <Card sx={{ p: 0.75, borderRadius: 2.5, bgcolor: 'background.neutral' }}>
+                  <Card sx={{ p: 0.75, borderRadius: 2, bgcolor: 'background.neutral' }}>
                     <Tabs
                       value={resizeMode}
                       onChange={(_, v) => setResizeMode(v)}
@@ -987,7 +987,7 @@ export function ResizeView() {
                   {resizeMode === 'pixel' && (
                     <>
                       {/* 1. Dimensions (너비 / 높이 설정) Card */}
-                      <Card sx={{ p: 2.5, borderRadius: 3 }}>
+                      <Card sx={{ p: 2.5, borderRadius: 2 }}>
                         <Box
                           sx={{
                             display: 'flex',
@@ -1127,7 +1127,7 @@ export function ResizeView() {
                       </Card>
 
                       {/* 2. Preset Resolutions Card */}
-                      <Card sx={{ p: 2.5, borderRadius: 3 }}>
+                      <Card sx={{ p: 2.5, borderRadius: 2 }}>
                         <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1.5 }}>
                           자주 쓰는 규격 프리셋
                         </Typography>
@@ -1184,7 +1184,7 @@ export function ResizeView() {
                   {resizeMode === 'percent' && (
                     <>
                       {/* 1. Percentage Resize Card */}
-                      <Card sx={{ p: 2.5, borderRadius: 3 }}>
+                      <Card sx={{ p: 2.5, borderRadius: 2 }}>
                         <Box
                           sx={{
                             display: 'flex',
@@ -1318,7 +1318,7 @@ export function ResizeView() {
                       </Card>
 
                       {/* 2. Calculated Dimensions Summary Card */}
-                      <Card sx={{ p: 2, borderRadius: 2.5, bgcolor: 'background.neutral' }}>
+                      <Card sx={{ p: 2, borderRadius: 2, bgcolor: 'background.neutral' }}>
                         <Typography
                           variant="caption"
                           sx={{ fontWeight: 800, color: 'text.secondary', display: 'block', mb: 1 }}
@@ -1363,7 +1363,7 @@ export function ResizeView() {
                   )}
 
                   {/* 4. Resampling & Output Format Card */}
-                  <Card sx={{ p: 2.5, borderRadius: 3 }}>
+                  <Card sx={{ p: 2.5, borderRadius: 2 }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1.5 }}>
                       4. 저장 포맷 및 보간 품질
                     </Typography>
@@ -1439,7 +1439,7 @@ export function ResizeView() {
                   </Card>
 
                   {/* 5. Action Buttons Card */}
-                  <Card sx={{ p: 2.5, borderRadius: 3, bgcolor: 'background.neutral' }}>
+                  <Card sx={{ p: 2.5, borderRadius: 2, bgcolor: 'background.neutral' }}>
                     <Button
                       fullWidth
                       variant="contained"
@@ -1502,7 +1502,7 @@ export function ResizeView() {
         {currentTab === 'batch' && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
             {/* Batch Settings Card */}
-            <Card sx={{ p: 2.5, borderRadius: 3 }}>
+            <Card sx={{ p: 2.5, borderRadius: 2 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 2 }}>
                 다중 사진 일괄 리사이즈 설정
               </Typography>
@@ -1710,7 +1710,7 @@ export function ResizeView() {
               {...batchDrop.getRootProps()}
               sx={{
                 p: 3,
-                borderRadius: 3,
+                borderRadius: 2,
                 textAlign: 'center',
                 border: '2px dashed',
                 borderColor: batchDrop.isDragActive ? 'primary.main' : 'divider',
@@ -1731,7 +1731,7 @@ export function ResizeView() {
 
             {/* Batch Items List & Actions */}
             {batchItems.length > 0 && (
-              <Card sx={{ p: 2.5, borderRadius: 3 }}>
+              <Card sx={{ p: 2.5, borderRadius: 2 }}>
                 <Box
                   sx={{
                     display: 'flex',
@@ -1782,7 +1782,7 @@ export function ResizeView() {
                     <LinearProgress
                       variant="determinate"
                       value={batchProgress}
-                      sx={{ height: 8, borderRadius: 4 }}
+                      sx={{ height: 8, borderRadius: 1 }}
                     />
                   </Box>
                 )}

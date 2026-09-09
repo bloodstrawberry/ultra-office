@@ -24,19 +24,19 @@ export const REACT_TEMPLATES: CodeTemplate[] = [
       <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
         <button 
           onClick={() => setCount(c => c - 1)}
-          style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid #cbd5e1', cursor: 'pointer' }}
+          style={{ padding: '8px 16px', borderRadius: '3px', border: '1px solid #cbd5e1', cursor: 'pointer' }}
         >
           - 1
         </button>
         <button 
           onClick={() => setCount(0)}
-          style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid #cbd5e1', cursor: 'pointer' }}
+          style={{ padding: '8px 16px', borderRadius: '3px', border: '1px solid #cbd5e1', cursor: 'pointer' }}
         >
           Reset
         </button>
         <button 
           onClick={() => setCount(c => c + 1)}
-          style={{ padding: '8px 16px', borderRadius: '6px', backgroundColor: '#0284c7', color: 'white', border: 'none', cursor: 'pointer' }}
+          style={{ padding: '8px 16px', borderRadius: '3px', backgroundColor: '#0284c7', color: 'white', border: 'none', cursor: 'pointer' }}
         >
           + 1
         </button>
@@ -59,7 +59,7 @@ export const REACT_TEMPLATES: CodeTemplate[] = [
     files: {
       'App.jsx': `function UserCard({ name, role, skills, avatarColor }) {
   return (
-    <div style={{ border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px', width: '260px', backgroundColor: '#ffffff', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+    <div style={{ border: '1px solid #e2e8f0', borderRadius: '4px', padding: '16px', width: '260px', backgroundColor: '#ffffff', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
         <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: avatarColor, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 'bold' }}>
           {name[0]}
@@ -130,9 +130,9 @@ export default function App() {
           value={text} 
           onChange={e => setText(e.target.value)} 
           placeholder="새로운 작업 입력..." 
-          style={{ flex: 1, padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+          style={{ flex: 1, padding: '8px 12px', borderRadius: '3px', border: '1px solid #cbd5e1' }}
         />
-        <button type="submit" style={{ padding: '8px 16px', backgroundColor: '#0284c7', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>
+        <button type="submit" style={{ padding: '8px 16px', backgroundColor: '#0284c7', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}>
           추가
         </button>
       </form>
@@ -191,13 +191,13 @@ export default function App() {
       <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
         <button 
           onClick={() => setIsRunning(!isRunning)}
-          style={{ padding: '8px 16px', backgroundColor: isRunning ? '#ef4444' : '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+          style={{ padding: '8px 16px', backgroundColor: isRunning ? '#ef4444' : '#10b981', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
         >
           {isRunning ? '일시정지' : '시작'}
         </button>
         <button 
           onClick={() => { setIsRunning(false); setSeconds(0); }}
-          style={{ padding: '8px 16px', backgroundColor: '#64748b', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+          style={{ padding: '8px 16px', backgroundColor: '#64748b', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
         >
           초기화
         </button>
@@ -236,7 +236,7 @@ export default function App() {
     <div style={{ padding: '24px', maxWidth: '360px', margin: '0 auto', fontFamily: 'sans-serif' }}>
       <h3>🔐 회원가입 유효성 검사</h3>
       {submitted ? (
-        <div style={{ padding: '16px', backgroundColor: '#dcfce7', color: '#166534', borderRadius: '8px' }}>
+        <div style={{ padding: '16px', backgroundColor: '#dcfce7', color: '#166534', borderRadius: '4px' }}>
           🎉 가입 완료: {form.email}
         </div>
       ) : (
@@ -246,7 +246,7 @@ export default function App() {
             <input 
               value={form.email}
               onChange={e => setForm({ ...form, email: e.target.value })}
-              style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px' }}
+              style={{ width: '100%', padding: '8px', borderRadius: '3px', border: '1px solid #cbd5e1', marginTop: '4px' }}
             />
             {form.email && !isValidEmail && <span style={{ fontSize: '11px', color: '#ef4444' }}>올바른 이메일 형식이 아닙니다.</span>}
           </div>
@@ -256,14 +256,14 @@ export default function App() {
               type="password"
               value={form.password}
               onChange={e => setForm({ ...form, password: e.target.value })}
-              style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px' }}
+              style={{ width: '100%', padding: '8px', borderRadius: '3px', border: '1px solid #cbd5e1', marginTop: '4px' }}
             />
             {form.password && !isStrongPassword && <span style={{ fontSize: '11px', color: '#ef4444' }}>8자 이상 입력해주세요.</span>}
           </div>
           <button 
             type="submit" 
             disabled={!isValidEmail || !isStrongPassword}
-            style={{ padding: '10px', backgroundColor: isValidEmail && isStrongPassword ? '#0284c7' : '#94a3b8', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+            style={{ padding: '10px', backgroundColor: isValidEmail && isStrongPassword ? '#0284c7' : '#94a3b8', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
           >
             가입하기
           </button>
@@ -299,12 +299,12 @@ export default function App() {
   const [theme, setTheme] = usePersistentState('app-theme', 'light');
 
   return (
-    <div style={{ padding: '24px', backgroundColor: theme === 'dark' ? '#0f172a' : '#f8fafc', color: theme === 'dark' ? '#f8fafc' : '#0f172a', minHeight: '180px', borderRadius: '12px', transition: 'all 0.3s' }}>
+    <div style={{ padding: '24px', backgroundColor: theme === 'dark' ? '#0f172a' : '#f8fafc', color: theme === 'dark' ? '#f8fafc' : '#0f172a', minHeight: '180px', borderRadius: '4px', transition: 'all 0.3s' }}>
       <h3>🎨 Custom Hook 테마 스위처</h3>
       <p>현재 적용된 테마: <strong>{theme}</strong></p>
       <button 
         onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-        style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid #cbd5e1', cursor: 'pointer' }}
+        style={{ padding: '8px 16px', borderRadius: '3px', border: '1px solid #cbd5e1', cursor: 'pointer' }}
       >
         테마 전환 ({theme === 'light' ? '🌙 Dark' : '☀️ Light'})
       </button>
@@ -459,12 +459,12 @@ export default function App() {
           placeholder="언어 검색..."
           value={query}
           onChange={e => setQuery(e.target.value)}
-          style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+          style={{ flex: 1, padding: '8px', borderRadius: '3px', border: '1px solid #cbd5e1' }}
         />
         <select 
           value={filterType}
           onChange={e => setFilterType(e.target.value)}
-          style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+          style={{ padding: '8px', borderRadius: '3px', border: '1px solid #cbd5e1' }}
         >
           <option value="ALL">전체 유형</option>
           <option value="Scripting">Scripting</option>
@@ -474,7 +474,7 @@ export default function App() {
       </div>
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         {filtered.map(item => (
-          <div key={item.id} style={{ padding: '8px 12px', borderRadius: '8px', backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0' }}>
+          <div key={item.id} style={{ padding: '8px 12px', borderRadius: '4px', backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0' }}>
             <strong>{item.name}</strong> <span style={{ fontSize: '12px', color: '#64748b' }}>({item.type})</span>
           </div>
         ))}
@@ -503,7 +503,7 @@ export default function App() {
       <h3>팝업 모달 다이얼로그</h3>
       <button 
         onClick={() => setIsOpen(true)}
-        style={{ padding: '10px 20px', backgroundColor: '#0284c7', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+        style={{ padding: '10px 20px', backgroundColor: '#0284c7', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
       >
         모달 열기
       </button>
@@ -515,13 +515,13 @@ export default function App() {
         >
           <div 
             onClick={e => e.stopPropagation()}
-            style={{ backgroundColor: 'white', padding: '24px', borderRadius: '12px', width: '320px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}
+            style={{ backgroundColor: 'white', padding: '24px', borderRadius: '4px', width: '320px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}
           >
             <h4 style={{ margin: '0 0 12px 0' }}>💡 알림 메시지</h4>
             <p style={{ color: '#64748b', fontSize: '14px' }}>WebContainer 환경에서 안전하게 실행되었습니다.</p>
             <button 
               onClick={() => setIsOpen(false)}
-              style={{ marginTop: '16px', padding: '8px 16px', backgroundColor: '#0284c7', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', width: '100%' }}
+              style={{ marginTop: '16px', padding: '8px 16px', backgroundColor: '#0284c7', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer', width: '100%' }}
             >
               확인
             </button>
@@ -599,8 +599,8 @@ export default function App() {
         ))}
       </div>
       <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-        <button onClick={resetArray} disabled={sorting} style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid #cbd5e1', cursor: 'pointer' }}>랜덤 생성</button>
-        <button onClick={bubbleSort} disabled={sorting} style={{ padding: '8px 16px', backgroundColor: '#0284c7', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>
+        <button onClick={resetArray} disabled={sorting} style={{ padding: '8px 16px', borderRadius: '3px', border: '1px solid #cbd5e1', cursor: 'pointer' }}>랜덤 생성</button>
+        <button onClick={bubbleSort} disabled={sorting} style={{ padding: '8px 16px', backgroundColor: '#0284c7', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}>
           {sorting ? '정렬 중...' : '정렬 시작'}
         </button>
       </div>
@@ -675,7 +675,7 @@ export default function App() {
         }))}
       </div>
       <div>
-        <button onClick={findPath} style={{ padding: '8px 16px', backgroundColor: '#0284c7', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>
+        <button onClick={findPath} style={{ padding: '8px 16px', backgroundColor: '#0284c7', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}>
           BFS 최단 경로 탐색 ({path.length ? \`\${path.length}칸\` : '탐색 시작'})
         </button>
       </div>
@@ -723,7 +723,7 @@ export default function App() {
       <div>
         <button 
           onClick={() => setSolutionIdx(i => (i + 1) % solutions.length)}
-          style={{ padding: '8px 16px', backgroundColor: '#0284c7', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+          style={{ padding: '8px 16px', backgroundColor: '#0284c7', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
         >
           해답 전환 (해답 #{solutionIdx + 1} / 2)
         </button>
@@ -766,10 +766,10 @@ export default function App() {
       <h3 style={{ textAlign: 'center', margin: '0 0 12px 0' }}>📌 미니 칸반 보드</h3>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
         {cols.map(c => (
-          <div key={c.key} style={{ backgroundColor: '#f1f5f9', borderRadius: '8px', padding: '10px' }}>
+          <div key={c.key} style={{ backgroundColor: '#f1f5f9', borderRadius: '4px', padding: '10px' }}>
             <h4 style={{ margin: '0 0 8px 0', fontSize: '13px' }}>{c.label}</h4>
             {tasks.filter(t => t.col === c.key).map(t => (
-              <div key={t.id} style={{ backgroundColor: 'white', padding: '8px', borderRadius: '6px', marginBottom: '6px', fontSize: '12px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+              <div key={t.id} style={{ backgroundColor: 'white', padding: '8px', borderRadius: '3px', marginBottom: '6px', fontSize: '12px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
                 <div>{t.text}</div>
                 <button onClick={() => move(t.id, c.next)} style={{ marginTop: '6px', fontSize: '10px', padding: '2px 6px', cursor: 'pointer' }}>
                   이동 ➔
@@ -836,7 +836,7 @@ export default function App() {
   return (
     <div style={{ padding: '16px', textAlign: 'center', fontFamily: 'sans-serif' }}>
       <h3 style={{ margin: '0 0 10px 0' }}>⚽ Canvas 2D 탄성 충돌 시뮬레이션</h3>
-      <canvas ref={canvasRef} width={300} height={140} style={{ borderRadius: '8px' }} />
+      <canvas ref={canvasRef} width={300} height={140} style={{ borderRadius: '4px' }} />
     </div>
   );
 }
@@ -870,11 +870,11 @@ export default function App() {
         <textarea 
           value={md}
           onChange={e => setMd(e.target.value)}
-          style={{ height: '110px', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+          style={{ height: '110px', padding: '8px', borderRadius: '3px', border: '1px solid #cbd5e1', fontSize: '12px' }}
         />
         <div 
           dangerouslySetInnerHTML={{ __html: parseMd(md) }}
-          style={{ height: '110px', padding: '8px', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '12px', overflowY: 'auto' }}
+          style={{ height: '110px', padding: '8px', backgroundColor: '#f8fafc', borderRadius: '3px', border: '1px solid #e2e8f0', fontSize: '12px', overflowY: 'auto' }}
         />
       </div>
     </div>
@@ -917,7 +917,7 @@ export default function App() {
           <input type="range" min="1" max="20" value={years} onChange={e => setYears(+e.target.value)} style={{ width: '100%' }} />
         </div>
       </div>
-      <div style={{ marginTop: '12px', padding: '10px', backgroundColor: '#e0f2fe', color: '#0369a1', borderRadius: '8px', textAlign: 'center', fontWeight: 'bold' }}>
+      <div style={{ marginTop: '12px', padding: '10px', backgroundColor: '#e0f2fe', color: '#0369a1', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }}>
         {years}년 후 예상 자산: {finalAmount.toLocaleString()}만원 (+{(finalAmount - principal).toLocaleString()}만원 수익)
       </div>
     </div>
@@ -974,7 +974,7 @@ export default function App() {
           <div 
             key={c.id} 
             onClick={() => flip(c.id)}
-            style={{ width: '48px', height: '48px', backgroundColor: c.flipped || c.matched ? '#38bdf8' : '#e2e8f0', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', cursor: 'pointer', transition: 'all 0.2s' }}
+            style={{ width: '48px', height: '48px', backgroundColor: c.flipped || c.matched ? '#38bdf8' : '#e2e8f0', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', cursor: 'pointer', transition: 'all 0.2s' }}
           >
             {c.flipped || c.matched ? c.icon : '❓'}
           </div>
@@ -1014,12 +1014,12 @@ export default function App() {
       <h3>🎨 팔레트 생성기</h3>
       <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', marginBottom: '12px' }}>
         {colors.map((c, i) => (
-          <div key={i} onClick={() => copy(c)} style={{ width: '50px', height: '80px', backgroundColor: c, borderRadius: '6px', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', paddingBottom: '4px', color: 'white', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}>
+          <div key={i} onClick={() => copy(c)} style={{ width: '50px', height: '80px', backgroundColor: c, borderRadius: '3px', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', paddingBottom: '4px', color: 'white', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}>
             {c}
           </div>
         ))}
       </div>
-      <button onClick={generate} style={{ padding: '8px 16px', backgroundColor: '#0284c7', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>
+      <button onClick={generate} style={{ padding: '8px 16px', backgroundColor: '#0284c7', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}>
         새로운 팔레트 생성
       </button>
       {copied && <div style={{ fontSize: '12px', color: '#10b981', marginTop: '6px' }}>{copied} 복사됨!</div>}
@@ -1051,7 +1051,7 @@ export default function App() {
       <h3 style={{ margin: '0 0 12px 0' }}>📈 시스템 메트릭 대시보드</h3>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
         {metrics.map((m, i) => (
-          <div key={i} style={{ padding: '12px', borderRadius: '8px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
+          <div key={i} style={{ padding: '12px', borderRadius: '4px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
             <div style={{ fontSize: '11px', color: '#64748b' }}>{m.label}</div>
             <div style={{ fontSize: '18px', fontWeight: 'bold', margin: '4px 0', color: m.color }}>{m.val}</div>
             <div style={{ fontSize: '10px', color: '#64748b' }}>{m.change}</div>

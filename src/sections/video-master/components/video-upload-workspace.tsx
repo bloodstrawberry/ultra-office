@@ -125,7 +125,7 @@ export function VideoUploadWorkspace({
 
       {/* 1. Sample Videos Section - Pinned to Top */}
       {sampleVideos && sampleVideos.length > 0 && (
-        <Card sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, flexShrink: 0 }}>
+        <Card sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 2, flexShrink: 0 }}>
           <Box
             sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}
           >
@@ -293,7 +293,7 @@ export function VideoUploadWorkspace({
           border: '2px dashed',
           borderColor: isDragActive ? 'primary.main' : 'divider',
           bgcolor: isDragActive ? 'action.hover' : 'background.paper',
-          borderRadius: 3,
+          borderRadius: 2,
           flex: '1 1 auto',
           minHeight: 180,
           transition: (theme) => theme.transitions.create(['border-color', 'background-color']),

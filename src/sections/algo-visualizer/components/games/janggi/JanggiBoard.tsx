@@ -133,7 +133,7 @@ export function JanggiBoard({
         alignItems: 'center',
         background: 'linear-gradient(135deg, #deb887 0%, #c49a60 50%, #9e743d 100%)',
         border: '3px solid #5c3c1a',
-        borderRadius: 3,
+        borderRadius: 2,
         boxShadow: '0 12px 32px rgba(0,0,0,0.5), inset 0 1px 3px rgba(255,255,255,0.3)',
         userSelect: 'none',
       }}

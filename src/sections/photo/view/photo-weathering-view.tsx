@@ -433,7 +433,7 @@ export function WeatheringView() {
             }}
           >
             {/* Preset Selector */}
-            <Card sx={{ p: 2, borderRadius: 2.5 }}>
+            <Card sx={{ p: 2, borderRadius: 2 }}>
               <Box
                 sx={{
                   display: 'flex',
@@ -550,7 +550,7 @@ export function WeatheringView() {
             </Card>
 
             {/* Fine Tuning Panel */}
-            <Card sx={{ p: 2.5, borderRadius: 3 }}>
+            <Card sx={{ p: 2.5, borderRadius: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                 <TuneRoundedIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
                 <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>

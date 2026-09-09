@@ -113,7 +113,7 @@ export function HomeHero({
                   sx: {
                     bgcolor: (t) => alpha(t.palette.background.paper, 0.9),
                     backdropFilter: 'blur(16px)',
-                    borderRadius: 3,
+                    borderRadius: 2,
                     height: { xs: 52, md: 58 },
                     fontSize: { xs: '0.92rem', md: '1rem' },
                     boxShadow: (t) =>

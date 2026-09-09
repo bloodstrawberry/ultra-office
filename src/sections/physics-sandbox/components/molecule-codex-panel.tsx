@@ -376,7 +376,7 @@ export function MoleculeCodexPanel({ onNavigateToBuilderWithPreset }: MoleculeCo
           fullWidth
           sx={{
             '& .MuiDialog-paper': {
-              borderRadius: 3,
+              borderRadius: 2,
               p: 3,
               bgcolor: 'background.paper',
             },
@@ -495,7 +495,7 @@ export function MoleculeCodexPanel({ onNavigateToBuilderWithPreset }: MoleculeCo
         fullWidth
         sx={{
           '& .MuiDialog-paper': {
-            borderRadius: 3,
+            borderRadius: 2,
             p: 3,
           },
         }}

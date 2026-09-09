@@ -124,9 +124,11 @@ const MuiSlider: Components<Theme>['MuiSlider'] = {
     rail: ({ theme }) => ({
       opacity: 0.12,
       backgroundColor: theme.vars.palette.grey[500],
+      borderRadius: 2,
       variants: [...railVariants],
     }),
     track: {
+      borderRadius: 2,
       variants: [...trackVariants],
     },
     mark: ({ style, theme }) => ({
@@ -146,7 +148,7 @@ const MuiSlider: Components<Theme>['MuiSlider'] = {
       color: theme.vars.palette.text.disabled,
     }),
     valueLabel: ({ theme }) => ({
-      borderRadius: 8,
+      borderRadius: 3,
       backgroundColor: theme.vars.palette.grey[800],
       ...theme.applyStyles('dark', {
         backgroundColor: theme.vars.palette.grey[700],

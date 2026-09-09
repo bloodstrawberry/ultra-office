@@ -119,7 +119,7 @@ export function ImageCropModal({
       fullWidth
       sx={{
         '& .MuiDialog-paper': {
-          borderRadius: 3,
+          borderRadius: 2,
           overflow: 'hidden',
         },
       }}

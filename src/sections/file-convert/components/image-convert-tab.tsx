@@ -597,7 +597,7 @@ export function ImageConvertTab() {
                 style={{
                   width: '100%',
                   padding: 10,
-                  borderRadius: 6,
+                  borderRadius: 2,
                   backgroundColor: '#090d16',
                   color: '#38bdf8',
                   fontFamily: 'monospace',

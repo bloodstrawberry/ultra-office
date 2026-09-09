@@ -309,7 +309,7 @@ export function SqlProblemPanel({
         <LinearProgress
           variant="determinate"
           value={progressPercent}
-          sx={{ height: 6, borderRadius: 3, mb: 1.5 }}
+          sx={{ height: 6, borderRadius: 1, mb: 1.5 }}
           color="primary"
         />
 

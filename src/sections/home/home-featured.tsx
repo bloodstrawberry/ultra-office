@@ -54,7 +54,7 @@ export function HomeFeatured() {
               gap: 1,
               px: 2,
               py: 0.6,
-              borderRadius: 3,
+              borderRadius: 2,
               bgcolor: alpha(theme.palette.primary.main, 0.08),
               border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
               color: 'primary.main',
@@ -110,7 +110,7 @@ export function HomeFeatured() {
                 sx={{
                   p: { xs: 3, md: 4 },
                   height: '100%',
-                  borderRadius: 3,
+                  borderRadius: 2,
                   cursor: 'pointer',
                   position: 'relative',
                   overflow: 'hidden',
@@ -173,7 +173,7 @@ export function HomeFeatured() {
                       sx={{
                         width: 56,
                         height: 56,
-                        borderRadius: 2.5,
+                        borderRadius: 2,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',

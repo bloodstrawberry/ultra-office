@@ -1220,7 +1220,7 @@ export function PublicApiView() {
                 <kbd
                   style={{
                     padding: '2px 4px',
-                    borderRadius: 4,
+                    borderRadius: 2,
                     background: '#e2e8f0',
                     color: '#334155',
                   }}
@@ -1888,7 +1888,7 @@ export function PublicApiView() {
         fullWidth
         sx={{
           '& .MuiDialog-paper': {
-            borderRadius: 2.5,
+            borderRadius: 2,
             p: 1,
           },
         }}

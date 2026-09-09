@@ -740,7 +740,7 @@ export function VideoMasterView() {
                   style={{
                     maxWidth: '100%',
                     maxHeight: '100%',
-                    borderRadius: 8,
+                    borderRadius: 2,
                     objectFit: 'contain',
                     boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
                   }}

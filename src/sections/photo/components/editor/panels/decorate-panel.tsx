@@ -180,7 +180,7 @@ export function DecoratePanel({ values, onChange, onReset }: DecoratePanelProps)
             type="color"
             value={textColor}
             onChange={(e) => setTextColor(e.target.value)}
-            style={{ width: 44, height: 40, borderRadius: 6, border: 'none', cursor: 'pointer' }}
+            style={{ width: 44, height: 40, borderRadius: 2, border: 'none', cursor: 'pointer' }}
           />
         </Box>
         <Button
@@ -295,7 +295,7 @@ export function DecoratePanel({ values, onChange, onReset }: DecoratePanelProps)
                 style={{
                   width: 44,
                   height: 32,
-                  borderRadius: 6,
+                  borderRadius: 2,
                   border: 'none',
                   cursor: 'pointer',
                 }}

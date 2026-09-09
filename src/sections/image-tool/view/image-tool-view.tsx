@@ -759,7 +759,7 @@ export function ImageToolView() {
                   <LinearProgress
                     variant="determinate"
                     value={ocrProgress}
-                    sx={{ height: 8, borderRadius: 4 }}
+                    sx={{ height: 8, borderRadius: 1 }}
                   />
                 </Box>
               )}
@@ -831,7 +831,7 @@ export function ImageToolView() {
                   minHeight: 340,
                   width: '100%',
                   padding: 12,
-                  borderRadius: 8,
+                  borderRadius: 2,
                   border: '1px solid #e2e8f0',
                   outline: 'none',
                   fontFamily: 'inherit',

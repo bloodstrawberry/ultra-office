@@ -75,7 +75,7 @@ function SpaghettificationBlackHole({ mass }: { mass: number }) {
         <div
           style={{
             padding: '2px 8px',
-            borderRadius: 8,
+            borderRadius: 2,
             background: 'rgba(2, 6, 23, 0.85)',
             border: '1px solid rgba(236, 72, 153, 0.5)',
             fontSize: '10px',
@@ -299,7 +299,7 @@ export function Mode4Spaghettification({ config, onTelemetryUpdate }: Mode4Props
           p: 2,
           minWidth: 260,
           maxWidth: 300,
-          borderRadius: 2.5,
+          borderRadius: 2,
           backdropFilter: 'blur(16px)',
           bgcolor: 'rgba(15, 23, 42, 0.85)',
           border: '1px solid rgba(236, 72, 153, 0.35)',
@@ -422,7 +422,7 @@ export function Mode4Spaghettification({ config, onTelemetryUpdate }: Mode4Props
             value={Math.min(100, (tidalAcc / 150) * 100)}
             sx={{
               height: 6,
-              borderRadius: 3,
+              borderRadius: 2,
               bgcolor: 'rgba(51, 65, 85, 0.8)',
               '& .MuiLinearProgress-bar': {
                 background: 'linear-gradient(90deg, #38BDF8 0%, #FCD34D 50%, #F43F5E 100%)',

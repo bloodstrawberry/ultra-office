@@ -92,7 +92,7 @@ export function PhotoUploadWorkspace({
 
       {/* 1. Sample Images Section - Pinned to Top */}
       {sampleImages && sampleImages.length > 0 && (
-        <Card sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, flexShrink: 0 }}>
+        <Card sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 2, flexShrink: 0 }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 0.5 }}>
             {sampleTitle}
           </Typography>
@@ -187,7 +187,7 @@ export function PhotoUploadWorkspace({
           border: '2px dashed',
           borderColor: isDragActive ? 'primary.main' : 'divider',
           bgcolor: isDragActive ? 'action.hover' : 'background.paper',
-          borderRadius: 3,
+          borderRadius: 2,
           flex: '1 1 auto',
           minHeight: 180,
           transition: (theme) => theme.transitions.create(['border-color', 'background-color']),

@@ -383,7 +383,7 @@ export function PdfView() {
                 <Card
                   sx={{
                     p: 2,
-                    borderRadius: 3,
+                    borderRadius: 2,
                     display: 'flex',
                     flexDirection: 'column',
                     flex: '1 1 auto',
@@ -592,7 +592,7 @@ export function PdfView() {
                   pr: 0.5,
                 }}
               >
-                <Card sx={{ p: 2.5, borderRadius: 3 }}>
+                <Card sx={{ p: 2.5, borderRadius: 2 }}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
                     1. 용지 규격
                   </Typography>
@@ -735,7 +735,7 @@ export function PdfView() {
                 border: '2px dashed',
                 borderColor: extractDrop.isDragActive ? 'primary.main' : 'divider',
                 bgcolor: extractDrop.isDragActive ? 'action.hover' : 'transparent',
-                borderRadius: 3,
+                borderRadius: 2,
                 flex: '1 1 auto',
                 minHeight: 0,
                 height: '100%',
@@ -807,7 +807,7 @@ export function PdfView() {
                 <Card
                   sx={{
                     p: 2,
-                    borderRadius: 3,
+                    borderRadius: 2,
                     display: 'flex',
                     flexDirection: 'column',
                     flex: '1 1 auto',
@@ -997,7 +997,7 @@ export function PdfView() {
                   pr: 0.5,
                 }}
               >
-                <Card sx={{ p: 2.5, borderRadius: 3 }}>
+                <Card sx={{ p: 2.5, borderRadius: 2 }}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
                     추출 정보
                   </Typography>

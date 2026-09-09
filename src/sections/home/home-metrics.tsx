@@ -33,7 +33,7 @@ export function HomeMetrics() {
                 sx={{
                   p: { xs: 2.5, md: 3 },
                   height: '100%',
-                  borderRadius: 2.5,
+                  borderRadius: 2,
                   display: 'flex',
                   flexDirection: 'column',
                   bgcolor: (t) => alpha(t.palette.background.paper, 0.7),

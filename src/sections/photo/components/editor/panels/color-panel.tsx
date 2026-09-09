@@ -307,7 +307,7 @@ export function ColorPanel({ values, onChange, onReset }: ColorPanelProps) {
       </Box>
 
       {/* 8채널 HSL 조절기 */}
-      <Card variant="outlined" sx={{ p: 2, borderRadius: 2.5, bgcolor: 'background.neutral' }}>
+      <Card variant="outlined" sx={{ p: 2, borderRadius: 2, bgcolor: 'background.neutral' }}>
         <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 0.5 }}>
           8채널 정밀 HSL 보정 (Hue, Saturation, Lightness)
         </Typography>
@@ -424,7 +424,7 @@ export function ColorPanel({ values, onChange, onReset }: ColorPanelProps) {
       </Card>
 
       {/* 3웨이 컬러 그레이딩 */}
-      <Card variant="outlined" sx={{ p: 2, borderRadius: 2.5 }}>
+      <Card variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
         <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 0.5 }}>
           컬러 그레이딩 (Color Grading)
         </Typography>
@@ -445,7 +445,7 @@ export function ColorPanel({ values, onChange, onReset }: ColorPanelProps) {
               style={{
                 width: '100%',
                 height: 32,
-                borderRadius: 6,
+                borderRadius: 2,
                 border: 'none',
                 cursor: 'pointer',
               }}
@@ -474,7 +474,7 @@ export function ColorPanel({ values, onChange, onReset }: ColorPanelProps) {
               style={{
                 width: '100%',
                 height: 32,
-                borderRadius: 6,
+                borderRadius: 2,
                 border: 'none',
                 cursor: 'pointer',
               }}
@@ -503,7 +503,7 @@ export function ColorPanel({ values, onChange, onReset }: ColorPanelProps) {
               style={{
                 width: '100%',
                 height: 32,
-                borderRadius: 6,
+                borderRadius: 2,
                 border: 'none',
                 cursor: 'pointer',
               }}

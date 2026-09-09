@@ -150,7 +150,7 @@ export function SchemaBrowser({ dataset, onInsertQuery }: SchemaBrowserProps) {
                 sx={{
                   mb: 1.5,
                   border: (theme) => `1px solid ${theme.vars.palette.divider}`,
-                  borderRadius: '10px !important',
+                  borderRadius: '4px !important',
                   boxShadow: 'none',
                   bgcolor: 'background.paper',
                   overflow: 'hidden',

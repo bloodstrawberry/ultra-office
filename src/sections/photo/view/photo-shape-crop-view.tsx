@@ -803,7 +803,7 @@ export function ShapeCropView() {
                     backdropFilter: 'blur(6px)',
                     px: 1.5,
                     py: 0.6,
-                    borderRadius: 20,
+                    borderRadius: 1.5,
                     boxShadow: 3,
                     display: 'flex',
                     alignItems: 'center',
@@ -916,7 +916,7 @@ export function ShapeCropView() {
               pr: 0.5,
             }}
           >
-            <Card sx={{ p: 2.5, borderRadius: 3 }}>
+            <Card sx={{ p: 2.5, borderRadius: 2 }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
                 1. 자르기 방식
               </Typography>
@@ -1032,7 +1032,7 @@ export function ShapeCropView() {
               <Card
                 sx={{
                   p: 2.5,
-                  borderRadius: 3,
+                  borderRadius: 2,
                   bgcolor: 'primary.lighter',
                   color: 'primary.darker',
                 }}
@@ -1216,7 +1216,7 @@ export function ShapeCropView() {
                 )}
               </Card>
             )}
-            <Card sx={{ p: 2.5, borderRadius: 3 }}>
+            <Card sx={{ p: 2.5, borderRadius: 2 }}>
               <Box
                 sx={{
                   display: 'flex',
@@ -1396,7 +1396,7 @@ export function ShapeCropView() {
                         style={{
                           width: 40,
                           height: 32,
-                          borderRadius: 6,
+                          borderRadius: 2,
                           border: 'none',
                           cursor: 'pointer',
                         }}

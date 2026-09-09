@@ -368,7 +368,7 @@ export function CompressView() {
               <Card
                 sx={{
                   p: { xs: 1.5, sm: 2 },
-                  borderRadius: 3,
+                  borderRadius: 2,
                   display: 'flex',
                   flexDirection: 'column',
                   flex: '1 1 0px',
@@ -683,7 +683,7 @@ export function CompressView() {
             <Card
               sx={{
                 p: 1.5,
-                borderRadius: 2.5,
+                borderRadius: 2,
                 flexShrink: 0,
                 height: `${listPanelHeight}px`,
                 minHeight: `${listPanelHeight}px`,
@@ -918,7 +918,7 @@ export function CompressView() {
               pr: 0.5,
             }}
           >
-            <Card sx={{ p: 2, borderRadius: 2.5 }}>
+            <Card sx={{ p: 2, borderRadius: 2 }}>
               {/* Format selection in requested order: 원본 포맷, PNG, JPEG, WebP */}
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
                 1. 변환 포맷

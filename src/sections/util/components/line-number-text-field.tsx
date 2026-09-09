@@ -77,7 +77,7 @@ export function LineNumberTextField({
             style={{
               backgroundColor: 'rgba(234, 179, 8, 0.45)',
               color: 'inherit',
-              borderRadius: 3,
+              borderRadius: 2,
               padding: '1px 0',
             }}
           >

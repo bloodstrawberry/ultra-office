@@ -52,7 +52,7 @@ export function ThemeSelector({
           bgcolor: activeTheme.uiColors.card,
           color: activeTheme.uiColors.text,
           border: `1px solid ${activeTheme.uiColors.border}`,
-          borderRadius: '8px',
+          borderRadius: '3px',
           '& .MuiSelect-select': {
             py: 0.8,
             display: 'flex',
@@ -94,7 +94,7 @@ export function ThemeSelector({
               maxHeight: { xs: 450, md: 540 },
               bgcolor: activeTheme.uiColors.card,
               border: `1px solid ${activeTheme.uiColors.border}`,
-              borderRadius: '12px',
+              borderRadius: '4px',
               boxShadow: '0 12px 36px rgba(0,0,0,0.35)',
               '&::-webkit-scrollbar': { width: '6px' },
               '&::-webkit-scrollbar-thumb': {

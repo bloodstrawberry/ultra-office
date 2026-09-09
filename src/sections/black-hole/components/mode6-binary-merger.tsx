@@ -182,7 +182,7 @@ function BinaryBlackHoles({
           <div
             style={{
               padding: '2px 8px',
-              borderRadius: 8,
+              borderRadius: 2,
               background: 'rgba(2, 6, 23, 0.85)',
               border: '1px solid rgba(192, 132, 252, 0.5)',
               fontSize: '10px',
@@ -266,7 +266,7 @@ export function Mode6BinaryMerger({ config, onTelemetryUpdate }: Mode6Props) {
           p: 2,
           minWidth: 280,
           maxWidth: 320,
-          borderRadius: 2.5,
+          borderRadius: 2,
           backdropFilter: 'blur(16px)',
           bgcolor: 'rgba(15, 23, 42, 0.85)',
           border: '1px solid rgba(168, 85, 247, 0.35)',

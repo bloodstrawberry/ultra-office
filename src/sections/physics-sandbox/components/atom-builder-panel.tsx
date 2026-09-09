@@ -292,7 +292,7 @@ export function AtomBuilderPanel({
           height: { xs: 380, sm: 480, lg: 560 },
           bgcolor: '#070b14',
           border: '1.5px solid #1e293b',
-          borderRadius: 2.5,
+          borderRadius: 2,
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
@@ -375,7 +375,7 @@ export function AtomBuilderPanel({
         sx={{
           flex: { xs: '1 1 auto', lg: '1 1 45%' },
           p: 3,
-          borderRadius: 2.5,
+          borderRadius: 2,
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
@@ -686,7 +686,7 @@ export function AtomBuilderPanel({
         fullWidth
         sx={{
           '& .MuiDialog-paper': {
-            borderRadius: 3,
+            borderRadius: 2,
             p: 3,
             bgcolor: 'background.paper',
             maxHeight: '85vh',

@@ -614,7 +614,7 @@ export function PixelView() {
               pr: 0.5,
             }}
           >
-            <Card sx={{ p: 2.5, borderRadius: 3 }}>
+            <Card sx={{ p: 2.5, borderRadius: 2 }}>
               {/* Palette Selector Header */}
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
                 1. 컬러 팔레트 선택

@@ -262,7 +262,7 @@ export function ChallengeTab() {
               display: 'flex',
               flexDirection: 'column',
               gap: 3,
-              borderRadius: 3,
+              borderRadius: 2,
               boxShadow: 3,
             }}
           >
@@ -338,7 +338,7 @@ export function ChallengeTab() {
                         : isSortedSuccess
                           ? 'success.main'
                           : 'info.main',
-                      borderRadius: '8px 8px 0 0',
+                      borderRadius: '3px 3px 0 0',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
@@ -384,7 +384,7 @@ export function ChallengeTab() {
               display: 'flex',
               flexDirection: 'column',
               gap: 3,
-              borderRadius: 3,
+              borderRadius: 2,
               boxShadow: 3,
             }}
           >
@@ -495,7 +495,7 @@ export function ChallengeTab() {
               display: 'flex',
               flexDirection: 'column',
               gap: 3,
-              borderRadius: 3,
+              borderRadius: 2,
               boxShadow: 3,
             }}
           >

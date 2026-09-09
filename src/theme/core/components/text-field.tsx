@@ -182,6 +182,7 @@ const MuiInput: Components<Theme>['MuiInput'] = {
  * **********************************************************************/
 export const outlinedInputStyles = {
   root: (theme: Theme, classes: Partial<OutlinedInputClasses>): CSSObject => ({
+    borderRadius: 3,
     [`&.${classes.focused}:not(.${classes.error})`]: {
       [`& .${classes.notchedOutline}`]: {
         borderColor: theme.vars.palette.text.primary,
@@ -194,6 +195,7 @@ export const outlinedInputStyles = {
     },
   }),
   notchedOutline: (theme: Theme): CSSObject => ({
+    borderRadius: 3,
     borderColor: theme.vars.palette.shared.inputOutlined,
     transition: theme.transitions.create(['border-color'], {
       duration: theme.transitions.duration.shortest,
@@ -252,7 +254,7 @@ export const filledInputStyles = {
 
     return {
       backgroundColor: baseBg,
-      borderRadius: theme.shape.borderRadius,
+      borderRadius: 3,
       [`&:hover, &.${classes.focused}`]: { backgroundColor: hoverBg },
       [`&.${classes.error}`]: {
         backgroundColor: errorBg,

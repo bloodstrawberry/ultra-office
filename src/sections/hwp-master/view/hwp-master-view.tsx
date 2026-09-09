@@ -392,7 +392,7 @@ export function HwpMasterView() {
         maxWidth="md"
         sx={{
           '& .MuiDialog-paper': {
-            borderRadius: 2.5,
+            borderRadius: 2,
             p: 3,
             maxHeight: '85vh',
             display: 'flex',

@@ -166,7 +166,7 @@ export function VideoPlayerPreview({
       ref={containerRef}
       sx={{
         p: { xs: 1.5, sm: 2 },
-        borderRadius: 2.5,
+        borderRadius: 2,
         bgcolor: '#0b1120',
         color: '#ffffff',
         display: 'flex',

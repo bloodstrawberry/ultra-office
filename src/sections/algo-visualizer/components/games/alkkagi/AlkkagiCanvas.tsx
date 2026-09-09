@@ -165,7 +165,7 @@ export function AlkkagiCanvas({
         touchAction: 'none',
         p: 1.5,
         bgcolor: '#78350f',
-        borderRadius: 3,
+        borderRadius: 2,
         boxShadow: '0 16px 40px rgba(0, 0, 0, 0.35)',
         border: '4px solid #451a03',
       }}
@@ -185,7 +185,7 @@ export function AlkkagiCanvas({
           maxWidth: 600,
           aspectRatio: '1 / 1',
           cursor: isMoving ? 'wait' : selectedStoneId ? 'grabbing' : 'crosshair',
-          borderRadius: 8,
+          borderRadius: 2,
           boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.4)',
         }}
       />

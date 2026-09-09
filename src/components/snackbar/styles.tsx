@@ -98,7 +98,7 @@ const actionsStyles = (theme: Theme): CSSObject => ({
     },
   },
   [`& .${snackbarClasses.actionButton}`]: {
-    borderRadius: 6,
+    borderRadius: 2,
     lineHeight: 18 / 13,
     padding: '2px 8px',
     fontSize: theme.typography.pxToRem(13),
@@ -123,7 +123,7 @@ const toastStyles = (theme: Theme): CSSObject => ({
   [`& .${snackbarClasses.toast}`]: {
     gap: 12,
     minHeight: 52,
-    borderRadius: 12,
+    borderRadius: 2,
     width: 'max-content',
     minWidth: 'min(300px, calc(100vw - 32px))',
     maxWidth: 'min(640px, calc(100vw - 32px))',

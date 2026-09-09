@@ -343,7 +343,7 @@ export const OpicScriptItem = memo(
                       <Box
                         sx={{
                           height: 8,
-                          borderRadius: 4,
+                          borderRadius: 2,
                           bgcolor: (theme) => alpha(theme.palette.divider, 0.5),
                           overflow: 'hidden',
                           position: 'relative',

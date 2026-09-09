@@ -588,7 +588,7 @@ export function MosaicView() {
             <Card
               sx={{
                 p: 2,
-                borderRadius: 3,
+                borderRadius: 2,
                 display: 'flex',
                 flexDirection: 'column',
                 flex: '1 1 auto',
@@ -791,7 +791,7 @@ export function MosaicView() {
             }}
           >
             {/* 1. AI Auto Detection & One-Click Masking */}
-            <Card sx={{ p: 2.5, borderRadius: 3 }}>
+            <Card sx={{ p: 2.5, borderRadius: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
                 <AutoAwesomeRoundedIcon sx={{ color: 'primary.main', fontSize: 20 }} />
                 <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
@@ -858,7 +858,7 @@ export function MosaicView() {
             </Card>
 
             {/* 2. Manual Custom Tools & Effect Config */}
-            <Card sx={{ p: 2.5, borderRadius: 3 }}>
+            <Card sx={{ p: 2.5, borderRadius: 2 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 1.5 }}>
                 2. 수동 편집 도구 설정
               </Typography>

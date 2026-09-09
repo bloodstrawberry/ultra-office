@@ -844,7 +844,7 @@ export function BgRemoveView() {
                 sx={{
                   px: { xs: 2, md: 4 },
                   py: 2.5,
-                  borderRadius: 3,
+                  borderRadius: 2,
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 2,
@@ -1013,7 +1013,7 @@ export function BgRemoveView() {
                         <LinearProgress
                           variant={progressInfo.progress > 0 ? 'determinate' : 'indeterminate'}
                           value={progressInfo.progress * 100}
-                          sx={{ height: 8, borderRadius: 4, mb: 1 }}
+                          sx={{ height: 8, borderRadius: 1, mb: 1 }}
                         />
                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                           최초 1회 모델 가중치를 로드한 후에는 캐시되어 즉시 처리됩니다.
@@ -1546,7 +1546,7 @@ export function BgRemoveView() {
               }}
             >
               {/* Model & AI Settings Card */}
-              <Card sx={{ p: 2.5, borderRadius: 3 }}>
+              <Card sx={{ p: 2.5, borderRadius: 2 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1.5 }}>
                   1. AI 누끼 모델 선택
                 </Typography>
@@ -1620,7 +1620,7 @@ export function BgRemoveView() {
                 <Card
                   sx={{
                     p: 2.5,
-                    borderRadius: 3,
+                    borderRadius: 2,
                     border: '2px solid',
                     borderColor: 'warning.main',
                     bgcolor: 'warning.lighter',
@@ -1648,7 +1648,7 @@ export function BgRemoveView() {
                       '& .MuiToggleButtonGroup-grouped': {
                         border: '1px solid',
                         borderColor: 'divider',
-                        borderRadius: '8px !important',
+                        borderRadius: '3px !important',
                         whiteSpace: 'nowrap',
                         '&.Mui-selected': {
                           bgcolor: 'warning.lighter',
@@ -1712,7 +1712,7 @@ export function BgRemoveView() {
               )}
 
               {/* Background Customizer Card */}
-              <Card sx={{ p: 2.5, borderRadius: 3 }}>
+              <Card sx={{ p: 2.5, borderRadius: 2 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1.5 }}>
                   2. 배경 스타일 지정
                 </Typography>
@@ -1734,7 +1734,7 @@ export function BgRemoveView() {
                     '& .MuiToggleButtonGroup-grouped': {
                       border: '1px solid',
                       borderColor: 'divider',
-                      borderRadius: '8px !important',
+                      borderRadius: '3px !important',
                       whiteSpace: 'nowrap',
                       px: 1,
                       py: 0.8,
@@ -1794,7 +1794,7 @@ export function BgRemoveView() {
                         style={{
                           width: 36,
                           height: 28,
-                          borderRadius: 4,
+                          borderRadius: 2,
                           border: 'none',
                           cursor: 'pointer',
                         }}

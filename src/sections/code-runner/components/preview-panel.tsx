@@ -221,7 +221,7 @@ export function PreviewPanel({
               sx={{
                 flex: 1,
                 bgcolor: activeTheme.uiColors.card,
-                borderRadius: '6px',
+                borderRadius: '3px',
                 px: 1.5,
                 py: 0.4,
                 border: `1px solid ${activeTheme.uiColors.border}`,
@@ -275,7 +275,7 @@ export function PreviewPanel({
                 width: effectiveWidth,
                 height: '100%',
                 bgcolor: '#ffffff',
-                borderRadius: viewMode !== 'responsive' ? '8px' : 0,
+                borderRadius: viewMode !== 'responsive' ? '4px' : 0,
                 overflow: 'hidden',
                 boxShadow:
                   viewMode !== 'responsive'
@@ -396,7 +396,7 @@ export function PreviewPanel({
                 alignItems: 'center',
                 justifyContent: 'center',
                 border: `1px dashed ${activeTheme.uiColors.border}`,
-                borderRadius: '12px',
+                borderRadius: '4px',
                 p: 3,
                 textAlign: 'center',
                 gap: 1,
@@ -419,7 +419,7 @@ export function PreviewPanel({
                 sx={{
                   bgcolor: activeTheme.uiColors.card,
                   border: `1px solid ${activeTheme.uiColors.border}`,
-                  borderRadius: '10px',
+                  borderRadius: '4px',
                   p: 1.5,
                   display: 'flex',
                   flexDirection: 'column',
@@ -452,7 +452,7 @@ export function PreviewPanel({
                   sx={{
                     width: '100%',
                     height: 'auto',
-                    borderRadius: '6px',
+                    borderRadius: '3px',
                     bgcolor: '#ffffff',
                     border: `1px solid ${activeTheme.uiColors.border}`,
                   }}
@@ -503,7 +503,7 @@ export function PreviewPanel({
             sx={{
               bgcolor: activeTheme.uiColors.card,
               border: `1px solid ${activeTheme.uiColors.border}`,
-              borderRadius: '10px',
+              borderRadius: '4px',
               p: 2,
               display: 'flex',
               flexDirection: 'column',
@@ -561,7 +561,7 @@ function DiagnosticRow({
         sx={{
           px: 1,
           py: 0.2,
-          borderRadius: '6px',
+          borderRadius: '3px',
           fontSize: '11px',
           fontWeight: 600,
           bgcolor: success ? 'rgba(16, 185, 129, 0.15)' : `${activeTheme.uiColors.textMuted}20`,

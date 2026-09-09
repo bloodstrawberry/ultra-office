@@ -565,7 +565,7 @@ export function GifView() {
                   cursor: 'pointer',
                   border: '2px dashed',
                   borderColor: 'divider',
-                  borderRadius: 3,
+                  borderRadius: 2,
                   flex: '1 1 auto',
                   minHeight: 180,
                   transition: 'all 0.2s',
@@ -648,7 +648,7 @@ export function GifView() {
                 <Card
                   sx={{
                     p: 2,
-                    borderRadius: 3,
+                    borderRadius: 2,
                     display: 'flex',
                     flexDirection: 'column',
                     flex: '1 1 auto',
@@ -727,7 +727,7 @@ export function GifView() {
                 </Card>
 
                 {/* Frames List */}
-                <Card sx={{ p: 1.5, borderRadius: 3, flexShrink: 0, maxHeight: 110 }}>
+                <Card sx={{ p: 1.5, borderRadius: 2, flexShrink: 0, maxHeight: 110 }}>
                   <Typography variant="caption" sx={{ fontWeight: 700, mb: 0.5, display: 'block' }}>
                     프레임 순서 ({createImages.length}개)
                   </Typography>
@@ -878,7 +878,7 @@ export function GifView() {
                   pr: 0.5,
                 }}
               >
-                <Card sx={{ p: 2.5, borderRadius: 3 }}>
+                <Card sx={{ p: 2.5, borderRadius: 2 }}>
                   {/* FPS Slider */}
                   <Box sx={{ mb: 2 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
@@ -973,7 +973,7 @@ export function GifView() {
                         style={{
                           width: 44,
                           height: 40,
-                          borderRadius: 6,
+                          borderRadius: 2,
                           border: 'none',
                           cursor: 'pointer',
                         }}
@@ -1107,7 +1107,7 @@ export function GifView() {
                   cursor: 'pointer',
                   border: '2px dashed',
                   borderColor: 'divider',
-                  borderRadius: 3,
+                  borderRadius: 2,
                   flex: '1 1 auto',
                   minHeight: 180,
                   transition: 'all 0.2s',
@@ -1178,7 +1178,7 @@ export function GifView() {
                 <Card
                   sx={{
                     p: 2,
-                    borderRadius: 3,
+                    borderRadius: 2,
                     display: 'flex',
                     flexDirection: 'column',
                     flex: '1 1 auto',
@@ -1478,7 +1478,7 @@ export function GifView() {
                 <Card
                   sx={{
                     p: 2,
-                    borderRadius: 3,
+                    borderRadius: 2,
                     display: 'flex',
                     flexDirection: 'column',
                     gap: 1.5,
@@ -1572,7 +1572,7 @@ export function GifView() {
                 <Card
                   sx={{
                     p: 2.5,
-                    borderRadius: 3,
+                    borderRadius: 2,
                     display: 'flex',
                     flexDirection: 'column',
                     gap: 1.5,
@@ -1703,7 +1703,7 @@ export function GifView() {
                   )}
                 </Card>
 
-                <Card sx={{ p: 2.5, borderRadius: 3 }}>
+                <Card sx={{ p: 2.5, borderRadius: 2 }}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
                     프레임 추출 정보
                   </Typography>
@@ -1826,7 +1826,7 @@ export function GifView() {
                   cursor: 'pointer',
                   border: '2px dashed',
                   borderColor: 'divider',
-                  borderRadius: 3,
+                  borderRadius: 2,
                   flex: '1 1 auto',
                   minHeight: 180,
                   transition: 'all 0.2s',
@@ -1886,7 +1886,7 @@ export function GifView() {
                 <Card
                   sx={{
                     p: 2,
-                    borderRadius: 3,
+                    borderRadius: 2,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -2009,7 +2009,7 @@ export function GifView() {
                 }}
               >
                 <Card
-                  sx={{ p: 2.5, borderRadius: 3, display: 'flex', flexDirection: 'column', gap: 2 }}
+                  sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}
                 >
                   <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                     배경 색상 설정
@@ -2025,7 +2025,7 @@ export function GifView() {
                       style={{
                         width: 44,
                         height: 40,
-                        borderRadius: 6,
+                        borderRadius: 2,
                         border: 'none',
                         cursor: 'pointer',
                       }}

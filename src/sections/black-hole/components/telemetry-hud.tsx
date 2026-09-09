@@ -42,7 +42,7 @@ export function TelemetryHUD({ telemetry }: TelemetryHUDProps) {
           bgcolor: 'rgba(15, 23, 42, 0.85)',
           border: '1px solid rgba(56, 189, 248, 0.35)',
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6)',
-          borderRadius: 2.5,
+          borderRadius: 2,
           color: '#F8FAFC',
         }}
       >
@@ -247,7 +247,7 @@ export function TelemetryHUD({ telemetry }: TelemetryHUDProps) {
         fullWidth
         sx={{
           '& .MuiDialog-paper': {
-            borderRadius: 3,
+            borderRadius: 2,
             bgcolor: '#0F172A',
             color: '#F8FAFC',
             border: '1px solid rgba(56, 189, 248, 0.4)',

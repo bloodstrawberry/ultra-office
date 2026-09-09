@@ -40,7 +40,7 @@ export function GifSampleSection({
     <Card
       sx={{
         p: { xs: 2, sm: 2.5 },
-        borderRadius: 3,
+        borderRadius: 2,
         flexShrink: 0,
         border: '1px solid',
         borderColor: 'divider',

@@ -265,7 +265,7 @@ export function RunnerToolbar({
               bgcolor: activeTheme.uiColors.card,
               color: activeTheme.uiColors.text,
               border: `1px solid ${activeTheme.uiColors.border}`,
-              borderRadius: '8px',
+              borderRadius: '3px',
               '& .MuiSelect-select': {
                 py: 0.8,
                 display: 'flex',
@@ -282,7 +282,7 @@ export function RunnerToolbar({
                   maxHeight: { xs: 480, md: 580 },
                   bgcolor: activeTheme.uiColors.card,
                   border: `1px solid ${activeTheme.uiColors.border}`,
-                  borderRadius: '12px',
+                  borderRadius: '4px',
                   boxShadow: '0 12px 36px rgba(0,0,0,0.35)',
                   '&::-webkit-scrollbar': { width: '6px' },
                   '&::-webkit-scrollbar-thumb': {
@@ -325,7 +325,7 @@ export function RunnerToolbar({
               bgcolor: activeTheme.uiColors.card,
               color: activeTheme.uiColors.text,
               border: `1px solid ${activeTheme.uiColors.border}`,
-              borderRadius: '8px',
+              borderRadius: '3px',
               '& .MuiSelect-select': {
                 py: 0.8,
                 display: 'flex',
@@ -342,7 +342,7 @@ export function RunnerToolbar({
                   maxHeight: { xs: 480, md: 580 },
                   bgcolor: activeTheme.uiColors.card,
                   border: `1px solid ${activeTheme.uiColors.border}`,
-                  borderRadius: '12px',
+                  borderRadius: '4px',
                   boxShadow: '0 12px 36px rgba(0,0,0,0.35)',
                   '&::-webkit-scrollbar': { width: '6px' },
                   '&::-webkit-scrollbar-thumb': {
@@ -386,7 +386,7 @@ export function RunnerToolbar({
               bgcolor: activeTheme.uiColors.card,
               color: activeTheme.uiColors.text,
               border: `1px solid ${activeTheme.uiColors.border}`,
-              borderRadius: '8px',
+              borderRadius: '3px',
               '& .MuiSelect-select': {
                 py: 0.8,
                 display: 'flex',
@@ -403,7 +403,7 @@ export function RunnerToolbar({
                   maxHeight: { xs: 450, md: 540 },
                   bgcolor: activeTheme.uiColors.card,
                   border: `1px solid ${activeTheme.uiColors.border}`,
-                  borderRadius: '12px',
+                  borderRadius: '4px',
                   boxShadow: '0 12px 36px rgba(0,0,0,0.35)',
                   '&::-webkit-scrollbar': { width: '6px' },
                   '&::-webkit-scrollbar-thumb': {
@@ -474,7 +474,7 @@ export function RunnerToolbar({
               height: 36,
               px: 2,
               fontWeight: 700,
-              borderRadius: '8px',
+              borderRadius: '3px',
               boxShadow: '0 0 15px rgba(239, 68, 68, 0.4)',
             }}
           >
@@ -491,7 +491,7 @@ export function RunnerToolbar({
               height: 36,
               px: 2.2,
               fontWeight: 700,
-              borderRadius: '8px',
+              borderRadius: '3px',
               background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
               boxShadow: '0 0 15px rgba(59, 130, 246, 0.4)',
               '&:hover': {
@@ -571,7 +571,7 @@ export function RunnerToolbar({
               bgcolor: activeTheme.uiColors.card,
               color: activeTheme.uiColors.text,
               border: `1px solid ${activeTheme.uiColors.border}`,
-              borderRadius: '8px',
+              borderRadius: '3px',
               minWidth: 200,
             },
           }}

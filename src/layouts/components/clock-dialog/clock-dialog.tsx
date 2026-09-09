@@ -44,7 +44,7 @@ export function ClockDialog({ open, onClose, initialTab = 0 }: ClockDialogProps)
           maxWidth: 1140, // 기존 620에서 대폭 확대 (4열 지원)
           height: '85vh', // 높이 고정 (필터나 컨텐츠 양에 따라 변하지 않음)
           minHeight: 700,
-          borderRadius: 2.5,
+          borderRadius: 2,
           p: 0,
           overflow: 'hidden',
           bgcolor: 'background.paper',

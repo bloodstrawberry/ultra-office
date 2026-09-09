@@ -212,7 +212,7 @@ export function StopwatchTab() {
             size="large"
             onClick={handleStart}
             startIcon={<PlayArrowRoundedIcon sx={{ fontSize: 24 }} />}
-            sx={{ px: 5, py: 1.3, borderRadius: 2.5, fontSize: '1.05rem', fontWeight: 800 }}
+            sx={{ px: 5, py: 1.3, borderRadius: 1.5, fontSize: '1.05rem', fontWeight: 800 }}
           >
             시작
           </Button>
@@ -226,7 +226,7 @@ export function StopwatchTab() {
               size="large"
               onClick={handlePause}
               startIcon={<PauseRoundedIcon sx={{ fontSize: 24 }} />}
-              sx={{ px: 4.5, py: 1.3, borderRadius: 2.5, fontSize: '1.05rem', fontWeight: 800 }}
+              sx={{ px: 4.5, py: 1.3, borderRadius: 1.5, fontSize: '1.05rem', fontWeight: 800 }}
             >
               일시정지
             </Button>
@@ -236,7 +236,7 @@ export function StopwatchTab() {
               size="large"
               onClick={handleLap}
               startIcon={<FlagRoundedIcon sx={{ fontSize: 22 }} />}
-              sx={{ px: 4, py: 1.3, borderRadius: 2.5, fontSize: '1.05rem', fontWeight: 800 }}
+              sx={{ px: 4, py: 1.3, borderRadius: 1.5, fontSize: '1.05rem', fontWeight: 800 }}
             >
               랩
             </Button>
@@ -251,7 +251,7 @@ export function StopwatchTab() {
               size="large"
               onClick={handleStart}
               startIcon={<PlayArrowRoundedIcon sx={{ fontSize: 24 }} />}
-              sx={{ px: 4.5, py: 1.3, borderRadius: 2.5, fontSize: '1.05rem', fontWeight: 800 }}
+              sx={{ px: 4.5, py: 1.3, borderRadius: 1.5, fontSize: '1.05rem', fontWeight: 800 }}
             >
               계속
             </Button>
@@ -261,7 +261,7 @@ export function StopwatchTab() {
               size="large"
               onClick={handleLap}
               startIcon={<FlagRoundedIcon sx={{ fontSize: 22 }} />}
-              sx={{ px: 4, py: 1.3, borderRadius: 2.5, fontSize: '1.05rem', fontWeight: 800 }}
+              sx={{ px: 4, py: 1.3, borderRadius: 1.5, fontSize: '1.05rem', fontWeight: 800 }}
             >
               랩
             </Button>
@@ -277,7 +277,7 @@ export function StopwatchTab() {
             overflowY: 'auto',
             border: '1px solid',
             borderColor: 'divider',
-            borderRadius: 2.5,
+            borderRadius: 2,
             width: '100%',
           }}
         >

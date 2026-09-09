@@ -392,7 +392,7 @@ export function GifStudioSpeedView() {
               cursor: 'pointer',
               border: '2px dashed',
               borderColor: 'divider',
-              borderRadius: 3,
+              borderRadius: 2,
               flex: '1 1 auto',
               minHeight: 180,
               transition: 'all 0.2s',
@@ -454,7 +454,7 @@ export function GifStudioSpeedView() {
             <Card
               sx={{
                 p: 2,
-                borderRadius: 3,
+                borderRadius: 2,
                 display: 'flex',
                 flexDirection: 'column',
                 flex: '1 1 auto',
@@ -806,7 +806,7 @@ export function GifStudioSpeedView() {
           >
             {/* Speed Multiplier Card */}
             <Card
-              sx={{ p: 2.5, borderRadius: 3, display: 'flex', flexDirection: 'column', gap: 2 }}
+              sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}
             >
               <Box
                 sx={{
@@ -896,7 +896,7 @@ export function GifStudioSpeedView() {
 
             {/* Loop Mode Card */}
             <Card
-              sx={{ p: 2.5, borderRadius: 3, display: 'flex', flexDirection: 'column', gap: 2 }}
+              sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}
             >
               <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                 재생 방향 (루프 모드)
@@ -929,7 +929,7 @@ export function GifStudioSpeedView() {
 
             {/* Resize & Skip Frames Card */}
             <Card
-              sx={{ p: 2.5, borderRadius: 3, display: 'flex', flexDirection: 'column', gap: 2 }}
+              sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}
             >
               <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                 해상도 및 용량 최적화

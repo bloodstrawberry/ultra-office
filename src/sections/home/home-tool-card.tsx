@@ -35,7 +35,7 @@ export function HomeToolCard({ tool, dense = false }: HomeToolCardProps) {
       sx={{
         p: { xs: 2.25, sm: 2.75 },
         height: '100%',
-        borderRadius: 2.5,
+        borderRadius: 2,
         display: 'flex',
         flexDirection: 'column',
         position: 'relative',

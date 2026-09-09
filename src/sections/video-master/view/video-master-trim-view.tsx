@@ -455,7 +455,7 @@ export function VideoMasterTrimView() {
             <Card
               sx={{
                 position: 'relative',
-                borderRadius: 2.5,
+                borderRadius: 2,
                 overflow: 'hidden',
                 bgcolor: '#000000',
                 display: 'flex',
@@ -994,7 +994,7 @@ export function VideoMasterTrimView() {
         onClose={handleCancelExport}
         maxWidth="sm"
         fullWidth
-        sx={{ '& .MuiDialog-paper': { borderRadius: 2.5, p: 1 } }}
+        sx={{ '& .MuiDialog-paper': { borderRadius: 2, p: 1 } }}
       >
         <DialogTitle
           sx={{
@@ -1045,7 +1045,7 @@ export function VideoMasterTrimView() {
                   style={{
                     width: '100%',
                     maxHeight: 280,
-                    borderRadius: 12,
+                    borderRadius: 2,
                     backgroundColor: '#000000',
                   }}
                 />

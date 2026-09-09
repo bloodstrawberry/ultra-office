@@ -78,7 +78,7 @@ export function AiPanel({
         variant="outlined"
         sx={{
           p: 2,
-          borderRadius: 2.5,
+          borderRadius: 2,
           border: values.eraserActive ? '2px solid' : '1px solid',
           borderColor: values.eraserActive ? 'primary.main' : 'divider',
           bgcolor: values.eraserActive ? 'action.hover' : 'background.paper',
@@ -135,7 +135,7 @@ export function AiPanel({
       </Card>
 
       {/* 2. AI 배경 제거 & 생성 (AI Background Cutout & Gen) */}
-      <Card variant="outlined" sx={{ p: 2, borderRadius: 2.5 }}>
+      <Card variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <InvertColorsRoundedIcon color="info" />
@@ -184,7 +184,7 @@ export function AiPanel({
       </Card>
 
       {/* 3. AI 배경 확장 (Outpainting / Canvas Expand) */}
-      <Card variant="outlined" sx={{ p: 2, borderRadius: 2.5 }}>
+      <Card variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
           <AspectRatioRoundedIcon color="warning" />
           <Box>
@@ -230,7 +230,7 @@ export function AiPanel({
       </Card>
 
       {/* 4. AI 업스케일 & 초고해상도 복원 */}
-      <Card variant="outlined" sx={{ p: 2, borderRadius: 2.5 }}>
+      <Card variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
           <HdRoundedIcon color="success" />
           <Box>
@@ -264,7 +264,7 @@ export function AiPanel({
       </Card>
 
       {/* 5. AI 선명화 & 얼굴 자동 보정 */}
-      <Card variant="outlined" sx={{ p: 2, borderRadius: 2.5 }}>
+      <Card variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <FaceRetouchingNaturalRoundedIcon color="secondary" />

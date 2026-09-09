@@ -235,7 +235,7 @@ export function BarcodeView() {
                       width: 36,
                       height: 32,
                       border: 'none',
-                      borderRadius: 4,
+                      borderRadius: 2,
                       cursor: 'pointer',
                     }}
                   />
@@ -253,7 +253,7 @@ export function BarcodeView() {
                       width: 36,
                       height: 32,
                       border: 'none',
-                      borderRadius: 4,
+                      borderRadius: 2,
                       cursor: 'pointer',
                     }}
                   />
@@ -353,7 +353,7 @@ export function BarcodeView() {
                     width: 36,
                     height: 32,
                     border: 'none',
-                    borderRadius: 4,
+                    borderRadius: 2,
                     cursor: 'pointer',
                   }}
                 />

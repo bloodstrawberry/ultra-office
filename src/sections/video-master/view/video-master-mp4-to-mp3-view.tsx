@@ -400,7 +400,7 @@ export function VideoMasterMp4ToMp3View() {
               flex: '1 1 auto',
               minHeight: 0,
               height: '100%',
-              borderRadius: 3,
+              borderRadius: 2,
               border: '2px dashed',
               borderColor: isDragActive ? 'primary.main' : 'divider',
               bgcolor: isDragActive ? 'action.hover' : 'background.paper',

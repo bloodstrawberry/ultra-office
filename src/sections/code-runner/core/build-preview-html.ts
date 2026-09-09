@@ -82,7 +82,7 @@ export function buildReactPreviewHtml(rawJsxCode: string, files?: Record<string,
       margin: 16px;
       background-color: #fef2f2;
       border: 1px solid #f87171;
-      border-radius: 8px;
+      border-radius: 4px;
       color: #991b1b;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       font-size: 12px;

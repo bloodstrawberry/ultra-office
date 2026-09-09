@@ -88,7 +88,7 @@ export function DataStructuresTab({
               justifyContent: 'center',
               textAlign: 'center',
               gap: 2,
-              borderRadius: 3,
+              borderRadius: 2,
             }}
           >
             <Typography variant="h2">🌲</Typography>
@@ -234,7 +234,7 @@ export function DataStructuresTab({
         onClose={() => setIsDSModalOpen(false)}
         maxWidth="md"
         fullWidth
-        sx={{ '& .MuiDialog-paper': { borderRadius: 3, p: 2.5 } }}
+        sx={{ '& .MuiDialog-paper': { borderRadius: 2, p: 2.5 } }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
           <Typography

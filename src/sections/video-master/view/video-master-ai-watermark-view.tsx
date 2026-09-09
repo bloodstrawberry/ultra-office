@@ -2046,7 +2046,7 @@ export function VideoMasterAiWatermarkView() {
         onClose={() => setIsAnnotationModalOpen(false)}
         maxWidth="xs"
         fullWidth
-        sx={{ '& .MuiDialog-paper': { borderRadius: 2.5, p: 1 } }}
+        sx={{ '& .MuiDialog-paper': { borderRadius: 2, p: 1 } }}
       >
         <DialogTitle sx={{ fontWeight: 800, pb: 1 }}>손그림 마커 표기 세부 설정</DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 1 }}>
@@ -2116,7 +2116,7 @@ export function VideoMasterAiWatermarkView() {
         }}
         maxWidth="sm"
         fullWidth
-        sx={{ '& .MuiDialog-paper': { borderRadius: 2.5, p: 1 } }}
+        sx={{ '& .MuiDialog-paper': { borderRadius: 2, p: 1 } }}
       >
         <DialogTitle sx={{ fontWeight: 800 }}>
           {isExporting ? '동영상 AI 워터마크 렌더링 중...' : '비디오 인코딩 완료!'}

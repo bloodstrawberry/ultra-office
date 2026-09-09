@@ -388,7 +388,7 @@ export function CodeRunnerVsCodeLayout({
             gap: 1,
             bgcolor: 'rgba(255, 255, 255, 0.06)',
             border: '1px solid rgba(255, 255, 255, 0.12)',
-            borderRadius: '6px',
+            borderRadius: '3px',
             px: 2,
             py: 0.35,
             cursor: 'pointer',
@@ -435,7 +435,7 @@ export function CodeRunnerVsCodeLayout({
                 fontSize: '0.75rem',
                 py: 0.3,
                 px: 1.2,
-                borderRadius: '6px',
+                borderRadius: '3px',
                 '&:hover': { bgcolor: '#c62828' },
               }}
             >
@@ -454,7 +454,7 @@ export function CodeRunnerVsCodeLayout({
                 fontSize: '0.75rem',
                 py: 0.3,
                 px: 1.2,
-                borderRadius: '6px',
+                borderRadius: '3px',
                 '&:hover': { bgcolor: '#0062a3' },
               }}
             >
@@ -750,7 +750,7 @@ export function CodeRunnerVsCodeLayout({
                             background: '#1e1e1e',
                             color: '#ffffff',
                             border: '1px solid rgba(255,255,255,0.2)',
-                            borderRadius: 3,
+                            borderRadius: 2,
                             padding: '2px 6px',
                             fontSize: '12px',
                             fontFamily: 'monospace',
@@ -880,7 +880,7 @@ export function CodeRunnerVsCodeLayout({
                       mt: 3,
                       p: 1.5,
                       bgcolor: 'rgba(0,0,0,0.2)',
-                      borderRadius: '8px',
+                      borderRadius: '4px',
                       border: '1px solid rgba(255,255,255,0.06)',
                     }}
                   >
@@ -927,7 +927,7 @@ export function CodeRunnerVsCodeLayout({
                         bgcolor: 'rgba(0,0,0,0.25)',
                         color: '#ffffff',
                         fontSize: '0.75rem',
-                        borderRadius: '6px',
+                        borderRadius: '3px',
                         '& fieldset': { borderColor: 'rgba(255,255,255,0.1)' },
                       },
                     }}
@@ -980,7 +980,7 @@ export function CodeRunnerVsCodeLayout({
                         onClick={() => onTemplateChange(tmpl)}
                         sx={{
                           p: 1,
-                          borderRadius: '6px',
+                          borderRadius: '3px',
                           cursor: 'pointer',
                           bgcolor: isSelected ? 'rgba(0, 122, 204, 0.15)' : 'transparent',
                           border: isSelected
@@ -1024,7 +1024,7 @@ export function CodeRunnerVsCodeLayout({
                       color: '#ffffff',
                       fontWeight: 700,
                       py: 0.8,
-                      borderRadius: '6px',
+                      borderRadius: '3px',
                       '&:hover': { bgcolor: isRunning ? '#c62828' : '#0062a3' },
                     }}
                   >
@@ -1041,7 +1041,7 @@ export function CodeRunnerVsCodeLayout({
                       borderColor: 'rgba(255,255,255,0.15)',
                       fontSize: '0.75rem',
                       py: 0.6,
-                      borderRadius: '6px',
+                      borderRadius: '3px',
                       '&:hover': {
                         borderColor: '#ffffff',
                         bgcolor: 'rgba(255,255,255,0.05)',
@@ -1061,7 +1061,7 @@ export function CodeRunnerVsCodeLayout({
                       borderColor: 'rgba(255,255,255,0.15)',
                       fontSize: '0.75rem',
                       py: 0.6,
-                      borderRadius: '6px',
+                      borderRadius: '3px',
                       '&:hover': {
                         borderColor: '#ffffff',
                         bgcolor: 'rgba(255,255,255,0.05)',
@@ -1081,7 +1081,7 @@ export function CodeRunnerVsCodeLayout({
                       borderColor: 'rgba(255,255,255,0.15)',
                       fontSize: '0.75rem',
                       py: 0.6,
-                      borderRadius: '6px',
+                      borderRadius: '3px',
                       '&:hover': {
                         borderColor: '#ffffff',
                         bgcolor: 'rgba(255,255,255,0.05)',
@@ -1097,7 +1097,7 @@ export function CodeRunnerVsCodeLayout({
                       mt: 1,
                       p: 1.5,
                       bgcolor: 'rgba(0,0,0,0.3)',
-                      borderRadius: '8px',
+                      borderRadius: '4px',
                       border: '1px solid rgba(255,255,255,0.06)',
                     }}
                   >
@@ -1152,7 +1152,7 @@ export function CodeRunnerVsCodeLayout({
                               alignItems: 'center',
                               gap: 1,
                               p: 0.8,
-                              borderRadius: '6px',
+                              borderRadius: '3px',
                               cursor: 'pointer',
                               bgcolor: isSel ? 'rgba(0, 122, 204, 0.2)' : 'transparent',
                               border: isSel

@@ -85,7 +85,7 @@ export function BadukBoard({
         alignItems: 'center',
         background: 'linear-gradient(135deg, #d49b4b 0%, #b87d32 50%, #945d1f 100%)',
         border: '3px solid #6b4111',
-        borderRadius: 3,
+        borderRadius: 2,
         boxShadow: '0 12px 32px rgba(0,0,0,0.5), inset 0 1px 3px rgba(255,255,255,0.3)',
         userSelect: 'none',
         position: 'relative',

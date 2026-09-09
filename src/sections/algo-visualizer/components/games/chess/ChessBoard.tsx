@@ -123,7 +123,7 @@ export function ChessBoard({
         alignItems: 'center',
         background: '#1e293b',
         border: '3px solid #334155',
-        borderRadius: 3,
+        borderRadius: 2,
         boxShadow: '0 12px 32px rgba(0,0,0,0.5)',
         userSelect: 'none',
       }}

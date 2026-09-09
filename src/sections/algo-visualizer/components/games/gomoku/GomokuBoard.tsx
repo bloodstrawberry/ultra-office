@@ -59,7 +59,7 @@ export function GomokuBoard({
         p: { xs: 1, sm: 2 },
         bgcolor: '#ca8a04',
         background: 'linear-gradient(135deg, #d97706 0%, #b45309 100%)',
-        borderRadius: 3,
+        borderRadius: 2,
         boxShadow: '0 12px 32px rgba(0, 0, 0, 0.25)',
         border: '4px solid #78350f',
       }}

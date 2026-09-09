@@ -126,7 +126,7 @@ export function CatalogTab({ onSelectAlgo }: { onSelectAlgo: (algoId: string) =>
               flexDirection: 'column',
               justifyContent: 'space-between',
               gap: 2,
-              borderRadius: 3,
+              borderRadius: 2,
               boxShadow: 2,
               transition: 'all 0.2s ease',
               '&:hover': {
@@ -240,7 +240,7 @@ export function CatalogTab({ onSelectAlgo }: { onSelectAlgo: (algoId: string) =>
       </Box>
 
       {/* 3. Big-O Master Comparison Table */}
-      <Card sx={{ p: 3, borderRadius: 3, boxShadow: 2 }}>
+      <Card sx={{ p: 3, borderRadius: 2, boxShadow: 2 }}>
         <Typography variant="h6" sx={{ fontWeight: 800, mb: 0.5 }}>
           📊 알고리즘 Big-O 복잡도 전체 비교표
         </Typography>

@@ -891,7 +891,7 @@ export function PhotoWatermarkRemoveView() {
                 sx={{
                   flex: '1 1 auto',
                   minHeight: 0,
-                  borderRadius: 3,
+                  borderRadius: 2,
                   position: 'relative',
                   overflow: 'auto',
                   bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'grey.900' : 'grey.100'),
@@ -1098,7 +1098,7 @@ export function PhotoWatermarkRemoveView() {
                 width: { xs: '100%', lg: 340 },
                 flexShrink: 0,
                 p: 2.5,
-                borderRadius: 3,
+                borderRadius: 2,
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 2.5,
@@ -1258,7 +1258,7 @@ export function PhotoWatermarkRemoveView() {
                           height: 32,
                           padding: 0,
                           border: 'none',
-                          borderRadius: 6,
+                          borderRadius: 2,
                           cursor: 'pointer',
                           backgroundColor: 'transparent',
                         }}

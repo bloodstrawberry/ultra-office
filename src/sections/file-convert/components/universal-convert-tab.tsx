@@ -381,7 +381,7 @@ export function UniversalConvertTab() {
       <Card
         sx={{
           p: { xs: 2.5, md: 3.5 },
-          borderRadius: 3,
+          borderRadius: 2,
           background: (theme) =>
             theme.palette.mode === 'dark'
               ? 'linear-gradient(135deg, rgba(30, 32, 38, 0.95) 0%, rgba(20, 22, 28, 0.95) 100%)'
@@ -641,7 +641,7 @@ export function UniversalConvertTab() {
                   ? 'rgba(59, 130, 246, 0.12)'
                   : 'rgba(59, 130, 246, 0.06)'
             : 'background.paper',
-          borderRadius: 2.5,
+          borderRadius: 2,
           p: { xs: 3, md: 4.5 },
           display: 'flex',
           flexDirection: 'column',
@@ -693,7 +693,7 @@ export function UniversalConvertTab() {
       {/* 3. Batch Queue List & Actions */}
       {/* ---------------------------------------------------------------------- */}
       {items.length > 0 && (
-        <Card sx={{ p: { xs: 2, md: 3 }, borderRadius: 2.5 }}>
+        <Card sx={{ p: { xs: 2, md: 3 }, borderRadius: 2 }}>
           {/* Action Header */}
           <Box
             sx={{
@@ -1013,7 +1013,7 @@ export function UniversalConvertTab() {
       {/* ---------------------------------------------------------------------- */}
       {/* 4. Supported Formats Matrix Info Card */}
       {/* ---------------------------------------------------------------------- */}
-      <Card sx={{ p: 3, borderRadius: 2.5, bgcolor: 'background.paper' }}>
+      <Card sx={{ p: 3, borderRadius: 2, bgcolor: 'background.paper' }}>
         <Typography
           variant="subtitle1"
           sx={{ fontWeight: 800, mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}

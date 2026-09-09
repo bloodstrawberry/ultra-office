@@ -118,6 +118,7 @@ const MuiAlert: Components<Theme>['MuiAlert'] = {
   // ▼▼▼▼▼▼▼▼ 🎨 STYLE ▼▼▼▼▼▼▼▼
   styleOverrides: {
     root: {
+      borderRadius: 4,
       variants: [...standardVariants, ...filledVariants, ...outlinedVariants],
     },
     icon: ({ theme }) => ({

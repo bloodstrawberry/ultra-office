@@ -156,7 +156,7 @@ export function AgentModelControl({
           <LinearProgress
             variant="determinate"
             value={Math.round(loadingProgress.progress * 100)}
-            sx={{ height: 6, borderRadius: 3 }}
+            sx={{ height: 6, borderRadius: 1 }}
           />
           <Typography
             variant="caption"

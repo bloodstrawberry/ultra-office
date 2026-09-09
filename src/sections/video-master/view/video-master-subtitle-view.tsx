@@ -1143,7 +1143,7 @@ export function VideoMasterSubtitleView() {
           </Box>
 
           {/* 1. Subtitle Samples Section - Pinned to Top (다른 업로드 UI 참고) */}
-          <Card sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, flexShrink: 0 }}>
+          <Card sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 2, flexShrink: 0 }}>
             <Box
               sx={{
                 display: 'flex',
@@ -1283,7 +1283,7 @@ export function VideoMasterSubtitleView() {
               border: '2px dashed',
               borderColor: isDragActive ? 'primary.main' : 'divider',
               bgcolor: isDragActive ? 'action.hover' : 'background.paper',
-              borderRadius: 3,
+              borderRadius: 2,
               flex: '1 1 auto',
               minHeight: 220,
               transition: (theme) => theme.transitions.create(['border-color', 'background-color']),
@@ -2872,7 +2872,7 @@ export function VideoMasterSubtitleView() {
         fullWidth
         sx={{
           '& .MuiDialog-paper': {
-            borderRadius: 2.5,
+            borderRadius: 2,
             maxHeight: '90vh',
             display: 'flex',
             flexDirection: 'column',

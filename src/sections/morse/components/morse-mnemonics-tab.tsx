@@ -249,7 +249,7 @@ export function MorseMnemonicsTab() {
         fullWidth
         sx={{
           '& .MuiDialog-paper': {
-            borderRadius: 3,
+            borderRadius: 2,
             p: 3,
             position: 'relative',
           },
@@ -282,7 +282,7 @@ export function MorseMnemonicsTab() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 bgcolor: 'background.neutral',
-                borderRadius: 3,
+                borderRadius: 2,
                 p: 1.5,
                 border: (theme) => `2px dashed ${theme.palette.divider}`,
               }}

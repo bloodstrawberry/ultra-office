@@ -440,7 +440,7 @@ export function ArtStyleView() {
             <Card
               sx={{
                 p: { xs: 1.75, sm: 2 },
-                borderRadius: 2.5,
+                borderRadius: 2,
                 display: 'flex',
                 flexDirection: 'column',
                 flex: '1 1 auto',

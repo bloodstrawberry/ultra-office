@@ -345,7 +345,7 @@ export function MorseKeyerTab() {
                   onTouchEnd={handleStraightKeyUp}
                   sx={{
                     py: { xs: 5, md: 7 },
-                    borderRadius: 3,
+                    borderRadius: 2,
                     display: 'flex',
                     flexDirection: 'column',
                     gap: 1,

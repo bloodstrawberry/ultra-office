@@ -331,7 +331,7 @@ export function WorldClockTab() {
                   <SearchRoundedIcon fontSize="small" sx={{ color: 'text.secondary' }} />
                 </InputAdornment>
               ),
-              style: { borderRadius: 10, fontSize: '0.85rem' },
+              style: { borderRadius: 2, fontSize: '0.85rem' },
             },
           }}
         />
@@ -427,7 +427,7 @@ export function WorldClockTab() {
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
-                borderRadius: 2.5,
+                borderRadius: 2,
                 bgcolor: 'background.paper',
                 border: '1px solid',
                 borderColor: 'divider',

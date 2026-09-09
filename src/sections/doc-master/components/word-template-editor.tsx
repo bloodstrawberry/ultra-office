@@ -198,7 +198,7 @@ export function WordTemplateEditor() {
             '&::-webkit-scrollbar': { width: 8 },
             '&::-webkit-scrollbar-thumb': {
               bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'grey.700' : 'grey.400'),
-              borderRadius: 4,
+              borderRadius: 2,
             },
           }}
         >

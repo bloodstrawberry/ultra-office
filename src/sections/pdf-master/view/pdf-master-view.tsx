@@ -300,7 +300,7 @@ export function PdfMasterView() {
             textAlign: 'center',
             border: '2px dashed',
             borderColor: 'primary.main',
-            borderRadius: 3,
+            borderRadius: 2,
           }}
         >
           <PictureAsPdfRoundedIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />

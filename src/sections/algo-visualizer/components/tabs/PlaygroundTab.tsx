@@ -326,7 +326,7 @@ export function PlaygroundTab() {
             display: 'flex',
             flexDirection: 'column',
             gap: 2,
-            borderRadius: 3,
+            borderRadius: 2,
             boxShadow: 2,
           }}
         >
@@ -397,7 +397,7 @@ export function PlaygroundTab() {
             display: 'flex',
             flexDirection: 'column',
             gap: 2,
-            borderRadius: 3,
+            borderRadius: 2,
             boxShadow: 2,
           }}
         >

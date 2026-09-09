@@ -39,7 +39,7 @@ export function ColorOneClickPanel({
   onChangeTolerance,
 }: ColorOneClickPanelProps) {
   return (
-    <Card sx={{ p: 2.5, borderRadius: 3 }}>
+    <Card sx={{ p: 2.5, borderRadius: 2 }}>
       {/* 1. Quick Actions */}
       <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
         1. 원클릭 빠른 변환
@@ -77,7 +77,7 @@ export function ColorOneClickPanel({
           '& .MuiToggleButtonGroup-grouped': {
             flex: '1 1 auto',
             whiteSpace: 'nowrap',
-            borderRadius: '8px !important',
+            borderRadius: '3px !important',
             border: '1px solid !important',
             borderColor: 'divider !important',
             px: 1.5,
@@ -119,7 +119,7 @@ export function ColorOneClickPanel({
               style={{
                 width: 44,
                 height: 36,
-                borderRadius: 6,
+                borderRadius: 2,
                 border: 'none',
                 cursor: 'pointer',
               }}

@@ -57,7 +57,7 @@ export function HomeToolsGrid({
       href={tool.path}
       sx={{
         p: 2.75,
-        borderRadius: 2.5,
+        borderRadius: 2,
         textDecoration: 'none',
         color: 'text.primary',
         display: 'flex',
@@ -472,7 +472,7 @@ export function HomeToolsGrid({
                 sx={{
                   p: { xs: 4, md: 6 },
                   textAlign: 'center',
-                  borderRadius: 3,
+                  borderRadius: 2,
                   bgcolor: (t) => alpha(t.palette.background.paper, 0.5),
                   border: (t) => `1px dashed ${alpha(t.palette.divider, 0.2)}`,
                   display: 'flex',

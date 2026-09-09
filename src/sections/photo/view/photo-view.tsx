@@ -81,7 +81,7 @@ export function PhotoHubView() {
       href={tool.path}
       sx={{
         p: 2.5,
-        borderRadius: 2.5,
+        borderRadius: 2,
         textDecoration: 'none',
         color: 'text.primary',
         display: 'flex',
@@ -414,7 +414,7 @@ export function PhotoHubView() {
                   bgcolor: 'background.paper',
                   border: '1px dashed',
                   borderColor: 'divider',
-                  borderRadius: 3,
+                  borderRadius: 2,
                 }}
               >
                 <Typography variant="h6" sx={{ color: 'text.secondary', fontWeight: 700, mb: 1 }}>

@@ -128,7 +128,7 @@ export function ColorShapePanel({
         <Card
           sx={{
             p: 2.5,
-            borderRadius: 3,
+            borderRadius: 2,
             border: '2px solid',
             borderColor: 'primary.main',
             bgcolor: (theme) =>
@@ -475,7 +475,7 @@ export function ColorShapePanel({
       )}
 
       {/* 1. Shape Tools & Add Buttons */}
-      <Card sx={{ p: 2.5, borderRadius: 3 }}>
+      <Card sx={{ p: 2.5, borderRadius: 2 }}>
         <Box
           sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.2 }}
         >
@@ -540,7 +540,7 @@ export function ColorShapePanel({
             '& .MuiToggleButtonGroup-grouped': {
               flex: 1,
               whiteSpace: 'nowrap',
-              borderRadius: '8px !important',
+              borderRadius: '3px !important',
               border: '1px solid !important',
               borderColor: 'divider !important',
               px: 1.2,
@@ -683,7 +683,7 @@ export function ColorShapePanel({
                   style={{
                     width: 44,
                     height: 36,
-                    borderRadius: 6,
+                    borderRadius: 2,
                     border: 'none',
                     cursor: 'pointer',
                   }}
@@ -768,7 +768,7 @@ export function ColorShapePanel({
       </Card>
 
       {/* 3. Shape Layers List & Bake Action */}
-      <Card sx={{ p: 2.5, borderRadius: 3 }}>
+      <Card sx={{ p: 2.5, borderRadius: 2 }}>
         <Box
           sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}
         >

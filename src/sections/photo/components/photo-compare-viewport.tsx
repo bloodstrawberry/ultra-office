@@ -208,7 +208,7 @@ export function PhotoCompareViewport({
     <Card
       sx={{
         p: { xs: 2, md: 2.5 },
-        borderRadius: 3,
+        borderRadius: 2,
         flex: '1 1 auto',
         minHeight: 0,
         height: '100%',
@@ -360,7 +360,7 @@ export function PhotoCompareViewport({
                 <LinearProgress
                   variant="determinate"
                   value={loadingProgress.progress * 100}
-                  sx={{ height: 8, borderRadius: 4, mb: 1 }}
+                  sx={{ height: 8, borderRadius: 1, mb: 1 }}
                 />
               )}
               {loadingProgress?.description && (

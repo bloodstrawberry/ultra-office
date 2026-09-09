@@ -502,7 +502,7 @@ export function PhotoPaddingView() {
             <Card
               sx={{
                 p: 2,
-                borderRadius: 3,
+                borderRadius: 2,
                 display: 'flex',
                 flexDirection: 'column',
                 flex: '1 1 auto',
@@ -669,7 +669,7 @@ export function PhotoPaddingView() {
             }}
           >
             {/* Padding & Background Style Card */}
-            <Card sx={{ p: 2.5, borderRadius: 3 }}>
+            <Card sx={{ p: 2.5, borderRadius: 2 }}>
               <Box
                 sx={{
                   display: 'flex',
@@ -892,7 +892,7 @@ export function PhotoPaddingView() {
                   value="edge-gradient"
                   sx={{
                     border: '1px solid !important',
-                    borderRadius: '8px !important',
+                    borderRadius: '3px !important',
                     px: 0.5,
                     py: 0.75,
                     fontSize: '0.72rem',
@@ -906,7 +906,7 @@ export function PhotoPaddingView() {
                   value="edge"
                   sx={{
                     border: '1px solid !important',
-                    borderRadius: '8px !important',
+                    borderRadius: '3px !important',
                     px: 0.5,
                     py: 0.75,
                     fontSize: '0.72rem',
@@ -918,7 +918,7 @@ export function PhotoPaddingView() {
                   value="color"
                   sx={{
                     border: '1px solid !important',
-                    borderRadius: '8px !important',
+                    borderRadius: '3px !important',
                     px: 0.5,
                     py: 0.75,
                     fontSize: '0.72rem',
@@ -930,7 +930,7 @@ export function PhotoPaddingView() {
                   value="transparent"
                   sx={{
                     border: '1px solid !important',
-                    borderRadius: '8px !important',
+                    borderRadius: '3px !important',
                     px: 0.5,
                     py: 0.75,
                     fontSize: '0.72rem',
@@ -942,7 +942,7 @@ export function PhotoPaddingView() {
                   value="blur"
                   sx={{
                     border: '1px solid !important',
-                    borderRadius: '8px !important',
+                    borderRadius: '3px !important',
                     px: 0.5,
                     py: 0.75,
                     fontSize: '0.72rem',
@@ -992,7 +992,7 @@ export function PhotoPaddingView() {
                         style={{
                           width: 36,
                           height: 30,
-                          borderRadius: 6,
+                          borderRadius: 2,
                           border: 'none',
                           cursor: 'pointer',
                         }}
@@ -1153,7 +1153,7 @@ export function PhotoPaddingView() {
             </Card>
 
             {/* Zoom & Undo Card */}
-            <Card sx={{ p: 2.5, borderRadius: 3 }}>
+            <Card sx={{ p: 2.5, borderRadius: 2 }}>
               {/* Zoom Slider */}
               <Box sx={{ mb: 2 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>

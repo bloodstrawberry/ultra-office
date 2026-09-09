@@ -85,7 +85,7 @@ export function ControlPanel({
             border: '1px solid rgba(56, 189, 248, 0.4)',
             color: '#38BDF8',
             fontWeight: 800,
-            borderRadius: 2.5,
+            borderRadius: 2,
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6)',
             '&:hover': { bgcolor: 'rgba(30, 41, 59, 0.95)' },
           }}
@@ -105,7 +105,7 @@ export function ControlPanel({
           maxHeight: 'calc(100% - 120px)',
           overflowY: 'auto',
           p: 2,
-          borderRadius: 3,
+          borderRadius: 2,
           backdropFilter: 'blur(16px)',
           bgcolor: 'rgba(15, 23, 42, 0.85)',
           border: '1px solid rgba(56, 189, 248, 0.35)',
