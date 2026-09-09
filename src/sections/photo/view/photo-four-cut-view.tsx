@@ -23,9 +23,15 @@ import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import GridViewRoundedIcon from '@mui/icons-material/GridViewRounded';
 import StraightenRoundedIcon from '@mui/icons-material/StraightenRounded';
+import FormatSizeRoundedIcon from '@mui/icons-material/FormatSizeRounded';
 import AspectRatioRoundedIcon from '@mui/icons-material/AspectRatioRounded';
 import PhotoFilterRoundedIcon from '@mui/icons-material/PhotoFilterRounded';
+import FormatAlignLeftRoundedIcon from '@mui/icons-material/FormatAlignLeftRounded';
+import VerticalAlignTopRoundedIcon from '@mui/icons-material/VerticalAlignTopRounded';
+import FormatAlignRightRoundedIcon from '@mui/icons-material/FormatAlignRightRounded';
 import AddPhotoAlternateRoundedIcon from '@mui/icons-material/AddPhotoAlternateRounded';
+import FormatAlignCenterRoundedIcon from '@mui/icons-material/FormatAlignCenterRounded';
+import VerticalAlignBottomRoundedIcon from '@mui/icons-material/VerticalAlignBottomRounded';
 
 import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
 
@@ -58,6 +64,17 @@ interface StickerCategory {
   name: string;
   isText?: boolean;
   items: string[];
+}
+
+interface FrameTextItem {
+  id: string;
+  name: string;
+  text: string;
+  position: 'top' | 'bottom';
+  align: 'left' | 'center' | 'right';
+  fontSize: number; // in canvas px
+  offsetY: number; // in canvas px (-50 to +50)
+  isDate?: boolean;
 }
 
 const THEMES: { id: FrameTheme; name: string; bg: string; text: string }[] = [
@@ -128,11 +145,35 @@ export function FourCutView() {
   const [slotGap, setSlotGap] = useState<number>(24);
   const [theme, setTheme] = useState<FrameTheme>('classic-dark');
   const [filter, setFilter] = useState<PhotoFilter>('none');
-  const [dateText, setDateText] = useState<string>(() => {
+  const [frameTexts, setFrameTexts] = useState<FrameTextItem[]>([
+    {
+      id: 'bottom_caption',
+      name: '하단 문구',
+      text: 'LIFE FOUR CUTS',
+      position: 'bottom',
+      align: 'center',
+      fontSize: 36,
+      offsetY: -14,
+    },
+    {
+      id: 'bottom_date',
+      name: '하단 날짜',
+      text: '2026.09.09',
+      position: 'bottom',
+      align: 'center',
+      fontSize: 22,
+      offsetY: 20,
+      isDate: true,
+    },
+  ]);
+
+  useEffect(() => {
     const d = new Date();
-    return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
-  });
-  const [captionText, setCaptionText] = useState<string>('LIFE FOUR CUTS');
+    const today = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+    setFrameTexts((prev) =>
+      prev.map((item) => (item.id === 'bottom_date' ? { ...item, text: today } : item))
+    );
+  }, []);
   const [images, setImages] = useState<string[]>([]);
   const [stickers, setStickers] = useState<StickerItem[]>([]);
   const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
@@ -289,24 +330,32 @@ export function FourCutView() {
   const frameDimensions = useMemo(() => {
     let width = 600;
     let height = 1900;
+    let marginTop = 50;
+    let footerHeight = 160;
+
+    const hasTop = frameTexts.some((t) => t.position === 'top');
+    const hasBottom = frameTexts.some((t) => t.position === 'bottom');
 
     if (layout === 'strip4') {
       width = 600;
-      const marginTop = 50;
+      marginTop = hasTop ? 160 : 50;
+      footerHeight = hasBottom ? 160 : 50;
       const photoH = 380;
       const gap = slotGap;
-      const footerHeight = 170;
       height = marginTop + 4 * photoH + 3 * gap + footerHeight;
     } else if (layout === 'grid4') {
       width = 900;
-      const marginTop = 60;
+      marginTop = hasTop ? 140 : 50;
+      footerHeight = hasBottom ? 140 : 50;
       const gap = slotGap;
       const photoH = 430;
-      const footerHeight = 130;
       height = marginTop + 2 * photoH + gap + footerHeight;
     } else if (layout === 'polaroid1') {
       width = 700;
-      height = 900;
+      marginTop = hasTop ? 130 : 50;
+      footerHeight = hasBottom ? 170 : 50;
+      const photoH = 620;
+      height = marginTop + photoH + footerHeight;
     } else if (layout === 'custom') {
       let slotW = 380;
       let slotH = 285;
@@ -318,10 +367,11 @@ export function FourCutView() {
         slotH = 440;
       }
 
+      marginTop = hasTop ? 130 : 50;
+      footerHeight = hasBottom ? 130 : 50;
+
       const marginX = 45;
-      const marginTop = 50;
       const gap = slotGap;
-      const footerHeight = 130;
 
       const contentW = customCols * slotW + (customCols - 1) * gap;
       const contentH = customRows * slotH + (customRows - 1) * gap;
@@ -330,13 +380,39 @@ export function FourCutView() {
       height = marginTop + contentH + footerHeight;
     }
 
-    return { width, height };
-  }, [layout, slotGap, customRows, customCols, customRatio]);
+    return { width, height, marginTop, footerHeight, hasTop, hasBottom };
+  }, [layout, slotGap, customRows, customCols, customRatio, frameTexts]);
 
   const displayScale =
     containerWidth > 0 ? containerWidth / frameDimensions.width : 360 / frameDimensions.width;
 
   const selectedSticker = stickers.find((s) => s.id === selectedStickerId);
+
+  const updateFrameText = (id: string, updates: Partial<FrameTextItem>) => {
+    setFrameTexts((prev) => prev.map((item) => (item.id === id ? { ...item, ...updates } : item)));
+  };
+
+  const deleteFrameText = (id: string, name: string) => {
+    setFrameTexts((prev) => prev.filter((item) => item.id !== id));
+    toast.info(`'${name}'이(가) 삭제되었습니다.`);
+  };
+
+  const addTextItem = (preset: {
+    name: string;
+    text: string;
+    position: 'top' | 'bottom';
+    align: 'left' | 'center' | 'right';
+    fontSize: number;
+    offsetY: number;
+    isDate?: boolean;
+  }) => {
+    const newItem: FrameTextItem = {
+      id: `${preset.position}_${preset.isDate ? 'date' : 'text'}_${Date.now()}`,
+      ...preset,
+    };
+    setFrameTexts((prev) => [...prev, newItem]);
+    toast.success(`'${preset.name}'이(가) 추가되었습니다.`);
+  };
 
   const addSticker = (emoji: string) => {
     const newSticker: StickerItem = {
@@ -458,7 +534,7 @@ export function FourCutView() {
       const ctx = canvas.getContext('2d');
       if (!ctx) return '';
 
-      const { width, height } = frameDimensions;
+      const { width, height, marginTop, footerHeight } = frameDimensions;
 
       canvas.width = width;
       canvas.height = height;
@@ -486,7 +562,6 @@ export function FourCutView() {
 
       if (layout === 'strip4') {
         const marginX = 40;
-        const marginTop = 50;
         const photoW = width - marginX * 2;
         const photoH = 380;
         const gap = slotGap;
@@ -501,7 +576,6 @@ export function FourCutView() {
         }
       } else if (layout === 'grid4') {
         const marginX = 50;
-        const marginTop = 60;
         const gap = slotGap;
         const photoW = (width - marginX * 2 - gap) / 2;
         const photoH = 430;
@@ -517,7 +591,6 @@ export function FourCutView() {
         });
       } else if (layout === 'polaroid1') {
         const marginX = 50;
-        const marginTop = 60;
         const photoW = width - marginX * 2;
         const photoH = 620;
         slots.push({ x: marginX, y: marginTop, w: photoW, h: photoH });
@@ -532,7 +605,6 @@ export function FourCutView() {
           slotH = 440;
         }
 
-        const marginTop = 50;
         const gap = slotGap;
         const contentW = customCols * slotW + (customCols - 1) * gap;
         const actualMarginX = (width - contentW) / 2;
@@ -642,34 +714,37 @@ export function FourCutView() {
       }
 
       ctx.fillStyle = currentTheme.text;
-      ctx.textAlign = 'center';
 
-      if (layout === 'strip4') {
-        const footerY = height - 120;
-        ctx.font = 'bold 36px "Public Sans", sans-serif';
-        ctx.fillText(captionText, width / 2, footerY);
-        ctx.font = '600 22px monospace';
-        ctx.fillText(dateText, width / 2, footerY + 45);
-      } else if (layout === 'grid4') {
-        const footerY = height - 85;
-        ctx.font = 'bold 38px "Public Sans", sans-serif';
-        ctx.fillText(captionText, width / 2, footerY);
-        ctx.font = '600 22px monospace';
-        ctx.fillText(dateText, width / 2, footerY + 45);
-      } else if (layout === 'polaroid1') {
-        const footerY = height - 100;
-        ctx.font = 'bold 36px "Public Sans", sans-serif';
-        ctx.fillText(captionText, width / 2, footerY);
-        ctx.font = '600 22px monospace';
-        ctx.fillText(dateText, width / 2, footerY + 45);
-      } else if (layout === 'custom') {
-        const footerY = height - 75;
-        const fontSize = Math.max(26, Math.min(38, Math.round(width / 24)));
-        ctx.font = `bold ${fontSize}px "Public Sans", sans-serif`;
-        ctx.fillText(captionText, width / 2, footerY);
-        ctx.font = `600 ${Math.round(fontSize * 0.6)}px monospace`;
-        ctx.fillText(dateText, width / 2, footerY + Math.round(fontSize * 1.15));
-      }
+      // Draw all configured frame texts (top & bottom, caption & date)
+      frameTexts.forEach((item) => {
+        const text = item.text.trim();
+        if (!text) return;
+
+        const isTop = item.position === 'top';
+        const baseY = isTop ? marginTop / 2 : height - footerHeight / 2;
+        const y = baseY + (item.offsetY || 0);
+
+        const paddingX = Math.round(width * 0.08);
+        let x = width / 2;
+        let textAlign: CanvasTextAlign = 'center';
+
+        if (item.align === 'left') {
+          x = paddingX;
+          textAlign = 'left';
+        } else if (item.align === 'right') {
+          x = width - paddingX;
+          textAlign = 'right';
+        }
+
+        ctx.save();
+        ctx.textAlign = textAlign;
+        ctx.textBaseline = 'middle';
+        const fontFam = item.isDate ? 'monospace' : '"Public Sans", sans-serif';
+        const fontWt = item.isDate ? '600' : 'bold';
+        ctx.font = `${fontWt} ${item.fontSize || 30}px ${fontFam}`;
+        ctx.fillText(text, x, y);
+        ctx.restore();
+      });
 
       if (includeStickers && stickersRef.current.length > 0) {
         stickersRef.current.forEach((st) => {
@@ -702,8 +777,7 @@ export function FourCutView() {
       layout,
       theme,
       filter,
-      dateText,
-      captionText,
+      frameTexts,
       customRows,
       customCols,
       customRatio,
@@ -1580,25 +1654,506 @@ export function FourCutView() {
               {/* TAB 3: 텍스트 문구 */}
               {controlTab === 'text' && (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>
-                    프레임 하단 문구 & 날짜
-                  </Typography>
-                  <TextField
-                    size="small"
-                    fullWidth
-                    label="하단 문구"
-                    value={captionText}
-                    onChange={(e) => setCaptionText(e.target.value)}
-                    placeholder="예: LIFE FOUR CUTS"
-                  />
-                  <TextField
-                    size="small"
-                    fullWidth
-                    label="날짜 표시"
-                    value={dateText}
-                    onChange={(e) => setDateText(e.target.value)}
-                    placeholder="예: 2026.09.05"
-                  />
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                      프레임 문구 & 날짜 설정
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                      총 {frameTexts.length}개 항목
+                    </Typography>
+                  </Box>
+
+                  {/* Text Items List */}
+                  {frameTexts.length === 0 ? (
+                    <Box
+                      sx={{
+                        p: 3,
+                        textAlign: 'center',
+                        borderRadius: 2,
+                        border: '1.5px dashed',
+                        borderColor: 'divider',
+                        bgcolor: 'action.hover',
+                      }}
+                    >
+                      <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>
+                        등록된 문구 또는 날짜가 없습니다.
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: 'text.disabled', display: 'block' }}
+                      >
+                        아래 추가 버튼으로 상단/하단 문구를 자유롭게 추가해보세요.
+                      </Typography>
+                    </Box>
+                  ) : (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                      {frameTexts.map((item, idx) => (
+                        <Card
+                          key={item.id}
+                          variant="outlined"
+                          sx={{
+                            p: 1.8,
+                            borderRadius: 2,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 1.3,
+                            bgcolor: (t) =>
+                              t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'grey.50',
+                            borderColor: 'divider',
+                          }}
+                        >
+                          {/* Header: Name, Position Badge, and Individual Delete Button */}
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                            }}
+                          >
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Box
+                                sx={{
+                                  px: 1,
+                                  py: 0.3,
+                                  borderRadius: 1,
+                                  fontSize: '0.68rem',
+                                  fontWeight: 800,
+                                  bgcolor:
+                                    item.position === 'top' ? 'primary.main' : 'secondary.main',
+                                  color: '#fff',
+                                }}
+                              >
+                                {item.position === 'top' ? '상단' : '하단'}
+                              </Box>
+                              <Typography
+                                variant="subtitle2"
+                                sx={{ fontWeight: 700, fontSize: '0.85rem' }}
+                              >
+                                {item.name || `문구 ${idx + 1}`}
+                              </Typography>
+                              {item.isDate && (
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    fontSize: '0.65rem',
+                                    color: 'text.secondary',
+                                    bgcolor: 'action.hover',
+                                    px: 0.8,
+                                    py: 0.2,
+                                    borderRadius: 0.8,
+                                  }}
+                                >
+                                  날짜
+                                </Typography>
+                              )}
+                            </Box>
+
+                            {/* Individual Delete Button */}
+                            <Button
+                              size="small"
+                              color="error"
+                              variant="outlined"
+                              startIcon={<DeleteRoundedIcon sx={{ fontSize: 14 }} />}
+                              onClick={() => deleteFrameText(item.id, item.name)}
+                              sx={{
+                                fontSize: '0.7rem',
+                                py: 0.3,
+                                px: 1,
+                                borderRadius: 1.2,
+                                minWidth: 'auto',
+                              }}
+                            >
+                              삭제
+                            </Button>
+                          </Box>
+
+                          {/* Text input */}
+                          <TextField
+                            size="small"
+                            fullWidth
+                            label="문구 내용"
+                            value={item.text}
+                            onChange={(e) => updateFrameText(item.id, { text: e.target.value })}
+                            placeholder={item.isDate ? '2026.09.09' : '문구를 입력하세요'}
+                          />
+
+                          {/* Quick presets (Date or Captions) */}
+                          {item.isDate ? (
+                            <Box sx={{ display: 'flex', gap: 0.8 }}>
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                color="inherit"
+                                onClick={() => {
+                                  const d = new Date();
+                                  const today = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+                                  updateFrameText(item.id, { text: today });
+                                }}
+                                sx={{ flex: 1, fontSize: '0.7rem', py: 0.3, borderRadius: 1 }}
+                              >
+                                오늘 날짜
+                              </Button>
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                color="inherit"
+                                onClick={() => updateFrameText(item.id, { text: '' })}
+                                sx={{ flex: 1, fontSize: '0.7rem', py: 0.3, borderRadius: 1 }}
+                              >
+                                날짜 비우기
+                              </Button>
+                            </Box>
+                          ) : (
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                              {[
+                                'LIFE FOUR CUTS',
+                                'MEMORIES',
+                                'PHOTO BOOTH',
+                                '우리의 소중한 날',
+                                'FOREVER YOUNG',
+                                '찰칵📸',
+                              ].map((txt) => (
+                                <Button
+                                  key={txt}
+                                  size="small"
+                                  variant="outlined"
+                                  color="inherit"
+                                  onClick={() => updateFrameText(item.id, { text: txt })}
+                                  sx={{
+                                    fontSize: '0.66rem',
+                                    py: 0.2,
+                                    px: 0.7,
+                                    borderRadius: 1,
+                                    bgcolor: 'background.paper',
+                                  }}
+                                >
+                                  {txt}
+                                </Button>
+                              ))}
+                            </Box>
+                          )}
+
+                          {/* Position & Alignment Toggles */}
+                          <Box
+                            sx={{
+                              display: 'grid',
+                              gridTemplateColumns: '1fr 1fr',
+                              gap: 1.2,
+                              alignItems: 'center',
+                            }}
+                          >
+                            {/* Top / Bottom */}
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  fontWeight: 700,
+                                  color: 'text.secondary',
+                                  fontSize: '0.7rem',
+                                }}
+                              >
+                                위치 영역
+                              </Typography>
+                              <ToggleButtonGroup
+                                exclusive
+                                size="small"
+                                value={item.position}
+                                onChange={(_, val) => {
+                                  if (val) updateFrameText(item.id, { position: val });
+                                }}
+                                fullWidth
+                              >
+                                <ToggleButton value="top" sx={{ fontSize: '0.72rem', py: 0.4 }}>
+                                  <VerticalAlignTopRoundedIcon sx={{ fontSize: 16, mr: 0.5 }} />{' '}
+                                  상단
+                                </ToggleButton>
+                                <ToggleButton value="bottom" sx={{ fontSize: '0.72rem', py: 0.4 }}>
+                                  <VerticalAlignBottomRoundedIcon sx={{ fontSize: 16, mr: 0.5 }} />{' '}
+                                  하단
+                                </ToggleButton>
+                              </ToggleButtonGroup>
+                            </Box>
+
+                            {/* Left / Center / Right */}
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  fontWeight: 700,
+                                  color: 'text.secondary',
+                                  fontSize: '0.7rem',
+                                }}
+                              >
+                                텍스트 정렬
+                              </Typography>
+                              <ToggleButtonGroup
+                                exclusive
+                                size="small"
+                                value={item.align}
+                                onChange={(_, val) => {
+                                  if (val) updateFrameText(item.id, { align: val });
+                                }}
+                                fullWidth
+                              >
+                                <ToggleButton value="left" sx={{ py: 0.4 }} title="왼쪽 정렬">
+                                  <FormatAlignLeftRoundedIcon sx={{ fontSize: 16 }} />
+                                </ToggleButton>
+                                <ToggleButton value="center" sx={{ py: 0.4 }} title="가운데 정렬">
+                                  <FormatAlignCenterRoundedIcon sx={{ fontSize: 16 }} />
+                                </ToggleButton>
+                                <ToggleButton value="right" sx={{ py: 0.4 }} title="오른쪽 정렬">
+                                  <FormatAlignRightRoundedIcon sx={{ fontSize: 16 }} />
+                                </ToggleButton>
+                              </ToggleButtonGroup>
+                            </Box>
+                          </Box>
+
+                          {/* Font Size & Vertical Position Sliders */}
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, pt: 0.5 }}>
+                            {/* Font Size Slider */}
+                            <Box>
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center',
+                                  mb: 0.2,
+                                }}
+                              >
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                  <FormatSizeRoundedIcon
+                                    sx={{ fontSize: 15, color: 'text.secondary' }}
+                                  />
+                                  <Typography
+                                    variant="caption"
+                                    sx={{
+                                      fontWeight: 700,
+                                      color: 'text.secondary',
+                                      fontSize: '0.72rem',
+                                    }}
+                                  >
+                                    글자 크기
+                                  </Typography>
+                                </Box>
+                                <Typography
+                                  variant="caption"
+                                  sx={{ fontWeight: 700, color: 'primary.main' }}
+                                >
+                                  {item.fontSize}px
+                                </Typography>
+                              </Box>
+                              <Slider
+                                size="small"
+                                min={14}
+                                max={64}
+                                step={1}
+                                value={item.fontSize}
+                                onChange={(_, val) =>
+                                  updateFrameText(item.id, { fontSize: val as number })
+                                }
+                              />
+                            </Box>
+
+                            {/* Vertical Offset Slider */}
+                            <Box>
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center',
+                                  mb: 0.2,
+                                }}
+                              >
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                  <StraightenRoundedIcon
+                                    sx={{ fontSize: 15, color: 'text.secondary' }}
+                                  />
+                                  <Typography
+                                    variant="caption"
+                                    sx={{
+                                      fontWeight: 700,
+                                      color: 'text.secondary',
+                                      fontSize: '0.72rem',
+                                    }}
+                                  >
+                                    상하 위치 미세조정
+                                  </Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                                  <Typography
+                                    variant="caption"
+                                    sx={{ fontWeight: 700, color: 'primary.main' }}
+                                  >
+                                    {item.offsetY > 0 ? `+${item.offsetY}px` : `${item.offsetY}px`}
+                                  </Typography>
+                                  {item.offsetY !== 0 && (
+                                    <Button
+                                      size="small"
+                                      variant="text"
+                                      onClick={() => updateFrameText(item.id, { offsetY: 0 })}
+                                      sx={{
+                                        fontSize: '0.65rem',
+                                        p: 0,
+                                        minWidth: 'auto',
+                                        textDecoration: 'underline',
+                                      }}
+                                    >
+                                      가운데
+                                    </Button>
+                                  )}
+                                </Box>
+                              </Box>
+                              <Slider
+                                size="small"
+                                min={-60}
+                                max={60}
+                                step={1}
+                                value={item.offsetY}
+                                onChange={(_, val) =>
+                                  updateFrameText(item.id, { offsetY: val as number })
+                                }
+                              />
+                            </Box>
+                          </Box>
+                        </Card>
+                      ))}
+                    </Box>
+                  )}
+
+                  {/* Quick Add Buttons Section */}
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 1,
+                      pt: 1,
+                      borderTop: '1px solid',
+                      borderColor: 'divider',
+                    }}
+                  >
+                    <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>
+                      문구 / 날짜 추가
+                    </Typography>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 0.8 }}>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        startIcon={<AddRoundedIcon sx={{ fontSize: 15 }} />}
+                        onClick={() => {
+                          addTextItem({
+                            name: '하단 문구',
+                            text: 'LIFE FOUR CUTS',
+                            position: 'bottom',
+                            align: 'center',
+                            fontSize: 36,
+                            offsetY: -14,
+                          });
+                        }}
+                        sx={{ borderRadius: 1.5, fontSize: '0.72rem', py: 0.6 }}
+                      >
+                        + 하단 문구
+                      </Button>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        startIcon={<AddRoundedIcon sx={{ fontSize: 15 }} />}
+                        onClick={() => {
+                          const d = new Date();
+                          const today = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+                          addTextItem({
+                            name: '하단 날짜',
+                            text: today,
+                            position: 'bottom',
+                            align: 'center',
+                            fontSize: 22,
+                            offsetY: 20,
+                            isDate: true,
+                          });
+                        }}
+                        sx={{ borderRadius: 1.5, fontSize: '0.72rem', py: 0.6 }}
+                      >
+                        + 하단 날짜
+                      </Button>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        startIcon={<AddRoundedIcon sx={{ fontSize: 15 }} />}
+                        onClick={() => {
+                          addTextItem({
+                            name: '상단 문구',
+                            text: 'MEMORIES',
+                            position: 'top',
+                            align: 'center',
+                            fontSize: 32,
+                            offsetY: -12,
+                          });
+                        }}
+                        sx={{ borderRadius: 1.5, fontSize: '0.72rem', py: 0.6 }}
+                      >
+                        + 상단 문구
+                      </Button>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        startIcon={<AddRoundedIcon sx={{ fontSize: 15 }} />}
+                        onClick={() => {
+                          const d = new Date();
+                          const today = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+                          addTextItem({
+                            name: '상단 날짜',
+                            text: today,
+                            position: 'top',
+                            align: 'center',
+                            fontSize: 20,
+                            offsetY: 16,
+                            isDate: true,
+                          });
+                        }}
+                        sx={{ borderRadius: 1.5, fontSize: '0.72rem', py: 0.6 }}
+                      >
+                        + 상단 날짜
+                      </Button>
+                    </Box>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      startIcon={<AddRoundedIcon />}
+                      onClick={() => {
+                        addTextItem({
+                          name: '새 문구',
+                          text: '우리들의 소중한 순간',
+                          position: 'bottom',
+                          align: 'center',
+                          fontSize: 28,
+                          offsetY: 0,
+                        });
+                      }}
+                      sx={{
+                        borderRadius: 1.5,
+                        borderStyle: 'dashed',
+                        borderWidth: 1.5,
+                        borderColor: 'primary.main',
+                        color: 'primary.main',
+                        fontSize: '0.75rem',
+                        py: 0.7,
+                        fontWeight: 700,
+                        '&:hover': {
+                          borderStyle: 'dashed',
+                          borderWidth: 1.5,
+                          borderColor: 'primary.dark',
+                          bgcolor: 'action.hover',
+                        },
+                      }}
+                    >
+                      + 새 자유 문구 추가
+                    </Button>
+                  </Box>
                 </Box>
               )}
 
