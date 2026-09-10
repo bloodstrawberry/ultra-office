@@ -24,6 +24,7 @@ import VideocamRoundedIcon from '@mui/icons-material/VideocamRounded';
 import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded';
 import ViewInArRoundedIcon from '@mui/icons-material/ViewInArRounded';
 import HandymanRoundedIcon from '@mui/icons-material/HandymanRounded';
+import ExtensionRoundedIcon from '@mui/icons-material/ExtensionRounded';
 import TableViewRoundedIcon from '@mui/icons-material/TableViewRounded';
 import FunctionsRoundedIcon from '@mui/icons-material/FunctionsRounded';
 import DataArrayRoundedIcon from '@mui/icons-material/DataArrayRounded';
@@ -77,6 +78,7 @@ const ICONS = {
   diagram: <AccountTreeRoundedIcon fontSize="small" />,
   schedule: <CalendarMonthRoundedIcon fontSize="small" />,
   devTools: <TerminalRoundedIcon fontSize="small" />,
+  puzzle: <ExtensionRoundedIcon fontSize="small" />,
   codeRunner: <CodeRoundedIcon fontSize="small" />,
   barcode: <QrCodeScannerRoundedIcon fontSize="small" />,
   mathGraph: <FunctionsRoundedIcon fontSize="small" />,
@@ -257,6 +259,18 @@ export const navData: NavSectionProps['data'] = [
           { title: '파일 변환기', path: paths.fileConvert },
           { title: '개발자 툴킷', path: paths.devTools },
           { title: 'Public API', path: paths.publicApi },
+        ],
+      },
+      {
+        title: '퍼즐 치트키',
+        path: paths.puzzle.sudoku,
+        icon: ICONS.puzzle,
+        children: [
+          { title: '스도쿠', path: paths.puzzle.sudoku },
+          { title: '네모네모 로직', path: paths.puzzle.nonogram },
+          { title: '슬라이딩 퍼즐', path: paths.puzzle.sliding },
+          { title: 'Water Sort', path: paths.puzzle.waterSort },
+          { title: 'Rush Hour', path: paths.puzzle.rushHour },
         ],
       },
       {

@@ -78,6 +78,8 @@
     "@react-pdf/renderer": "^4.5.1",
     "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.7.0",
+    "@sudobility/sudojo_ocr": "^1.1.42",
+    "@sudobility/sudojo_types": "^1.2.67",
     "@tanstack/react-query": "^5.101.2",
     "@tanstack/react-query-persist-client": "^5.101.2",
     "@tanstack/react-virtual": "^3.14.5",

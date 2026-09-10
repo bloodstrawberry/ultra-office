@@ -1172,9 +1172,7 @@ export function DevToolsView() {
           }}
         >
           {/* Hash Generator */}
-          <Card
-            sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}
-          >
+          <Card sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography
                 variant="subtitle1"
@@ -1319,9 +1317,7 @@ export function DevToolsView() {
           </Card>
 
           {/* AES-256 Symmetric Encryption Card */}
-          <Card
-            sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}
-          >
+          <Card sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Typography
               variant="subtitle1"
               sx={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 1 }}
@@ -1726,9 +1722,7 @@ export function DevToolsView() {
             gap: 2.5,
           }}
         >
-          <Card
-            sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}
-          >
+          <Card sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography
                 variant="subtitle1"
@@ -1884,9 +1878,7 @@ export function DevToolsView() {
           }}
         >
           {/* Password Generator */}
-          <Card
-            sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}
-          >
+          <Card sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography
                 variant="subtitle1"
@@ -2034,9 +2026,7 @@ export function DevToolsView() {
           </Card>
 
           {/* UUID / NanoID / CUID Generator */}
-          <Card
-            sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}
-          >
+          <Card sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography
                 variant="subtitle1"
@@ -2121,9 +2111,7 @@ export function DevToolsView() {
           </Card>
 
           {/* Lorem Ipsum Generator */}
-          <Card
-            sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}
-          >
+          <Card sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
                 더미 텍스트 (Lorem Ipsum) 생성기
@@ -2194,9 +2182,7 @@ export function DevToolsView() {
           }}
         >
           {/* Epoch Timestamp Converter */}
-          <Card
-            sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}
-          >
+          <Card sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography
                 variant="subtitle1"
@@ -2293,9 +2279,7 @@ export function DevToolsView() {
           </Card>
 
           {/* cURL to Fetch / Axios Converter */}
-          <Card
-            sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}
-          >
+          <Card sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography
                 variant="subtitle1"
@@ -2361,9 +2345,7 @@ export function DevToolsView() {
           </Card>
 
           {/* HTTP Status Catalog */}
-          <Card
-            sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}
-          >
+          <Card sx={{ p: 2.5, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography
                 variant="subtitle1"
