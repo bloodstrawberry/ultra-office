@@ -22,6 +22,8 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import { toast } from 'src/components/snackbar';
 
+import { PuzzleMediaActions } from '../components/puzzle-media-actions';
+import { usePuzzleMediaExport } from '../hooks/use-puzzle-media-export';
 import { PuzzlePlayerControls } from '../components/puzzle-player-controls';
 import { SudokuImageUploadDialog } from '../components/sudoku-image-upload-dialog';
 import {
@@ -57,6 +59,7 @@ export function PuzzleSudokuView() {
   const [uploadDialogOpen, setUploadDialogOpen] = useState<boolean>(false);
 
   // Playback state
+  const boardRef = useRef<HTMLDivElement | null>(null);
   const [solutionSteps, setSolutionSteps] = useState<SudokuStep[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -342,6 +345,17 @@ export function PuzzleSudokuView() {
     }
     setIsPlaying(true);
   }, [applyStep, board, currentStepIndex, ensureStepsGenerated, isPlaying, stopPlayback]);
+
+  // Media export (Screenshot & GIF)
+  const mediaExport = usePuzzleMediaExport({
+    boardRef,
+    gameTitle: 'sudoku',
+    isPlaying,
+    currentStep: currentStepIndex,
+    totalSteps: solutionSteps.length,
+    speed,
+    onStartPlay: handleTogglePlay,
+  });
 
   const handleStepChange = useCallback(
     (targetStep: number) => {
@@ -631,12 +645,15 @@ export function PuzzleSudokuView() {
           </Typography>
           <Chip label="Visual Step Player" size="small" color="primary" variant="soft" />
         </Box>
-        <Typography
-          variant="body2"
-          sx={{ color: 'text.secondary', display: { xs: 'none', sm: 'block' } }}
-        >
-          스도쿠 문제를 직접 풀거나, 재생 버튼을 눌러 풀이 과정을 관람하세요.
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+          <Typography
+            variant="body2"
+            sx={{ color: 'text.secondary', display: { xs: 'none', md: 'block' } }}
+          >
+            스도쿠 문제를 직접 풀거나, 재생 버튼을 눌러 풀이 과정을 관람하세요.
+          </Typography>
+          <PuzzleMediaActions mediaExport={mediaExport} variant="header" />
+        </Box>
       </Box>
 
       {/* Main Content Area: Fits Remaining Height Exactly */}
@@ -669,6 +686,7 @@ export function PuzzleSudokuView() {
         >
           {/* 9x9 Board - Maximize in available vertical space */}
           <Box
+            ref={boardRef}
             sx={{
               width: '100%',
               maxWidth: 480,
@@ -966,6 +984,7 @@ export function PuzzleSudokuView() {
             speed={speed}
             onSpeedChange={setSpeed}
             currentDescription={currentDescription}
+            mediaActions={<PuzzleMediaActions mediaExport={mediaExport} variant="compact" />}
           />
 
           {/* Contradiction Alert Card */}

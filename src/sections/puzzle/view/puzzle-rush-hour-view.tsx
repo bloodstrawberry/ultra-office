@@ -22,6 +22,8 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import { toast } from 'src/components/snackbar';
 
+import { PuzzleMediaActions } from '../components/puzzle-media-actions';
+import { usePuzzleMediaExport } from '../hooks/use-puzzle-media-export';
 import { PuzzlePlayerControls } from '../components/puzzle-player-controls';
 import {
   EXIT_ROW,
@@ -51,6 +53,7 @@ export function PuzzleRushHourView() {
   const [, setPlaybackBaseVehicles] = useState<Vehicle[] | null>(null);
 
   // Playback state
+  const boardRef = useRef<HTMLDivElement | null>(null);
   const [solutionSteps, setSolutionSteps] = useState<RushHourStep[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -169,6 +172,17 @@ export function PuzzleRushHourView() {
     }
     setIsPlaying(true);
   }, [applyStep, currentStepIndex, ensureStepsGenerated, isPlaying, stopPlayback, vehicles]);
+
+  // Media export (Screenshot & GIF)
+  const mediaExport = usePuzzleMediaExport({
+    boardRef,
+    gameTitle: 'rush-hour',
+    isPlaying,
+    currentStep: currentStepIndex,
+    totalSteps: solutionSteps.length,
+    speed,
+    onStartPlay: handleTogglePlay,
+  });
 
   const handleStepChange = useCallback(
     (targetStep: number) => {
@@ -321,12 +335,16 @@ export function PuzzleRushHourView() {
           </Typography>
           <Chip label="Traffic Visual Player" size="small" color="primary" variant="soft" />
         </Box>
-        <Typography
-          variant="body2"
-          sx={{ color: 'text.secondary', display: { xs: 'none', sm: 'block' } }}
-        >
-          장애물 차량을 밀어 탈출로를 열거나, 재생 버튼을 눌러 순서대로 비켜주는 과정을 관람하세요.
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+          <Typography
+            variant="body2"
+            sx={{ color: 'text.secondary', display: { xs: 'none', md: 'block' } }}
+          >
+            장애물 차량을 밀어 탈출로를 열거나, 재생 버튼을 눌러 순서대로 비켜주는 과정을
+            관람하세요.
+          </Typography>
+          <PuzzleMediaActions mediaExport={mediaExport} variant="header" />
+        </Box>
       </Box>
 
       {/* Main Content Area */}
@@ -393,6 +411,7 @@ export function PuzzleRushHourView() {
             }}
           >
             <Box
+              ref={boardRef}
               sx={{
                 position: 'relative',
                 width: '100%',
@@ -650,6 +669,7 @@ export function PuzzleRushHourView() {
             speed={speed}
             onSpeedChange={setSpeed}
             currentDescription={currentDescription}
+            mediaActions={<PuzzleMediaActions mediaExport={mediaExport} variant="compact" />}
           />
 
           <Divider />

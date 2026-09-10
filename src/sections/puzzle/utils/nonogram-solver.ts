@@ -112,7 +112,7 @@ const INVADER_15X15 = [
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 ];
 
-function makePreset(id: string, name: string, solution: number[][]): NonogramPreset {
+export function makePreset(id: string, name: string, solution: number[][]): NonogramPreset {
   const { rowClues, colClues } = generateClues(solution);
   return {
     id,
@@ -123,6 +123,15 @@ function makePreset(id: string, name: string, solution: number[][]): NonogramPre
     rowClues,
     colClues,
   };
+}
+
+export function createCustomNonogramPreset(
+  name: string,
+  solution: number[][],
+  customId?: string
+): NonogramPreset {
+  const id = customId || `custom-${Date.now()}`;
+  return makePreset(id, name, solution);
 }
 
 export const NONOGRAM_PRESETS: NonogramPreset[] = [

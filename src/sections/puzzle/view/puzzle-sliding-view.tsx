@@ -10,16 +10,26 @@ import Divider from '@mui/material/Divider';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import BoltRoundedIcon from '@mui/icons-material/BoltRounded';
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
+import ImageRoundedIcon from '@mui/icons-material/ImageRounded';
 import ShuffleRoundedIcon from '@mui/icons-material/ShuffleRounded';
+import CameraAltRoundedIcon from '@mui/icons-material/CameraAltRounded';
 import LightbulbRoundedIcon from '@mui/icons-material/LightbulbRounded';
 import AutorenewRoundedIcon from '@mui/icons-material/AutorenewRounded';
+import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
+import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { toast } from 'src/components/snackbar';
 
+import { PuzzleMediaActions } from '../components/puzzle-media-actions';
+import { usePuzzleMediaExport } from '../hooks/use-puzzle-media-export';
 import { PuzzlePlayerControls } from '../components/puzzle-player-controls';
+import { SlidingImageUploadDialog } from '../components/sliding-image-upload-dialog';
+import { makeBoardSolvable, getTileBackgroundStyle } from '../utils/sliding-image-utils';
 import {
   isSolved,
   moveTile,
@@ -38,7 +48,17 @@ export function PuzzleSlidingView() {
   const [, setInitialBoard] = useState<number[]>(() => getGoalBoard(3));
   const [movesCount, setMovesCount] = useState<number>(0);
 
+  // Problem Creation & Edit Mode state
+  const [isEditingBoard, setIsEditingBoard] = useState<boolean>(false);
+  const [selectedEditSwapIdx, setSelectedEditSwapIdx] = useState<number | null>(null);
+
+  // Image Puzzle states
+  const [uploadDialogOpen, setUploadDialogOpen] = useState<boolean>(false);
+  const [customImageUrl, setCustomImageUrl] = useState<string | null>(null);
+  const [showTileNumbers, setShowTileNumbers] = useState<boolean>(true);
+
   // Playback state
+  const boardRef = useRef<HTMLDivElement | null>(null);
   const [solutionSteps, setSolutionSteps] = useState<number[][]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -122,6 +142,85 @@ export function PuzzleSlidingView() {
     [stopPlayback]
   );
 
+  // Apply custom puzzle from upload modal
+  const handleApplyCustomPuzzle = useCallback(
+    (config: { size: SlidingSize; board: number[]; imageUrl?: string; showNumbers: boolean }) => {
+      stopPlayback();
+      setIsEditingBoard(false);
+      setSelectedEditSwapIdx(null);
+      setSize(config.size);
+      setBoard(config.board);
+      setInitialBoard(config.board);
+      setCustomImageUrl(config.imageUrl || null);
+      setShowTileNumbers(config.showNumbers);
+      setMovesCount(0);
+      setSolutionSteps([]);
+      setCurrentStepIndex(0);
+      setHintTileIndex(null);
+    },
+    [stopPlayback]
+  );
+
+  // Toggle Board Edit Mode (Problem Creation on Main Board)
+  const handleToggleEditMode = useCallback(() => {
+    stopPlayback();
+    if (!isEditingBoard) {
+      setIsEditingBoard(true);
+      setSelectedEditSwapIdx(null);
+      toast.info('✏️ 문제 만들기(편집 모드) 활성화! 타일을 클릭하여 위치를 자유롭게 바꾸세요.', {
+        id: 'sliding-edit-mode',
+      });
+    } else {
+      if (!isSolvable(board, size)) {
+        toast.error(
+          '현재 배치는 해결이 불가능합니다. [해결 가능하게 자동 수정]을 먼저 클릭하세요!',
+          {
+            id: 'sliding-edit-mode',
+          }
+        );
+        return;
+      }
+      setIsEditingBoard(false);
+      setSelectedEditSwapIdx(null);
+      setInitialBoard([...board]);
+      setMovesCount(0);
+      setSolutionSteps([]);
+      setCurrentStepIndex(0);
+      toast.success('🎉 새로운 퍼즐 문제가 설정되었습니다! 이제 완성해보세요.', {
+        id: 'sliding-edit-mode',
+      });
+    }
+  }, [board, isEditingBoard, size, stopPlayback]);
+
+  const handleEditTileClick = useCallback(
+    (idx: number) => {
+      if (selectedEditSwapIdx === null) {
+        setSelectedEditSwapIdx(idx);
+      } else if (selectedEditSwapIdx === idx) {
+        setSelectedEditSwapIdx(null);
+      } else {
+        setBoard((prev) => {
+          const next = [...prev];
+          const temp = next[selectedEditSwapIdx];
+          next[selectedEditSwapIdx] = next[idx];
+          next[idx] = temp;
+          return next;
+        });
+        setSelectedEditSwapIdx(null);
+      }
+    },
+    [selectedEditSwapIdx]
+  );
+
+  const handleFixBoardSolvability = useCallback(() => {
+    const fixed = makeBoardSolvable(board, size);
+    setBoard(fixed);
+    setSelectedEditSwapIdx(null);
+    toast.success('⚡ 타일 순열을 보정하여 해결 가능한 문제로 수정했습니다!', {
+      id: 'sliding-fix',
+    });
+  }, [board, size]);
+
   // Playback logic
   const ensureStepsGenerated = useCallback(() => {
     if (solutionSteps.length > 0) return solutionSteps;
@@ -163,6 +262,17 @@ export function PuzzleSlidingView() {
       setIsPlaying(true);
     }
   }, [applyStep, currentStepIndex, ensureStepsGenerated, isPlaying, stopPlayback]);
+
+  // Media export (Screenshot & GIF)
+  const mediaExport = usePuzzleMediaExport({
+    boardRef,
+    gameTitle: 'sliding',
+    isPlaying,
+    currentStep: currentStepIndex,
+    totalSteps: solutionSteps.length,
+    speed,
+    onStartPlay: handleTogglePlay,
+  });
 
   const handleStepChange = useCallback(
     (targetStep: number) => {
@@ -312,12 +422,15 @@ export function PuzzleSlidingView() {
           </Typography>
           <Chip label="A* Visual Player" size="small" color="primary" variant="soft" />
         </Box>
-        <Typography
-          variant="body2"
-          sx={{ color: 'text.secondary', display: { xs: 'none', sm: 'block' } }}
-        >
-          타일을 슬라이드해 맞추거나, 재생 버튼을 눌러 A* 최단 경로 풀이 과정을 관람하세요.
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+          <Typography
+            variant="body2"
+            sx={{ color: 'text.secondary', display: { xs: 'none', md: 'block' } }}
+          >
+            타일을 슬라이드해 맞추거나, 재생 버튼을 눌러 A* 최단 경로 풀이 과정을 관람하세요.
+          </Typography>
+          <PuzzleMediaActions mediaExport={mediaExport} variant="header" />
+        </Box>
       </Box>
 
       {/* Main Content Area */}
@@ -366,6 +479,15 @@ export function PuzzleSlidingView() {
               color={isSolvable(board, size) ? 'success' : 'error'}
               variant="soft"
             />
+            {customImageUrl && (
+              <Chip
+                icon={<ImageRoundedIcon />}
+                label="사진 퍼즐 활성화됨"
+                size="small"
+                color="secondary"
+                variant="soft"
+              />
+            )}
           </Box>
 
           {/* Board Grid Box */}
@@ -381,6 +503,7 @@ export function PuzzleSlidingView() {
             }}
           >
             <Box
+              ref={boardRef}
               sx={{
                 width: '100%',
                 maxWidth: 400,
@@ -402,32 +525,55 @@ export function PuzzleSlidingView() {
                 const isEmpty = val === 0;
                 const isHint = hintTileIndex === idx;
                 const canMove = movable.includes(idx);
+                const bgStyle =
+                  customImageUrl && !isEmpty
+                    ? getTileBackgroundStyle(val, size, customImageUrl)
+                    : {};
+
+                const isSelectedForEdit = isEditingBoard && selectedEditSwapIdx === idx;
 
                 if (isEmpty) {
                   return (
                     <Box
                       key={`empty-${idx}`}
+                      onClick={() => isEditingBoard && handleEditTileClick(idx)}
                       sx={{
                         borderRadius: 1.5,
-                        bgcolor: 'background.paper',
-                        opacity: 0.35,
-                        border: '2px dashed',
-                        borderColor: 'divider',
+                        bgcolor: isSelectedForEdit ? 'warning.lighter' : 'background.paper',
+                        opacity: isSelectedForEdit ? 0.8 : 0.35,
+                        border: isSelectedForEdit ? '3px solid #FFAB00' : '2px dashed',
+                        borderColor: isSelectedForEdit ? 'warning.main' : 'divider',
+                        cursor: isEditingBoard ? 'pointer' : 'default',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.15s ease',
                       }}
-                    />
+                    >
+                      {isEditingBoard && (
+                        <Typography
+                          variant="caption"
+                          sx={{ fontSize: '0.7rem', color: 'text.secondary' }}
+                        >
+                          빈칸
+                        </Typography>
+                      )}
+                    </Box>
                   );
                 }
 
                 return (
                   <Box
                     key={`tile-${val}`}
-                    onClick={() => handleTileClick(idx)}
+                    onClick={() =>
+                      isEditingBoard ? handleEditTileClick(idx) : handleTileClick(idx)
+                    }
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       borderRadius: 1.5,
-                      cursor: canMove ? 'pointer' : 'default',
+                      cursor: isEditingBoard || canMove ? 'pointer' : 'default',
                       userSelect: 'none',
                       bgcolor: isHint
                         ? 'warning.main'
@@ -435,27 +581,43 @@ export function PuzzleSlidingView() {
                           ? 'primary.main'
                           : 'primary.darker',
                       color: '#FFF',
-                      boxShadow: canMove ? 3 : 1,
-                      transform: canMove ? 'scale(1)' : 'scale(0.98)',
+                      boxShadow: isSelectedForEdit ? 5 : canMove ? 3 : 1,
+                      transform: isSelectedForEdit
+                        ? 'scale(1.06)'
+                        : canMove
+                          ? 'scale(1)'
+                          : 'scale(0.98)',
                       transition: 'all 0.15s ease',
                       position: 'relative',
-                      border: isHint ? '3px solid #FFF' : 'none',
-                      '&:hover': canMove
-                        ? {
-                            transform: 'scale(1.03)',
-                            filter: 'brightness(1.1)',
-                          }
-                        : {},
+                      border: isSelectedForEdit
+                        ? '3px solid #FFAB00'
+                        : isHint
+                          ? '3px solid #FFF'
+                          : 'none',
+                      ...bgStyle,
+                      '&:hover':
+                        isEditingBoard || canMove
+                          ? {
+                              transform: 'scale(1.03)',
+                              filter: 'brightness(1.1)',
+                            }
+                          : {},
                     }}
                   >
-                    <Typography
-                      sx={{
-                        fontSize: { xs: '1.3rem', sm: '1.7rem', md: '2rem' },
-                        fontWeight: 800,
-                      }}
-                    >
-                      {val}
-                    </Typography>
+                    {(!customImageUrl || showTileNumbers) && (
+                      <Typography
+                        sx={{
+                          fontSize: { xs: '1.3rem', sm: '1.7rem', md: '2rem' },
+                          fontWeight: 800,
+                          textShadow: customImageUrl
+                            ? '0 1px 4px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.6)'
+                            : 'none',
+                          color: '#FFFFFF',
+                        }}
+                      >
+                        {val}
+                      </Typography>
+                    )}
                     {isHint && (
                       <Chip
                         label="HINT"
@@ -519,6 +681,116 @@ export function PuzzleSlidingView() {
             overflowY: 'auto',
           }}
         >
+          {/* Image & Custom Puzzle Upload Button */}
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<CameraAltRoundedIcon />}
+            onClick={() => setUploadDialogOpen(true)}
+            sx={{ py: 1.2, fontWeight: 800 }}
+          >
+            📷 이미지 퍼즐 만들기 & 배치 불러오기
+          </Button>
+
+          {/* Custom Problem Creation / Edit Button */}
+          <Button
+            variant={isEditingBoard ? 'contained' : 'outlined'}
+            color="secondary"
+            startIcon={isEditingBoard ? <CheckRoundedIcon /> : <EditRoundedIcon />}
+            onClick={handleToggleEditMode}
+            sx={{ py: 1, fontWeight: 700 }}
+          >
+            {isEditingBoard ? '✅ 문제 만들기 완료 (배치 확정)' : '✏️ 문제 직접 만들기 (배치 편집)'}
+          </Button>
+
+          {/* Edit Mode Alert & Solvability auto-fix */}
+          {isEditingBoard && (
+            <Box
+              sx={{
+                p: 1.5,
+                borderRadius: 1.5,
+                bgcolor: 'secondary.lighter',
+                border: '1px solid',
+                borderColor: 'secondary.main',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1,
+              }}
+            >
+              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                💡 타일 2개를 차례로 클릭하여 서로 위치를 바꾸며 원하는 문제를 만드세요.
+              </Typography>
+              {!isSolvable(board, size) && (
+                <Button
+                  size="small"
+                  variant="contained"
+                  color="error"
+                  onClick={handleFixBoardSolvability}
+                  sx={{ fontSize: '0.75rem', height: 28, fontWeight: 700 }}
+                >
+                  ⚡ 해결 가능한 배치로 자동 보정
+                </Button>
+              )}
+              <Button
+                size="small"
+                variant="outlined"
+                color="inherit"
+                onClick={() => {
+                  setIsEditingBoard(false);
+                  setSelectedEditSwapIdx(null);
+                  setBoard(getGoalBoard(size));
+                }}
+                sx={{ fontSize: '0.75rem', height: 28 }}
+              >
+                취소 (정답 상태로 초기화)
+              </Button>
+            </Box>
+          )}
+
+          {/* Image Puzzle Controls (When active) */}
+          {customImageUrl && (
+            <Box
+              sx={{
+                p: 1.5,
+                borderRadius: 1.5,
+                bgcolor: 'action.hover',
+                border: '1px solid',
+                borderColor: 'divider',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1,
+              }}
+            >
+              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>
+                🖼️ 사진 퍼즐 옵션
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  color="inherit"
+                  fullWidth
+                  startIcon={
+                    showTileNumbers ? <VisibilityOffRoundedIcon /> : <VisibilityRoundedIcon />
+                  }
+                  onClick={() => setShowTileNumbers((prev) => !prev)}
+                  sx={{ fontSize: '0.75rem', height: 32 }}
+                >
+                  숫자 표시 {showTileNumbers ? '(ON)' : '(OFF)'}
+                </Button>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  color="error"
+                  onClick={() => setCustomImageUrl(null)}
+                  sx={{ fontSize: '0.75rem', height: 32, flexShrink: 0 }}
+                >
+                  사진 제거
+                </Button>
+              </Box>
+            </Box>
+          )}
+
           {/* Board Size Selector */}
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
             <TextField
@@ -552,6 +824,7 @@ export function PuzzleSlidingView() {
             speed={speed}
             onSpeedChange={setSpeed}
             currentDescription={currentDescription}
+            mediaActions={<PuzzleMediaActions mediaExport={mediaExport} variant="compact" />}
           />
 
           <Divider />
@@ -585,6 +858,14 @@ export function PuzzleSlidingView() {
           </Box>
         </Card>
       </Box>
+
+      {/* Sliding Image Upload & Custom Board Modal */}
+      <SlidingImageUploadDialog
+        open={uploadDialogOpen}
+        onClose={() => setUploadDialogOpen(false)}
+        currentSize={size}
+        onApplyPuzzle={handleApplyCustomPuzzle}
+      />
     </DashboardContent>
   );
 }

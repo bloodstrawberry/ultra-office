@@ -31,6 +31,7 @@ export interface PuzzlePlayerControlsProps {
   currentDescription?: string | null;
   disabled?: boolean;
   variant?: 'card' | 'plain';
+  mediaActions?: React.ReactNode;
 }
 
 export function PuzzlePlayerControls({
@@ -48,6 +49,7 @@ export function PuzzlePlayerControls({
   currentDescription,
   disabled = false,
   variant = 'card',
+  mediaActions,
 }: PuzzlePlayerControlsProps) {
   const progressPercent = totalSteps > 0 ? Math.round((currentStep / totalSteps) * 100) : 0;
 
@@ -75,25 +77,28 @@ export function PuzzlePlayerControls({
         >
           {title}
         </Typography>
-        <Chip
-          label={
-            isPlaying
-              ? '재생 중'
-              : currentStep === totalSteps && totalSteps > 0
-                ? '풀이 완료'
-                : '일시정지'
-          }
-          size="small"
-          color={
-            isPlaying
-              ? 'primary'
-              : currentStep === totalSteps && totalSteps > 0
-                ? 'success'
-                : 'default'
-          }
-          variant="soft"
-          sx={{ fontWeight: 700, height: 22, fontSize: '0.7rem' }}
-        />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+          {mediaActions}
+          <Chip
+            label={
+              isPlaying
+                ? '재생 중'
+                : currentStep === totalSteps && totalSteps > 0
+                  ? '풀이 완료'
+                  : '일시정지'
+            }
+            size="small"
+            color={
+              isPlaying
+                ? 'primary'
+                : currentStep === totalSteps && totalSteps > 0
+                  ? 'success'
+                  : 'default'
+            }
+            variant="soft"
+            sx={{ fontWeight: 700, height: 22, fontSize: '0.7rem' }}
+          />
+        </Box>
       </Box>
 
       {/* Step Info & Description */}

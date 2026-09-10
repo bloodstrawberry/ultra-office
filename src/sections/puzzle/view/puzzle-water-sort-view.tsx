@@ -18,6 +18,8 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import { toast } from 'src/components/snackbar';
 
+import { PuzzleMediaActions } from '../components/puzzle-media-actions';
+import { usePuzzleMediaExport } from '../hooks/use-puzzle-media-export';
 import { PuzzlePlayerControls } from '../components/puzzle-player-controls';
 import {
   canPour,
@@ -45,6 +47,7 @@ export function PuzzleWaterSortView() {
   const [, setPlaybackBaseTubes] = useState<number[][] | null>(null);
 
   // Playback state
+  const boardRef = useRef<HTMLDivElement | null>(null);
   const [solutionSteps, setSolutionSteps] = useState<WaterSortFullStep[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -174,6 +177,17 @@ export function PuzzleWaterSortView() {
     }
     setIsPlaying(true);
   }, [applyStep, currentStepIndex, ensureStepsGenerated, isPlaying, stopPlayback, tubes]);
+
+  // Media export (Screenshot & GIF)
+  const mediaExport = usePuzzleMediaExport({
+    boardRef,
+    gameTitle: 'water-sort',
+    isPlaying,
+    currentStep: currentStepIndex,
+    totalSteps: solutionSteps.length,
+    speed,
+    onStartPlay: handleTogglePlay,
+  });
 
   const handleStepChange = useCallback(
     (targetStep: number) => {
@@ -325,13 +339,16 @@ export function PuzzleWaterSortView() {
           </Typography>
           <Chip label="BFS Visual Player" size="small" color="primary" variant="soft" />
         </Box>
-        <Typography
-          variant="body2"
-          sx={{ color: 'text.secondary', display: { xs: 'none', sm: 'block' } }}
-        >
-          시험관을 번갈아 선택해 물을 분류하거나, 재생 버튼을 눌러 물이 옮겨 담아지는 과정을
-          관람하세요.
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+          <Typography
+            variant="body2"
+            sx={{ color: 'text.secondary', display: { xs: 'none', md: 'block' } }}
+          >
+            시험관을 번갈아 선택해 물을 분류하거나, 재생 버튼을 눌러 물이 옮겨 담아지는 과정을
+            관람하세요.
+          </Typography>
+          <PuzzleMediaActions mediaExport={mediaExport} variant="header" />
+        </Box>
       </Box>
 
       {/* Main Content Area */}
@@ -388,6 +405,7 @@ export function PuzzleWaterSortView() {
 
           {/* Test Tubes Container */}
           <Box
+            ref={boardRef}
             sx={{
               flex: '1 1 auto',
               minHeight: 0,
@@ -573,6 +591,7 @@ export function PuzzleWaterSortView() {
             speed={speed}
             onSpeedChange={setSpeed}
             currentDescription={currentDescription}
+            mediaActions={<PuzzleMediaActions mediaExport={mediaExport} variant="compact" />}
           />
 
           <Divider />
