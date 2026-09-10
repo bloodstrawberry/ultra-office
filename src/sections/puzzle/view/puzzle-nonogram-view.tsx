@@ -28,6 +28,7 @@ import { PuzzleMediaActions } from '../components/puzzle-media-actions';
 import { usePuzzleMediaExport } from '../hooks/use-puzzle-media-export';
 import { PuzzlePlayerControls } from '../components/puzzle-player-controls';
 import { NonogramImageUploadDialog } from '../components/nonogram-image-upload-dialog';
+import { NonogramProblemUploadDialog } from '../components/nonogram-problem-upload-dialog';
 import {
   getHintCell,
   generateClues,
@@ -44,6 +45,7 @@ export function PuzzleNonogramView() {
   const [customPresets, setCustomPresets] = useState<NonogramPreset[]>([]);
   const [selectedPresetId, setSelectedPresetId] = useState<string>(NONOGRAM_PRESETS[0].id);
   const [uploadDialogOpen, setUploadDialogOpen] = useState<boolean>(false);
+  const [problemUploadOpen, setProblemUploadOpen] = useState(false);
 
   // Directly creating/designing a custom puzzle mode
   const [isDesignMode, setIsDesignMode] = useState<boolean>(false);
@@ -765,6 +767,14 @@ export function PuzzleNonogramView() {
           {/* Image to Nonogram Button */}
           <Button
             variant="contained"
+            startIcon={<CameraAltRoundedIcon />}
+            onClick={() => setProblemUploadOpen(true)}
+            sx={{ py: 1.2, fontWeight: 800 }}
+          >
+            문제 이미지 읽기 · 숫자 모델 비교
+          </Button>
+          <Button
+            variant="outlined"
             color="primary"
             startIcon={<CameraAltRoundedIcon />}
             onClick={() => setUploadDialogOpen(true)}
@@ -900,6 +910,11 @@ export function PuzzleNonogramView() {
       </Box>
 
       {/* Nonogram Image Upload & Pixel Conversion Modal */}
+      <NonogramProblemUploadDialog
+        open={problemUploadOpen}
+        onClose={() => setProblemUploadOpen(false)}
+        onApplyPreset={handleApplyUploadedPreset}
+      />
       <NonogramImageUploadDialog
         open={uploadDialogOpen}
         onClose={() => setUploadDialogOpen(false)}
