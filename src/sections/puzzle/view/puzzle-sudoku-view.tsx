@@ -984,7 +984,6 @@ export function PuzzleSudokuView() {
             speed={speed}
             onSpeedChange={setSpeed}
             currentDescription={currentDescription}
-            mediaActions={<PuzzleMediaActions mediaExport={mediaExport} variant="compact" />}
           />
 
           {/* Contradiction Alert Card */}

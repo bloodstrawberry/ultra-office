@@ -859,7 +859,6 @@ export function PuzzleNonogramView() {
             speed={speed}
             onSpeedChange={setSpeed}
             currentDescription={currentDescription}
-            mediaActions={<PuzzleMediaActions mediaExport={mediaExport} variant="compact" />}
           />
 
           <Divider />

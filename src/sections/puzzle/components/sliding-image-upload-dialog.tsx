@@ -109,7 +109,7 @@ export function SlidingImageUploadDialog({
     (newSize: SlidingSize) => {
       setSize(newSize);
       setSelectedSwapIdx(null);
-      const newBoard = autoShuffle ? shuffleBoard(newSize, 30) : getGoalBoard(newSize);
+      const newBoard = autoShuffle ? shuffleBoard(newSize, newSize) : getGoalBoard(newSize);
       setPreviewBoard(newBoard);
     },
     [autoShuffle]
@@ -147,7 +147,7 @@ export function SlidingImageUploadDialog({
     setImagePreviewUrl(url);
     setSelectedFile(null);
     if (autoShuffle) {
-      setPreviewBoard(shuffleBoard(size, 35));
+      setPreviewBoard(shuffleBoard(size, size));
     }
     toast.info('💡 아름다운 샘플 그래픽 이미지를 불러왔습니다.', { id: 'sliding-sample' });
   }, [autoShuffle, size]);
@@ -159,7 +159,7 @@ export function SlidingImageUploadDialog({
       const url = URL.createObjectURL(file);
       setImagePreviewUrl(url);
       if (autoShuffle) {
-        setPreviewBoard(shuffleBoard(size, 35));
+        setPreviewBoard(shuffleBoard(size, size));
       }
       toast.success('사진이 업로드되었습니다! 우측에서 퍼즐 상태를 확인하세요.', {
         id: 'sliding-upload',
@@ -171,7 +171,7 @@ export function SlidingImageUploadDialog({
   // Shuffle preview board
   const handleShufflePreview = useCallback(() => {
     setSelectedSwapIdx(null);
-    const shuffled = shuffleBoard(size, 35);
+    const shuffled = shuffleBoard(size, size);
     setPreviewBoard(shuffled);
     toast.info('미리보기 보드가 셔플되었습니다.', { id: 'sliding-preview' });
   }, [size]);

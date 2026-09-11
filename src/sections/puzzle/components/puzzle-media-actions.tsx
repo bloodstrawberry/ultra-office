@@ -15,9 +15,11 @@ import Typography from '@mui/material/Typography';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import CircularProgress from '@mui/material/CircularProgress';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import VideoFileRoundedIcon from '@mui/icons-material/VideoFileRounded';
 import CameraAltRoundedIcon from '@mui/icons-material/CameraAltRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded';
+import ArrowDropDownRoundedIcon from '@mui/icons-material/ArrowDropDownRounded';
 import MovieCreationRoundedIcon from '@mui/icons-material/MovieCreationRounded';
 import FiberManualRecordRoundedIcon from '@mui/icons-material/FiberManualRecordRounded';
 
@@ -36,15 +38,19 @@ export function PuzzleMediaActions({
     isCapturingScreenshot,
     copyScreenshotToClipboard,
     downloadScreenshot,
-    gifMode,
-    toggleGifMode,
+    recordMode,
+    toggleRecordMode,
     isRecording,
     isEncoding,
+    isEncodingGif,
+    isEncodingMp4,
     encodingProgress,
+    mp4EncodingProgress,
     capturedFramesCount,
-    gifResultUrl,
+    hasRecordedMedia,
     downloadGif,
-    clearGif,
+    downloadMp4,
+    clearMedia,
     startAutoRecord,
   } = mediaExport;
 
@@ -68,6 +74,28 @@ export function PuzzleMediaActions({
   const handleDownloadImage = async () => {
     handleCloseScreenshotMenu();
     await downloadScreenshot();
+  };
+
+  // Download (GIF & MP4) dropdown menu anchor
+  const [downloadAnchorEl, setDownloadAnchorEl] = useState<null | HTMLElement>(null);
+  const isDownloadMenuOpen = Boolean(downloadAnchorEl);
+
+  const handleOpenDownloadMenu = (event: React.MouseEvent<HTMLElement>) => {
+    setDownloadAnchorEl(event.currentTarget);
+  };
+
+  const handleCloseDownloadMenu = () => {
+    setDownloadAnchorEl(null);
+  };
+
+  const handleDownloadGifOption = () => {
+    handleCloseDownloadMenu();
+    downloadGif();
+  };
+
+  const handleDownloadMp4Option = async () => {
+    handleCloseDownloadMenu();
+    await downloadMp4();
   };
 
   const isCompact = variant === 'compact';
@@ -145,20 +173,20 @@ export function PuzzleMediaActions({
         </MenuItem>
       </Menu>
 
-      {/* 2. GIF 모드 토글 버튼 */}
+      {/* 2. 녹화 모드 토글 버튼 (GIF & MP4) */}
       <Tooltip
         title={
-          gifMode
-            ? 'GIF 녹화 모드 활성 중 (재생 버튼을 누르면 종료 시 다운로드 버튼이 생성됩니다)'
-            : 'GIF 녹화 모드 켜기 (재생 과정을 GIF로 녹화)'
+          recordMode
+            ? '녹화 모드 활성 중 (재생 버튼을 누르면 종료 시 다운로드 메뉴가 생성됩니다)'
+            : '녹화 모드 켜기 (재생 과정을 GIF 또는 MP4 비디오로 녹화)'
         }
       >
         <span>
           <Button
             size={size}
-            variant={gifMode ? 'contained' : 'outlined'}
-            color={gifMode ? (isRecording ? 'error' : 'secondary') : 'inherit'}
-            onClick={toggleGifMode}
+            variant={recordMode ? 'contained' : 'outlined'}
+            color={recordMode ? (isRecording ? 'error' : 'secondary') : 'inherit'}
+            onClick={toggleRecordMode}
             disabled={isEncoding}
             startIcon={
               isRecording ? (
@@ -180,26 +208,30 @@ export function PuzzleMediaActions({
             sx={{
               fontWeight: 700,
               px: isCompact ? 1 : 1.25,
-              borderColor: gifMode ? undefined : 'divider',
-              bgcolor: gifMode ? undefined : 'background.paper',
+              borderColor: recordMode ? undefined : 'divider',
+              bgcolor: recordMode ? undefined : 'background.paper',
             }}
           >
             {isRecording
               ? `녹화 중 (${capturedFramesCount})`
-              : gifMode
+              : recordMode
                 ? isCompact
-                  ? 'GIF 준비'
-                  : 'GIF 녹화 대기'
-                : 'GIF'}
+                  ? '녹화 준비'
+                  : '녹화 대기'
+                : '녹화'}
           </Button>
         </span>
       </Tooltip>
 
-      {/* 3. GIF 인코딩 중 상태 표시 */}
+      {/* 3. 인코딩 중 상태 표시 */}
       {isEncoding && (
         <Chip
           icon={<CircularProgress size={14} color="inherit" />}
-          label={`GIF 변환 중 ${encodingProgress > 0 ? `(${encodingProgress}%)` : ''}`}
+          label={
+            isEncodingMp4 && !isEncodingGif
+              ? `MP4 변환 중 ${mp4EncodingProgress > 0 ? `(${mp4EncodingProgress}%)` : ''}`
+              : `GIF 변환 중 ${encodingProgress > 0 ? `(${encodingProgress}%)` : ''}`
+          }
           color="secondary"
           size="small"
           variant="soft"
@@ -207,8 +239,8 @@ export function PuzzleMediaActions({
         />
       )}
 
-      {/* 4. 생성 완료된 GIF 다운로드 버튼 (사용자 요청 핵심!) */}
-      {gifResultUrl && (
+      {/* 4. 다운로드 드롭다운 버튼 (사용자 요청: 녹화 -> 다운로드 -> GIF, MP4 드랍박스 선택) */}
+      {hasRecordedMedia && (
         <Box
           sx={{
             display: 'inline-flex',
@@ -231,8 +263,9 @@ export function PuzzleMediaActions({
             size={size}
             variant="contained"
             color="success"
-            onClick={downloadGif}
+            onClick={handleOpenDownloadMenu}
             startIcon={<FileDownloadRoundedIcon sx={{ fontSize: 18 }} />}
+            endIcon={<ArrowDropDownRoundedIcon sx={{ fontSize: 20 }} />}
             sx={{
               fontWeight: 800,
               boxShadow: 2,
@@ -240,18 +273,62 @@ export function PuzzleMediaActions({
               whiteSpace: 'nowrap',
             }}
           >
-            GIF 다운로드
+            다운로드
           </Button>
-          <Tooltip title="GIF 초기화">
-            <IconButton size="small" onClick={clearGif} sx={{ color: 'success.dark', p: 0.5 }}>
+
+          <Menu
+            anchorEl={downloadAnchorEl}
+            open={isDownloadMenuOpen}
+            onClose={handleCloseDownloadMenu}
+            transformOrigin={{ horizontal: 'left', vertical: 'top' }}
+            anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
+            sx={{
+              '& .MuiPaper-root': {
+                borderRadius: 1.5,
+                minWidth: 210,
+                boxShadow: 4,
+              },
+            }}
+          >
+            <MenuItem onClick={handleDownloadGifOption} sx={{ py: 1, gap: 1.25 }}>
+              <ListItemIcon sx={{ minWidth: 'auto !important' }}>
+                <MovieCreationRoundedIcon fontSize="small" color="secondary" />
+              </ListItemIcon>
+              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                  GIF 다운로드 (.gif)
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                  웹 / 모바일 공유용 움직이는 짤
+                </Typography>
+              </Box>
+            </MenuItem>
+
+            <MenuItem onClick={handleDownloadMp4Option} sx={{ py: 1, gap: 1.25 }}>
+              <ListItemIcon sx={{ minWidth: 'auto !important' }}>
+                <VideoFileRoundedIcon fontSize="small" color="primary" />
+              </ListItemIcon>
+              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                  MP4 다운로드 (.mp4)
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                  표준 고화질 동영상 비디오 파일
+                </Typography>
+              </Box>
+            </MenuItem>
+          </Menu>
+
+          <Tooltip title="녹화 초기화">
+            <IconButton size="small" onClick={clearMedia} sx={{ color: 'success.dark', p: 0.5 }}>
               <CloseRoundedIcon sx={{ fontSize: 16 }} />
             </IconButton>
           </Tooltip>
         </Box>
       )}
 
-      {/* 5. 풀이 단계가 있을 때 바로 녹화 재생을 시작할 수 있는 보조 팁 (GIF 모드일 때만 가볍게 노출) */}
-      {gifMode && !isRecording && !isEncoding && !gifResultUrl && (
+      {/* 5. 원클릭 자동 녹화 재생 버튼 (녹화 모드일 때만 노출) */}
+      {recordMode && !isRecording && !isEncoding && !hasRecordedMedia && (
         <Tooltip title="0단계부터 전체 과정을 자동으로 재생하며 녹화합니다">
           <Button
             size={size}

@@ -2414,6 +2414,16 @@
   resolved "https://registry.npmjs.org/@standard-schema/utils/-/utils-0.3.0.tgz"
   integrity sha512-e7Mew686owMaPJVNNLs55PUvgz371nKgwsc4vxE49zsODpJEnxgxRo2y/OKrqueavXgZNMDVj3DdHFlaSAeU8g==
 
+"@sudobility/sudojo_ocr@^1.1.42":
+  version "1.1.42"
+  resolved "https://registry.npmjs.org/@sudobility/sudojo_ocr/-/sudojo_ocr-1.1.42.tgz#79ebd4ba146202e67edbf844bda86f646883a768"
+  integrity sha512-gULBvEMXcKDyUI3OXOsdEhi7zecAouCeUopfVeLrsy1V8Vz3p7UhhMDsp3bhZ2d+QeSFPuQogiFkPGpE8QW6XA==
+
+"@sudobility/sudojo_types@^1.2.67":
+  version "1.2.67"
+  resolved "https://registry.npmjs.org/@sudobility/sudojo_types/-/sudojo_types-1.2.67.tgz#272e81e35d1ef450dae64eaab8c5008677520e77"
+  integrity sha512-LUEAuqR2HWxv5idPRDBQf231PBHOKnYq9UTYbFGMJmWk/dDmsXJ82+K+p6cG+5ihzel3T9YNVfOaPDzMxF4zmw==
+
 "@svgr/babel-plugin-add-jsx-attribute@8.0.0":
   version "8.0.0"
   resolved "https://registry.npmjs.org/@svgr/babel-plugin-add-jsx-attribute/-/babel-plugin-add-jsx-attribute-8.0.0.tgz"

@@ -2,24 +2,34 @@
  * Sliding Puzzle Image & Board Utilities
  */
 
-import type { SlidingSize } from './sliding-solver';
-
 import { isSolvable } from './sliding-solver';
 
 /**
  * Calculates CSS background properties to render a sliced tile from an image
- * For tile value `val` (1 to size*size - 1), finds where it belongs in the solved grid
+ * Supports both getTileBackgroundStyle(val, size, imageUrl) and getTileBackgroundStyle(val, rows, cols, imageUrl)
  */
 export function getTileBackgroundStyle(
   val: number,
-  size: SlidingSize,
-  imageUrl: string
+  rowsOrSize: number,
+  colsOrImageUrl: number | string,
+  maybeImageUrl?: string
 ): {
   backgroundImage: string;
   backgroundPosition: string;
   backgroundSize: string;
   backgroundRepeat: string;
 } {
+  const rows = rowsOrSize;
+  let cols = rowsOrSize;
+  let imageUrl = '';
+
+  if (typeof colsOrImageUrl === 'string') {
+    imageUrl = colsOrImageUrl;
+  } else {
+    cols = colsOrImageUrl;
+    imageUrl = maybeImageUrl || '';
+  }
+
   if (val === 0 || !imageUrl) {
     return {
       backgroundImage: 'none',
@@ -30,16 +40,16 @@ export function getTileBackgroundStyle(
   }
 
   const targetIdx = val - 1;
-  const targetR = Math.floor(targetIdx / size);
-  const targetC = targetIdx % size;
+  const targetR = Math.floor(targetIdx / cols);
+  const targetC = targetIdx % cols;
 
-  const posX = size > 1 ? (targetC / (size - 1)) * 100 : 0;
-  const posY = size > 1 ? (targetR / (size - 1)) * 100 : 0;
+  const posX = cols > 1 ? (targetC / (cols - 1)) * 100 : 0;
+  const posY = rows > 1 ? (targetR / (rows - 1)) * 100 : 0;
 
   return {
     backgroundImage: `url("${imageUrl}")`,
     backgroundPosition: `${posX.toFixed(2)}% ${posY.toFixed(2)}%`,
-    backgroundSize: `${size * 100}% ${size * 100}%`,
+    backgroundSize: `${cols * 100}% ${rows * 100}%`,
     backgroundRepeat: 'no-repeat',
   };
 }
@@ -49,7 +59,8 @@ export function getTileBackgroundStyle(
  */
 export function parseSlidingBoardFromText(
   rawText: string,
-  targetSize: SlidingSize
+  rows: number,
+  cols = rows
 ): { board: number[] | null; error?: string } {
   const clean = rawText.trim();
   if (!clean) return { board: null, error: '입력된 내용이 없습니다.' };
@@ -61,12 +72,12 @@ export function parseSlidingBoardFromText(
   }
 
   const nums = matches.map((m) => parseInt(m, 10));
-  const expectedCount = targetSize * targetSize;
+  const expectedCount = rows * cols;
 
   if (nums.length !== expectedCount) {
     return {
       board: null,
-      error: `${targetSize}x${targetSize} 퍼즐은 총 ${expectedCount}개의 숫자(0~${
+      error: `${rows}x${cols} 퍼즐은 총 ${expectedCount}개의 숫자(0~${
         expectedCount - 1
       })가 필요합니다. (현재 ${nums.length}개)`,
     };
@@ -91,8 +102,8 @@ export function parseSlidingBoardFromText(
 /**
  * Swaps two non-zero tiles to flip the inversion parity and make an unsolvable board solvable
  */
-export function makeBoardSolvable(board: number[], size: SlidingSize): number[] {
-  if (isSolvable(board, size)) {
+export function makeBoardSolvable(board: number[], rows: number, cols = rows): number[] {
+  if (isSolvable(board, rows, cols)) {
     return [...board];
   }
 
