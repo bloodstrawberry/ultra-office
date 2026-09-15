@@ -13,6 +13,7 @@ interface UsePuzzleMediaExportOptions {
   currentStep: number;
   totalSteps: number;
   speed: number;
+  captureAnimationFrames?: boolean;
   onStartPlay?: () => void;
 }
 
@@ -53,12 +54,52 @@ const triggerDownload = (url: string, filename: string) => {
   document.body.removeChild(a);
 };
 
+const GIF_SIZE = 420;
+
+const loadFrameImage = (src: string) =>
+  new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = src;
+  });
+
+/**
+ * gifshot keeps its drawing canvas between frames. Flattening every capture onto an
+ * opaque canvas prevents transparent pixels from leaving trails of the previous frame.
+ */
+const createOpaqueGifFrames = async (frames: string[], backgroundColor: string) => {
+  const canvas = document.createElement('canvas');
+  canvas.width = GIF_SIZE;
+  canvas.height = GIF_SIZE;
+  const context = canvas.getContext('2d', { alpha: false });
+  if (!context) throw new Error('GIF 프레임 캔버스를 생성할 수 없습니다.');
+
+  const opaqueFrames: string[] = [];
+  for (const frame of frames) {
+    const image = await loadFrameImage(frame);
+    context.save();
+    context.globalCompositeOperation = 'copy';
+    context.fillStyle = '#FFFFFF';
+    context.fillRect(0, 0, GIF_SIZE, GIF_SIZE);
+    context.globalCompositeOperation = 'source-over';
+    context.fillStyle = backgroundColor;
+    context.fillRect(0, 0, GIF_SIZE, GIF_SIZE);
+    context.drawImage(image, 0, 0, GIF_SIZE, GIF_SIZE);
+    context.restore();
+    opaqueFrames.push(canvas.toDataURL('image/png'));
+  }
+
+  return opaqueFrames;
+};
+
 export function usePuzzleMediaExport({
   boardRef,
   gameTitle,
   isPlaying,
   currentStep,
   speed,
+  captureAnimationFrames = false,
   onStartPlay,
 }: UsePuzzleMediaExportOptions): UsePuzzleMediaExportReturn {
   // Screenshot state
@@ -79,6 +120,7 @@ export function usePuzzleMediaExport({
   const capturedFramesRef = useRef<string[]>([]);
   const pendingCaptureRef = useRef<Promise<void> | null>(null);
   const wasPlayingRef = useRef<boolean>(false);
+  const animationCaptureIntervalMs = Math.max(80, Math.round(120 / speed));
 
   // 1. 스크린샷: 클립보드로 복사
   const copyScreenshotToClipboard = useCallback(async () => {
@@ -229,13 +271,21 @@ export function usePuzzleMediaExport({
       try {
         const gifshot = (await import('gifshot')).default;
         if (capturedFramesRef.current !== frames) return;
-        const intervalSec = Math.max(0.08, Math.min(0.6, 0.35 / speed));
+        const captureElement = boardRef.current;
+        const backgroundColor = captureElement
+          ? getPuzzleCaptureOptions(captureElement, 1).backgroundColor
+          : '#FFFFFF';
+        const opaqueFrames = await createOpaqueGifFrames(frames, backgroundColor);
+        if (capturedFramesRef.current !== frames) return;
+        const intervalSec = captureAnimationFrames
+          ? animationCaptureIntervalMs / 1000
+          : Math.max(0.08, Math.min(0.6, 0.35 / speed));
 
         gifshot.createGIF(
           {
-            images: frames,
-            gifWidth: 420,
-            gifHeight: 420,
+            images: opaqueFrames,
+            gifWidth: GIF_SIZE,
+            gifHeight: GIF_SIZE,
             interval: intervalSec,
             numWorkers: 2,
             progressCallback: (captureProgress: number) => {
@@ -265,7 +315,7 @@ export function usePuzzleMediaExport({
         toast.error('GIF 인코더 로드 중 오류가 발생했습니다.', { id: 'media-encoding' });
       }
     },
-    [speed]
+    [animationCaptureIntervalMs, boardRef, captureAnimationFrames, speed]
   );
 
   // 7. MP4 인코딩 실행 함수
@@ -277,10 +327,15 @@ export function usePuzzleMediaExport({
       setMp4EncodingProgress(0);
 
       try {
-        const res = await encodeFramesToMp4(frames, speed, (progress) => {
-          if (capturedFramesRef.current !== frames) return;
-          setMp4EncodingProgress(progress);
-        });
+        const res = await encodeFramesToMp4(
+          frames,
+          speed,
+          (progress) => {
+            if (capturedFramesRef.current !== frames) return;
+            setMp4EncodingProgress(progress);
+          },
+          captureAnimationFrames ? animationCaptureIntervalMs : undefined
+        );
 
         if (capturedFramesRef.current !== frames) return null;
         setMp4ResultUrl(res.url);
@@ -296,7 +351,7 @@ export function usePuzzleMediaExport({
         }
       }
     },
-    [speed]
+    [animationCaptureIntervalMs, captureAnimationFrames, speed]
   );
 
   // 8. 재생 시작 시 녹화 준비
@@ -316,10 +371,36 @@ export function usePuzzleMediaExport({
 
   // 9. 재생 중 단계 변화 시 프레임 캡처
   useEffect(() => {
-    if (recordMode && isPlaying && isRecording) {
+    if (recordMode && isPlaying && isRecording && !captureAnimationFrames) {
       void captureCurrentFrame();
     }
-  }, [recordMode, isPlaying, isRecording, currentStep, captureCurrentFrame]);
+  }, [
+    captureAnimationFrames,
+    recordMode,
+    isPlaying,
+    isRecording,
+    currentStep,
+    captureCurrentFrame,
+  ]);
+
+  // CSS 이동/회전처럼 단계 사이에서 일어나는 장면도 연속 프레임으로 기록한다.
+  useEffect(() => {
+    if (!captureAnimationFrames || !recordMode || !isPlaying || !isRecording) return () => {};
+
+    void captureCurrentFrame();
+    const captureTimer = setInterval(() => {
+      void captureCurrentFrame();
+    }, animationCaptureIntervalMs);
+
+    return () => clearInterval(captureTimer);
+  }, [
+    animationCaptureIntervalMs,
+    captureAnimationFrames,
+    captureCurrentFrame,
+    isPlaying,
+    isRecording,
+    recordMode,
+  ]);
 
   // 10. 재생 종료(일시정지 또는 완료) 시 미디어 인코딩 트리거
   useEffect(() => {

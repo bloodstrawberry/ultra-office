@@ -1,5 +1,7 @@
 'use client';
 
+import type { PointerEvent as ReactPointerEvent } from 'react';
+
 import { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
@@ -38,6 +40,37 @@ import {
   getRushHourStepDescription,
 } from '../utils/rush-hour-solver';
 
+interface VehicleDragState {
+  vehicleId: string;
+  pointerId: number;
+  startClientPosition: number;
+  cellSize: number;
+  minDelta: number;
+  maxDelta: number;
+  offsetPx: number;
+}
+
+function getVehicleDragBounds(vehicles: Vehicle[], vehicleId: string) {
+  const countAvailableCells = (direction: -1 | 1) => {
+    let availableCells = 0;
+    let positions = vehicles;
+
+    while (true) {
+      const next = moveVehicle(positions, vehicleId, direction);
+      if (!next) break;
+      positions = next;
+      availableCells += 1;
+    }
+
+    return availableCells;
+  };
+
+  return {
+    minDelta: -countAvailableCells(-1),
+    maxDelta: countAvailableCells(1),
+  };
+}
+
 export function PuzzleRushHourView() {
   const [selectedPresetId, setSelectedPresetId] = useState<string>(RUSH_HOUR_PRESETS[0].id);
   const currentPreset =
@@ -59,6 +92,10 @@ export function PuzzleRushHourView() {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [speed, setSpeed] = useState<number>(1);
   const [hintStep, setHintStep] = useState<RushHourStep | null>(null);
+  const [dragOffset, setDragOffset] = useState<{ vehicleId: string; offsetPx: number } | null>(
+    null
+  );
+  const vehicleDragRef = useRef<VehicleDragState | null>(null);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -119,6 +156,79 @@ export function PuzzleRushHourView() {
       }
     },
     [stopPlayback, vehicles, won]
+  );
+
+  const handleVehiclePointerDown = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>, vehicle: Vehicle) => {
+      if (isPlaying || won || (event.pointerType === 'mouse' && event.button !== 0)) return;
+
+      const board = boardRef.current;
+      if (!board) return;
+
+      event.preventDefault();
+      stopPlayback();
+      setSelectedVehicleId(vehicle.id);
+
+      const boardRect = board.getBoundingClientRect();
+      const isVertical = vehicle.orientation === 'V';
+      const cellSize = (isVertical ? boardRect.height : boardRect.width) / GRID_SIZE;
+      const { minDelta, maxDelta } = getVehicleDragBounds(vehicles, vehicle.id);
+
+      vehicleDragRef.current = {
+        vehicleId: vehicle.id,
+        pointerId: event.pointerId,
+        startClientPosition: isVertical ? event.clientY : event.clientX,
+        cellSize,
+        minDelta,
+        maxDelta,
+        offsetPx: 0,
+      };
+      setDragOffset({ vehicleId: vehicle.id, offsetPx: 0 });
+      event.currentTarget.setPointerCapture(event.pointerId);
+    },
+    [isPlaying, stopPlayback, vehicles, won]
+  );
+
+  const handleVehiclePointerMove = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>, vehicle: Vehicle) => {
+      const drag = vehicleDragRef.current;
+      if (!drag || drag.pointerId !== event.pointerId || drag.vehicleId !== vehicle.id) return;
+
+      event.preventDefault();
+      const clientPosition = vehicle.orientation === 'V' ? event.clientY : event.clientX;
+      const rawOffset = clientPosition - drag.startClientPosition;
+      const offsetPx = Math.min(
+        drag.maxDelta * drag.cellSize,
+        Math.max(drag.minDelta * drag.cellSize, rawOffset)
+      );
+
+      drag.offsetPx = offsetPx;
+      setDragOffset({ vehicleId: vehicle.id, offsetPx });
+    },
+    []
+  );
+
+  const finishVehicleDrag = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>, commit: boolean) => {
+      const drag = vehicleDragRef.current;
+      if (!drag || drag.pointerId !== event.pointerId) return;
+
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+
+      vehicleDragRef.current = null;
+      setDragOffset(null);
+
+      if (!commit) return;
+
+      const delta = Math.min(
+        drag.maxDelta,
+        Math.max(drag.minDelta, Math.round(drag.offsetPx / drag.cellSize))
+      );
+      if (delta !== 0) handleMove(drag.vehicleId, delta);
+    },
+    [handleMove]
   );
 
   // Playback logic: solve from CURRENT vehicle positions
@@ -476,6 +586,8 @@ export function PuzzleRushHourView() {
                 {vehicles.map((v) => {
                   const isSelected = selectedVehicleId === v.id;
                   const isHint = hintStep?.vehicleId === v.id;
+                  const activeDragOffset = dragOffset?.vehicleId === v.id ? dragOffset.offsetPx : 0;
+                  const isDragging = dragOffset?.vehicleId === v.id;
 
                   const widthPct =
                     v.orientation === 'H' ? (v.length / GRID_SIZE) * 100 : (1 / GRID_SIZE) * 100;
@@ -487,6 +599,10 @@ export function PuzzleRushHourView() {
                   return (
                     <Box
                       key={v.id}
+                      onPointerDown={(event) => handleVehiclePointerDown(event, v)}
+                      onPointerMove={(event) => handleVehiclePointerMove(event, v)}
+                      onPointerUp={(event) => finishVehicleDrag(event, true)}
+                      onPointerCancel={(event) => finishVehicleDrag(event, false)}
                       onClick={() => {
                         stopPlayback();
                         setSelectedVehicleId(v.id);
@@ -499,7 +615,7 @@ export function PuzzleRushHourView() {
                         height: `calc(${heightPct}% - 6px)`,
                         bgcolor: v.color,
                         borderRadius: 2,
-                        cursor: isPlaying ? 'default' : 'pointer',
+                        cursor: isPlaying ? 'default' : isDragging ? 'grabbing' : 'grab',
                         boxShadow: isSelected ? 6 : 2,
                         border: isSelected
                           ? '3px solid #FFF'
@@ -510,9 +626,16 @@ export function PuzzleRushHourView() {
                         flexDirection: v.orientation === 'V' ? 'column' : 'row',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        transition: 'top 0.2s ease, left 0.2s ease, box-shadow 0.2s',
+                        transform:
+                          v.orientation === 'V'
+                            ? `translateY(${activeDragOffset}px)`
+                            : `translateX(${activeDragOffset}px)`,
+                        transition: isDragging
+                          ? 'box-shadow 0.2s'
+                          : 'top 0.2s ease, left 0.2s ease, box-shadow 0.2s',
                         zIndex: isSelected ? 5 : 2,
                         userSelect: 'none',
+                        touchAction: 'none',
                         color: '#FFF',
                         p: 0.5,
                       }}

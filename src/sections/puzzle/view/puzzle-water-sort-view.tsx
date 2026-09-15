@@ -34,6 +34,20 @@ import {
   generateWaterSortStates,
 } from '../utils/water-sort-solver';
 
+interface ActivePour {
+  from: number;
+  to: number;
+  colorId: number;
+  pouredCount: number;
+  dx: number;
+  dy: number;
+  rotation: number;
+  streamLeft: number;
+  streamTop: number;
+  streamHeight: number;
+  duration: number;
+}
+
 export function PuzzleWaterSortView() {
   const [selectedPresetId, setSelectedPresetId] = useState<string>(WATER_SORT_PRESETS[0].id);
   const currentPreset =
@@ -53,8 +67,11 @@ export function PuzzleWaterSortView() {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [speed, setSpeed] = useState<number>(1);
   const [hintPours, setHintPours] = useState<WaterSortStep | null>(null);
+  const [activePour, setActivePour] = useState<ActivePour | null>(null);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const pourTimersRef = useRef<NodeJS.Timeout[]>([]);
+  const tubeRefs = useRef<Array<HTMLDivElement | null>>([]);
 
   const won = isWaterSortWon(tubes);
 
@@ -75,9 +92,80 @@ export function PuzzleWaterSortView() {
     setIsPlaying(false);
   }, []);
 
+  const clearPourTimers = useCallback(() => {
+    pourTimersRef.current.forEach(clearTimeout);
+    pourTimersRef.current = [];
+    setActivePour(null);
+  }, []);
+
+  useEffect(
+    () => () => {
+      pourTimersRef.current.forEach(clearTimeout);
+    },
+    []
+  );
+
+  const animatePour = useCallback(
+    (
+      from: number,
+      to: number,
+      nextTubes: number[][],
+      pouredCount: number,
+      onComplete?: () => void
+    ) => {
+      const source = tubeRefs.current[from];
+      const target = tubeRefs.current[to];
+      const board = boardRef.current;
+      if (!source || !target || !board) {
+        setTubes(nextTubes.map((tube) => [...tube]));
+        onComplete?.();
+        return;
+      }
+
+      const sourceRect = source.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      const boardRect = board.getBoundingClientRect();
+      const direction = targetRect.left >= sourceRect.left ? 1 : -1;
+      const duration = Math.max(520, Math.round(980 / speed));
+      const sourceCenter = sourceRect.left + sourceRect.width / 2;
+      const targetCenter = targetRect.left + targetRect.width / 2;
+      const dx = targetCenter - sourceCenter - direction * Math.min(28, targetRect.width * 0.45);
+      const pourLift = Math.min(88, targetRect.height * 0.5);
+      const dy = targetRect.top - sourceRect.top - pourLift;
+      const streamTop = targetRect.top - boardRect.top + board.scrollTop - pourLift - 4;
+      const streamBottom = targetRect.top - boardRect.top + board.scrollTop + 12;
+
+      setActivePour({
+        from,
+        to,
+        colorId: tubes[from][tubes[from].length - 1],
+        pouredCount,
+        dx,
+        dy,
+        rotation: direction * 74,
+        streamLeft: targetCenter - boardRect.left - 4,
+        streamTop,
+        streamHeight: Math.max(44, streamBottom - streamTop),
+        duration,
+      });
+
+      const transferTimer = setTimeout(() => {
+        setTubes(nextTubes.map((tube) => [...tube]));
+      }, duration * 0.57);
+      const finishTimer = setTimeout(() => {
+        setActivePour(null);
+        pourTimersRef.current = [];
+        onComplete?.();
+      }, duration);
+      pourTimersRef.current = [transferTimer, finishTimer];
+    },
+    [speed, tubes]
+  );
+
   const handleSelectPreset = useCallback(
     (presetId: string) => {
       stopPlayback();
+      clearPourTimers();
       setSelectedPresetId(presetId);
       const preset = WATER_SORT_PRESETS.find((p) => p.id === presetId) || WATER_SORT_PRESETS[0];
       setTubes(preset.tubes.map((t) => [...t]));
@@ -92,13 +180,13 @@ export function PuzzleWaterSortView() {
         id: 'water-sort-preset',
       });
     },
-    [stopPlayback]
+    [clearPourTimers, stopPlayback]
   );
 
   const handleTubeClick = useCallback(
     (idx: number) => {
       stopPlayback();
-      if (won) return;
+      if (won || activePour) return;
 
       if (selectedTube === null) {
         if (tubes[idx].length > 0) {
@@ -111,8 +199,9 @@ export function PuzzleWaterSortView() {
         if (canPour(tubes, selectedTube, idx)) {
           const res = executePour(tubes, selectedTube, idx);
           if (res) {
-            setTubes(res.nextTubes);
-            setPoursCount((prev) => prev + 1);
+            animatePour(selectedTube, idx, res.nextTubes, res.pouredCount, () => {
+              setPoursCount((prev) => prev + 1);
+            });
             setSolutionSteps([]);
             setCurrentStepIndex(0);
             playbackBaseTubesRef.current = null;
@@ -123,7 +212,7 @@ export function PuzzleWaterSortView() {
         setHintPours(null);
       }
     },
-    [selectedTube, stopPlayback, tubes, won]
+    [activePour, animatePour, selectedTube, stopPlayback, tubes, won]
   );
 
   // Playback logic: solve from CURRENT tubes to preserve user's manual moves
@@ -168,6 +257,7 @@ export function PuzzleWaterSortView() {
       stopPlayback();
       return;
     }
+    if (activePour) return;
 
     const steps = ensureStepsGenerated();
     if (steps.length === 0) return;
@@ -176,7 +266,15 @@ export function PuzzleWaterSortView() {
       applyStep(0, steps, playbackBaseTubesRef.current || tubes);
     }
     setIsPlaying(true);
-  }, [applyStep, currentStepIndex, ensureStepsGenerated, isPlaying, stopPlayback, tubes]);
+  }, [
+    activePour,
+    applyStep,
+    currentStepIndex,
+    ensureStepsGenerated,
+    isPlaying,
+    stopPlayback,
+    tubes,
+  ]);
 
   // Media export (Screenshot & GIF)
   const mediaExport = usePuzzleMediaExport({
@@ -186,72 +284,93 @@ export function PuzzleWaterSortView() {
     currentStep: currentStepIndex,
     totalSteps: solutionSteps.length,
     speed,
+    captureAnimationFrames: true,
     onStartPlay: handleTogglePlay,
   });
 
   const handleStepChange = useCallback(
     (targetStep: number) => {
+      if (activePour) return;
       stopPlayback();
       const steps = ensureStepsGenerated();
       if (targetStep >= 0 && targetStep <= steps.length) {
         applyStep(targetStep, steps, playbackBaseTubesRef.current || tubes);
       }
     },
-    [applyStep, ensureStepsGenerated, stopPlayback, tubes]
+    [activePour, applyStep, ensureStepsGenerated, stopPlayback, tubes]
   );
 
   const handlePrevStep = useCallback(() => {
+    if (activePour) return;
     stopPlayback();
     const steps = ensureStepsGenerated();
     if (currentStepIndex > 0) {
       applyStep(currentStepIndex - 1, steps, playbackBaseTubesRef.current || tubes);
     }
-  }, [applyStep, currentStepIndex, ensureStepsGenerated, stopPlayback, tubes]);
+  }, [activePour, applyStep, currentStepIndex, ensureStepsGenerated, stopPlayback, tubes]);
 
   const handleNextStep = useCallback(() => {
+    if (activePour) return;
     stopPlayback();
     const steps = ensureStepsGenerated();
     if (currentStepIndex < steps.length) {
       applyStep(currentStepIndex + 1, steps, playbackBaseTubesRef.current || tubes);
     }
-  }, [applyStep, currentStepIndex, ensureStepsGenerated, stopPlayback, tubes]);
+  }, [activePour, applyStep, currentStepIndex, ensureStepsGenerated, stopPlayback, tubes]);
 
   const handleResetPlayback = useCallback(() => {
+    if (activePour) return;
     stopPlayback();
     const steps = ensureStepsGenerated();
     if (steps.length > 0) {
       applyStep(0, steps, playbackBaseTubesRef.current || tubes);
     }
-  }, [applyStep, ensureStepsGenerated, stopPlayback, tubes]);
+  }, [activePour, applyStep, ensureStepsGenerated, stopPlayback, tubes]);
 
-  // Interval ticker
+  // Playback ticker: every solver step uses the same physical pour animation as manual play.
   useEffect(() => {
-    if (!isPlaying) return () => {};
+    if (!isPlaying || activePour) return () => {};
+    if (currentStepIndex >= solutionSteps.length) {
+      stopPlayback();
+      setSelectedTube(null);
+      return () => {};
+    }
 
-    const delay = Math.max(120, Math.round(550 / speed));
-    const interval = setInterval(() => {
-      setCurrentStepIndex((prev) => {
-        if (prev < solutionSteps.length) {
-          const nextIdx = prev + 1;
-          const step = solutionSteps[nextIdx - 1];
-          setTubes(step.tubes.map((t) => [...t]));
-          setPoursCount((c) => c + 1);
-          setHintPours({ from: step.from, to: step.to });
-          setSelectedTube(step.from);
-          return nextIdx;
-        }
-        stopPlayback();
-        setSelectedTube(null);
-        return prev;
-      });
-    }, delay);
+    const step = solutionSteps[currentStepIndex];
+    const res = executePour(tubes, step.from, step.to);
+    if (!res) {
+      stopPlayback();
+      return () => {};
+    }
 
-    return () => clearInterval(interval);
-  }, [isPlaying, solutionSteps, speed, stopPlayback]);
+    const kickoff = setTimeout(
+      () => {
+        setHintPours({ from: step.from, to: step.to });
+        setSelectedTube(step.from);
+        animatePour(step.from, step.to, step.tubes, res.pouredCount, () => {
+          setCurrentStepIndex((index) => index + 1);
+          setPoursCount((count) => count + 1);
+        });
+      },
+      Math.max(80, Math.round(140 / speed))
+    );
+
+    return () => clearTimeout(kickoff);
+  }, [
+    activePour,
+    animatePour,
+    currentStepIndex,
+    isPlaying,
+    solutionSteps,
+    speed,
+    stopPlayback,
+    tubes,
+  ]);
 
   // 치트키 1: 전체 완성 치트 (Auto Solve) - 사용자의 현재 물 배치에서 풀이
   const handleAutoSolve = useCallback(() => {
     stopPlayback();
+    if (activePour) return;
     if (won) {
       toast.info('이미 모든 튜브의 색상이 정렬되어 있습니다.', { id: 'water-sort-status' });
       return;
@@ -265,11 +384,12 @@ export function PuzzleWaterSortView() {
     toast.success(`⚡ 전체 붓기 완성 치트! 총 ${steps.length}회의 물 붓기로 정렬을 완료했습니다.`, {
       id: 'water-sort-status',
     });
-  }, [applyStep, ensureStepsGenerated, stopPlayback, won]);
+  }, [activePour, applyStep, ensureStepsGenerated, stopPlayback, won]);
 
   // 치트키 2: 다음 붓기 추천 (Single Hint)
   const handleSingleHint = useCallback(() => {
     stopPlayback();
+    if (activePour) return;
     if (won) return;
     const { solved: success, steps } = solveWaterSort(tubes);
     if (success && steps.length > 0) {
@@ -285,11 +405,12 @@ export function PuzzleWaterSortView() {
         id: 'water-sort-status',
       });
     }
-  }, [stopPlayback, tubes, won]);
+  }, [activePour, stopPlayback, tubes, won]);
 
   // Reset
   const handleReset = useCallback(() => {
     stopPlayback();
+    clearPourTimers();
     setTubes(currentPreset.tubes.map((t) => [...t]));
     playbackBaseTubesRef.current = null;
     setPlaybackBaseTubes(null);
@@ -299,7 +420,7 @@ export function PuzzleWaterSortView() {
     setCurrentStepIndex(0);
     setSolutionSteps([]);
     toast.info('시험관이 초기 상태로 재설정되었습니다.', { id: 'water-sort-status' });
-  }, [currentPreset, stopPlayback]);
+  }, [clearPourTimers, currentPreset, stopPlayback]);
 
   const currentDescription =
     currentStepIndex > 0 && solutionSteps[currentStepIndex - 1]
@@ -419,13 +540,56 @@ export function PuzzleWaterSortView() {
               bgcolor: 'action.hover',
               borderRadius: 2,
               overflowY: 'auto',
+              position: 'relative',
+              isolation: 'isolate',
+              backgroundImage: (theme) =>
+                `radial-gradient(circle at 50% 110%, ${theme.palette.primary.main}16, transparent 48%)`,
             }}
           >
+            {activePour && (
+              <Box
+                aria-hidden
+                sx={{
+                  position: 'absolute',
+                  zIndex: 8,
+                  pointerEvents: 'none',
+                  left: activePour.streamLeft,
+                  top: activePour.streamTop,
+                  width: 8,
+                  height: activePour.streamHeight,
+                  borderRadius: '999px',
+                  transformOrigin: '50% 0%',
+                  background: `linear-gradient(90deg, ${WATER_COLORS[activePour.colorId].color}99 0%, ${WATER_COLORS[activePour.colorId].color} 38%, rgba(255,255,255,0.86) 52%, ${WATER_COLORS[activePour.colorId].color} 72%)`,
+                  boxShadow: `0 0 10px ${WATER_COLORS[activePour.colorId].color}88`,
+                  animation: `waterStream ${activePour.duration}ms ease-in-out both`,
+                  '@keyframes waterStream': {
+                    '0%, 42%': { opacity: 0, transform: 'scaleY(0)' },
+                    '48%': { opacity: 0.95, transform: 'scaleY(0.2)' },
+                    '55%, 73%': { opacity: 1, transform: 'scaleY(1)' },
+                    '80%, 100%': { opacity: 0, transform: 'scaleY(0)' },
+                  },
+                  '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    left: '50%',
+                    bottom: -5,
+                    width: 24,
+                    height: 8,
+                    borderRadius: '50%',
+                    bgcolor: WATER_COLORS[activePour.colorId].color,
+                    transform: 'translateX(-50%)',
+                    filter: 'blur(2px)',
+                  },
+                }}
+              />
+            )}
             {tubes.map((tube, idx) => {
               const isSelected = selectedTube === idx;
               const isComplete = isTubeComplete(tube);
               const isHintFrom = hintPours?.from === idx;
               const isHintTo = hintPours?.to === idx;
+              const isPourSource = activePour?.from === idx;
+              const isPourTarget = activePour?.to === idx;
 
               return (
                 <Box
@@ -435,8 +599,8 @@ export function PuzzleWaterSortView() {
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    cursor: isPlaying ? 'default' : 'pointer',
-                    transform: isSelected ? 'translateY(-16px)' : 'none',
+                    cursor: isPlaying || activePour ? 'default' : 'pointer',
+                    transform: isSelected && !isPourSource ? 'translateY(-16px)' : 'none',
                     transition: 'transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
                   }}
                 >
@@ -469,6 +633,9 @@ export function PuzzleWaterSortView() {
 
                   {/* Test Tube Glass */}
                   <Box
+                    ref={(element: HTMLDivElement | null) => {
+                      tubeRefs.current[idx] = element;
+                    }}
                     sx={{
                       width: { xs: 42, sm: 50, md: 56 },
                       height: { xs: 135, sm: 160, md: 175 },
@@ -483,12 +650,48 @@ export function PuzzleWaterSortView() {
                       display: 'flex',
                       flexDirection: 'column-reverse',
                       overflow: 'hidden',
-                      bgcolor: 'background.paper',
-                      boxShadow: isSelected ? 6 : 2,
+                      bgcolor: 'rgba(255,255,255,0.14)',
+                      backgroundImage:
+                        'linear-gradient(100deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.08) 18%, transparent 35%, rgba(255,255,255,0.16) 82%, rgba(255,255,255,0.38) 100%)',
+                      boxShadow: isPourTarget
+                        ? `0 0 0 5px ${WATER_COLORS[activePour.colorId].color}22, 0 14px 28px rgba(30, 64, 175, 0.18)`
+                        : isSelected
+                          ? 6
+                          : '0 10px 24px rgba(15, 23, 42, 0.12), inset 3px 0 5px rgba(255,255,255,0.35)',
                       position: 'relative',
+                      zIndex: isPourSource ? 10 : 1,
+                      transformOrigin: '50% 8px',
                       transition: 'border-color 0.2s, box-shadow 0.2s',
+                      animation: isPourSource
+                        ? `waterBottlePour ${activePour.duration}ms cubic-bezier(0.45, 0, 0.2, 1) both`
+                        : undefined,
+                      '@keyframes waterBottlePour': {
+                        '0%': { transform: 'translate(0, 0) rotate(0deg)' },
+                        '18%': { transform: 'translate(0, -18px) rotate(0deg)' },
+                        '40%': {
+                          transform: `translate(${activePour?.dx ?? 0}px, ${(activePour?.dy ?? 0) - 10}px) rotate(0deg)`,
+                        },
+                        '50%, 74%': {
+                          transform: `translate(${activePour?.dx ?? 0}px, ${activePour?.dy ?? 0}px) rotate(${activePour?.rotation ?? 0}deg)`,
+                        },
+                        '82%': {
+                          transform: `translate(${activePour?.dx ?? 0}px, ${(activePour?.dy ?? 0) - 8}px) rotate(0deg)`,
+                        },
+                        '100%': { transform: 'translate(0, 0) rotate(0deg)' },
+                      },
                       '&:hover': {
                         filter: 'brightness(1.03)',
+                      },
+                      '&::after': {
+                        content: '""',
+                        position: 'absolute',
+                        zIndex: 4,
+                        inset: '5px auto 14px 7px',
+                        width: '17%',
+                        borderRadius: '999px',
+                        background:
+                          'linear-gradient(180deg, rgba(255,255,255,0.78), rgba(255,255,255,0.04))',
+                        pointerEvents: 'none',
                       },
                     }}
                   >
@@ -501,8 +704,27 @@ export function PuzzleWaterSortView() {
                             height: '25%',
                             width: '100%',
                             background: colorDef.gradient,
-                            borderTop: '1px solid rgba(255,255,255,0.25)',
-                            transition: 'all 0.3s ease',
+                            borderTop: '1px solid rgba(255,255,255,0.42)',
+                            boxShadow: `inset 0 7px 10px ${colorDef.color}55`,
+                            position: 'relative',
+                            transition: 'height 0.28s ease, opacity 0.2s ease',
+                            animation: isPourTarget
+                              ? 'liquidSettle 0.45s ease-out both'
+                              : undefined,
+                            '@keyframes liquidSettle': {
+                              '0%': { transform: 'scaleY(0.76)', opacity: 0.75 },
+                              '65%': { transform: 'scaleY(1.06)', opacity: 1 },
+                              '100%': { transform: 'scaleY(1)' },
+                            },
+                            '&::before': {
+                              content: '""',
+                              position: 'absolute',
+                              inset: '3px 7px auto',
+                              height: 3,
+                              borderRadius: '50%',
+                              background: 'rgba(255,255,255,0.48)',
+                              filter: 'blur(0.4px)',
+                            },
                           }}
                         />
                       );
@@ -605,7 +827,7 @@ export function PuzzleWaterSortView() {
               color="primary"
               startIcon={<BoltRoundedIcon />}
               onClick={handleAutoSolve}
-              disabled={isPlaying}
+              disabled={isPlaying || Boolean(activePour)}
               sx={{ py: 1.2, fontWeight: 700 }}
             >
               치트키: 전체 즉시 완성 (Auto Solve)
@@ -616,7 +838,7 @@ export function PuzzleWaterSortView() {
               color="warning"
               startIcon={<LightbulbRoundedIcon />}
               onClick={handleSingleHint}
-              disabled={isPlaying || won}
+              disabled={isPlaying || won || Boolean(activePour)}
               sx={{ py: 1, fontWeight: 700 }}
             >
               치트키: 다음 붓기 추천 (Next Pour Hint)

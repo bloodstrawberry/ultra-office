@@ -46,7 +46,8 @@ export function getPuzzleCaptureOptions(element: HTMLElement, pixelRatio: number
 export async function encodeFramesToMp4(
   frames: string[],
   speed = 1,
-  onProgress?: (percent: number) => void
+  onProgress?: (percent: number) => void,
+  frameDurationOverrideMs?: number
 ): Promise<{ blob: Blob; url: string; ext: string }> {
   if (frames.length === 0) {
     throw new Error('인코딩할 프레임이 없습니다.');
@@ -107,7 +108,9 @@ export async function encodeFramesToMp4(
   }
 
   // Frame display interval in ms based on playback speed
-  const frameDurationMs = Math.max(70, Math.min(500, Math.round(260 / speed)));
+  const frameDurationMs = frameDurationOverrideMs
+    ? Math.max(50, Math.min(500, Math.round(frameDurationOverrideMs)))
+    : Math.max(70, Math.min(500, Math.round(260 / speed)));
   const fps = Math.min(30, Math.max(10, Math.round(1000 / frameDurationMs)));
 
   const stream = canvas.captureStream(fps);
