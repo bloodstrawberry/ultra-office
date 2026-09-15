@@ -168,6 +168,12 @@ export const SnackbarRoot = styled(Toaster)(({ theme }) => ({
     width: 'auto',
     maxWidth: 'min(640px, calc(100vw - 32px))',
   },
+  [theme.breakpoints.up('md')]: {
+    '&.puzzle-snackbar': {
+      left: 'calc(50% - 96px) !important',
+      maxWidth: 'min(440px, calc(100vw - 32px))',
+    },
+  },
   ...toastStyles(theme),
   ...iconStyles(theme),
   ...contentStyles(theme),

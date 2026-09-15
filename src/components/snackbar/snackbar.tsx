@@ -6,12 +6,17 @@ import ErrorIcon from '@mui/icons-material/Error';
 import WarningIcon from '@mui/icons-material/Warning';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
+import { usePathname } from 'src/routes/hooks';
+
 import { SnackbarRoot } from './styles';
 import { snackbarClasses } from './classes';
 
 // ----------------------------------------------------------------------
 
 export function Snackbar() {
+  const pathname = usePathname();
+  const isPuzzlePage = pathname.startsWith('/puzzle');
+
   return (
     <Portal>
       <SnackbarRoot
@@ -19,9 +24,9 @@ export function Snackbar() {
         closeButton
         gap={12}
         offset={16}
-        visibleToasts={4}
-        position="top-right"
-        className={snackbarClasses.root}
+        visibleToasts={isPuzzlePage ? 2 : 4}
+        position={isPuzzlePage ? 'top-center' : 'top-right'}
+        className={`${snackbarClasses.root}${isPuzzlePage ? ' puzzle-snackbar' : ''}`}
         toastOptions={{
           unstyled: true,
           classNames: {
