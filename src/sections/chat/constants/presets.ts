@@ -929,6 +929,124 @@ export const ROOM_LIST_PRESETS: Record<MessengerThemeId, ChatRoomListItem[]> = {
   ],
 
   // 2. 갤럭시 문자 (Samsung One UI 메시지)
+  // 2. 당근 - 동네 중고거래 채팅
+  danggeun: [
+    {
+      id: 'danggeun_bicycle',
+      title: '해뜰마을 자전거',
+      partnerName: '해뜰마을 자전거',
+      avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=HJ&backgroundColor=ff6f0f',
+      lastMessage: '네, 오늘 저녁 7시에 뵐게요!',
+      lastTime: '오후 3:42',
+      unreadCount: 1,
+      categoryTag: '중고거래',
+      roomData: {
+        config: {
+          category: 'messenger',
+          themeId: 'danggeun',
+          roomTitle: '해뜰마을 자전거',
+          partnerName: '해뜰마을 자전거',
+          partnerStatus: '매너온도 38.6°C · 보통 10분 이내 응답',
+          timeString: '15:42',
+          batteryLevel: 82,
+          networkType: '5G',
+          wifiLevel: 3,
+          isCharging: false,
+          darkMode: false,
+          deviceType: 'iphone',
+          showDeviceFrame: true,
+          deviceWidth: 390,
+        },
+        users: [
+          { id: 'me', name: '나', avatar: '', role: 'me' },
+          {
+            id: 'seller_bike',
+            name: '해뜰마을 자전거',
+            avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=HJ&backgroundColor=ff6f0f',
+            role: 'other',
+            statusMessage: '매너온도 38.6°C',
+          },
+        ],
+        messages: [
+          {
+            id: 'dg_bike_1',
+            senderId: 'seller_bike',
+            text: '안녕하세요! 자전거 아직 판매 중이에요.',
+            time: '오후 3:35',
+          },
+          {
+            id: 'dg_bike_2',
+            senderId: 'me',
+            text: '오늘 저녁에 직접 보고 구매해도 될까요?',
+            time: '오후 3:38',
+          },
+          {
+            id: 'dg_bike_3',
+            senderId: 'seller_bike',
+            text: '좋아요. 해뜰공원 입구에서 만나요.',
+            time: '오후 3:40',
+          },
+          {
+            id: 'dg_bike_4',
+            senderId: 'me',
+            text: '네, 오늘 저녁 7시에 뵐게요!',
+            time: '오후 3:42',
+          },
+        ],
+      },
+    },
+    {
+      id: 'danggeun_lamp',
+      title: '귤동네',
+      partnerName: '귤동네',
+      avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=GD&backgroundColor=ffd8bd',
+      lastMessage: '문 앞에 두었습니다. 편하게 가져가세요 🙂',
+      lastTime: '어제',
+      categoryTag: '나눔',
+      roomData: {
+        config: {
+          category: 'messenger',
+          themeId: 'danggeun',
+          roomTitle: '귤동네',
+          partnerName: '귤동네',
+          partnerStatus: '매너온도 42.1°C',
+          timeString: '09:41',
+          batteryLevel: 95,
+          networkType: 'LTE',
+          wifiLevel: 3,
+          isCharging: false,
+          darkMode: false,
+          deviceType: 'iphone',
+          showDeviceFrame: true,
+          deviceWidth: 390,
+        },
+        users: [
+          { id: 'me', name: '나', avatar: '', role: 'me' },
+          {
+            id: 'neighbor_lamp',
+            name: '귤동네',
+            avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=GD&backgroundColor=ffd8bd',
+            role: 'other',
+          },
+        ],
+        messages: [
+          {
+            id: 'dg_lamp_1',
+            senderId: 'me',
+            text: '스탠드 조명 나눔 글 보고 연락드렸어요!',
+            time: '어제 오후 6:12',
+          },
+          {
+            id: 'dg_lamp_2',
+            senderId: 'neighbor_lamp',
+            text: '문 앞에 두었습니다. 편하게 가져가세요 🙂',
+            time: '어제 오후 6:20',
+          },
+        ],
+      },
+    },
+  ],
+
   galaxy: [
     {
       id: 'gal_card',

@@ -21,6 +21,24 @@ export const THEME_OPTIONS: Record<ChatThemeId, ThemeOption> = {
       hasReaction: true,
     },
   },
+  danggeun: {
+    id: 'danggeun',
+    name: '당근',
+    subtitle: '동네 이웃과 거래하는 당근 채팅 테마',
+    category: 'messenger',
+    iconName: 'mdi:carrot',
+    badgeColor: '#FF6F0F',
+    defaultBg: '#FFFFFF',
+    myBubbleBg: '#FF6F0F',
+    myBubbleText: '#FFFFFF',
+    otherBubbleBg: '#F2F3F6',
+    otherBubbleText: '#212124',
+    headerBg: '#FFFFFF',
+    headerText: '#212124',
+    features: {
+      hasReaction: false,
+    },
+  },
   line: {
     id: 'line',
     name: '라인 (LINE)',
@@ -353,6 +371,7 @@ export const THEME_OPTIONS: Record<ChatThemeId, ThemeOption> = {
 export const THEMES_BY_CATEGORY: Record<ChatCategory, ThemeOption[]> = {
   messenger: [
     THEME_OPTIONS.kakaotalk,
+    THEME_OPTIONS.danggeun,
     THEME_OPTIONS.knox,
     THEME_OPTIONS.line,
     THEME_OPTIONS.telegram,

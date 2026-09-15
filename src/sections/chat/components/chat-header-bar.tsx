@@ -152,7 +152,9 @@ export function ChatHeaderBar({ config, partner, onBackToList }: ChatHeaderBarPr
         bgcolor: themeMeta.headerBg,
         color: themeMeta.headerText,
         borderBottom:
-          themeId === 'imessage' || themeId === 'facebook' ? '1px solid rgba(0,0,0,0.08)' : 'none',
+          themeId === 'imessage' || themeId === 'facebook' || themeId === 'danggeun'
+            ? '1px solid rgba(0,0,0,0.08)'
+            : 'none',
         userSelect: 'none',
       }}
     >
@@ -281,6 +283,7 @@ export function ChatHeaderBar({ config, partner, onBackToList }: ChatHeaderBarPr
         {(themeId === 'imessage' ||
           themeId === 'telegram' ||
           themeId === 'knox' ||
+          themeId === 'danggeun' ||
           themeId === 'threads' ||
           themeId === 'twitter') && (
           <IconButton size="small" sx={{ color: 'inherit', p: 0.6 }}>

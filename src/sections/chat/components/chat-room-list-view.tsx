@@ -896,7 +896,7 @@ export function ChatRoomListView({ config, onSelectRoom }: ChatRoomListViewProps
     );
   }
 
-  // 4. Knox, LINE, Telegram 등 기타 메신저 목록 기본 렌더러
+  // 4. 당근, Knox, LINE, Telegram 등 기타 메신저 목록 기본 렌더러
   return (
     <Box
       sx={{
@@ -926,7 +926,9 @@ export function ChatRoomListView({ config, onSelectRoom }: ChatRoomListViewProps
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           {themeId === 'knox' && <ShieldRoundedIcon sx={{ fontSize: 20, color: '#38BDF8' }} />}
           {themeId === 'telegram' && <MenuRoundedIcon sx={{ fontSize: 22 }} />}
-          <Typography sx={{ fontSize: 17, fontWeight: 700 }}>{themeMeta.name} 대화 목록</Typography>
+          <Typography sx={{ fontSize: 17, fontWeight: 700 }}>
+            {themeId === 'danggeun' ? '채팅' : `${themeMeta.name} 대화 목록`}
+          </Typography>
         </Box>
         <IconButton size="small" sx={{ color: 'inherit' }}>
           <SearchRoundedIcon fontSize="small" />
@@ -975,9 +977,28 @@ export function ChatRoomListView({ config, onSelectRoom }: ChatRoomListViewProps
                   {room.lastTime}
                 </Typography>
               </Box>
-              <Typography noWrap sx={{ fontSize: 12.5, color: 'text.secondary' }}>
-                {room.lastMessage}
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.7, minWidth: 0 }}>
+                {themeId === 'danggeun' && room.categoryTag && (
+                  <Box
+                    component="span"
+                    sx={{
+                      flexShrink: 0,
+                      px: 0.65,
+                      py: 0.15,
+                      borderRadius: 0.8,
+                      bgcolor: '#FFF0E6',
+                      color: '#FF6F0F',
+                      fontSize: 10,
+                      fontWeight: 700,
+                    }}
+                  >
+                    {room.categoryTag}
+                  </Box>
+                )}
+                <Typography noWrap sx={{ minWidth: 0, fontSize: 12.5, color: 'text.secondary' }}>
+                  {room.lastMessage}
+                </Typography>
+              </Box>
             </Box>
 
             {Boolean(room.unreadCount && room.unreadCount > 0) && (

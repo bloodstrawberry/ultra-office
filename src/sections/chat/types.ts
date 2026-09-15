@@ -1,6 +1,13 @@
 export type ChatCategory = 'messenger' | 'sns' | 'llm';
 
-export type MessengerThemeId = 'kakaotalk' | 'knox' | 'line' | 'telegram' | 'imessage' | 'galaxy';
+export type MessengerThemeId =
+  | 'kakaotalk'
+  | 'danggeun'
+  | 'knox'
+  | 'line'
+  | 'telegram'
+  | 'imessage'
+  | 'galaxy';
 export type SnsThemeId = 'instagram' | 'threads' | 'facebook' | 'twitter';
 export type LlmThemeId =
   | 'chatgpt'

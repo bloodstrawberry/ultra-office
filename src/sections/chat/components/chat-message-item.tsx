@@ -53,6 +53,7 @@ export function ChatMessageItem({
   const [copied, setCopied] = useState(false);
 
   const isKakao = themeId === 'kakaotalk';
+  const isDanggeun = themeId === 'danggeun';
   const isKnox = themeId === 'knox';
   const isGalaxy = themeId === 'galaxy';
 
@@ -404,6 +405,9 @@ export function ChatMessageItem({
     if (isKakao) {
       return isMe ? '#FEE500' : '#FFFFFF'; // 카카오톡 sent: 옐로우, received: 화이트
     }
+    if (isDanggeun) {
+      return isMe ? '#FF6F0F' : '#F2F3F6';
+    }
     return isMe ? themeMeta.myBubbleBg : themeMeta.otherBubbleBg;
   };
 
@@ -427,6 +431,9 @@ export function ChatMessageItem({
     }
     if (isKakao) {
       return '12px';
+    }
+    if (isDanggeun) {
+      return isMe ? '14px 14px 4px 14px' : '14px 14px 14px 4px';
     }
     if (isMe) {
       return '18px 18px 4px 18px';

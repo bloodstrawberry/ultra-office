@@ -77,7 +77,15 @@ export function ChatStudioContainer({ category, defaultThemeId }: ChatStudioCont
   // 테마 변경 핸들러
   const handleThemeChange = (themeId: ChatThemeId) => {
     const isWebTheme = themeId.endsWith('_web');
-    const messengerThemes = ['kakaotalk', 'knox', 'line', 'telegram', 'imessage', 'galaxy'];
+    const messengerThemes = [
+      'kakaotalk',
+      'danggeun',
+      'knox',
+      'line',
+      'telegram',
+      'imessage',
+      'galaxy',
+    ];
 
     // 메신저 테마 변경 시 해당 테마의 첫 번째 방 프리셋이 있으면 동기화
     if (messengerThemes.includes(themeId)) {
