@@ -9,6 +9,7 @@ import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 
 import { CONFIG } from 'src/global-config';
 import { themeConfig, ThemeProvider } from 'src/theme';
+import { ReminderFloating } from 'src/layouts/components/clock-dialog/reminder-floating';
 
 import { Snackbar } from 'src/components/snackbar';
 import { ProgressBar } from 'src/components/progress-bar';
@@ -114,6 +115,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
             defaultMode={themeConfig.defaultMode}
           >
             <Snackbar />
+            <ReminderFloating />
             <Suspense fallback={null}>
               <ProgressBar />
             </Suspense>

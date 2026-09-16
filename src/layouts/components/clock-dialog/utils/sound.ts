@@ -2,7 +2,15 @@
 
 export function playTimerDoneSound() {
   if (typeof window === 'undefined') return;
+  playClockChime();
+}
 
+export function playReminderSound() {
+  if (typeof window === 'undefined') return;
+  playClockChime();
+}
+
+function playClockChime() {
   try {
     const AudioContextClass =
       window.AudioContext ||

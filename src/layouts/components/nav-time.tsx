@@ -10,6 +10,7 @@ import Typography from '@mui/material/Typography';
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded';
 
 import { ClockDialog } from './clock-dialog';
+import { useReminders } from './clock-dialog/use-reminders';
 
 // ----------------------------------------------------------------------
 
@@ -112,6 +113,16 @@ export interface NavTimeProps extends BoxProps {
 }
 
 export function NavTime({ sx, showIcon = false, digitHeight = 26, ...other }: NavTimeProps) {
+  const {
+    reminders,
+    hasLoaded: remindersLoaded,
+    addReminder,
+    deleteReminder,
+    toggleReminder,
+    toggleReminderSound,
+    updateReminderInterval,
+    requestNotificationPermission,
+  } = useReminders();
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
   const [timeState, setTimeState] = useState({
     period: '오후',
@@ -147,7 +158,7 @@ export function NavTime({ sx, showIcon = false, digitHeight = 26, ...other }: Na
 
   return (
     <>
-      <Tooltip title="시계 도구 (타이머 · 스톱워치 · 세계시간)" arrow placement="bottom">
+      <Tooltip title="시계 도구 (리마인더 · 타이머 · 스톱워치 · 세계시간)" arrow placement="bottom">
         <Box
           role="button"
           tabIndex={0}
@@ -254,7 +265,18 @@ export function NavTime({ sx, showIcon = false, digitHeight = 26, ...other }: Na
         </Box>
       </Tooltip>
 
-      <ClockDialog open={dialogOpen} onClose={() => setDialogOpen(false)} />
+      <ClockDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        reminders={reminders}
+        remindersLoaded={remindersLoaded}
+        onAddReminder={addReminder}
+        onDeleteReminder={deleteReminder}
+        onToggleReminder={toggleReminder}
+        onToggleReminderSound={toggleReminderSound}
+        onReminderIntervalChange={updateReminderInterval}
+        onRequestNotificationPermission={requestNotificationPermission}
+      />
     </>
   );
 }

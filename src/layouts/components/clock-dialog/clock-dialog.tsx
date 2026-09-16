@@ -1,5 +1,7 @@
 'use client';
 
+import type { Reminder } from './use-reminders';
+
 import { useState } from 'react';
 
 import Tab from '@mui/material/Tab';
@@ -12,8 +14,10 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import TimerOutlinedIcon from '@mui/icons-material/TimerOutlined';
 import HourglassEmptyRoundedIcon from '@mui/icons-material/HourglassEmptyRounded';
+import NotificationsNoneRoundedIcon from '@mui/icons-material/NotificationsNoneRounded';
 
 import { TimerTab } from './tabs/timer-tab';
+import { ReminderTab } from './tabs/reminder-tab';
 import { StopwatchTab } from './tabs/stopwatch-tab';
 import { WorldClockTab } from './tabs/world-clock-tab';
 
@@ -23,9 +27,29 @@ export interface ClockDialogProps {
   open: boolean;
   onClose: () => void;
   initialTab?: number;
+  reminders: Reminder[];
+  remindersLoaded: boolean;
+  onAddReminder: (title: string, intervalMinutes: number) => void;
+  onDeleteReminder: (id: string) => void;
+  onToggleReminder: (id: string, enabled: boolean) => void;
+  onToggleReminderSound: (id: string, enabled: boolean) => void;
+  onReminderIntervalChange: (id: string, intervalMinutes: number) => void;
+  onRequestNotificationPermission: () => Promise<NotificationPermission | 'unsupported'>;
 }
 
-export function ClockDialog({ open, onClose, initialTab = 0 }: ClockDialogProps) {
+export function ClockDialog({
+  open,
+  onClose,
+  initialTab = 0,
+  reminders,
+  remindersLoaded,
+  onAddReminder,
+  onDeleteReminder,
+  onToggleReminder,
+  onToggleReminderSound,
+  onReminderIntervalChange,
+  onRequestNotificationPermission,
+}: ClockDialogProps) {
   const [currentTab, setCurrentTab] = useState<number>(initialTab);
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
@@ -100,6 +124,11 @@ export function ClockDialog({ open, onClose, initialTab = 0 }: ClockDialogProps)
           }}
         >
           <Tab
+            icon={<NotificationsNoneRoundedIcon sx={{ fontSize: 20 }} />}
+            label="리마인더"
+            iconPosition="start"
+          />
+          <Tab
             icon={<HourglassEmptyRoundedIcon sx={{ fontSize: 20 }} />}
             label="타이머"
             iconPosition="start"
@@ -127,9 +156,21 @@ export function ClockDialog({ open, onClose, initialTab = 0 }: ClockDialogProps)
           flexDirection: 'column',
         }}
       >
-        {currentTab === 0 && <TimerTab />}
-        {currentTab === 1 && <StopwatchTab />}
-        {currentTab === 2 && <WorldClockTab />}
+        {currentTab === 0 && (
+          <ReminderTab
+            reminders={reminders}
+            hasLoaded={remindersLoaded}
+            onAdd={onAddReminder}
+            onDelete={onDeleteReminder}
+            onToggle={onToggleReminder}
+            onToggleSound={onToggleReminderSound}
+            onIntervalChange={onReminderIntervalChange}
+            onRequestNotificationPermission={onRequestNotificationPermission}
+          />
+        )}
+        {currentTab === 1 && <TimerTab />}
+        {currentTab === 2 && <StopwatchTab />}
+        {currentTab === 3 && <WorldClockTab />}
       </Box>
     </Dialog>
   );
