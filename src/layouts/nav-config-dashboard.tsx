@@ -282,6 +282,7 @@ export const navData: NavSectionProps['data'] = [
           { title: '슬라이딩 퍼즐', path: paths.puzzle.sliding },
           { title: 'Water Sort', path: paths.puzzle.waterSort },
           { title: 'Rush Hour', path: paths.puzzle.rushHour },
+          { title: '지뢰찾기', path: paths.puzzle.minesweeper },
         ],
       },
       {

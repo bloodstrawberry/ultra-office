@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -11,16 +11,20 @@ import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import BoltRoundedIcon from '@mui/icons-material/BoltRounded';
+import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import LightbulbRoundedIcon from '@mui/icons-material/LightbulbRounded';
 import AutorenewRoundedIcon from '@mui/icons-material/AutorenewRounded';
+import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { toast } from 'src/components/snackbar';
 
+import { readWaterSortImage } from '../utils/water-sort-image';
 import { PuzzleMediaActions } from '../components/puzzle-media-actions';
 import { usePuzzleMediaExport } from '../hooks/use-puzzle-media-export';
 import { PuzzlePlayerControls } from '../components/puzzle-player-controls';
+import { WaterSortProblemDialog } from '../components/water-sort-problem-dialog';
 import {
   canPour,
   executePour,
@@ -30,6 +34,7 @@ import {
   isTubeComplete,
   WATER_SORT_PRESETS,
   type WaterSortStep,
+  type WaterColorDef,
   type WaterSortFullStep,
   generateWaterSortStates,
 } from '../utils/water-sort-solver';
@@ -50,8 +55,22 @@ interface ActivePour {
 
 export function PuzzleWaterSortView() {
   const [selectedPresetId, setSelectedPresetId] = useState<string>(WATER_SORT_PRESETS[0].id);
-  const currentPreset =
-    WATER_SORT_PRESETS.find((p) => p.id === selectedPresetId) || WATER_SORT_PRESETS[0];
+  const [importedTubes, setImportedTubes] = useState<number[][] | null>(null);
+  const [importedName, setImportedName] = useState('');
+  const [importedColors, setImportedColors] = useState<Record<number, WaterColorDef> | null>(null);
+  const [importBalanced, setImportBalanced] = useState(true);
+  const [palette, setPalette] = useState<Record<number, WaterColorDef>>(WATER_COLORS);
+  const [isImporting, setIsImporting] = useState(false);
+  const [isDraggingImage, setIsDraggingImage] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const currentPreset = useMemo(
+    () =>
+      selectedPresetId === 'image' && importedTubes
+        ? { id: 'image', name: importedName, difficulty: '어려움' as const, tubes: importedTubes }
+        : WATER_SORT_PRESETS.find((p) => p.id === selectedPresetId) || WATER_SORT_PRESETS[0],
+    [importedName, importedTubes, selectedPresetId]
+  );
 
   const [tubes, setTubes] = useState<number[][]>(() => currentPreset.tubes.map((t) => [...t]));
   const [selectedTube, setSelectedTube] = useState<number | null>(null);
@@ -167,7 +186,11 @@ export function PuzzleWaterSortView() {
       stopPlayback();
       clearPourTimers();
       setSelectedPresetId(presetId);
-      const preset = WATER_SORT_PRESETS.find((p) => p.id === presetId) || WATER_SORT_PRESETS[0];
+      setPalette(presetId === 'image' && importedColors ? importedColors : WATER_COLORS);
+      const preset =
+        presetId === 'image' && importedTubes
+          ? { id: 'image', name: importedName, difficulty: '어려움' as const, tubes: importedTubes }
+          : WATER_SORT_PRESETS.find((p) => p.id === presetId) || WATER_SORT_PRESETS[0];
       setTubes(preset.tubes.map((t) => [...t]));
       playbackBaseTubesRef.current = null;
       setPlaybackBaseTubes(null);
@@ -180,8 +203,63 @@ export function PuzzleWaterSortView() {
         id: 'water-sort-preset',
       });
     },
+    [clearPourTimers, importedColors, importedName, importedTubes, stopPlayback]
+  );
+
+  const handleImageFile = useCallback(
+    async (file: File) => {
+      setIsImporting(true);
+      try {
+        const imported = await readWaterSortImage(file);
+        stopPlayback();
+        clearPourTimers();
+        setImportedTubes(imported.tubes.map((tube) => [...tube]));
+        setImportedName(file.name);
+        setImportedColors(imported.colors);
+        setImportBalanced(imported.balanced);
+        setPalette(imported.colors);
+        setSelectedPresetId('image');
+        setTubes(imported.tubes.map((tube) => [...tube]));
+        playbackBaseTubesRef.current = null;
+        setPlaybackBaseTubes(null);
+        setSelectedTube(null);
+        setPoursCount(0);
+        setHintPours(null);
+        setSolutionSteps([]);
+        setCurrentStepIndex(0);
+        toast.success(
+          `${imported.tubes.length - 2}개 시험관과 ${Object.keys(imported.colors).length}가지 색상을 불러왔습니다.`
+        );
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : '이미지를 분석하지 못했습니다.');
+      } finally {
+        setIsImporting(false);
+      }
+    },
     [clearPourTimers, stopPlayback]
   );
+
+  useEffect(() => {
+    const handlePaste = (event: ClipboardEvent) => {
+      if (editorOpen || isImporting) return;
+      const target = event.target;
+      if (
+        target instanceof HTMLElement &&
+        (target.isContentEditable || target.closest('input, textarea, [contenteditable="true"]'))
+      ) {
+        return;
+      }
+      const imageItem = Array.from(event.clipboardData?.items || []).find(
+        (item) => item.kind === 'file' && item.type.startsWith('image/')
+      );
+      const imageFile = imageItem?.getAsFile();
+      if (!imageFile) return;
+      event.preventDefault();
+      void handleImageFile(imageFile);
+    };
+    window.addEventListener('paste', handlePaste);
+    return () => window.removeEventListener('paste', handlePaste);
+  }, [editorOpen, handleImageFile, isImporting]);
 
   const handleTubeClick = useCallback(
     (idx: number) => {
@@ -217,6 +295,12 @@ export function PuzzleWaterSortView() {
 
   // Playback logic: solve from CURRENT tubes to preserve user's manual moves
   const ensureStepsGenerated = useCallback(() => {
+    if (selectedPresetId === 'image' && !importBalanced) {
+      toast.error('색상별 칸 수가 달라 이 이미지의 자동 풀이를 만들 수 없습니다.', {
+        id: 'water-sort-status',
+      });
+      return [];
+    }
     if (solutionSteps.length > 0 && playbackBaseTubesRef.current) {
       return solutionSteps;
     }
@@ -232,7 +316,7 @@ export function PuzzleWaterSortView() {
     setPlaybackBaseTubes(base);
     setSolutionSteps(steps);
     return steps;
-  }, [solutionSteps, tubes]);
+  }, [importBalanced, selectedPresetId, solutionSteps, tubes]);
 
   const applyStep = useCallback(
     (stepIdx: number, steps: WaterSortFullStep[], base?: number[][]) => {
@@ -391,6 +475,12 @@ export function PuzzleWaterSortView() {
     stopPlayback();
     if (activePour) return;
     if (won) return;
+    if (selectedPresetId === 'image' && !importBalanced) {
+      toast.error('색상별 칸 수가 달라 이 문제의 힌트를 만들 수 없습니다.', {
+        id: 'water-sort-status',
+      });
+      return;
+    }
     const { solved: success, steps } = solveWaterSort(tubes);
     if (success && steps.length > 0) {
       const nextStep = steps[0];
@@ -405,7 +495,7 @@ export function PuzzleWaterSortView() {
         id: 'water-sort-status',
       });
     }
-  }, [activePour, stopPlayback, tubes, won]);
+  }, [activePour, importBalanced, selectedPresetId, stopPlayback, tubes, won]);
 
   // Reset
   const handleReset = useCallback(() => {
@@ -559,8 +649,8 @@ export function PuzzleWaterSortView() {
                   height: activePour.streamHeight,
                   borderRadius: '999px',
                   transformOrigin: '50% 0%',
-                  background: `linear-gradient(90deg, ${WATER_COLORS[activePour.colorId].color}99 0%, ${WATER_COLORS[activePour.colorId].color} 38%, rgba(255,255,255,0.86) 52%, ${WATER_COLORS[activePour.colorId].color} 72%)`,
-                  boxShadow: `0 0 10px ${WATER_COLORS[activePour.colorId].color}88`,
+                  background: `linear-gradient(90deg, ${palette[activePour.colorId].color}99 0%, ${palette[activePour.colorId].color} 38%, rgba(255,255,255,0.86) 52%, ${palette[activePour.colorId].color} 72%)`,
+                  boxShadow: `0 0 10px ${palette[activePour.colorId].color}88`,
                   animation: `waterStream ${activePour.duration}ms ease-in-out both`,
                   '@keyframes waterStream': {
                     '0%, 42%': { opacity: 0, transform: 'scaleY(0)' },
@@ -576,7 +666,7 @@ export function PuzzleWaterSortView() {
                     width: 24,
                     height: 8,
                     borderRadius: '50%',
-                    bgcolor: WATER_COLORS[activePour.colorId].color,
+                    bgcolor: palette[activePour.colorId].color,
                     transform: 'translateX(-50%)',
                     filter: 'blur(2px)',
                   },
@@ -654,7 +744,7 @@ export function PuzzleWaterSortView() {
                       backgroundImage:
                         'linear-gradient(100deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.08) 18%, transparent 35%, rgba(255,255,255,0.16) 82%, rgba(255,255,255,0.38) 100%)',
                       boxShadow: isPourTarget
-                        ? `0 0 0 5px ${WATER_COLORS[activePour.colorId].color}22, 0 14px 28px rgba(30, 64, 175, 0.18)`
+                        ? `0 0 0 5px ${palette[activePour.colorId].color}22, 0 14px 28px rgba(30, 64, 175, 0.18)`
                         : isSelected
                           ? 6
                           : '0 10px 24px rgba(15, 23, 42, 0.12), inset 3px 0 5px rgba(255,255,255,0.35)',
@@ -696,7 +786,7 @@ export function PuzzleWaterSortView() {
                     }}
                   >
                     {tube.map((colorId, layerIdx) => {
-                      const colorDef = WATER_COLORS[colorId];
+                      const colorDef = palette[colorId];
                       return (
                         <Box
                           key={layerIdx}
@@ -767,6 +857,79 @@ export function PuzzleWaterSortView() {
           }}
         >
           {/* Preset Selector */}
+          <Box
+            onDragEnter={(event) => {
+              event.preventDefault();
+              setIsDraggingImage(true);
+            }}
+            onDragOver={(event) => {
+              event.preventDefault();
+              event.dataTransfer.dropEffect = 'copy';
+              setIsDraggingImage(true);
+            }}
+            onDragLeave={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget as Node)) {
+                setIsDraggingImage(false);
+              }
+            }}
+            onDrop={(event) => {
+              event.preventDefault();
+              setIsDraggingImage(false);
+              if (isImporting) return;
+              const file = event.dataTransfer.files[0];
+              if (file) void handleImageFile(file);
+              else toast.error('이미지 파일을 여기에 놓아 주세요.');
+            }}
+            sx={{
+              border: '2px dashed',
+              borderColor: isDraggingImage ? 'primary.main' : 'divider',
+              bgcolor: isDraggingImage ? 'action.hover' : 'transparent',
+              borderRadius: 1.5,
+              p: 1.5,
+              transition: 'border-color .2s, background-color .2s',
+            }}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (file) void handleImageFile(file);
+                event.target.value = '';
+              }}
+            />
+            <Button
+              variant="outlined"
+              fullWidth
+              startIcon={<CloudUploadRoundedIcon />}
+              disabled={isImporting}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {isImporting ? '이미지 분석 중...' : 'Water Sort 이미지 업로드'}
+            </Button>
+            <Typography variant="caption" color="text.secondary">
+              이미지 파일을 선택하거나 여기에 드래그하세요. 화면 캡처는 Ctrl+V로 붙여넣을 수
+              있습니다.
+            </Typography>
+          </Box>
+          <Button
+            variant="outlined"
+            startIcon={<EditRoundedIcon />}
+            onClick={() => {
+              stopPlayback();
+              clearPourTimers();
+              setEditorOpen(true);
+            }}
+          >
+            문제 수정 / 만들기
+          </Button>
+          {selectedPresetId === 'image' && !importBalanced && (
+            <Typography variant="caption" color="warning.main">
+              배치를 그대로 유지했습니다. 색상별 칸 수가 달라 현재 규칙으로는 풀이할 수 없습니다.
+            </Typography>
+          )}
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
             <TextField
               select
@@ -782,6 +945,7 @@ export function PuzzleWaterSortView() {
                   {p.name} ({p.difficulty})
                 </MenuItem>
               ))}
+              {importedTubes && <MenuItem value="image">사용자 문제: {importedName}</MenuItem>}
             </TextField>
             <Button
               variant="outlined"
@@ -846,6 +1010,35 @@ export function PuzzleWaterSortView() {
           </Box>
         </Card>
       </Box>
+      {editorOpen && (
+        <WaterSortProblemDialog
+          initialTubes={tubes}
+          initialColors={palette}
+          initialName={selectedPresetId === 'image' ? importedName : '직접 만든 문제'}
+          onClose={() => setEditorOpen(false)}
+          onApply={(problem) => {
+            const copiedTubes = problem.tubes.map((tube) => [...tube]);
+            stopPlayback();
+            clearPourTimers();
+            setImportedTubes(copiedTubes);
+            setImportedName(problem.name);
+            setImportedColors(problem.colors);
+            setImportBalanced(problem.balanced);
+            setPalette(problem.colors);
+            setSelectedPresetId('image');
+            setTubes(copiedTubes);
+            playbackBaseTubesRef.current = null;
+            setPlaybackBaseTubes(null);
+            setSelectedTube(null);
+            setPoursCount(0);
+            setHintPours(null);
+            setSolutionSteps([]);
+            setCurrentStepIndex(0);
+            setEditorOpen(false);
+            toast.success('수정한 배치로 문제를 시작합니다.');
+          }}
+        />
+      )}
     </DashboardContent>
   );
 }

@@ -12,10 +12,14 @@ import Divider from '@mui/material/Divider';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import BoltRoundedIcon from '@mui/icons-material/BoltRounded';
+import EditRoundedIcon from '@mui/icons-material/EditRounded';
+import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import LightbulbRoundedIcon from '@mui/icons-material/LightbulbRounded';
 import AutorenewRoundedIcon from '@mui/icons-material/AutorenewRounded';
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
+import UploadFileRoundedIcon from '@mui/icons-material/UploadFileRounded';
 import ArrowUpwardRoundedIcon from '@mui/icons-material/ArrowUpwardRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import ArrowDownwardRoundedIcon from '@mui/icons-material/ArrowDownwardRounded';
@@ -24,6 +28,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import { toast } from 'src/components/snackbar';
 
+import { readRushHourImage } from '../utils/rush-hour-image';
 import { PuzzleMediaActions } from '../components/puzzle-media-actions';
 import { usePuzzleMediaExport } from '../hooks/use-puzzle-media-export';
 import { PuzzlePlayerControls } from '../components/puzzle-player-controls';
@@ -37,6 +42,7 @@ import {
   canMoveVehicle,
   type RushHourStep,
   RUSH_HOUR_PRESETS,
+  validateRushHourBoard,
   getRushHourStepDescription,
 } from '../utils/rush-hour-solver';
 
@@ -73,6 +79,14 @@ function getVehicleDragBounds(vehicles: Vehicle[], vehicleId: string) {
 
 export function PuzzleRushHourView() {
   const [selectedPresetId, setSelectedPresetId] = useState<string>(RUSH_HOUR_PRESETS[0].id);
+  const [customInitial, setCustomInitial] = useState<Vehicle[] | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [addOrientation, setAddOrientation] = useState<'H' | 'V'>('H');
+  const [addLength, setAddLength] = useState<1 | 2 | 3>(2);
+  const [isImporting, setIsImporting] = useState(false);
+  const [isDraggingImage, setIsDraggingImage] = useState(false);
+  const uploadRef = useRef<HTMLInputElement | null>(null);
+  const dragDepthRef = useRef(0);
   const currentPreset =
     RUSH_HOUR_PRESETS.find((p) => p.id === selectedPresetId) || RUSH_HOUR_PRESETS[0];
 
@@ -118,10 +132,113 @@ export function PuzzleRushHourView() {
     setIsPlaying(false);
   }, []);
 
+  const clearProgress = useCallback(() => {
+    stopPlayback();
+    playbackBaseVehiclesRef.current = null;
+    setPlaybackBaseVehicles(null);
+    setMovesCount(0);
+    setHintStep(null);
+    setSolutionSteps([]);
+    setCurrentStepIndex(0);
+  }, [stopPlayback]);
+
+  const applyCustomBoard = useCallback(
+    (board: Vehicle[], editing = true) => {
+      const error = validateRushHourBoard(board);
+      if (error) throw new Error(error);
+      clearProgress();
+      setSelectedPresetId('custom');
+      setCustomInitial(board.map((v) => ({ ...v })));
+      setVehicles(board.map((v) => ({ ...v })));
+      setSelectedVehicleId(null);
+      setIsEditing(editing);
+    },
+    [clearProgress]
+  );
+
+  const handleImageUpload = useCallback(
+    async (file?: File) => {
+      if (!file || isImporting) return;
+      setIsImporting(true);
+      try {
+        const board = await readRushHourImage(file);
+        applyCustomBoard(board);
+        toast.success(
+          `이미지에서 차량 ${board.length}대를 읽었습니다. 배치를 확인하고 편집을 완료해 주세요.`
+        );
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : '이미지를 읽지 못했습니다.');
+      } finally {
+        setIsImporting(false);
+        if (uploadRef.current) uploadRef.current.value = '';
+      }
+    },
+    [applyCustomBoard, isImporting]
+  );
+
+  useEffect(() => {
+    const handlePaste = (event: ClipboardEvent) => {
+      const target = event.target;
+      if (
+        target instanceof HTMLElement &&
+        (target.isContentEditable || ['INPUT', 'TEXTAREA'].includes(target.tagName))
+      )
+        return;
+      const image = Array.from(event.clipboardData?.items || [])
+        .find((item) => item.type.startsWith('image/'))
+        ?.getAsFile();
+      if (!image) return;
+      event.preventDefault();
+      void handleImageUpload(image);
+    };
+    window.addEventListener('paste', handlePaste);
+    return () => window.removeEventListener('paste', handlePaste);
+  }, [handleImageUpload]);
+
+  const updateBoard = useCallback(
+    (board: Vehicle[]) => {
+      const error = validateRushHourBoard(board);
+      if (error) {
+        toast.error(error);
+        return;
+      }
+      clearProgress();
+      setVehicles(board);
+      setCustomInitial(board.map((v) => ({ ...v })));
+      setSelectedPresetId('custom');
+    },
+    [clearProgress]
+  );
+
+  const addVehicleAt = useCallback(
+    (row: number, col: number) => {
+      if (!isEditing) return;
+      const used = new Set(vehicles.map((v) => v.id));
+      const id = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        .split('')
+        .find((letter) => letter !== 'X' && !used.has(letter));
+      if (!id) return;
+      const next: Vehicle = {
+        id,
+        name: `차량 ${id}`,
+        row,
+        col,
+        orientation: addOrientation,
+        length: addLength,
+        color: addLength === 1 ? '#202020' : '#32849B',
+        isFixed: addLength === 1,
+      };
+      updateBoard([...vehicles, next]);
+      if (!validateRushHourBoard([...vehicles, next])) setSelectedVehicleId(id);
+    },
+    [addLength, addOrientation, isEditing, updateBoard, vehicles]
+  );
+
   const handleSelectPreset = useCallback(
     (presetId: string) => {
       stopPlayback();
       setSelectedPresetId(presetId);
+      setIsEditing(false);
       const preset = RUSH_HOUR_PRESETS.find((p) => p.id === presetId) || RUSH_HOUR_PRESETS[0];
       setVehicles(preset.vehicles.map((v) => ({ ...v })));
       playbackBaseVehiclesRef.current = null;
@@ -160,7 +277,8 @@ export function PuzzleRushHourView() {
 
   const handleVehiclePointerDown = useCallback(
     (event: ReactPointerEvent<HTMLDivElement>, vehicle: Vehicle) => {
-      if (isPlaying || won || (event.pointerType === 'mouse' && event.button !== 0)) return;
+      if (isEditing || isPlaying || won || (event.pointerType === 'mouse' && event.button !== 0))
+        return;
 
       const board = boardRef.current;
       if (!board) return;
@@ -186,7 +304,7 @@ export function PuzzleRushHourView() {
       setDragOffset({ vehicleId: vehicle.id, offsetPx: 0 });
       event.currentTarget.setPointerCapture(event.pointerId);
     },
-    [isPlaying, stopPlayback, vehicles, won]
+    [isEditing, isPlaying, stopPlayback, vehicles, won]
   );
 
   const handleVehiclePointerMove = useCallback(
@@ -394,7 +512,11 @@ export function PuzzleRushHourView() {
   // Reset
   const handleReset = useCallback(() => {
     stopPlayback();
-    setVehicles(currentPreset.vehicles.map((v) => ({ ...v })));
+    setVehicles(
+      (selectedPresetId === 'custom' && customInitial ? customInitial : currentPreset.vehicles).map(
+        (v) => ({ ...v })
+      )
+    );
     playbackBaseVehiclesRef.current = null;
     setPlaybackBaseVehicles(null);
     setSelectedVehicleId(null);
@@ -403,7 +525,7 @@ export function PuzzleRushHourView() {
     setCurrentStepIndex(0);
     setSolutionSteps([]);
     toast.info('주차장이 초기 상태로 재설정되었습니다.', { id: 'rush-hour-status' });
-  }, [currentPreset, stopPlayback]);
+  }, [currentPreset, customInitial, selectedPresetId, stopPlayback]);
 
   const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId);
 
@@ -495,7 +617,15 @@ export function PuzzleRushHourView() {
               flexShrink: 0,
             }}
           >
-            <Chip label={`난이도: ${currentPreset.difficulty}`} size="small" variant="outlined" />
+            <Chip
+              label={
+                selectedPresetId === 'custom'
+                  ? '직접 만든 문제'
+                  : `난이도: ${currentPreset.difficulty}`
+              }
+              size="small"
+              variant="outlined"
+            />
             <Chip label={`이동 횟수: ${movesCount}회`} size="small" color="info" variant="soft" />
             <Chip
               label={
@@ -574,11 +704,13 @@ export function PuzzleRushHourView() {
                 {Array.from({ length: GRID_SIZE * GRID_SIZE }).map((_, i) => (
                   <Box
                     key={i}
+                    onClick={() => addVehicleAt(Math.floor(i / GRID_SIZE), i % GRID_SIZE)}
                     sx={{
                       border: '1px dashed',
                       borderColor: 'divider',
                       borderRadius: 1,
                       m: 0.25,
+                      cursor: isEditing ? 'crosshair' : 'default',
                     }}
                   />
                 ))}
@@ -615,7 +747,13 @@ export function PuzzleRushHourView() {
                         height: `calc(${heightPct}% - 6px)`,
                         bgcolor: v.color,
                         borderRadius: 2,
-                        cursor: isPlaying ? 'default' : isDragging ? 'grabbing' : 'grab',
+                        cursor: isEditing
+                          ? 'pointer'
+                          : isPlaying
+                            ? 'default'
+                            : isDragging
+                              ? 'grabbing'
+                              : 'grab',
                         boxShadow: isSelected ? 6 : 2,
                         border: isSelected
                           ? '3px solid #FFF'
@@ -648,7 +786,7 @@ export function PuzzleRushHourView() {
                           textShadow: '0 1px 2px rgba(0,0,0,0.5)',
                         }}
                       >
-                        {v.isTarget ? '🚗 HERO' : v.id}
+                        {v.isTarget ? '🚗 HERO' : v.isFixed ? '■' : v.id}
                       </Typography>
                     </Box>
                   );
@@ -658,76 +796,78 @@ export function PuzzleRushHourView() {
           </Box>
 
           {/* Vehicle Directional Control Pad */}
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 1.5,
-              p: 1.25,
-              bgcolor: 'action.hover',
-              borderRadius: 1.5,
-              width: '100%',
-              maxWidth: 380,
-              minHeight: 48,
-              flexShrink: 0,
-            }}
-          >
-            {selectedVehicle ? (
-              <>
-                <Typography variant="caption" sx={{ fontWeight: 700, mr: 0.5 }}>
-                  [{selectedVehicle.name}] 이동:
+          {!isEditing && (
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 1.5,
+                p: 1.25,
+                bgcolor: 'action.hover',
+                borderRadius: 1.5,
+                width: '100%',
+                maxWidth: 380,
+                minHeight: 48,
+                flexShrink: 0,
+              }}
+            >
+              {selectedVehicle ? (
+                <>
+                  <Typography variant="caption" sx={{ fontWeight: 700, mr: 0.5 }}>
+                    [{selectedVehicle.name}] 이동:
+                  </Typography>
+                  {selectedVehicle.orientation === 'H' ? (
+                    <>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        startIcon={<ArrowBackRoundedIcon />}
+                        disabled={!canMoveVehicle(vehicles, selectedVehicle.id, -1)}
+                        onClick={() => handleMove(selectedVehicle.id, -1)}
+                      >
+                        왼쪽
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        endIcon={<ArrowForwardRoundedIcon />}
+                        disabled={!canMoveVehicle(vehicles, selectedVehicle.id, 1)}
+                        onClick={() => handleMove(selectedVehicle.id, 1)}
+                      >
+                        오른쪽
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        startIcon={<ArrowUpwardRoundedIcon />}
+                        disabled={!canMoveVehicle(vehicles, selectedVehicle.id, -1)}
+                        onClick={() => handleMove(selectedVehicle.id, -1)}
+                      >
+                        위쪽
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        endIcon={<ArrowDownwardRoundedIcon />}
+                        disabled={!canMoveVehicle(vehicles, selectedVehicle.id, 1)}
+                        onClick={() => handleMove(selectedVehicle.id, 1)}
+                      >
+                        아래쪽
+                      </Button>
+                    </>
+                  )}
+                </>
+              ) : (
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                  💡 주차장 내부 차량을 클릭하면 이동 방향 버튼이 활성화됩니다.
                 </Typography>
-                {selectedVehicle.orientation === 'H' ? (
-                  <>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      startIcon={<ArrowBackRoundedIcon />}
-                      disabled={!canMoveVehicle(vehicles, selectedVehicle.id, -1)}
-                      onClick={() => handleMove(selectedVehicle.id, -1)}
-                    >
-                      왼쪽
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      endIcon={<ArrowForwardRoundedIcon />}
-                      disabled={!canMoveVehicle(vehicles, selectedVehicle.id, 1)}
-                      onClick={() => handleMove(selectedVehicle.id, 1)}
-                    >
-                      오른쪽
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      startIcon={<ArrowUpwardRoundedIcon />}
-                      disabled={!canMoveVehicle(vehicles, selectedVehicle.id, -1)}
-                      onClick={() => handleMove(selectedVehicle.id, -1)}
-                    >
-                      위쪽
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      endIcon={<ArrowDownwardRoundedIcon />}
-                      disabled={!canMoveVehicle(vehicles, selectedVehicle.id, 1)}
-                      onClick={() => handleMove(selectedVehicle.id, 1)}
-                    >
-                      아래쪽
-                    </Button>
-                  </>
-                )}
-              </>
-            ) : (
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                💡 주차장 내부 차량을 클릭하면 이동 방향 버튼이 활성화됩니다.
-              </Typography>
-            )}
-          </Box>
+              )}
+            </Box>
+          )}
         </Card>
 
         {/* Right: Unified Controls Sidebar */}
@@ -745,6 +885,235 @@ export function PuzzleRushHourView() {
             overflowY: 'auto',
           }}
         >
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Box
+              onDragEnter={(event) => {
+                if (!event.dataTransfer.types.includes('Files')) return;
+                event.preventDefault();
+                dragDepthRef.current += 1;
+                setIsDraggingImage(true);
+              }}
+              onDragOver={(event) => {
+                if (!event.dataTransfer.types.includes('Files')) return;
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'copy';
+              }}
+              onDragLeave={(event) => {
+                event.preventDefault();
+                dragDepthRef.current = Math.max(0, dragDepthRef.current - 1);
+                if (dragDepthRef.current === 0) setIsDraggingImage(false);
+              }}
+              onDrop={(event) => {
+                event.preventDefault();
+                dragDepthRef.current = 0;
+                setIsDraggingImage(false);
+                const image = Array.from(event.dataTransfer.files).find((file) =>
+                  file.type.startsWith('image/')
+                );
+                if (image) void handleImageUpload(image);
+                else toast.error('이미지 파일을 놓아 주세요.');
+              }}
+              sx={{
+                border: '2px dashed',
+                borderColor: isDraggingImage ? 'primary.main' : 'divider',
+                bgcolor: isDraggingImage ? 'action.hover' : 'transparent',
+                borderRadius: 1.5,
+                p: 1.5,
+                textAlign: 'center',
+                transition: 'background-color 0.2s, border-color 0.2s',
+              }}
+            >
+              <input
+                ref={uploadRef}
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={(event) => void handleImageUpload(event.target.files?.[0])}
+              />
+              <Button
+                variant="outlined"
+                fullWidth
+                startIcon={<UploadFileRoundedIcon />}
+                disabled={isImporting}
+                onClick={() => uploadRef.current?.click()}
+              >
+                {isImporting ? '이미지 분석 중...' : '문제 이미지 업로드'}
+              </Button>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                이미지를 여기에 끌어 놓거나 화면에서 Ctrl+V로 붙여 넣으세요.
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button
+                fullWidth
+                variant="outlined"
+                startIcon={<AddRoundedIcon />}
+                onClick={() => {
+                  applyCustomBoard([
+                    {
+                      id: 'X',
+                      name: '빨간 주인공 차',
+                      row: EXIT_ROW,
+                      col: 0,
+                      orientation: 'H',
+                      length: 2,
+                      color: '#EF4444',
+                      isTarget: true,
+                    },
+                  ]);
+                }}
+              >
+                새 문제
+              </Button>
+              <Button
+                fullWidth
+                variant={isEditing ? 'contained' : 'outlined'}
+                startIcon={<EditRoundedIcon />}
+                onClick={() => {
+                  if (isEditing) {
+                    setCustomInitial(vehicles.map((v) => ({ ...v })));
+                    setIsEditing(false);
+                  } else {
+                    clearProgress();
+                    setIsEditing(true);
+                  }
+                }}
+              >
+                {isEditing ? '편집 완료' : '문제 편집'}
+              </Button>
+            </Box>
+            {isEditing && (
+              <>
+                <Typography variant="body2" color="text.secondary">
+                  빈 칸을 누르면 차량을 추가합니다. 차량을 선택해 위치를 바꾸거나 삭제할 수
+                  있습니다.
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <TextField
+                    select
+                    size="small"
+                    label="추가 방향"
+                    value={addOrientation}
+                    onChange={(e) => setAddOrientation(e.target.value as 'H' | 'V')}
+                    fullWidth
+                  >
+                    <MenuItem value="H">가로</MenuItem>
+                    <MenuItem value="V">세로</MenuItem>
+                  </TextField>
+                  <TextField
+                    select
+                    size="small"
+                    label="추가 길이"
+                    value={addLength}
+                    onChange={(e) => setAddLength(Number(e.target.value) as 1 | 2 | 3)}
+                    fullWidth
+                  >
+                    <MenuItem value={1}>고정 장애물</MenuItem>
+                    <MenuItem value={2}>2칸</MenuItem>
+                    <MenuItem value={3}>3칸</MenuItem>
+                  </TextField>
+                </Box>
+                {selectedVehicle && (
+                  <>
+                    <Typography variant="subtitle2">{selectedVehicle.name} 수정</Typography>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <TextField
+                        type="number"
+                        size="small"
+                        label="행 (1–6)"
+                        value={selectedVehicle.row + 1}
+                        slotProps={{ htmlInput: { min: 1, max: 6 } }}
+                        fullWidth
+                        onChange={(e) =>
+                          updateBoard(
+                            vehicles.map((v) =>
+                              v.id === selectedVehicle.id
+                                ? { ...v, row: Number(e.target.value) - 1 }
+                                : v
+                            )
+                          )
+                        }
+                      />
+                      <TextField
+                        type="number"
+                        size="small"
+                        label="열 (1–6)"
+                        value={selectedVehicle.col + 1}
+                        slotProps={{ htmlInput: { min: 1, max: 6 } }}
+                        fullWidth
+                        onChange={(e) =>
+                          updateBoard(
+                            vehicles.map((v) =>
+                              v.id === selectedVehicle.id
+                                ? { ...v, col: Number(e.target.value) - 1 }
+                                : v
+                            )
+                          )
+                        }
+                      />
+                    </Box>
+                    {!selectedVehicle.isTarget && (
+                      <>
+                        {!selectedVehicle.isFixed && (
+                          <Box sx={{ display: 'flex', gap: 1 }}>
+                            <TextField
+                              select
+                              size="small"
+                              label="방향"
+                              value={selectedVehicle.orientation}
+                              fullWidth
+                              onChange={(e) =>
+                                updateBoard(
+                                  vehicles.map((v) =>
+                                    v.id === selectedVehicle.id
+                                      ? { ...v, orientation: e.target.value as 'H' | 'V' }
+                                      : v
+                                  )
+                                )
+                              }
+                            >
+                              <MenuItem value="H">가로</MenuItem>
+                              <MenuItem value="V">세로</MenuItem>
+                            </TextField>
+                            <TextField
+                              select
+                              size="small"
+                              label="길이"
+                              value={selectedVehicle.length}
+                              fullWidth
+                              onChange={(e) =>
+                                updateBoard(
+                                  vehicles.map((v) =>
+                                    v.id === selectedVehicle.id
+                                      ? { ...v, length: Number(e.target.value) as 2 | 3 }
+                                      : v
+                                  )
+                                )
+                              }
+                            >
+                              <MenuItem value={2}>2칸</MenuItem>
+                              <MenuItem value={3}>3칸</MenuItem>
+                            </TextField>
+                          </Box>
+                        )}
+                        <Button
+                          color="error"
+                          startIcon={<DeleteRoundedIcon />}
+                          onClick={() => {
+                            updateBoard(vehicles.filter((v) => v.id !== selectedVehicle.id));
+                            setSelectedVehicleId(null);
+                          }}
+                        >
+                          선택 차량 삭제
+                        </Button>
+                      </>
+                    )}
+                  </>
+                )}
+              </>
+            )}
+          </Box>
+          <Divider />
           {/* Preset Selector */}
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
             <TextField
@@ -761,6 +1130,7 @@ export function PuzzleRushHourView() {
                   {p.name} ({p.difficulty})
                 </MenuItem>
               ))}
+              {selectedPresetId === 'custom' && <MenuItem value="custom">직접 만든 문제</MenuItem>}
             </TextField>
             <Button
               variant="outlined"

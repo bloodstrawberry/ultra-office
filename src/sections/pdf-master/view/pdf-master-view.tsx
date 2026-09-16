@@ -12,6 +12,7 @@ import Tabs from '@mui/material/Tabs';
 import Chip from '@mui/material/Chip';
 import Slider from '@mui/material/Slider';
 import Button from '@mui/material/Button';
+import Backdrop from '@mui/material/Backdrop';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
@@ -49,9 +50,14 @@ export function PdfMasterView() {
 
   // Common File State
   const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [isDraggingFiles, setIsDraggingFiles] = useState(false);
   const [pages, setPages] = useState<PdfPageInfo[]>([]);
   const [sourcePageCount, setSourcePageCount] = useState(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadingLabel, setUploadingLabel] = useState('');
+  const uploadingRef = useRef(false);
 
   const [hasLoaded, setHasLoaded] = useState(false);
 
@@ -60,18 +66,40 @@ export function PdfMasterView() {
   }, []);
 
   // Tab 1: Page Editor State
-  const handlePdfUpload = async (file: File) => {
+  const handlePdfUpload = async (files: File[]) => {
+    if (files.length === 0 || uploadingRef.current) return;
+    if (files.some((file) => !/\.pdf$/i.test(file.name))) {
+      toast.error('PDF 파일만 업로드할 수 있습니다.');
+      return;
+    }
+
+    const [file] = files;
+    uploadingRef.current = true;
+    setUploadingLabel(
+      files.length > 1
+        ? `${files.length}개 PDF 파일을 준비하고 있습니다.`
+        : `${file.name} 파일을 분석하고 있습니다.`
+    );
+    setIsUploading(true);
     setIsLoading(true);
     try {
+      // Show the loading state before PDF parsing and thumbnail rendering begin.
+      await new Promise<void>((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+      });
       const { pages: pagesInfo } = await getPdfPagesInfo(file);
+      setUploadedFiles(files);
       setPdfFile(file);
       setPages(pagesInfo);
       setSourcePageCount(pagesInfo.length);
       setSelectedPageIndex(0);
+      setCurrentTab(files.length > 1 ? 'combine' : 'editor');
       toast.success(`${pagesInfo.length}개 페이지가 성공적으로 로드되었습니다.`);
     } catch {
       toast.error('PDF 파일을 분석하는 중 오류가 발생했습니다.');
     } finally {
+      uploadingRef.current = false;
+      setIsUploading(false);
       setIsLoading(false);
     }
   };
@@ -296,14 +324,48 @@ export function PdfMasterView() {
 
   return (
     <DashboardContent
+      onDragOver={(event) => {
+        if (!event.dataTransfer.types.includes('Files')) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'copy';
+        setIsDraggingFiles(true);
+      }}
+      onDragLeave={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node)) {
+          setIsDraggingFiles(false);
+        }
+      }}
+      onDrop={(event) => {
+        if (!event.dataTransfer.files.length) return;
+        event.preventDefault();
+        setIsDraggingFiles(false);
+        void handlePdfUpload(Array.from(event.dataTransfer.files));
+      }}
       sx={{
         flex: '1 1 auto',
         display: 'flex',
         flexDirection: 'column',
         minHeight: 0,
         height: '100%',
+        outline: isDraggingFiles ? '2px dashed' : 'none',
+        outlineColor: 'primary.main',
       }}
     >
+      <Backdrop
+        open={isUploading}
+        sx={{
+          zIndex: (theme) => theme.zIndex.modal + 1,
+          color: '#fff',
+          flexDirection: 'column',
+          gap: 2,
+        }}
+      >
+        <CircularProgress color="inherit" />
+        <Typography variant="subtitle1" sx={{ fontWeight: 700, textAlign: 'center', px: 2 }}>
+          {uploadingLabel}
+        </Typography>
+        <Typography variant="body2">파일 크기에 따라 잠시 걸릴 수 있습니다.</Typography>
+      </Backdrop>
       <Box sx={{ mb: 2, flexShrink: 0 }}>
         <Typography
           variant="h4"
@@ -340,7 +402,8 @@ export function PdfMasterView() {
             작업할 PDF 문서를 업로드해 주세요
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3 }}>
-            문서는 서버로 전송되지 않고 100% 브라우저 메모리 내에서 안전하게 처리됩니다.
+            PDF 파일을 여기로 끌어다 놓거나 파일을 선택해 주세요. 여러 개를 올리면 병합 탭으로
+            이동합니다. 문서는 서버로 전송되지 않고 브라우저에서 처리됩니다.
           </Typography>
           <Button
             variant="contained"
@@ -353,9 +416,11 @@ export function PdfMasterView() {
             <input
               type="file"
               hidden
-              accept="application/pdf"
+              accept=".pdf,application/pdf"
+              multiple
               onChange={(e) => {
-                if (e.target.files?.[0]) handlePdfUpload(e.target.files[0]);
+                void handlePdfUpload(Array.from(e.target.files || []));
+                e.target.value = '';
               }}
             />
           </Button>
@@ -399,9 +464,11 @@ export function PdfMasterView() {
               <input
                 type="file"
                 hidden
-                accept="application/pdf"
+                accept=".pdf,application/pdf"
+                multiple
                 onChange={(e) => {
-                  if (e.target.files?.[0]) handlePdfUpload(e.target.files[0]);
+                  void handlePdfUpload(Array.from(e.target.files || []));
+                  e.target.value = '';
                 }}
               />
             </Button>
@@ -638,7 +705,11 @@ export function PdfMasterView() {
             )}
 
             {currentTab === 'combine' && (
-              <PdfCombinePanel pdfFile={pdfFile} pageCount={sourcePageCount} />
+              <PdfCombinePanel
+                pdfFile={pdfFile}
+                pageCount={sourcePageCount}
+                initialFiles={uploadedFiles}
+              />
             )}
 
             {currentTab === 'convert' && (

@@ -30,6 +30,7 @@ export const paths = {
     sliding: `/puzzle/sliding`,
     waterSort: `/puzzle/water-sort`,
     rushHour: `/puzzle/rush-hour`,
+    minesweeper: `/puzzle/minesweeper`,
   },
   morse: '/morse',
   braille: '/braille',

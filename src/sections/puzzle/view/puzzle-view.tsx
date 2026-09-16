@@ -75,6 +75,14 @@ const PUZZLE_ITEMS = [
       '단계별 프리셋',
     ],
   },
+  {
+    title: '지뢰찾기 (Minesweeper)',
+    subtitle: '첫 클릭이 안전한 지뢰찾기 게임 & 안전 칸 힌트 치트키',
+    path: paths.puzzle.minesweeper,
+    tag: 'Minesweeper',
+    color: '#F59E0B',
+    features: ['첫 클릭 안전 보장', '깃발과 주변 칸 열기', '한 단계 논리 풀이', '논리 풀이 재생'],
+  },
 ];
 
 export function PuzzleView() {

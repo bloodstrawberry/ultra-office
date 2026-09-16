@@ -1,12 +1,13 @@
 export interface Vehicle {
   id: string;
   name: string;
-  length: 2 | 3;
+  length: 1 | 2 | 3;
   orientation: 'H' | 'V';
   row: number; // Top-left position
   col: number;
   color: string;
   isTarget?: boolean;
+  isFixed?: boolean;
 }
 
 export interface RushHourPreset {
@@ -18,6 +19,34 @@ export interface RushHourPreset {
 
 export const GRID_SIZE = 6;
 export const EXIT_ROW = 2;
+
+export function validateRushHourBoard(vehicles: Vehicle[]): string | null {
+  if (vehicles.filter((v) => v.isTarget).length !== 1) return '빨간 주인공 차가 하나 필요합니다.';
+  const target = vehicles.find((v) => v.isTarget)!;
+  if (target.orientation !== 'H' || target.row !== EXIT_ROW || target.length !== 2) {
+    return '빨간 주인공 차는 출구 행(3행)의 가로 2칸이어야 합니다.';
+  }
+  const occupied = new Set<string>();
+  for (const vehicle of vehicles) {
+    if (
+      vehicle.row < 0 ||
+      vehicle.col < 0 ||
+      vehicle.row >= GRID_SIZE ||
+      vehicle.col >= GRID_SIZE ||
+      (vehicle.orientation === 'H' ? vehicle.col : vehicle.row) + vehicle.length > GRID_SIZE
+    ) {
+      return `${vehicle.name}이(가) 게임판 밖에 있습니다.`;
+    }
+    for (let offset = 0; offset < vehicle.length; offset += 1) {
+      const row = vehicle.row + (vehicle.orientation === 'V' ? offset : 0);
+      const col = vehicle.col + (vehicle.orientation === 'H' ? offset : 0);
+      const key = `${row},${col}`;
+      if (occupied.has(key)) return '차량이 서로 겹칩니다.';
+      occupied.add(key);
+    }
+  }
+  return null;
+}
 
 export const RUSH_HOUR_PRESETS: RushHourPreset[] = [
   {
@@ -212,7 +241,7 @@ export function isRushHourWon(vehicles: Vehicle[]): boolean {
 export function canMoveVehicle(vehicles: Vehicle[], vehicleId: string, delta: number): boolean {
   if (delta === 0) return false;
   const vehicle = vehicles.find((v) => v.id === vehicleId);
-  if (!vehicle) return false;
+  if (!vehicle || vehicle.isFixed) return false;
 
   const grid = buildGrid(vehicles.filter((v) => v.id !== vehicleId));
 
@@ -295,6 +324,7 @@ export function solveRushHour(initialVehicles: Vehicle[]): {
     }
 
     for (const v of current.vehicles) {
+      if (v.isFixed) continue;
       // Possible deltas: -1, +1, -2, +2, etc. (we check single step increments)
       const possibleDeltas = [-1, 1];
       for (const delta of possibleDeltas) {

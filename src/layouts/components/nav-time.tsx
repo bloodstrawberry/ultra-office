@@ -61,6 +61,8 @@ function SevenSegmentDigit({ digit, height = 28 }: SevenSegmentDigitProps) {
       height={height}
       viewBox="0 0 44 76"
       style={{
+        width: 'calc(var(--nav-time-digit-height) * 44 / 76)',
+        height: 'var(--nav-time-digit-height)',
         overflow: 'visible',
         display: 'inline-block',
         verticalAlign: 'middle',
@@ -90,6 +92,8 @@ function SevenSegmentColon({ height = 28 }: SevenSegmentColonProps) {
       height={height}
       viewBox="0 0 16 76"
       style={{
+        width: 'calc(var(--nav-time-digit-height) * 16 / 76)',
+        height: 'var(--nav-time-digit-height)',
         overflow: 'visible',
         display: 'inline-block',
         verticalAlign: 'middle',
@@ -171,8 +175,11 @@ export function NavTime({ sx, showIcon = false, digitHeight = 26, ...other }: Na
           }}
           sx={[
             {
+              '--nav-time-digit-height': `${digitHeight}px`,
               display: 'inline-flex',
               alignItems: 'flex-end',
+              flexShrink: 0,
+              whiteSpace: 'nowrap',
               gap: 0.8,
               color: 'text.primary',
               userSelect: 'none',
@@ -198,7 +205,7 @@ export function NavTime({ sx, showIcon = false, digitHeight = 26, ...other }: Na
           {showIcon && (
             <AccessTimeRoundedIcon
               sx={{
-                fontSize: Math.round(digitHeight * 0.85),
+                fontSize: 'calc(var(--nav-time-digit-height) * 0.85)',
                 color: 'inherit',
                 opacity: 0.75,
                 alignSelf: 'center',
@@ -211,11 +218,12 @@ export function NavTime({ sx, showIcon = false, digitHeight = 26, ...other }: Na
           <Typography
             component="span"
             sx={{
-              fontSize: '0.875rem',
+              fontSize: 'calc(var(--nav-time-digit-height) * 0.54)',
               fontWeight: 600,
               color: 'inherit',
               opacity: 0.7,
               letterSpacing: '-0.02em',
+              whiteSpace: 'nowrap',
               pb: '2px',
               mr: 0.2,
             }}

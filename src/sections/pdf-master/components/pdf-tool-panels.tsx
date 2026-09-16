@@ -93,6 +93,10 @@ type PanelProps = {
   pageCount: number;
 };
 
+type CombinePanelProps = PanelProps & {
+  initialFiles: File[];
+};
+
 type MergeFileItem = {
   id: string;
   file: File;
@@ -317,10 +321,10 @@ function SortablePreviewPage({
   );
 }
 
-export function PdfCombinePanel({ pdfFile, pageCount }: PanelProps) {
-  const [mergeFiles, setMergeFiles] = useState<MergeFileItem[]>(() => [
-    createMergeFileItem(pdfFile),
-  ]);
+export function PdfCombinePanel({ pdfFile, pageCount, initialFiles }: CombinePanelProps) {
+  const [mergeFiles, setMergeFiles] = useState<MergeFileItem[]>(() =>
+    (initialFiles.length ? initialFiles : [pdfFile]).map(createMergeFileItem)
+  );
   const [selectedFileId, setSelectedFileId] = useState<string | null>(mergeFiles[0]?.id || null);
   const [selectedFileInfo, setSelectedFileInfo] = useState<PdfDocumentInfo | null>(null);
   const [pageRange, setPageRange] = useState(`1-${pageCount}`);
@@ -335,13 +339,13 @@ export function PdfCombinePanel({ pdfFile, pageCount }: PanelProps) {
   );
 
   useEffect(() => {
-    const item = createMergeFileItem(pdfFile);
-    setMergeFiles([item]);
-    setSelectedFileId(item.id);
+    const items = (initialFiles.length ? initialFiles : [pdfFile]).map(createMergeFileItem);
+    setMergeFiles(items);
+    setSelectedFileId(items[0]?.id || null);
     setPageRange(`1-${pageCount}`);
     setPreviewFileId(null);
     setPreviewPages([]);
-  }, [pdfFile, pageCount]);
+  }, [pdfFile, pageCount, initialFiles]);
 
   const selectedItem = mergeFiles.find((item) => item.id === selectedFileId) || null;
   const previewItem = mergeFiles.find((item) => item.id === previewFileId) || null;
@@ -745,11 +749,15 @@ export function PdfCombinePanel({ pdfFile, pageCount }: PanelProps) {
         maxWidth="xl"
         slotProps={{ paper: { sx: { height: '88vh', maxHeight: 900 } } }}
       >
-        <DialogTitle sx={{ pb: 1 }}>
-          <Typography variant="h6" sx={{ fontWeight: 800 }}>
-            PDF 미리보기 · 페이지 편집
-          </Typography>
-          <Typography variant="body2" color="text.secondary" noWrap>
+        <DialogTitle sx={{ pb: 1, fontWeight: 800 }}>
+          PDF 미리보기 · 페이지 편집
+          <Typography
+            component="span"
+            variant="body2"
+            color="text.secondary"
+            noWrap
+            display="block"
+          >
             {previewItem?.file.name || ''} · {previewPages.length}페이지
           </Typography>
         </DialogTitle>

@@ -4,3 +4,4 @@ export * from './puzzle-sliding-view';
 export * from './puzzle-nonogram-view';
 export * from './puzzle-rush-hour-view';
 export * from './puzzle-water-sort-view';
+export * from './puzzle-minesweeper-view';
