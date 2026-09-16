@@ -12,6 +12,12 @@ export const paths = {
     postcode: `/public/postcode`,
     sql: `/public/sql`,
   },
+  sql: {
+    root: `/public/sql`,
+    lab: `/public/sql`,
+    sqld: `/sql/sqld`,
+    sqlp: `/sql/sqlp`,
+  },
   drawing: {
     root: `/drawing`,
     ladder: `/drawing/ladder`,

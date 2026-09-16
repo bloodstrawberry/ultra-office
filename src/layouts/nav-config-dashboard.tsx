@@ -109,6 +109,7 @@ const ICONS = {
   blackHole: <TrackChangesRoundedIcon fontSize="small" />,
   threejs: <ViewInArRoundedIcon fontSize="small" />,
   publicApi: <ApiRoundedIcon fontSize="small" />,
+  sql: <StorageRoundedIcon fontSize="small" />,
   etc: <HandymanRoundedIcon fontSize="small" />,
 };
 
@@ -252,7 +253,6 @@ export const navData: NavSectionProps['data'] = [
         children: [
           { title: 'Online 컴파일러', path: paths.codeRunner },
           { title: 'VS Code 타이핑 IDE', path: paths.devToolsIde, info: newFeatureBadge },
-          { title: 'SQL Lab', path: paths.public.sql },
           { title: 'Diff Checker', path: paths.compare },
           { title: '정규표현식', path: paths.text.regex },
           { title: 'Math Lab', path: paths.matlab },
@@ -260,6 +260,16 @@ export const navData: NavSectionProps['data'] = [
           { title: '파일 변환기', path: paths.fileConvert },
           { title: '개발자 툴킷', path: paths.devTools },
           { title: 'Public API', path: paths.publicApi },
+        ],
+      },
+      {
+        title: 'SQL',
+        path: paths.sql.root,
+        icon: ICONS.sql,
+        children: [
+          { title: 'SQL Lab', path: paths.sql.lab },
+          { title: 'SQLD 연습', path: paths.sql.sqld },
+          { title: 'SQLP 연습', path: paths.sql.sqlp },
         ],
       },
       {
