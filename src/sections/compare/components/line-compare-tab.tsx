@@ -12,6 +12,8 @@ import IconButton from '@mui/material/IconButton';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 
+import { ResizableWorkspace } from 'src/components/resizable';
+
 import { TextAreaPanel } from '../../util/components/shared-text-area';
 import { type LinePreset, LINE_COMPARE_PRESETS } from '../data/compare-presets';
 import { LineNumberTextField } from '../../util/components/line-number-text-field';
@@ -144,29 +146,32 @@ export function LineCompareTab() {
       </Card>
 
       {/* Input Lists Grid */}
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-          gap: 2,
-          height: 260,
-        }}
-      >
-        <TextAreaPanel title="A 목록 입력">
-          <LineNumberTextField
-            value={lineTextA}
-            onChange={setLineTextA}
-            placeholder="줄 단위로 A 목록 항목을 입력하세요..."
-          />
-        </TextAreaPanel>
-        <TextAreaPanel title="B 목록 입력">
-          <LineNumberTextField
-            value={lineTextB}
-            onChange={setLineTextB}
-            placeholder="줄 단위로 B 목록 항목을 입력하세요..."
-          />
-        </TextAreaPanel>
-      </Box>
+      <ResizableWorkspace
+        id="line-compare-inputs"
+        sx={{ height: 260 }}
+        primary={
+          <Box sx={{ height: 1, pr: 1 }}>
+            <TextAreaPanel title="A 목록 입력">
+              <LineNumberTextField
+                value={lineTextA}
+                onChange={setLineTextA}
+                placeholder="줄 단위로 A 목록 항목을 입력하세요..."
+              />
+            </TextAreaPanel>
+          </Box>
+        }
+        secondary={
+          <Box sx={{ height: 1, pl: 1 }}>
+            <TextAreaPanel title="B 목록 입력">
+              <LineNumberTextField
+                value={lineTextB}
+                onChange={setLineTextB}
+                placeholder="줄 단위로 B 목록 항목을 입력하세요..."
+              />
+            </TextAreaPanel>
+          </Box>
+        }
+      />
 
       {/* 3-Column Results (Only A, Common, Only B) */}
       <Box

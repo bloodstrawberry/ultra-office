@@ -27,7 +27,8 @@ export function PhotoHubView() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   // navData로부터 동적으로 전체 도구 및 섹션 그룹 추출 (SSOT)
-  const { tools, sectionGroups, categories } = useMemo(() => extractNavTools(navData), []);
+  // Fast Refresh 중 navData가 바뀌면 이전 목록을 재사용하지 않아야 SSR 결과와 일치한다.
+  const { tools, sectionGroups, categories } = extractNavTools(navData);
 
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);

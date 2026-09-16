@@ -55,6 +55,7 @@ export function NavItem({
   return (
     <ItemRoot
       aria-label={title}
+      title={title}
       {...ownerState}
       {...navItem.baseProps}
       className={mergeClasses([navSectionClasses.item.root, className], {

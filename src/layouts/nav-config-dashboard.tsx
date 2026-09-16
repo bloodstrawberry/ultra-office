@@ -241,6 +241,7 @@ export const navData: NavSectionProps['data'] = [
           { title: '스프레드시트 (Excel)', path: paths.spreadsheet },
           { title: '마크다운', path: paths.markdown },
           { title: '한글 파일 문서', path: paths.hwpMaster },
+          { title: 'PDF 편집기', path: paths.pdfMaster },
           { title: '다국어 번역기 (Translator)', path: paths.translator },
         ],
       },
@@ -412,7 +413,6 @@ export const navData: NavSectionProps['data'] = [
     subheader: 'PDF & File',
     items: [
       { title: '전자 도장 · 직인 스튜디오', path: paths.stampStudio, icon: ICONS.stampStudio },
-      { title: 'PDF 마스터', path: paths.pdfMaster, icon: ICONS.pdfMaster },
       { title: '파일 변환기', path: paths.fileConvert, icon: ICONS.fileConvert },
     ],
   },
@@ -477,7 +477,7 @@ export const mainNavData: NavMainProps['data'] = [
     icon: <TableViewRoundedIcon sx={{ width: 22, height: 22 }} />,
   },
   {
-    title: 'PDF 마스터',
+    title: 'PDF 편집기',
     path: paths.pdfMaster,
     icon: <PictureAsPdfRoundedIcon sx={{ width: 22, height: 22 }} />,
   },

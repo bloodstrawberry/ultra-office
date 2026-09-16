@@ -15,12 +15,16 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
+import HubRoundedIcon from '@mui/icons-material/HubRounded';
 import CircularProgress from '@mui/material/CircularProgress';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import GestureRoundedIcon from '@mui/icons-material/GestureRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
+import TransformRoundedIcon from '@mui/icons-material/TransformRounded';
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
+import DescriptionRoundedIcon from '@mui/icons-material/DescriptionRounded';
 import RotateRightRoundedIcon from '@mui/icons-material/RotateRightRounded';
+import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 import LayersClearRoundedIcon from '@mui/icons-material/LayersClearRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
@@ -30,6 +34,7 @@ import BrandingWatermarkRoundedIcon from '@mui/icons-material/BrandingWatermarkR
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
+import { PdfCombinePanel, PdfConvertPanel, PdfDocumentPanel } from '../components/pdf-tool-panels';
 import {
   stampPdf,
   getPdfPagesInfo,
@@ -38,11 +43,14 @@ import {
 } from '../utils/pdf-advanced-utils';
 
 export function PdfMasterView() {
-  const [currentTab, setCurrentTab] = useState<'editor' | 'stamp' | 'watermark'>('editor');
+  const [currentTab, setCurrentTab] = useState<
+    'editor' | 'combine' | 'convert' | 'stamp' | 'watermark' | 'document'
+  >('editor');
 
   // Common File State
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [pages, setPages] = useState<PdfPageInfo[]>([]);
+  const [sourcePageCount, setSourcePageCount] = useState(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const [hasLoaded, setHasLoaded] = useState(false);
@@ -54,10 +62,12 @@ export function PdfMasterView() {
   // Tab 1: Page Editor State
   const handlePdfUpload = async (file: File) => {
     setIsLoading(true);
-    setPdfFile(file);
     try {
       const { pages: pagesInfo } = await getPdfPagesInfo(file);
+      setPdfFile(file);
       setPages(pagesInfo);
+      setSourcePageCount(pagesInfo.length);
+      setSelectedPageIndex(0);
       toast.success(`${pagesInfo.length}개 페이지가 성공적으로 로드되었습니다.`);
     } catch {
       toast.error('PDF 파일을 분석하는 중 오류가 발생했습니다.');
@@ -75,6 +85,15 @@ export function PdfMasterView() {
   const handleDeletePage = (index: number) => {
     setPages((prev) => prev.filter((_, i) => i !== index));
     toast.info('페이지가 목록에서 제거되었습니다.');
+  };
+
+  const handleDuplicatePage = (index: number) => {
+    setPages((prev) => {
+      const next = [...prev];
+      next.splice(index + 1, 0, { ...prev[index] });
+      return next;
+    });
+    toast.success('페이지를 복제했습니다.');
   };
 
   const handleMovePage = (index: number, direction: 'left' | 'right') => {
@@ -276,18 +295,26 @@ export function PdfMasterView() {
   }
 
   return (
-    <DashboardContent>
+    <DashboardContent
+      sx={{
+        flex: '1 1 auto',
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: 0,
+        height: '100%',
+      }}
+    >
       <Box sx={{ mb: 2, flexShrink: 0 }}>
         <Typography
           variant="h4"
           sx={{ fontWeight: 800, mb: 0.5, display: 'flex', alignItems: 'center', gap: 1 }}
         >
           <PictureAsPdfRoundedIcon sx={{ fontSize: 32, color: 'error.main' }} />
-          PDF 마스터 스튜디오 (PDF Master)
+          PDF 편집기
         </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          브라우저 내에서 안전하게 PDF 페이지를 회전·재배치·삭제하고, 전자 서명 날인 및 워터마크를
-          삽입합니다.
+          페이지 편집부터 병합·분할·변환·텍스트 추출·전자 서명·워터마크·문서 정보까지 브라우저
+          안에서 안전하게 처리합니다.
         </Typography>
       </Box>
 
@@ -295,8 +322,13 @@ export function PdfMasterView() {
       {!pdfFile && (
         <Card
           sx={{
-            p: 4,
-            mb: 3,
+            p: { xs: 3, md: 5 },
+            flex: '1 1 auto',
+            minHeight: { xs: 320, lg: 0 },
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
             textAlign: 'center',
             border: '2px dashed',
             borderColor: 'primary.main',
@@ -381,6 +413,8 @@ export function PdfMasterView() {
               value={currentTab}
               onChange={(_, val) => setCurrentTab(val)}
               sx={{ borderBottom: 1, borderColor: 'divider' }}
+              variant="scrollable"
+              scrollButtons="auto"
             >
               <Tab
                 label="1. 페이지 편집 & 순서 변경"
@@ -389,22 +423,47 @@ export function PdfMasterView() {
                 iconPosition="start"
               />
               <Tab
-                label="2. 전자 서명 & 도장 날인"
+                label="2. 병합 & 분할"
+                value="combine"
+                icon={<HubRoundedIcon />}
+                iconPosition="start"
+              />
+              <Tab
+                label="3. 변환 & 텍스트"
+                value="convert"
+                icon={<TransformRoundedIcon />}
+                iconPosition="start"
+              />
+              <Tab
+                label="4. 전자 서명 & 도장"
                 value="stamp"
                 icon={<GestureRoundedIcon />}
                 iconPosition="start"
               />
               <Tab
-                label="3. 워터마크 각인"
+                label="5. 워터마크"
                 value="watermark"
                 icon={<BrandingWatermarkRoundedIcon />}
+                iconPosition="start"
+              />
+              <Tab
+                label="6. 문서 정보 & 최적화"
+                value="document"
+                icon={<DescriptionRoundedIcon />}
                 iconPosition="start"
               />
             </Tabs>
           </Box>
 
           {/* Tab Contents */}
-          <Box sx={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', pb: 4 }}>
+          <Box
+            sx={{
+              flex: '1 1 auto',
+              minHeight: 0,
+              overflowY: currentTab === 'combine' ? 'hidden' : 'auto',
+              pb: currentTab === 'combine' ? 0 : 4,
+            }}
+          >
             {/* TAB 1: Page Editor */}
             {currentTab === 'editor' && (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -459,30 +518,45 @@ export function PdfMasterView() {
                       <Box
                         sx={{
                           width: '100%',
-                          height: 160,
+                          height: 220,
                           bgcolor: 'background.neutral',
                           borderRadius: 1,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          border: '1px dashed',
+                          overflow: 'hidden',
+                          border: '1px solid',
                           borderColor: 'divider',
-                          transform: `rotate(${p.rotation}deg)`,
-                          transition: 'transform 0.2s ease',
                         }}
                       >
-                        <Box sx={{ textAlign: 'center' }}>
-                          <PictureAsPdfRoundedIcon
-                            sx={{ fontSize: 40, color: 'text.secondary', opacity: 0.7 }}
+                        {p.thumbnailUrl ? (
+                          <Box
+                            component="img"
+                            src={p.thumbnailUrl}
+                            alt={`원문 ${p.pageIndex + 1}페이지 미리보기`}
+                            sx={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'contain',
+                              bgcolor: '#fff',
+                              transform: `rotate(${p.rotation - p.originalRotation}deg)`,
+                              transition: 'transform 0.2s ease',
+                            }}
                           />
-                          <Typography
-                            variant="caption"
-                            display="block"
-                            sx={{ mt: 0.5, fontWeight: 700 }}
-                          >
-                            {Math.round(p.width)} × {Math.round(p.height)} pt
-                          </Typography>
-                        </Box>
+                        ) : (
+                          <Box sx={{ textAlign: 'center' }}>
+                            <PictureAsPdfRoundedIcon
+                              sx={{ fontSize: 40, color: 'text.secondary', opacity: 0.7 }}
+                            />
+                            <Typography
+                              variant="caption"
+                              display="block"
+                              sx={{ mt: 0.5, fontWeight: 700 }}
+                            >
+                              {Math.round(p.width)} × {Math.round(p.height)} pt
+                            </Typography>
+                          </Box>
+                        )}
                       </Box>
 
                       <Box
@@ -534,6 +608,14 @@ export function PdfMasterView() {
                         </IconButton>
                         <IconButton
                           size="small"
+                          color="secondary"
+                          onClick={() => handleDuplicatePage(idx)}
+                          title="페이지 복제"
+                        >
+                          <ContentCopyRoundedIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton
+                          size="small"
                           color="error"
                           onClick={() => handleDeletePage(idx)}
                           title="페이지 삭제"
@@ -553,6 +635,14 @@ export function PdfMasterView() {
                   ))}
                 </Box>
               </Box>
+            )}
+
+            {currentTab === 'combine' && (
+              <PdfCombinePanel pdfFile={pdfFile} pageCount={sourcePageCount} />
+            )}
+
+            {currentTab === 'convert' && (
+              <PdfConvertPanel pdfFile={pdfFile} pageCount={sourcePageCount} />
             )}
 
             {/* TAB 2: Stamp & Signature */}
@@ -765,6 +855,10 @@ export function PdfMasterView() {
                   워터마크 적용 및 다운로드
                 </Button>
               </Card>
+            )}
+
+            {currentTab === 'document' && (
+              <PdfDocumentPanel pdfFile={pdfFile} pageCount={sourcePageCount} />
             )}
           </Box>
         </Box>

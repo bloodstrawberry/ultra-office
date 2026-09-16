@@ -5,8 +5,8 @@ import type { NavItemProps, NavSectionProps } from 'src/components/nav-section';
 import type { MainSectionProps, HeaderSectionProps, LayoutSectionProps } from '../core';
 
 import { merge } from 'es-toolkit';
-import { useState, useEffect } from 'react';
 import { useBoolean } from 'minimal-shared/hooks';
+import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
@@ -24,6 +24,11 @@ import { dashboardLayoutVars, dashboardNavColorVars } from './css-vars';
 import { MainSection, layoutClasses, HeaderSection, LayoutSection } from '../core';
 
 // ----------------------------------------------------------------------
+
+const NAV_WIDTH_STORAGE_KEY = 'ultra-office:dashboard-nav-width';
+const NAV_COLLAPSED_STORAGE_KEY = 'ultra-office:dashboard-nav-collapsed';
+const NAV_MIN_WIDTH = 240;
+const NAV_MAX_WIDTH = 480;
 
 type LayoutBaseProps = Pick<LayoutSectionProps, 'sx' | 'children' | 'cssVars'>;
 
@@ -51,6 +56,17 @@ export function DashboardLayout({
 
   const { value: open, onFalse: onClose, onTrue: onOpen } = useBoolean();
   const [commandOpen, setCommandOpen] = useState(false);
+  const [isNavMini, setIsNavMini] = useState(false);
+  const [navWidth, setNavWidth] = useState(300);
+
+  useEffect(() => {
+    const savedWidth = Number(window.localStorage.getItem(NAV_WIDTH_STORAGE_KEY));
+    const savedCollapsed = window.localStorage.getItem(NAV_COLLAPSED_STORAGE_KEY);
+    if (Number.isFinite(savedWidth) && savedWidth >= NAV_MIN_WIDTH && savedWidth <= NAV_MAX_WIDTH) {
+      setNavWidth(savedWidth);
+    }
+    setIsNavMini(savedCollapsed === 'true');
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -65,8 +81,23 @@ export function DashboardLayout({
 
   const navData = slotProps?.nav?.data ?? dashboardNavData;
 
-  const isNavMini = false;
   const isNavVertical = true;
+
+  const handleToggleNav = useCallback(() => {
+    setIsNavMini((current) => {
+      const next = !current;
+      window.localStorage.setItem(NAV_COLLAPSED_STORAGE_KEY, String(next));
+      return next;
+    });
+  }, []);
+
+  const handleNavResize = useCallback((delta: number) => {
+    setNavWidth((current) => {
+      const next = Math.min(NAV_MAX_WIDTH, Math.max(NAV_MIN_WIDTH, current + delta));
+      window.localStorage.setItem(NAV_WIDTH_STORAGE_KEY, String(next));
+      return next;
+    });
+  }, []);
 
   const canDisplayItemByRole = (allowedRoles: NavItemProps['allowedRoles']): boolean => true;
 
@@ -162,7 +193,8 @@ export function DashboardLayout({
       layoutQuery={layoutQuery}
       cssVars={navVars.section}
       checkPermissions={canDisplayItemByRole}
-      onToggleNav={() => {}}
+      onToggleNav={handleToggleNav}
+      onResize={handleNavResize}
     />
   );
 
@@ -187,7 +219,12 @@ export function DashboardLayout({
       /** **************************************
        * @Styles
        *************************************** */
-      cssVars={{ ...dashboardLayoutVars(theme), ...navVars.layout, ...cssVars }}
+      cssVars={{
+        ...dashboardLayoutVars(theme),
+        ...navVars.layout,
+        '--layout-nav-vertical-width': `${navWidth}px`,
+        ...cssVars,
+      }}
       sx={[
         {
           [theme.breakpoints.up(layoutQuery)]: {

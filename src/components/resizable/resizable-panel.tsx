@@ -14,7 +14,6 @@ export interface ResizablePanelProps {
   defaultSize?: number;
   minSize?: number;
   maxSize?: number;
-  order?: number;
   collapsible?: boolean;
   collapsedSize?: number;
   children: React.ReactNode;
@@ -27,7 +26,6 @@ export function ResizablePanel({
   defaultSize,
   minSize = 10,
   maxSize,
-  order,
   collapsible,
   collapsedSize,
   children,

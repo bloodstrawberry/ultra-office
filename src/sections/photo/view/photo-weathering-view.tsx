@@ -8,14 +8,12 @@ import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
 import Slider from '@mui/material/Slider';
-import Switch from '@mui/material/Switch';
 import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
 import Tooltip from '@mui/material/Tooltip';
+import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
-import FormControlLabel from '@mui/material/FormControlLabel';
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
 import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
@@ -55,9 +53,6 @@ export function WeatheringView() {
   const [downscaleFactor, setDownscaleFactor] = useState<number>(0.45);
   const [colorMode, setColorMode] = useState<WeatheringColorMode>('green_mold');
   const [sharpenIntensity, setSharpenIntensity] = useState<number>(70);
-  const [showScreenshotUi, setShowScreenshotUi] = useState<boolean>(true);
-  const [screenshotUiLevel, setScreenshotUiLevel] = useState<number>(2);
-  const [watermarkCount, setWatermarkCount] = useState<number>(2);
   const [noiseIntensity, setNoiseIntensity] = useState<number>(30);
 
   const [previewMode, setPreviewMode] = useState<ComparePreviewMode>('split');
@@ -120,9 +115,6 @@ export function WeatheringView() {
     setDownscaleFactor(p.config.downscaleFactor);
     setColorMode(p.config.colorMode);
     setSharpenIntensity(p.config.sharpenIntensity);
-    setShowScreenshotUi(p.config.showScreenshotUi);
-    setScreenshotUiLevel(p.config.screenshotUiLevel);
-    setWatermarkCount(p.config.watermarkCount);
     setNoiseIntensity(p.config.noiseIntensity);
   };
 
@@ -137,9 +129,6 @@ export function WeatheringView() {
       downscaleFactor,
       colorMode,
       sharpenIntensity,
-      showScreenshotUi,
-      screenshotUiLevel,
-      watermarkCount,
       noiseIntensity,
     };
 
@@ -152,9 +141,6 @@ export function WeatheringView() {
     downscaleFactor,
     colorMode,
     sharpenIntensity,
-    showScreenshotUi,
-    screenshotUiLevel,
-    watermarkCount,
     noiseIntensity,
   ]);
 
@@ -260,8 +246,8 @@ export function WeatheringView() {
         flex: '1 1 auto',
         display: 'flex',
         flexDirection: 'column',
-        minHeight: 0,
-        height: '100%',
+        minHeight: { xs: 'auto', lg: 0 },
+        height: { xs: 'auto', lg: '100%' },
         pb: { xs: 2, sm: 3 },
       }}
     >
@@ -298,8 +284,8 @@ export function WeatheringView() {
             flexDirection: { xs: 'column', lg: 'row' },
             gap: { xs: 2, lg: 0 },
             flex: '1 1 auto',
-            minHeight: 0,
-            height: '100%',
+            minHeight: { xs: 'auto', lg: 0 },
+            height: { xs: 'auto', lg: '100%' },
             position: 'relative',
           }}
         >
@@ -310,8 +296,8 @@ export function WeatheringView() {
               flexDirection: 'column',
               flex: '1 1 0px',
               minWidth: 0,
-              minHeight: 0,
-              height: '100%',
+              minHeight: { xs: 'auto', lg: 0 },
+              height: { xs: 'auto', lg: '100%' },
               pr: { lg: 1 },
             }}
           >
@@ -426,10 +412,17 @@ export function WeatheringView() {
               maxWidth: { lg: `${rightPanelWidth}px` },
               flexShrink: 0,
               gap: 2,
-              minHeight: 0,
-              overflow: 'auto',
+              minHeight: { xs: 'auto', lg: 0 },
+              overflowX: 'hidden',
+              overflowY: { xs: 'visible', lg: 'auto' },
+              overscrollBehavior: 'contain',
+              scrollbarGutter: { lg: 'stable' },
               pl: { lg: 1 },
-              pr: 0.5,
+              pr: { xs: 0, lg: 0.5 },
+              pb: { lg: 1 },
+              '& > *': {
+                flexShrink: 0,
+              },
             }}
           >
             {/* Preset Selector */}
@@ -461,76 +454,68 @@ export function WeatheringView() {
               <Box
                 sx={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  gridTemplateColumns: `repeat(${WEATHERING_PRESETS.length}, minmax(0, 1fr))`,
                   gap: 0.75,
                 }}
               >
-                {WEATHERING_PRESETS.map((p, index) => {
+                {WEATHERING_PRESETS.map((p) => {
                   const isSelected = activePresetId === p.id;
-                  const isLastOdd =
-                    WEATHERING_PRESETS.length % 2 !== 0 && index === WEATHERING_PRESETS.length - 1;
 
                   return (
                     <Tooltip
                       key={p.id}
-                      title={`${p.name} (${p.subtitle}): ${p.desc}`}
+                      title={
+                        <Box sx={{ py: 0.25 }}>
+                          <Typography variant="caption" sx={{ display: 'block', fontWeight: 800 }}>
+                            {p.name}
+                          </Typography>
+                          <Typography variant="caption" sx={{ display: 'block', opacity: 0.9 }}>
+                            {p.subtitle}
+                          </Typography>
+                          <Typography variant="caption" sx={{ display: 'block', opacity: 0.75 }}>
+                            {p.desc}
+                          </Typography>
+                        </Box>
+                      }
                       placement="top"
                       arrow
                     >
                       <Box
+                        component="button"
+                        type="button"
+                        aria-label={`${p.name}: ${p.desc}`}
+                        aria-pressed={isSelected}
                         onClick={() => applyPreset(p.id)}
                         sx={{
-                          gridColumn: isLastOdd ? 'span 2' : 'span 1',
-                          p: 1,
+                          p: 0,
+                          minWidth: 0,
+                          height: 44,
                           borderRadius: 1.5,
                           border: '1.5px solid',
                           borderColor: isSelected ? 'success.main' : 'divider',
                           bgcolor: isSelected ? 'success.lighter' : 'background.paper',
+                          color: 'text.primary',
                           cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: 0.75,
-                          minWidth: 0,
+                          justifyContent: 'center',
+                          position: 'relative',
+                          font: 'inherit',
                           transition: 'all 0.15s ease',
                           '&:hover': {
                             borderColor: 'success.main',
                             bgcolor: isSelected ? 'success.lighter' : 'action.hover',
                           },
+                          '&:focus-visible': {
+                            outline: '2px solid',
+                            outlineColor: 'success.main',
+                            outlineOffset: 2,
+                          },
                         }}
                       >
-                        <Typography sx={{ fontSize: '1.2rem', lineHeight: 1, flexShrink: 0 }}>
+                        <Typography aria-hidden sx={{ fontSize: '1.35rem', lineHeight: 1 }}>
                           {p.icon}
                         </Typography>
-                        <Box sx={{ minWidth: 0, flex: '1 1 auto' }}>
-                          <Typography
-                            variant="subtitle2"
-                            sx={{
-                              fontWeight: isSelected ? 800 : 700,
-                              fontSize: '0.75rem',
-                              color: isSelected ? 'success.dark' : 'text.primary',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
-                              lineHeight: 1.25,
-                            }}
-                          >
-                            {p.name}
-                          </Typography>
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              color: isSelected ? 'success.darker' : 'text.secondary',
-                              fontSize: '0.675rem',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
-                              display: 'block',
-                              lineHeight: 1.2,
-                            }}
-                          >
-                            {p.subtitle}
-                          </Typography>
-                        </Box>
                         {isSelected && (
                           <Box
                             sx={{
@@ -538,7 +523,9 @@ export function WeatheringView() {
                               height: 6,
                               borderRadius: '50%',
                               bgcolor: 'success.main',
-                              flexShrink: 0,
+                              position: 'absolute',
+                              right: 5,
+                              top: 5,
                             }}
                           />
                         )}
@@ -659,80 +646,6 @@ export function WeatheringView() {
                   />
                 </Box>
 
-                {/* Watermarks */}
-                <Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                      커뮤니티 워터마크 덕지덕지 각인
-                    </Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 800, color: 'success.main' }}>
-                      {watermarkCount}개
-                    </Typography>
-                  </Box>
-                  <Slider
-                    value={watermarkCount}
-                    min={0}
-                    max={5}
-                    step={1}
-                    size="small"
-                    color="success"
-                    onChange={(_, val) => setWatermarkCount(val as number)}
-                  />
-                </Box>
-
-                {/* Screenshot UI Switch */}
-                <Box
-                  sx={{
-                    pt: 1,
-                    borderTop: '1px solid',
-                    borderColor: 'divider',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 1,
-                  }}
-                >
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={showScreenshotUi}
-                        onChange={(e) => setShowScreenshotUi(e.target.checked)}
-                        color="success"
-                      />
-                    }
-                    label={
-                      <Box>
-                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                          모바일 캡처 UI 프레임 합성
-                        </Typography>
-                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                          배터리 3%, 볼륨 바, 중첩 레터박스 테두리
-                        </Typography>
-                      </Box>
-                    }
-                  />
-
-                  {showScreenshotUi && (
-                    <Box sx={{ pl: 4, pt: 0.5 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                        <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                          중첩 레이어 단계
-                        </Typography>
-                        <Typography variant="caption" sx={{ fontWeight: 700 }}>
-                          {screenshotUiLevel}단계
-                        </Typography>
-                      </Box>
-                      <Slider
-                        value={screenshotUiLevel}
-                        min={1}
-                        max={3}
-                        step={1}
-                        marks
-                        size="small"
-                        onChange={(_, val) => setScreenshotUiLevel(val as number)}
-                      />
-                    </Box>
-                  )}
-                </Box>
               </Box>
             </Card>
 

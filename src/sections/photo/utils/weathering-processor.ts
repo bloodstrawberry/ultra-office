@@ -12,9 +12,6 @@ export interface WeatheringConfig {
   downscaleFactor: number; // 0.2 to 1.0 (internal resolution downsampling)
   colorMode: WeatheringColorMode;
   sharpenIntensity: number; // 0 to 100 (halo artifact & edge burn)
-  showScreenshotUi: boolean; // battery / time / letters
-  screenshotUiLevel: number; // 1 to 3 layers of nested status bar & letterbox
-  watermarkCount: number; // 0 to 4 stacked community logos
   noiseIntensity: number; // 0 to 100
 }
 
@@ -43,9 +40,6 @@ export const WEATHERING_PRESETS: WeatheringPreset[] = [
       downscaleFactor: 0.75,
       colorMode: 'natural',
       sharpenIntensity: 20,
-      showScreenshotUi: false,
-      screenshotUiLevel: 1,
-      watermarkCount: 0,
       noiseIntensity: 15,
     },
   },
@@ -63,9 +57,6 @@ export const WEATHERING_PRESETS: WeatheringPreset[] = [
       downscaleFactor: 0.55,
       colorMode: 'aged_yellow',
       sharpenIntensity: 45,
-      showScreenshotUi: true,
-      screenshotUiLevel: 1,
-      watermarkCount: 1,
       noiseIntensity: 30,
     },
   },
@@ -83,9 +74,6 @@ export const WEATHERING_PRESETS: WeatheringPreset[] = [
       downscaleFactor: 0.45,
       colorMode: 'green_mold',
       sharpenIntensity: 70,
-      showScreenshotUi: true,
-      screenshotUiLevel: 2,
-      watermarkCount: 2,
       noiseIntensity: 50,
     },
   },
@@ -93,7 +81,7 @@ export const WEATHERING_PRESETS: WeatheringPreset[] = [
     id: 'fossil',
     name: '고대 화석 짤',
     subtitle: '2005년 커뮤니티 유물',
-    desc: '배터리 3% UI + 겹겹이 중첩된 워터마크 + 심한 픽셀 뭉개짐',
+    desc: '극심한 세대 손실과 심한 픽셀 뭉개짐',
     icon: '🏛️',
     badgeBg: '#8b5cf6',
     config: {
@@ -103,9 +91,6 @@ export const WEATHERING_PRESETS: WeatheringPreset[] = [
       downscaleFactor: 0.32,
       colorMode: 'green_mold',
       sharpenIntensity: 85,
-      showScreenshotUi: true,
-      screenshotUiLevel: 3,
-      watermarkCount: 4,
       noiseIntensity: 75,
     },
   },
@@ -123,9 +108,6 @@ export const WEATHERING_PRESETS: WeatheringPreset[] = [
       downscaleFactor: 0.4,
       colorMode: 'deep_fried',
       sharpenIntensity: 100,
-      showScreenshotUi: true,
-      screenshotUiLevel: 2,
-      watermarkCount: 3,
       noiseIntensity: 80,
     },
   },
@@ -146,33 +128,6 @@ export const WEATHERING_SAMPLES = [
     id: 'street',
     label: '도심 풍경',
     url: 'https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=600&auto=format&fit=crop&q=80',
-  },
-];
-
-const COMMUNITY_WATERMARKS = [
-  {
-    text: 'DCINSIDE.COM',
-    pos: 'top-left',
-    color: 'rgba(0, 51, 153, 0.75)',
-    bg: 'rgba(255, 255, 255, 0.65)',
-  },
-  {
-    text: 'humoruniv.com (웃대)',
-    pos: 'bottom-right',
-    color: 'rgba(204, 0, 0, 0.8)',
-    bg: 'rgba(255, 255, 255, 0.7)',
-  },
-  {
-    text: 'RULIWEB.COM 루리웹',
-    pos: 'bottom-left',
-    color: 'rgba(0, 102, 204, 0.8)',
-    bg: 'rgba(255, 255, 255, 0.7)',
-  },
-  {
-    text: 'FB: 세상에서 가장 웃긴 동영상',
-    pos: 'top-right',
-    color: 'rgba(24, 119, 242, 0.85)',
-    bg: 'rgba(255, 255, 255, 0.7)',
   },
 ];
 
@@ -303,144 +258,6 @@ function applyColorModeCurve(
 }
 
 /**
- * Draw layered screenshot artifacts (nested status bar, letterboxes, volume HUD)
- */
-function drawNestedScreenshotOverlays(
-  ctx: CanvasRenderingContext2D,
-  w: number,
-  h: number,
-  level: number
-) {
-  // 1. Nested letterbox margins
-  if (level >= 1) {
-    const barH = Math.max(16, Math.round(h * 0.045));
-    // Top mobile status bar
-    ctx.fillStyle = '#0a0a0a';
-    ctx.fillRect(0, 0, w, barH);
-
-    // Status bar contents: Time, 3% battery in red, LTE icon
-    ctx.fillStyle = '#f87171'; // Red battery
-    const batW = 20;
-    const batH = 10;
-    const batX = w - batW - 14;
-    const batY = Math.round(barH / 2 - batH / 2);
-    ctx.fillRect(batX, batY, batW, batH);
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(batX + batW, batY + 2, 2, batH - 4); // tip
-
-    // Battery percentage text
-    ctx.font = 'bold 9px sans-serif';
-    ctx.textAlign = 'right';
-    ctx.fillText('3%', batX - 5, barH / 2 + 3);
-
-    // LTE / Wi-Fi icon text
-    ctx.font = 'bold 9px sans-serif';
-    ctx.fillText('LTE 1칸', batX - 28, barH / 2 + 3);
-
-    // Time text
-    ctx.textAlign = 'left';
-    ctx.font = 'bold 10px sans-serif';
-    ctx.fillText('새벽 03:37', 12, barH / 2 + 3.5);
-
-    // Bottom home bar
-    const btmH = Math.max(12, Math.round(h * 0.03));
-    ctx.fillStyle = '#0a0a0a';
-    ctx.fillRect(0, h - btmH, w, btmH);
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.roundRect(w / 2 - 35, h - btmH / 2 - 2, 70, 4, 2);
-    ctx.fill();
-  }
-
-  // 2. Volume bar HUD artifact (Layer 2)
-  if (level >= 2) {
-    const hudW = Math.max(36, Math.round(w * 0.1));
-    const hudH = Math.max(80, Math.round(h * 0.28));
-    const hudX = 14;
-    const hudY = Math.round(h * 0.35);
-
-    ctx.fillStyle = 'rgba(30, 30, 30, 0.78)';
-    ctx.beginPath();
-    ctx.roundRect(hudX, hudY, hudW, hudH, 8);
-    ctx.fill();
-
-    // Volume level pill
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.roundRect(hudX + hudW / 2 - 3, hudY + hudH * 0.45, 6, hudH * 0.45, 3);
-    ctx.fill();
-
-    ctx.font = '11px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('🔊', hudX + hudW / 2, hudY + 22);
-  }
-
-  // 3. Second nested outer border (Layer 3)
-  if (level >= 3) {
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 4;
-    ctx.strokeRect(6, 6, w - 12, h - 12);
-  }
-}
-
-/**
- * Draw stacked community watermarks across corners
- */
-function drawCommunityWatermarks(
-  ctx: CanvasRenderingContext2D,
-  w: number,
-  h: number,
-  count: number
-) {
-  const appliedCount = Math.min(count, COMMUNITY_WATERMARKS.length);
-
-  for (let i = 0; i < appliedCount; i += 1) {
-    const wm = COMMUNITY_WATERMARKS[i];
-    ctx.save();
-
-    const fontSize = Math.max(11, Math.round(w * 0.024));
-    ctx.font = `bold ${fontSize}px "Noto Sans KR", Arial, sans-serif`;
-    const textWidth = ctx.measureText(wm.text).width;
-    const paddingX = 8;
-    const paddingY = 4;
-    const boxW = textWidth + paddingX * 2;
-    const boxH = fontSize + paddingY * 2;
-
-    let posX = 16;
-    let posY = 24;
-
-    if (wm.pos === 'top-left') {
-      posX = 16;
-      posY = Math.round(h * 0.08);
-    } else if (wm.pos === 'top-right') {
-      posX = w - boxW - 16;
-      posY = Math.round(h * 0.08);
-    } else if (wm.pos === 'bottom-left') {
-      posX = 16;
-      posY = h - boxH - Math.round(h * 0.06);
-    } else if (wm.pos === 'bottom-right') {
-      posX = w - boxW - 16;
-      posY = h - boxH - Math.round(h * 0.06);
-    }
-
-    // Semi-transparent watermark background badge
-    ctx.fillStyle = wm.bg;
-    ctx.fillRect(posX, posY, boxW, boxH);
-    ctx.strokeStyle = 'rgba(0,0,0,0.2)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(posX, posY, boxW, boxH);
-
-    // Text
-    ctx.fillStyle = wm.color;
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(wm.text, posX + paddingX, posY + boxH / 2);
-
-    ctx.restore();
-  }
-}
-
-/**
  * Main Digital Weathering (Generation Loss) Renderer
  */
 export async function renderWeatheringPhoto(
@@ -473,14 +290,6 @@ export async function renderWeatheringPhoto(
   // Draw initial base image
   ctx.imageSmoothingEnabled = true;
   ctx.drawImage(origImg, 0, 0, targetW, targetH);
-
-  // Apply Nested Overlays (if enabled) before generation cycles so they also undergo weathering!
-  if (config.showScreenshotUi) {
-    drawNestedScreenshotOverlays(ctx, targetW, targetH, config.screenshotUiLevel);
-  }
-  if (config.watermarkCount > 0) {
-    drawCommunityWatermarks(ctx, targetW, targetH, config.watermarkCount);
-  }
 
   // 1. Initial Color Grading & Sharpening
   let imgData = ctx.getImageData(0, 0, targetW, targetH);

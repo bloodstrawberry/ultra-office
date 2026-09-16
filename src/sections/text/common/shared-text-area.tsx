@@ -3,11 +3,12 @@
 import type { SxProps } from '@mui/material';
 import type { Theme } from '@mui/material/styles';
 
-import React, { useRef, useEffect } from 'react';
+import React from 'react';
 
 import { Box, Stack, Typography } from '@mui/material';
 
 import { Scrollbar } from 'src/components/scrollbar';
+import { ManualResizeHandle } from 'src/components/resizable/manual-resize-handle';
 
 // ----------------------------------------------------------------------
 
@@ -16,74 +17,7 @@ interface ResizeHandleProps {
 }
 
 export function ResizeHandle({ onDrag }: ResizeHandleProps) {
-  const handleRef = useRef<HTMLDivElement>(null);
-  const isDragging = useRef(false);
-  const lastY = useRef(0);
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isDragging.current) return;
-      e.preventDefault();
-      const delta = e.clientY - lastY.current;
-      lastY.current = e.clientY;
-      onDrag(delta);
-    };
-
-    const handleMouseUp = () => {
-      if (isDragging.current) {
-        isDragging.current = false;
-        document.body.style.cursor = '';
-        document.body.style.userSelect = '';
-      }
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [onDrag]);
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    isDragging.current = true;
-    lastY.current = e.clientY;
-    document.body.style.cursor = 'row-resize';
-    document.body.style.userSelect = 'none';
-  };
-
-  return (
-    <Box
-      ref={handleRef}
-      onMouseDown={handleMouseDown}
-      sx={{
-        height: 8,
-        flexShrink: 0,
-        cursor: 'row-resize',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: 1,
-        transition: 'background-color 0.15s',
-        my: 0.5,
-        '&:hover': {
-          backgroundColor: 'action.hover',
-        },
-        '&::after': {
-          content: '""',
-          width: 40,
-          height: 3,
-          borderRadius: 1.5,
-          backgroundColor: 'grey.400',
-          transition: 'background-color 0.15s',
-        },
-        '&:hover::after': {
-          backgroundColor: 'primary.main',
-        },
-      }}
-    />
-  );
+  return <ManualResizeHandle onDrag={onDrag} />;
 }
 
 // ----------------------------------------------------------------------

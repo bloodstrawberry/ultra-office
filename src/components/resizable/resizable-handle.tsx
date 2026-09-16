@@ -7,6 +7,7 @@ import { Separator } from 'react-resizable-panels';
 
 import Box from '@mui/material/Box';
 import Tooltip from '@mui/material/Tooltip';
+import DragIndicatorRoundedIcon from '@mui/icons-material/DragIndicatorRounded';
 
 // ----------------------------------------------------------------------
 
@@ -28,6 +29,7 @@ export function ResizableHandle({
   const content = (
     <Separator
       disabled={disabled}
+      aria-label={tooltipText || '패널 크기 조절'}
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -41,15 +43,15 @@ export function ResizableHandle({
         background: 'transparent',
         ...(isVertical
           ? {
-              height: 6,
+              height: 10,
               width: '100%',
-              margin: '-2px 0',
+              margin: '-4px 0',
               cursor: disabled ? 'default' : 'row-resize',
             }
           : {
-              width: 6,
+              width: 10,
               height: '100%',
-              margin: '0 -2px',
+              margin: '0 -4px',
               cursor: disabled ? 'default' : 'col-resize',
             }),
       }}
@@ -101,9 +103,36 @@ export function ResizableHandle({
                   boxShadow: (theme) => `0 0 6px ${theme.palette.primary.main}80`,
                 },
               }),
+          '&:hover .resizable-divider-grip': {
+            opacity: 1,
+            color: 'primary.main',
+          },
           ...sx,
         }}
-      />
+      >
+        <Box
+          className="resizable-divider-grip"
+          sx={{
+            zIndex: 1,
+            width: isVertical ? 30 : 18,
+            height: isVertical ? 18 : 30,
+            borderRadius: 1,
+            bgcolor: 'background.paper',
+            border: '1px solid',
+            borderColor: 'divider',
+            color: 'text.disabled',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: 1,
+            opacity: 0.35,
+            transition: (theme) => theme.transitions.create(['opacity', 'color']),
+            transform: isVertical ? 'rotate(90deg)' : 'none',
+          }}
+        >
+          <DragIndicatorRoundedIcon sx={{ fontSize: 16 }} />
+        </Box>
+      </Box>
     </Separator>
   );
 

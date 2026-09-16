@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useRef, useEffect } from 'react';
+import React from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Typography from '@mui/material/Typography';
+
+import { ManualResizeHandle } from 'src/components/resizable/manual-resize-handle';
 
 export interface TextAreaPanelProps {
   title: string;
@@ -61,73 +63,5 @@ export function TextAreaPanel({
 }
 
 export function ResizeHandle({ onDrag }: { onDrag: (deltaY: number) => void }) {
-  const isDragging = useRef(false);
-  const lastY = useRef(0);
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isDragging.current) return;
-      e.preventDefault();
-      const delta = e.clientY - lastY.current;
-      lastY.current = e.clientY;
-      onDrag(delta);
-    };
-
-    const handleMouseUp = () => {
-      if (isDragging.current) {
-        isDragging.current = false;
-        document.body.style.cursor = '';
-        document.body.style.userSelect = '';
-      }
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [onDrag]);
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    isDragging.current = true;
-    lastY.current = e.clientY;
-    document.body.style.cursor = 'row-resize';
-    document.body.style.userSelect = 'none';
-  };
-
-  return (
-    <Box
-      onMouseDown={handleMouseDown}
-      sx={{
-        height: 6,
-        margin: '-2px 0',
-        flexShrink: 0,
-        cursor: 'row-resize',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        position: 'relative',
-        background: 'transparent',
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          height: '1px',
-          bgcolor: 'divider',
-          transition: (theme) =>
-            theme.transitions.create(['background-color', 'height', 'box-shadow'], {
-              duration: 150,
-            }),
-        },
-        '&:hover::before, &:active::before': {
-          bgcolor: 'primary.main',
-          height: '2px',
-          boxShadow: (theme) => `0 0 6px ${theme.palette.primary.main}80`,
-        },
-      }}
-    />
-  );
+  return <ManualResizeHandle onDrag={onDrag} />;
 }

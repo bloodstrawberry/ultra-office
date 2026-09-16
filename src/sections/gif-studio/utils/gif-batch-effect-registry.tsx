@@ -918,9 +918,6 @@ const weatheringEffect: GifBatchEffectDefinition<WeatheringOptions> = {
       downscaleFactor: 0.75,
       colorMode: 'natural',
       sharpenIntensity: opt.sharpenIntensity,
-      showScreenshotUi: false,
-      screenshotUiLevel: 1,
-      watermarkCount: 0,
       noiseIntensity: 15,
     };
     return renderWeatheringPhoto(src, config);

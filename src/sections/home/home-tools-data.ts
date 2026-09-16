@@ -225,7 +225,7 @@ export const TOOLS_DATA: ToolItem[] = [
   // 3. PDF & Converters
   {
     id: 'pdf-master',
-    title: 'PDF 마스터',
+    title: 'PDF 편집기',
     subtitle: 'PDF 병합, 분할, 회전 & 변환 스튜디오',
     description:
       '여러 PDF 파일 병합, 특정 페이지 추출/분할, 회전, 워터마크 추가 및 이미지 변환을 브라우저에서 안전하게 처리합니다.',

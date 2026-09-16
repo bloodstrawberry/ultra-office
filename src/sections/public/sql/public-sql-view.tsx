@@ -4,7 +4,6 @@ import type { SqlProblem, QueryResult, VerificationResult } from './types';
 
 import { toast } from 'sonner';
 import React, { useState, useCallback } from 'react';
-import { Group, Panel } from 'react-resizable-panels';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -26,7 +25,7 @@ import WorkspacePremiumRoundedIcon from '@mui/icons-material/WorkspacePremiumRou
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import { ResizableHandle } from 'src/components/resizable';
+import { ResizablePanel, ResizableHandle, ResizablePanelGroup } from 'src/components/resizable';
 
 import { SQLD_PROBLEMS } from './sqld-problems';
 import { SQLP_PROBLEMS } from './sqlp-problems';
@@ -384,9 +383,9 @@ export function PublicSqlView() {
           overflow: 'hidden',
         }}
       >
-        <Group orientation="horizontal" style={{ width: '100%', height: '100%' }}>
+        <ResizablePanelGroup orientation="horizontal" autoSaveId="public-sql-columns">
           {/* Left Column: SQL Editor (Top) & Result Table (Bottom) */}
-          <Panel
+          <ResizablePanel
             id="left-column"
             defaultSize={65}
             minSize={30}
@@ -400,9 +399,9 @@ export function PublicSqlView() {
               overflow: 'hidden',
             }}
           >
-            <Group orientation="vertical" style={{ width: '100%', height: '100%' }}>
+            <ResizablePanelGroup orientation="vertical" autoSaveId="public-sql-editor-result">
               {/* Top: SQL Editor */}
-              <Panel
+              <ResizablePanel
                 id="sql-editor"
                 defaultSize={45}
                 minSize={20}
@@ -435,13 +434,13 @@ export function PublicSqlView() {
                     datasetName={currentDataset.name}
                   />
                 </Box>
-              </Panel>
+              </ResizablePanel>
 
               {/* Horizontal Separator */}
               <ResizableHandle direction="vertical" tooltipText="상하 높이 조절" />
 
               {/* Bottom: Result Table */}
-              <Panel
+              <ResizablePanel
                 id="sql-result"
                 defaultSize={55}
                 minSize={20}
@@ -470,15 +469,15 @@ export function PublicSqlView() {
                     title={isChallengeMode ? '내 쿼리 실행 결과' : '실행 결과'}
                   />
                 </Box>
-              </Panel>
-            </Group>
-          </Panel>
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          </ResizablePanel>
 
           {/* Vertical Separator */}
           <ResizableHandle direction="horizontal" tooltipText="좌우 너비 조절" />
 
           {/* Right Column: Problem List or Schema Browser */}
-          <Panel
+          <ResizablePanel
             id="right-column"
             defaultSize={35}
             minSize={20}
@@ -518,8 +517,8 @@ export function PublicSqlView() {
                 />
               )}
             </Box>
-          </Panel>
-        </Group>
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </Box>
 
       {/* Query History Dialog */}

@@ -33,7 +33,8 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
   // navData로부터 동적으로 전체 도구 추출
-  const { tools } = useMemo(() => extractNavTools(navData), []);
+  // navData 변경 시 Fast Refresh가 오래된 도구 목록을 보존하지 않도록 동기화한다.
+  const { tools } = extractNavTools(navData);
 
   // Reset query on modal open
   useEffect(() => {

@@ -20,6 +20,8 @@ import SwapHorizRoundedIcon from '@mui/icons-material/SwapHorizRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import DeleteSweepRoundedIcon from '@mui/icons-material/DeleteSweepRounded';
 
+import { ResizableWorkspace } from 'src/components/resizable';
+
 import { type DiffPreset, TEXT_DIFF_PRESETS } from '../data/compare-presets';
 import { LineNumberTextField } from '../../util/components/line-number-text-field';
 import { ResizeHandle, TextAreaPanel } from '../../util/components/shared-text-area';
@@ -85,74 +87,76 @@ export function TextDiffTab() {
       </Box>
 
       {/* Editors Grid */}
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-          gap: 2,
-          height: inputHeight,
-        }}
-      >
-        <TextAreaPanel
-          title="이전 내용 (Original / Left)"
-          actions={
-            <Box sx={{ display: 'flex', gap: 0.5 }}>
-              <Tooltip title="클립보드 복사">
-                <IconButton size="small" onClick={() => handleCopy(oldText)}>
-                  <ContentCopyRoundedIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="스왑">
-                <IconButton
-                  size="small"
-                  onClick={() => {
-                    const temp = oldText;
-                    setOldText(newText);
-                    setNewText(temp);
-                  }}
-                >
-                  <SwapHorizRoundedIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="비우기">
-                <IconButton size="small" color="error" onClick={() => setOldText('')}>
-                  <DeleteSweepRoundedIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            </Box>
-          }
-        >
-          <LineNumberTextField
-            value={oldText}
-            onChange={setOldText}
-            placeholder="비교할 원본 텍스트를 입력하세요..."
-          />
-        </TextAreaPanel>
-
-        <TextAreaPanel
-          title="변경 내용 (Modified / Right)"
-          actions={
-            <Box sx={{ display: 'flex', gap: 0.5 }}>
-              <Tooltip title="클립보드 복사">
-                <IconButton size="small" onClick={() => handleCopy(newText)}>
-                  <ContentCopyRoundedIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="비우기">
-                <IconButton size="small" color="error" onClick={() => setNewText('')}>
-                  <DeleteSweepRoundedIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            </Box>
-          }
-        >
-          <LineNumberTextField
-            value={newText}
-            onChange={setNewText}
-            placeholder="비교할 변경된 텍스트를 입력하세요..."
-          />
-        </TextAreaPanel>
-      </Box>
+      <ResizableWorkspace
+        id="text-diff-inputs"
+        sx={{ height: inputHeight }}
+        primary={
+          <Box sx={{ height: 1, pr: 1 }}>
+            <TextAreaPanel
+              title="이전 내용 (Original / Left)"
+              actions={
+                <Box sx={{ display: 'flex', gap: 0.5 }}>
+                  <Tooltip title="클립보드 복사">
+                    <IconButton size="small" onClick={() => handleCopy(oldText)}>
+                      <ContentCopyRoundedIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="스왑">
+                    <IconButton
+                      size="small"
+                      onClick={() => {
+                        const temp = oldText;
+                        setOldText(newText);
+                        setNewText(temp);
+                      }}
+                    >
+                      <SwapHorizRoundedIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="비우기">
+                    <IconButton size="small" color="error" onClick={() => setOldText('')}>
+                      <DeleteSweepRoundedIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              }
+            >
+              <LineNumberTextField
+                value={oldText}
+                onChange={setOldText}
+                placeholder="비교할 원본 텍스트를 입력하세요..."
+              />
+            </TextAreaPanel>
+          </Box>
+        }
+        secondary={
+          <Box sx={{ height: 1, pl: 1 }}>
+            <TextAreaPanel
+              title="변경 내용 (Modified / Right)"
+              actions={
+                <Box sx={{ display: 'flex', gap: 0.5 }}>
+                  <Tooltip title="클립보드 복사">
+                    <IconButton size="small" onClick={() => handleCopy(newText)}>
+                      <ContentCopyRoundedIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="비우기">
+                    <IconButton size="small" color="error" onClick={() => setNewText('')}>
+                      <DeleteSweepRoundedIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              }
+            >
+              <LineNumberTextField
+                value={newText}
+                onChange={setNewText}
+                placeholder="비교할 변경된 텍스트를 입력하세요..."
+              />
+            </TextAreaPanel>
+          </Box>
+        }
+      />
 
       <ResizeHandle
         onDrag={(delta) => setInputHeight((h) => Math.max(160, Math.min(600, h + delta)))}
