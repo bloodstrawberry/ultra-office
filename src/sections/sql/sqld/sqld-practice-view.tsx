@@ -298,6 +298,7 @@ export function SqldPracticeView() {
         <SqldProblemCard
           problem={currentProblem}
           problemIndex={currentIndex}
+          problemKey={`${selectedRoundId}_${currentIndex}`}
           record={currentRecord}
           showAllAnswers={showAllAnswers}
           onSelectChoice={handleSelectChoice}

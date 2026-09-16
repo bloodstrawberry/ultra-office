@@ -28,12 +28,15 @@ import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 
 import { SqldErdRenderer } from './sqld-erd-renderer';
+import { SqldSqlPractice } from './sqld-sql-practice';
+import { isSqlPracticeProblem } from '../sqld-lab-data';
 
 // ----------------------------------------------------------------------
 
 interface SqldProblemCardProps {
   problem: Problem;
   problemIndex: number;
+  problemKey: string;
   record?: UserProblemRecord;
   showAllAnswers: boolean;
   onSelectChoice: (choiceNum: number, isMultiple: boolean) => void;
@@ -46,6 +49,7 @@ interface SqldProblemCardProps {
 export function SqldProblemCard({
   problem,
   problemIndex,
+  problemKey,
   record,
   showAllAnswers,
   onSelectChoice,
@@ -247,6 +251,10 @@ export function SqldProblemCard({
               />
             ))}
           </Box>
+        )}
+
+        {isSqlPracticeProblem(problem) && (
+          <SqldSqlPractice problem={problem} problemKey={problemKey} />
         )}
 
         <Divider sx={{ borderStyle: 'dashed' }} />
