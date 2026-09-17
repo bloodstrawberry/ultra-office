@@ -10,18 +10,28 @@ import Typography from '@mui/material/Typography';
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded';
 
 const formatTime = (date: Date) =>
-  `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+  `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}:${String(date.getSeconds()).padStart(2, '0')}`;
+
+const CLOCK_COLORS = {
+  face: '#ffffff',
+  border: '#334155',
+  marks: '#64748b',
+  numbers: '#0f172a',
+  minute: '#2563eb',
+  second: '#dc2626',
+};
 
 export function AnalogClockTab() {
-  const [time, setTime] = useState('10:10');
+  const [time, setTime] = useState('10:10:00');
 
   useEffect(() => {
     setTime(formatTime(new Date()));
   }, []);
 
-  const [hours, minutes] = time.split(':').map(Number);
-  const hourAngle = ((hours % 12) + minutes / 60) * 30;
-  const minuteAngle = minutes * 6;
+  const [hours, minutes, seconds] = time.split(':').map(Number);
+  const hourAngle = ((hours % 12) + minutes / 60 + seconds / 3600) * 30;
+  const minuteAngle = (minutes + seconds / 60) * 6;
+  const secondAngle = seconds * 6;
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, py: 2 }}>
@@ -30,7 +40,7 @@ export function AnalogClockTab() {
           아날로그 시계
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          시간을 입력하면 시침과 분침의 위치가 바로 표시됩니다.
+          시간을 입력하면 시침, 분침, 초침의 위치가 바로 표시됩니다.
         </Typography>
       </Box>
 
@@ -48,15 +58,15 @@ export function AnalogClockTab() {
           component="svg"
           viewBox="0 0 320 320"
           role="img"
-          aria-label={`${String(hours).padStart(2, '0')}시 ${String(minutes).padStart(2, '0')}분을 가리키는 아날로그 시계`}
-          sx={{ display: 'block', width: '100%', maxWidth: 320, mx: 'auto', color: 'primary.main' }}
+          aria-label={`${String(hours).padStart(2, '0')}시 ${String(minutes).padStart(2, '0')}분 ${String(seconds).padStart(2, '0')}초를 가리키는 아날로그 시계`}
+          sx={{ display: 'block', width: '100%', maxWidth: 320, mx: 'auto' }}
         >
           <circle
             cx="160"
             cy="160"
             r="150"
-            fill="var(--mui-palette-background-paper)"
-            stroke="currentColor"
+            fill={CLOCK_COLORS.face}
+            stroke={CLOCK_COLORS.border}
             strokeWidth="5"
           />
           {Array.from({ length: 60 }, (_, index) => {
@@ -71,7 +81,7 @@ export function AnalogClockTab() {
                 y1={160 - Math.cos(angle) * inner}
                 x2={160 + Math.sin(angle) * outer}
                 y2={160 - Math.cos(angle) * outer}
-                stroke="currentColor"
+                stroke={CLOCK_COLORS.marks}
                 strokeWidth={major ? 3 : 1.5}
                 opacity={major ? 0.8 : 0.35}
               />
@@ -87,7 +97,7 @@ export function AnalogClockTab() {
                 y={160 - Math.cos(angle) * 106}
                 textAnchor="middle"
                 dominantBaseline="central"
-                fill="var(--mui-palette-text-primary)"
+                fill={CLOCK_COLORS.numbers}
                 fontSize="20"
                 fontWeight="700"
               >
@@ -100,7 +110,7 @@ export function AnalogClockTab() {
             y1="174"
             x2="160"
             y2="86"
-            stroke="var(--mui-palette-text-primary)"
+            stroke={CLOCK_COLORS.numbers}
             strokeWidth="9"
             strokeLinecap="round"
             transform={`rotate(${hourAngle} 160 160)`}
@@ -110,12 +120,23 @@ export function AnalogClockTab() {
             y1="180"
             x2="160"
             y2="48"
-            stroke="currentColor"
+            stroke={CLOCK_COLORS.minute}
             strokeWidth="5"
             strokeLinecap="round"
             transform={`rotate(${minuteAngle} 160 160)`}
           />
-          <circle cx="160" cy="160" r="7" fill="currentColor" />
+          <line
+            x1="160"
+            y1="188"
+            x2="160"
+            y2="38"
+            stroke={CLOCK_COLORS.second}
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            transform={`rotate(${secondAngle} 160 160)`}
+          />
+          <circle cx="160" cy="160" r="7" fill={CLOCK_COLORS.numbers} />
+          <circle cx="160" cy="160" r="3" fill={CLOCK_COLORS.second} />
         </Box>
         <Typography
           variant="h4"
@@ -140,15 +161,15 @@ export function AnalogClockTab() {
           size="small"
           value={time}
           onChange={(event) => {
-            if (/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(event.target.value)) {
+            if (/^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/.test(event.target.value)) {
               setTime(event.target.value);
             }
           }}
           slotProps={{
             inputLabel: { shrink: true },
-            htmlInput: { step: 60, 'aria-label': '아날로그 시계 시간 입력' },
+            htmlInput: { step: 1, 'aria-label': '아날로그 시계 시 분 초 입력' },
           }}
-          sx={{ width: 180 }}
+          sx={{ width: 200 }}
         />
         <Button
           variant="outlined"

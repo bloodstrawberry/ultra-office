@@ -68,8 +68,8 @@ export function ClockDialog({
         '& .MuiDialog-paper': {
           width: '100%',
           maxWidth: 1140, // 기존 620에서 대폭 확대 (4열 지원)
-          height: '85vh', // 높이 고정 (필터나 컨텐츠 양에 따라 변하지 않음)
-          minHeight: 700,
+          height: { xs: 'calc(100dvh - 24px)', sm: '85vh' },
+          minHeight: { xs: 0, sm: 700 },
           borderRadius: 2,
           p: 0,
           overflow: 'hidden',
@@ -108,7 +108,14 @@ export function ClockDialog({
       </Box>
 
       {/* 탭 네비게이션 */}
-      <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', px: 2.5, flexShrink: 0 }}>
+      <Box
+        sx={{
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          px: { xs: 0.5, md: 2.5 },
+          flexShrink: 0,
+        }}
+      >
         <Tabs
           value={currentTab}
           onChange={handleTabChange}
@@ -117,13 +124,17 @@ export function ClockDialog({
           allowScrollButtonsMobile
           sx={{
             minHeight: 52,
+            '& .MuiTabs-list': { width: { md: '100%' } },
             '& .MuiTab-root': {
               minHeight: 52,
+              minWidth: { xs: 120, md: 0 },
+              flex: { md: 1 },
               fontWeight: 700,
-              fontSize: '0.95rem',
+              fontSize: { xs: '0.82rem', md: '0.9rem' },
               display: 'flex',
               flexDirection: 'row',
-              gap: 1.2,
+              gap: { xs: 0.5, md: 1 },
+              whiteSpace: 'nowrap',
             },
           }}
         >
