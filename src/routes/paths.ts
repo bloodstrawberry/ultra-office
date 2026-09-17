@@ -25,6 +25,7 @@ export const paths = {
   },
   game: {
     veryHardPuzzle: `/game/very-hard-puzzle`,
+    delivery: `/game/delivery`,
   },
   puzzle: {
     root: `/puzzle`,

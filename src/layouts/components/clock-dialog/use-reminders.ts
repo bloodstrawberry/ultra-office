@@ -36,17 +36,15 @@ const serverSnapshot: ReminderSnapshot = { reminders: [], hasLoaded: false };
 const listeners = new Set<() => void>();
 let intervalId: number | undefined;
 let alertIntervalId: number | undefined;
-let alertTimeoutId: number | undefined;
 let originalTitle = '';
 let originalIconHref: string | null = null;
 let alertIcon: HTMLLinkElement | null = null;
 let createdAlertIcon = false;
+const activeReminderToasts = new Map<string | number, string>();
 
-export function dismissReminderAlert() {
+function dismissReminderAlert() {
   if (alertIntervalId !== undefined) window.clearInterval(alertIntervalId);
-  if (alertTimeoutId !== undefined) window.clearTimeout(alertTimeoutId);
   alertIntervalId = undefined;
-  alertTimeoutId = undefined;
   if (originalTitle) document.title = originalTitle;
   if (alertIcon) {
     if (createdAlertIcon) alertIcon.remove();
@@ -81,8 +79,14 @@ function startReminderAlert(title: string) {
   };
   flash();
   alertIntervalId = window.setInterval(flash, 700);
-  alertTimeoutId = window.setTimeout(dismissReminderAlert, 20000);
   navigator.setAppBadge?.().catch(() => {});
+}
+
+function dismissReminderToast(id: string | number) {
+  activeReminderToasts.delete(id);
+  const latestTitle = Array.from(activeReminderToasts.values()).at(-1);
+  if (latestTitle) startReminderAlert(latestTitle);
+  else dismissReminderAlert();
 }
 
 function setReminders(reminders: Reminder[]) {
@@ -154,11 +158,13 @@ function showReminder(reminder: Reminder) {
       }
     }, 1200);
   }
-  startReminderAlert(reminder.title);
-  toast.info(`⏰ ${reminder.title} 할 시간이에요!`, {
+  const toastId = toast.info(`⏰ ${reminder.title} 할 시간이에요!`, {
     description: `${reminder.intervalMinutes}분 간격 리마인더`,
-    duration: 15000,
+    duration: Infinity,
+    onDismiss: (dismissedToast) => dismissReminderToast(dismissedToast.id),
   });
+  activeReminderToasts.set(toastId, reminder.title);
+  startReminderAlert(reminder.title);
   if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
     try {
       const notification = new Notification('Ultra Office 리마인더', {
@@ -168,7 +174,6 @@ function showReminder(reminder: Reminder) {
         silent: !reminder.soundEnabled,
       });
       notification.onclick = () => {
-        dismissReminderAlert();
         window.focus();
         notification.close();
       };

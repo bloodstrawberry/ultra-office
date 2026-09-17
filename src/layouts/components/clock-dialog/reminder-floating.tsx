@@ -7,7 +7,7 @@ import Typography from '@mui/material/Typography';
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded';
 
 import { ClockDialog } from './clock-dialog';
-import { useReminders, dismissReminderAlert } from './use-reminders';
+import { useReminders } from './use-reminders';
 
 const POSITION_KEY = 'ultra_office_reminder_float_position_v1';
 const EDGE_GAP = 12;
@@ -105,7 +105,6 @@ export function ReminderFloating() {
     .sort((a, b) => a.nextReminderAt - b.nextReminderAt)[0];
 
   const openDialog = () => {
-    dismissReminderAlert();
     setDialogOpen(true);
   };
 

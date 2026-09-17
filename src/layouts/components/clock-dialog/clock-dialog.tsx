@@ -13,6 +13,7 @@ import IconButton from '@mui/material/IconButton';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import TimerOutlinedIcon from '@mui/icons-material/TimerOutlined';
+import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded';
 import HourglassEmptyRoundedIcon from '@mui/icons-material/HourglassEmptyRounded';
 import NotificationsNoneRoundedIcon from '@mui/icons-material/NotificationsNoneRounded';
 
@@ -20,6 +21,7 @@ import { TimerTab } from './tabs/timer-tab';
 import { ReminderTab } from './tabs/reminder-tab';
 import { StopwatchTab } from './tabs/stopwatch-tab';
 import { WorldClockTab } from './tabs/world-clock-tab';
+import { AnalogClockTab } from './tabs/analog-clock-tab';
 
 // ----------------------------------------------------------------------
 
@@ -110,7 +112,9 @@ export function ClockDialog({
         <Tabs
           value={currentTab}
           onChange={handleTabChange}
-          variant="fullWidth"
+          variant="scrollable"
+          scrollButtons="auto"
+          allowScrollButtonsMobile
           sx={{
             minHeight: 52,
             '& .MuiTab-root': {
@@ -143,6 +147,11 @@ export function ClockDialog({
             label="세계시간"
             iconPosition="start"
           />
+          <Tab
+            icon={<AccessTimeRoundedIcon sx={{ fontSize: 20 }} />}
+            label="아날로그 시계"
+            iconPosition="start"
+          />
         </Tabs>
       </Box>
 
@@ -171,6 +180,7 @@ export function ClockDialog({
         {currentTab === 1 && <TimerTab />}
         {currentTab === 2 && <StopwatchTab />}
         {currentTab === 3 && <WorldClockTab />}
+        {currentTab === 4 && <AnalogClockTab />}
       </Box>
     </Dialog>
   );

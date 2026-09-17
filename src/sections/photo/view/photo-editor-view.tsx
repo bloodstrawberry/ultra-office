@@ -370,7 +370,14 @@ export function PhotoEditorView() {
         </Box>
       ) : (
         /* 전체화면 전문 에디터 워크스페이스 */
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: { xs: 'auto', md: 'hidden' } }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%',
+            overflow: { xs: 'auto', md: 'hidden' },
+          }}
+        >
           {/* 상단 툴바 */}
           <EditorToolbar
             deviceMode={editorState.deviceMode}

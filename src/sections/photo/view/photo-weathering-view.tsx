@@ -645,7 +645,6 @@ export function WeatheringView() {
                     onChange={(_, val) => setSharpenIntensity(val as number)}
                   />
                 </Box>
-
               </Box>
             </Card>
 

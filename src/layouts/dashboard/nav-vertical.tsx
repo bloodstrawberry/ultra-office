@@ -69,7 +69,9 @@ export function NavVertical({
           {!isNavMini && <Logo />}
           <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center', gap: 0.5 }}>
             {!isNavMini && (
-              <NavTime sx={{ '--nav-time-digit-height': 'clamp(14px, calc(20cqw - 34px), 26px)' }} />
+              <NavTime
+                sx={{ '--nav-time-digit-height': 'clamp(14px, calc(20cqw - 34px), 26px)' }}
+              />
             )}
             <Tooltip title={isNavMini ? '내비게이션 펼치기' : '내비게이션 접기'}>
               <IconButton

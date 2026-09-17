@@ -439,7 +439,8 @@ export function ColorPickerView() {
                 </Box>
               </Box>
               <Typography variant="caption" sx={{ mt: 0.75, color: 'text.secondary' }}>
-                사진 위에서 휠로 확대·축소하고, 확대 후 스크롤 막대로 이동해 원하는 픽셀을 클릭하세요.
+                사진 위에서 휠로 확대·축소하고, 확대 후 스크롤 막대로 이동해 원하는 픽셀을
+                클릭하세요.
               </Typography>
             </Card>
           </Box>

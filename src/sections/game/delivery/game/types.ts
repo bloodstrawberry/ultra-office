@@ -1,0 +1,88 @@
+declare const require: (path: string) => unknown;
+
+import { BlockId, getBlockProperties } from "../object/constants";
+
+// ── Raw JSON shape ──
+interface RawLevelData {
+  name: string;
+  grid: number[][];
+  hint?: number[][][];
+}
+
+// ── Public types ──
+export type CellType = BlockId;
+
+export interface Position {
+  x: number;
+  y: number;
+}
+
+export interface LevelData {
+  name: string;
+  grid: CellType[][];
+  hint?: CellType[][][];
+}
+
+export interface Bullet {
+  id: string;
+  startX: number;
+  startY: number;
+  targetX: number;
+  targetY: number;
+  dir: number;
+  ignoreNextCell?: boolean;
+  firedAt?: number;
+}
+
+// ── Constants ──
+// Configurable turn delay in ticks (each tick is 450ms) for auto-moving walls
+// Set to 0 for no delay, 1 for 450ms delay, 2 for 900ms delay, etc.
+export const AUTO_WALL_TURN_DELAY_TICKS = 2;
+
+export const SHOOTER_INTERVAL = 1000;
+
+// ── Level data ──
+const realMap: RawLevelData[] =
+  typeof window !== "undefined"
+    ? !window.location.pathname.includes("/editor") ||
+      process.env.NEXT_PUBLIC_APP_ENV === "LOCAL"
+      ? (require("../level/real-map.json") as RawLevelData[])
+      : []
+    : (require("../level/real-map.json") as RawLevelData[]);
+
+const testMap: RawLevelData[] =
+  typeof window !== "undefined"
+    ? !window.location.pathname.includes("/editor") ||
+      process.env.NEXT_PUBLIC_APP_ENV === "LOCAL"
+      ? (require("../level/test-map.json") as RawLevelData[])
+      : []
+    : (require("../level/test-map.json") as RawLevelData[]);
+
+export { realMap, testMap };
+
+export const BUILTIN_LEVELS: LevelData[] = realMap as LevelData[];
+
+// ── Utility functions ──
+export const copyGrid = (src: CellType[][]): CellType[][] => {
+  return src.map((row) => [...row]);
+};
+
+export const copy3DGrid = (
+  src?: CellType[][][],
+): CellType[][][] | undefined => {
+  if (!src) return undefined;
+  return src.map((grid) => copyGrid(grid));
+};
+
+export const findInitialCursor = (grid: CellType[][]): Position => {
+  const h = grid.length;
+  const w = grid[0]?.length ?? 0;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      if (getBlockProperties(grid[y][x], grid)?.canSelect) {
+        return { x, y };
+      }
+    }
+  }
+  return { x: Math.floor(w / 2), y: h - 1 };
+};

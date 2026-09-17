@@ -162,7 +162,11 @@ export function NavTime({ sx, showIcon = false, digitHeight = 26, ...other }: Na
 
   return (
     <>
-      <Tooltip title="시계 도구 (리마인더 · 타이머 · 스톱워치 · 세계시간)" arrow placement="bottom">
+      <Tooltip
+        title="시계 도구 (리마인더 · 타이머 · 스톱워치 · 세계시간 · 아날로그 시계)"
+        arrow
+        placement="bottom"
+      >
         <Box
           role="button"
           tabIndex={0}
