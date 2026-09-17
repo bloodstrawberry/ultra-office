@@ -1,7 +1,7 @@
 'use client';
 
 import { toast } from 'sonner';
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback, useLayoutEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -9,7 +9,9 @@ import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
+import ZoomInRoundedIcon from '@mui/icons-material/ZoomInRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
+import ZoomOutRoundedIcon from '@mui/icons-material/ZoomOutRounded';
 import ColorizeRoundedIcon from '@mui/icons-material/ColorizeRounded';
 import ColorLensRoundedIcon from '@mui/icons-material/ColorLensRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
@@ -55,18 +57,91 @@ const PRESET_PALETTES = [
   '#FFFFFF',
 ];
 
+const MAX_ZOOM = 8;
+const ZOOM_STEP = 0.5;
+
 export function ColorPickerView() {
   const [imageSrc, setImageSrc] = useState<string>('');
   const [currentColorHex, setCurrentColorHex] = useState<string>('#3B82F6');
   const [colorData, setColorData] = useState<FormattedColorData>(() => formatAllColors('#3B82F6'));
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [rightPanelWidth, setRightPanelWidth] = useState<number>(380);
+  const [zoom, setZoom] = useState(1);
+  const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
+  const [stageSize, setStageSize] = useState({ width: 0, height: 0 });
 
   const isResizingRef = useRef<boolean>(false);
   const resizeStartXRef = useRef<number>(0);
   const resizeStartWidthRef = useRef<number>(380);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const zoomFocusRef = useRef<{ x: number; y: number; clientX: number; clientY: number } | null>(
+    null
+  );
+
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return undefined;
+    const observer = new ResizeObserver(() => {
+      setStageSize({ width: stage.clientWidth, height: stage.clientHeight });
+    });
+    observer.observe(stage);
+    return () => observer.disconnect();
+  }, [imageSrc]);
+
+  const fitScale =
+    imageSize.width && imageSize.height && stageSize.width && stageSize.height
+      ? Math.min(stageSize.width / imageSize.width, stageSize.height / imageSize.height)
+      : 1;
+  const displayWidth = imageSize.width * fitScale * zoom;
+  const displayHeight = imageSize.height * fitScale * zoom;
+
+  useLayoutEffect(() => {
+    const focus = zoomFocusRef.current;
+    const stage = stageRef.current;
+    const canvas = canvasRef.current;
+    if (!focus || !stage || !canvas) return;
+    const stageRect = stage.getBoundingClientRect();
+    stage.scrollLeft =
+      canvas.offsetLeft + focus.x * displayWidth - (focus.clientX - stageRect.left);
+    stage.scrollTop = canvas.offsetTop + focus.y * displayHeight - (focus.clientY - stageRect.top);
+    zoomFocusRef.current = null;
+  }, [zoom, displayWidth, displayHeight]);
+
+  const changeZoom = useCallback(
+    (nextZoom: number, clientX?: number, clientY?: number) => {
+      const stage = stageRef.current;
+      const canvas = canvasRef.current;
+      if (!stage || !canvas) return;
+      const clampedZoom = Math.max(1, Math.min(MAX_ZOOM, nextZoom));
+      if (clampedZoom === zoom) return;
+      const stageRect = stage.getBoundingClientRect();
+      const focusX = clientX ?? stageRect.left + stageRect.width / 2;
+      const focusY = clientY ?? stageRect.top + stageRect.height / 2;
+      const canvasRect = canvas.getBoundingClientRect();
+      zoomFocusRef.current = {
+        x: Math.max(0, Math.min(1, (focusX - canvasRect.left) / canvasRect.width)),
+        y: Math.max(0, Math.min(1, (focusY - canvasRect.top) / canvasRect.height)),
+        clientX: focusX,
+        clientY: focusY,
+      };
+      setZoom(clampedZoom);
+    },
+    [zoom]
+  );
+
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return undefined;
+    const handleWheel = (e: WheelEvent) => {
+      if (!canvasRef.current || !imageSize.width) return;
+      e.preventDefault();
+      changeZoom(zoom + (e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP), e.clientX, e.clientY);
+    };
+    stage.addEventListener('wheel', handleWheel, { passive: false });
+    return () => stage.removeEventListener('wheel', handleWheel);
+  }, [changeZoom, imageSize.width, zoom]);
 
   const handleDividerPointerDown = (e: React.PointerEvent) => {
     e.preventDefault();
@@ -103,6 +178,7 @@ export function ColorPickerView() {
 
   const loadSampleImage = useCallback(
     (url: string) => {
+      setZoom(1);
       setImageSrc(url);
       const img = new Image();
       img.crossOrigin = 'anonymous';
@@ -115,6 +191,7 @@ export function ColorPickerView() {
         canvas.width = img.width;
         canvas.height = img.height;
         ctx.drawImage(img, 0, 0);
+        setImageSize({ width: img.width, height: img.height });
 
         const centerData = ctx.getImageData(
           Math.floor(img.width / 2),
@@ -136,6 +213,7 @@ export function ColorPickerView() {
       const reader = new FileReader();
       reader.onload = (event) => {
         const src = event.target?.result as string;
+        setZoom(1);
         setImageSrc(src);
 
         const img = new Image();
@@ -149,6 +227,7 @@ export function ColorPickerView() {
           canvas.width = img.width;
           canvas.height = img.height;
           ctx.drawImage(img, 0, 0);
+          setImageSize({ width: img.width, height: img.height });
 
           const centerData = ctx.getImageData(
             Math.floor(img.width / 2),
@@ -177,8 +256,14 @@ export function ColorPickerView() {
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
 
-    const clickX = Math.floor((e.clientX - rect.left) * scaleX);
-    const clickY = Math.floor((e.clientY - rect.top) * scaleY);
+    const clickX = Math.max(
+      0,
+      Math.min(canvas.width - 1, Math.floor((e.clientX - rect.left) * scaleX))
+    );
+    const clickY = Math.max(
+      0,
+      Math.min(canvas.height - 1, Math.floor((e.clientY - rect.top) * scaleY))
+    );
 
     const pixel = ctx.getImageData(clickX, clickY, 1, 1).data;
     const toHex = (n: number) => n.toString(16).padStart(2, '0');
@@ -230,8 +315,6 @@ export function ColorPickerView() {
         </Typography>
       </Box>
 
-      <canvas ref={canvasRef} style={{ display: 'none' }} />
-
       {!imageSrc ? (
         <PhotoUploadWorkspace
           sampleImages={COLOR_PICKER_SAMPLE_IMAGES}
@@ -281,6 +364,8 @@ export function ColorPickerView() {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: 1,
                   mb: 1.5,
                   flexShrink: 0,
                 }}
@@ -291,9 +376,34 @@ export function ColorPickerView() {
                     스포이드 추출 (사진의 원하는 픽셀 클릭)
                   </Typography>
                 </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <IconButton
+                    size="small"
+                    aria-label="축소"
+                    onClick={() => changeZoom(zoom - ZOOM_STEP)}
+                    disabled={zoom <= 1}
+                  >
+                    <ZoomOutRoundedIcon fontSize="small" />
+                  </IconButton>
+                  <Typography variant="caption" sx={{ minWidth: 42, textAlign: 'center' }}>
+                    {Math.round(zoom * 100)}%
+                  </Typography>
+                  <IconButton
+                    size="small"
+                    aria-label="확대"
+                    onClick={() => changeZoom(zoom + ZOOM_STEP)}
+                    disabled={zoom >= MAX_ZOOM}
+                  >
+                    <ZoomInRoundedIcon fontSize="small" />
+                  </IconButton>
+                  <Button size="small" onClick={() => changeZoom(1)} disabled={zoom === 1}>
+                    맞춤
+                  </Button>
+                </Box>
               </Box>
 
               <Box
+                ref={stageRef}
                 sx={{
                   position: 'relative',
                   width: '100%',
@@ -303,22 +413,34 @@ export function ColorPickerView() {
                   bgcolor: '#0f172a',
                   borderRadius: 0,
                   overflow: 'auto',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
                 }}
               >
-                <canvas
-                  ref={canvasRef}
-                  onClick={handleCanvasClick}
-                  style={{
-                    maxWidth: '100%',
-                    maxHeight: '100%',
-                    objectFit: 'contain',
-                    cursor: 'crosshair',
+                <Box
+                  sx={{
+                    display: 'flex',
+                    position: 'relative',
+                    minWidth: '100%',
+                    minHeight: '100%',
+                    width: 'max-content',
+                    height: 'max-content',
                   }}
-                />
+                >
+                  <canvas
+                    ref={canvasRef}
+                    onClick={handleCanvasClick}
+                    style={{
+                      width: displayWidth || undefined,
+                      height: displayHeight || undefined,
+                      margin: 'auto',
+                      cursor: 'crosshair',
+                      imageRendering: zoom >= 3 ? 'pixelated' : 'auto',
+                    }}
+                  />
+                </Box>
               </Box>
+              <Typography variant="caption" sx={{ mt: 0.75, color: 'text.secondary' }}>
+                사진 위에서 휠로 확대·축소하고, 확대 후 스크롤 막대로 이동해 원하는 픽셀을 클릭하세요.
+              </Typography>
             </Card>
           </Box>
 
@@ -618,6 +740,8 @@ export function ColorPickerView() {
                 color="inherit"
                 onClick={() => {
                   setImageSrc('');
+                  setImageSize({ width: 0, height: 0 });
+                  setZoom(1);
                   updateColor('#3B82F6');
                 }}
                 startIcon={<RefreshRoundedIcon />}

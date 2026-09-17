@@ -112,9 +112,30 @@ export function MemeLabView() {
 
   // Object dragging refs & state
   const draggingLaserIndexRef = useRef<number | null>(null);
+  const draggedLaserPointRef = useRef<LaserEyePoint | null>(null);
   const isDraggingTiltShiftRef = useRef<boolean>(false);
   const lastDragEndTimeRef = useRef<number>(0);
   const [activeLaserIndex, setActiveLaserIndex] = useState<number | null>(null);
+  const [draggedLaserPoint, setDraggedLaserPoint] = useState<LaserEyePoint | null>(null);
+
+  const finishLaserDrag = (index: number) => {
+    if (draggingLaserIndexRef.current !== index) return;
+    const point = draggedLaserPointRef.current;
+    draggingLaserIndexRef.current = null;
+    draggedLaserPointRef.current = null;
+    lastDragEndTimeRef.current = Date.now();
+    setActiveLaserIndex(null);
+    setDraggedLaserPoint(null);
+    if (point) {
+      setLaserPoints((prev) => {
+        if (!prev[index]) return prev;
+        if (prev[index]?.x === point.x && prev[index]?.y === point.y) return prev;
+        const next = [...prev];
+        next[index] = point;
+        return next;
+      });
+    }
+  };
 
   // Click on image area to add a new laser eye point
   const handleImageOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -607,8 +628,10 @@ export function MemeLabView() {
                 >
                   {/* Laser Eye Points */}
                   {activeEffect === 'laser_eyes' &&
-                    laserPoints.map((pt, index) => {
+                    laserPoints.map((committedPoint, index) => {
                       const isDragging = activeLaserIndex === index;
+                      const pt =
+                        isDragging && draggedLaserPoint ? draggedLaserPoint : committedPoint;
                       const colorHex =
                         laserColor === 'red'
                           ? '#ef4444'
@@ -630,6 +653,7 @@ export function MemeLabView() {
                             lastDragEndTimeRef.current = Date.now();
                             (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
                             draggingLaserIndexRef.current = index;
+                            draggedLaserPointRef.current = null;
                             setActiveLaserIndex(index);
                           }}
                           onPointerMove={(e) => {
@@ -647,22 +671,20 @@ export function MemeLabView() {
                               0,
                               Math.min(1, (e.clientY - rect.top) / rect.height)
                             );
-                            setLaserPoints((prev) => {
-                              const next = [...prev];
-                              next[index] = { x: newX, y: newY };
-                              return next;
-                            });
+                            const point = { x: newX, y: newY };
+                            draggedLaserPointRef.current = point;
+                            setDraggedLaserPoint(point);
                           }}
                           onPointerUp={(e) => {
                             e.stopPropagation();
-                            lastDragEndTimeRef.current = Date.now();
-                            if (draggingLaserIndexRef.current === index) {
-                              draggingLaserIndexRef.current = null;
-                              setActiveLaserIndex(null);
-                              try {
-                                (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-                              } catch {}
-                            }
+                            finishLaserDrag(index);
+                          }}
+                          onPointerCancel={(e) => {
+                            e.stopPropagation();
+                            finishLaserDrag(index);
+                          }}
+                          onLostPointerCapture={() => {
+                            finishLaserDrag(index);
                           }}
                           sx={{
                             position: 'absolute',
@@ -751,6 +773,7 @@ export function MemeLabView() {
                           {/* Delete button (on hover) */}
                           <Box
                             className="laser-del-btn"
+                            onPointerDown={(e) => e.stopPropagation()}
                             onClick={(e) => {
                               e.stopPropagation();
                               setLaserPoints((prev) => prev.filter((_, i) => i !== index));

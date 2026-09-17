@@ -15,12 +15,10 @@ import RedoRoundedIcon from '@mui/icons-material/RedoRounded';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import ZoomInRoundedIcon from '@mui/icons-material/ZoomInRounded';
 import ZoomOutRoundedIcon from '@mui/icons-material/ZoomOutRounded';
-import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import FitScreenRoundedIcon from '@mui/icons-material/FitScreenRounded';
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
-import CompareArrowsRoundedIcon from '@mui/icons-material/CompareArrowsRounded';
 
 // ----------------------------------------------------------------------
 
@@ -36,10 +34,7 @@ interface EditorToolbarProps {
   onZoomIn: () => void;
   onZoomOut: () => void;
   onFitScreen: () => void;
-  isComparing: boolean;
-  onCompareToggle: () => void;
   onResetAll: () => void;
-  onOpenExport: () => void;
   onBackToUpload: () => void;
 }
 
@@ -55,10 +50,7 @@ export function EditorToolbar({
   onZoomIn,
   onZoomOut,
   onFitScreen,
-  isComparing,
-  onCompareToggle,
   onResetAll,
-  onOpenExport,
   onBackToUpload,
 }: EditorToolbarProps) {
   const isGalaxy = deviceMode === 'galaxy';
@@ -197,35 +189,13 @@ export function EditorToolbar({
         </Tooltip>
       </Box>
 
-      {/* 3. 우측: 원본 비교, 전체 초기화, 고화질 내보내기 */}
+      {/* 3. 우측: 전체 초기화 */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Button
-          variant={isComparing ? 'contained' : 'outlined'}
-          color={isComparing ? 'warning' : 'inherit'}
-          size="small"
-          startIcon={<CompareArrowsRoundedIcon />}
-          onClick={onCompareToggle}
-          sx={{ height: 34, fontWeight: 700, borderRadius: 1.5 }}
-        >
-          {isComparing ? '보정본 보기' : '원본 비교'}
-        </Button>
-
         <Tooltip title="모든 보정 초기화">
           <IconButton size="small" onClick={onResetAll}>
             <RestartAltRoundedIcon fontSize="small" />
           </IconButton>
         </Tooltip>
-
-        <Button
-          variant="contained"
-          color="primary"
-          size="small"
-          startIcon={<DownloadRoundedIcon />}
-          onClick={onOpenExport}
-          sx={{ height: 34, px: 2, fontWeight: 800, borderRadius: 1.5 }}
-        >
-          내보내기
-        </Button>
       </Box>
     </Box>
   );

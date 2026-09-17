@@ -5,8 +5,7 @@ import type { TabCategory, PhotoEditorState, FilterPresetItem } from './editor-t
 import React from 'react';
 
 import Box from '@mui/material/Box';
-import Tab from '@mui/material/Tab';
-import Tabs from '@mui/material/Tabs';
+import Button from '@mui/material/Button';
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
 import LayersRoundedIcon from '@mui/icons-material/LayersRounded';
 import DetailsRoundedIcon from '@mui/icons-material/DetailsRounded';
@@ -51,7 +50,7 @@ interface EditorSidebarProps {
   onTriggerEraser: () => void;
   onTriggerBgRemove: () => void;
   onTriggerUpscale: (factor: 1 | 2 | 4) => void;
-  width?: number;
+  width?: number | string;
 }
 
 const TABS: Array<{ id: TabCategory; label: string; icon: React.ReactElement }> = [
@@ -95,32 +94,49 @@ export function EditorSidebar({
         overflow: 'hidden',
       }}
     >
-      {/* 1. 상단 탭 네비게이션 스크롤 바 */}
+      {/* 모든 도구 탭을 줄바꿈하여 한 번에 표시 */}
       <Box
-        sx={{ borderBottom: '1px solid', borderColor: 'divider', bgcolor: 'background.neutral' }}
+        role="tablist"
+        aria-label="사진 편집 도구"
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+          gap: 0.5,
+          p: 1,
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          bgcolor: 'background.neutral',
+        }}
       >
-        <Tabs
-          value={currentTab}
-          onChange={(_, val) => onTabChange(val as TabCategory)}
-          variant="scrollable"
-          scrollButtons="auto"
-          sx={{
-            minHeight: 48,
-            '& .MuiTab-root': {
-              minHeight: 48,
-              py: 1,
-              px: 1.5,
-              fontSize: '0.75rem',
-              fontWeight: 700,
+        {TABS.map((t) => (
+          <Button
+            key={t.id}
+            role="tab"
+            aria-selected={currentTab === t.id}
+            variant="outlined"
+            startIcon={t.icon}
+            onClick={() => onTabChange(t.id)}
+            sx={{
+              minWidth: 0,
+              minHeight: 42,
+              px: 0.75,
+              py: 0.5,
               gap: 0.5,
-              flexDirection: 'row',
-            },
-          }}
-        >
-          {TABS.map((t) => (
-            <Tab key={t.id} value={t.id} label={t.label} icon={t.icon} />
-          ))}
-        </Tabs>
+              borderRadius: 1.5,
+              border: '1px solid',
+              borderColor: currentTab === t.id ? 'primary.main' : 'divider',
+              bgcolor: currentTab === t.id ? 'primary.lighter' : 'background.paper',
+              color: currentTab === t.id ? 'primary.main' : 'text.secondary',
+              fontSize: '0.7rem',
+              fontWeight: 700,
+              whiteSpace: 'nowrap',
+              textTransform: 'none',
+              '& .MuiButton-startIcon': { m: 0 },
+            }}
+          >
+            {t.label}
+          </Button>
+        ))}
       </Box>
 
       {/* 2. 각 카테고리별 내부 스크롤 콘텐츠 패널 */}

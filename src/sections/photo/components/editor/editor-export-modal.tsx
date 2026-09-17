@@ -38,7 +38,9 @@ export function EditorExportModal({ open, onClose, originalImage }: EditorExport
   const handleDownload = async () => {
     setIsExporting(true);
     try {
-      const mainCanvas = document.querySelector('canvas');
+      const mainCanvas = document.getElementById(
+        'photo-editor-result-canvas'
+      ) as HTMLCanvasElement | null;
       if (!mainCanvas) {
         toast.error('캔버스를 찾을 수 없습니다.');
         return;
@@ -76,7 +78,9 @@ export function EditorExportModal({ open, onClose, originalImage }: EditorExport
 
   const handleCopyToClipboard = async () => {
     try {
-      const mainCanvas = document.querySelector('canvas');
+      const mainCanvas = document.getElementById(
+        'photo-editor-result-canvas'
+      ) as HTMLCanvasElement | null;
       if (!mainCanvas) return;
 
       mainCanvas.toBlob(async (blob) => {

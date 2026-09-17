@@ -117,28 +117,47 @@ export function FiltersPanel({
         {filteredList.map((preset) => {
           const isSelected = values.presetId === preset.id;
           return (
-            <Card
+            <Tooltip
               key={preset.id}
-              onClick={() => onApplyPreset(preset)}
-              sx={{
-                p: 1.5,
-                borderRadius: 2,
-                cursor: 'pointer',
-                border: '2px solid',
-                borderColor: isSelected ? 'primary.main' : 'divider',
-                bgcolor: isSelected ? 'action.selected' : 'background.paper',
-                transition: 'all 0.2s',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 1,
-                '&:hover': {
-                  borderColor: 'primary.main',
-                  transform: 'translateY(-2px)',
-                },
-              }}
+              title={
+                <>
+                  <strong>{preset.name}</strong>
+                  <br />
+                  {preset.subtitle}
+                </>
+              }
+              arrow
+              placement="top"
             >
-              {/* 컬러 바 & 뱃지 */}
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Card
+                role="button"
+                tabIndex={0}
+                aria-label={`${preset.name}: ${preset.subtitle}`}
+                onClick={() => onApplyPreset(preset)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    onApplyPreset(preset);
+                  }
+                }}
+                sx={{
+                  p: 1.5,
+                  borderRadius: 2,
+                  cursor: 'pointer',
+                  border: '2px solid',
+                  borderColor: isSelected ? 'primary.main' : 'divider',
+                  bgcolor: isSelected ? 'action.selected' : 'background.paper',
+                  transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  minWidth: 0,
+                  '&:hover, &:focus-visible': {
+                    borderColor: 'primary.main',
+                    transform: 'translateY(-2px)',
+                  },
+                }}
+              >
                 <Box
                   sx={{
                     width: 24,
@@ -151,28 +170,13 @@ export function FiltersPanel({
                 />
                 <Typography
                   variant="subtitle2"
-                  sx={{ fontWeight: 800, fontSize: '0.8125rem' }}
+                  sx={{ fontWeight: 800, fontSize: '0.8125rem', minWidth: 0 }}
                   noWrap
                 >
                   {preset.name}
                 </Typography>
-              </Box>
-
-              <Typography
-                variant="caption"
-                sx={{
-                  color: 'text.secondary',
-                  fontSize: '0.6875rem',
-                  lineHeight: 1.3,
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
-                }}
-              >
-                {preset.subtitle}
-              </Typography>
-            </Card>
+              </Card>
+            </Tooltip>
           );
         })}
       </Box>

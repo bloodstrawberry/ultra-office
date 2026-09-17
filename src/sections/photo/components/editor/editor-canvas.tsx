@@ -20,6 +20,7 @@ interface EditorCanvasProps {
   isComparing: boolean;
   onUpdateState: (newState: PhotoEditorState) => void;
   maskCanvasRef: React.RefObject<HTMLCanvasElement | null>;
+  onRendered?: (dataUrl: string) => void;
 }
 
 export function EditorCanvas({
@@ -31,6 +32,7 @@ export function EditorCanvas({
   isComparing,
   onUpdateState,
   maskCanvasRef,
+  onRendered,
 }: EditorCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mainCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -130,7 +132,14 @@ export function EditorCanvas({
 
     // 2-4. Render Overlays (Light leaks, frames, text layers, stickers, drawings, mosaic)
     renderEditorOverlays(ctx, width, height, state);
-  }, [originalImage, state, isComparing, maskCanvasRef]);
+    if (onRendered) {
+      try {
+        onRendered(canvas.toDataURL('image/png'));
+      } catch {
+        // An external sample image may not allow canvas export.
+      }
+    }
+  }, [originalImage, state, isComparing, maskCanvasRef, onRendered]);
 
   useEffect(() => {
     renderPipeline();
@@ -380,6 +389,7 @@ export function EditorCanvas({
         }}
       >
         <canvas
+          id="photo-editor-result-canvas"
           ref={mainCanvasRef}
           style={{
             maxWidth: '100%',

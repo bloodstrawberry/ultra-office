@@ -4,12 +4,16 @@ import { toast } from 'sonner';
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
+import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
+import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
+import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
+import CompareArrowsRoundedIcon from '@mui/icons-material/CompareArrowsRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import { PhotoUploadWorkspace } from '../components';
 import { removeBackground } from '../utils/ai-bg-remove';
 import { EditorCanvas } from '../components/editor/editor-canvas';
 import { EditorToolbar } from '../components/editor/editor-toolbar';
@@ -18,11 +22,23 @@ import { EDITOR_SAMPLE_IMAGES } from '../components/editor/editor-presets';
 import { EditorExportModal } from '../components/editor/editor-export-modal';
 import { applyAiInpaint, applySmartRemaster } from '../components/editor/editor-processor';
 import {
+  downloadDataUrl,
+  shareToKakaoTalk,
+  renderGenericSplitComparisonImage,
+} from '../utils/image-processor';
+import {
   type DeviceMode,
   type TabCategory,
   DEFAULT_EDITOR_STATE,
   type PhotoEditorState,
 } from '../components/editor/editor-types';
+import {
+  type SplitMode,
+  PhotoUploadWorkspace,
+  PhotoCompareViewport,
+  type SplitOrientation,
+  type ComparePreviewMode,
+} from '../components';
 
 // ----------------------------------------------------------------------
 
@@ -35,7 +51,16 @@ export function PhotoEditorView() {
   const [editorState, setEditorState] = useState<PhotoEditorState>(DEFAULT_EDITOR_STATE);
   const [currentTab, setCurrentTab] = useState<TabCategory>('basic');
   const [zoom, setZoom] = useState<number>(0.85);
-  const [isComparing, setIsComparing] = useState<boolean>(false);
+  const [previewMode, setPreviewMode] = useState<ComparePreviewMode>('split');
+  const [splitOrientation, setSplitOrientation] = useState<SplitOrientation>('horizontal');
+  const [splitMode, setSplitMode] = useState<SplitMode>('inside');
+  const [splitStart, setSplitStart] = useState(25);
+  const [splitEnd, setSplitEnd] = useState(75);
+  const [resultDataUrl, setResultDataUrl] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [rightPanelWidth, setRightPanelWidth] = useState(380);
+  const resizeStartRef = useRef({ x: 0, width: 380 });
+  const isResizingRef = useRef(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
   const [isAiProcessing, setIsAiProcessing] = useState<boolean>(false);
 
@@ -50,6 +75,7 @@ export function PhotoEditorView() {
   useEffect(() => {
     if (!imageSrc) {
       setOriginalImage(null);
+      setResultDataUrl('');
       return;
     }
 
@@ -132,7 +158,9 @@ export function PhotoEditorView() {
 
   // 6. AI Inpainting / Eraser
   const handleTriggerEraser = () => {
-    const canvas = document.querySelector('canvas');
+    const canvas = document.getElementById(
+      'photo-editor-result-canvas'
+    ) as HTMLCanvasElement | null;
     if (!canvas || !maskCanvasRef.current) return;
 
     const ctx = canvas.getContext('2d');
@@ -250,6 +278,59 @@ export function PhotoEditorView() {
     setImageSrc(url);
   };
 
+  const handleRendered = useCallback((dataUrl: string) => setResultDataUrl(dataUrl), []);
+
+  const handleSaveResult = async () => {
+    if (!resultDataUrl) return;
+    setIsSaving(true);
+    try {
+      const result = await downloadDataUrl(resultDataUrl, `photo_editor_${Date.now()}.png`);
+      toast.success(result.message);
+    } catch {
+      toast.error('결과물 저장 중 오류가 발생했습니다.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSaveSplit = async () => {
+    if (!imageSrc || !resultDataUrl) return;
+    setIsSaving(true);
+    try {
+      const comparison = await renderGenericSplitComparisonImage({
+        originalSrc: imageSrc,
+        resultSrc: resultDataUrl,
+        splitStart,
+        splitEnd,
+        splitOrientation,
+        splitMode,
+      });
+      await downloadDataUrl(comparison, `photo_editor_comparison_${Date.now()}.png`);
+      toast.success('슬라이더 비교 상태 그대로 저장되었습니다.');
+    } catch {
+      toast.error('비교 상태 저장 중 오류가 발생했습니다.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleShare = async () => {
+    if (!resultDataUrl) return;
+    setIsSaving(true);
+    try {
+      const result = await shareToKakaoTalk(
+        resultDataUrl,
+        '[Ultra Office] 갤럭시 & 아이폰 사진 편집',
+        `photo_editor_${Date.now()}.png`
+      );
+      toast.success(result.message);
+    } catch {
+      toast.error('공유 중 오류가 발생했습니다.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   // Hidden mask canvas used across editor components
   return (
     <DashboardContent
@@ -289,7 +370,7 @@ export function PhotoEditorView() {
         </Box>
       ) : (
         /* 전체화면 전문 에디터 워크스페이스 */
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: { xs: 'auto', md: 'hidden' } }}>
           {/* 상단 툴바 */}
           <EditorToolbar
             deviceMode={editorState.deviceMode}
@@ -305,15 +386,22 @@ export function PhotoEditorView() {
             onZoomIn={() => setZoom((prev) => Math.min(3.0, prev + 0.15))}
             onZoomOut={() => setZoom((prev) => Math.max(0.2, prev - 0.15))}
             onFitScreen={() => setZoom(0.85)}
-            isComparing={isComparing}
-            onCompareToggle={() => setIsComparing((prev) => !prev)}
             onResetAll={handleResetAll}
-            onOpenExport={() => setIsExportModalOpen(true)}
             onBackToUpload={() => setImageSrc('')}
           />
 
           {/* 중앙 작업 공간: 좌측 캔버스 + 우측 탭 사이드바 */}
-          <Box sx={{ display: 'flex', flex: '1 1 auto', overflow: 'hidden', position: 'relative' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', md: 'row' },
+              flex: '1 1 auto',
+              minHeight: 0,
+              gap: { xs: 2, md: 0 },
+              position: 'relative',
+              overflow: { md: 'hidden' },
+            }}
+          >
             {/* AI 처리 중 인디케이터 오버레이 */}
             {isAiProcessing && (
               <Box
@@ -337,28 +425,196 @@ export function PhotoEditorView() {
               </Box>
             )}
 
-            {/* 캔버스 뷰포트 */}
-            <EditorCanvas
-              originalImage={originalImage}
-              state={editorState}
-              currentTab={currentTab}
-              zoom={zoom}
-              setZoom={setZoom}
-              isComparing={isComparing}
-              onUpdateState={handleStateChange}
-              maskCanvasRef={maskCanvasRef}
-            />
+            <Box
+              sx={{
+                flex: '1 1 0px',
+                minWidth: 0,
+                minHeight: { xs: 360, md: 0 },
+                height: { xs: 420, md: '100%' },
+                pr: { md: 1 },
+                position: 'relative',
+              }}
+            >
+              <Box sx={{ display: previewMode === 'single' ? 'flex' : 'none', height: '100%' }}>
+                <EditorCanvas
+                  originalImage={originalImage}
+                  state={editorState}
+                  currentTab={currentTab}
+                  zoom={zoom}
+                  setZoom={setZoom}
+                  isComparing={false}
+                  onUpdateState={handleStateChange}
+                  maskCanvasRef={maskCanvasRef}
+                  onRendered={handleRendered}
+                />
+              </Box>
+              <Box sx={{ display: previewMode === 'split' ? 'flex' : 'none', height: '100%' }}>
+                <PhotoCompareViewport
+                  originalSrc={imageSrc}
+                  resultSrc={resultDataUrl}
+                  previewMode={previewMode}
+                  onPreviewModeChange={setPreviewMode}
+                  splitOrientation={splitOrientation}
+                  onSplitOrientationChange={setSplitOrientation}
+                  splitMode={splitMode}
+                  onSplitModeChange={setSplitMode}
+                  splitStart={splitStart}
+                  onSplitStartChange={setSplitStart}
+                  splitEnd={splitEnd}
+                  onSplitEndChange={setSplitEnd}
+                  bgStyle="neutral"
+                />
+              </Box>
+              {previewMode === 'single' && (
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={() => setPreviewMode('split')}
+                  sx={{
+                    position: 'absolute',
+                    top: 12,
+                    left: 12,
+                    zIndex: 2,
+                    bgcolor: 'background.paper',
+                  }}
+                >
+                  비교 슬라이더
+                </Button>
+              )}
+            </Box>
 
-            {/* 우측 10대 카테고리 패널 사이드바 */}
-            <EditorSidebar
-              currentTab={currentTab}
-              onTabChange={setCurrentTab}
-              state={editorState}
-              onStateChange={handleStateChange}
-              onTriggerEraser={handleTriggerEraser}
-              onTriggerBgRemove={handleTriggerBgRemove}
-              onTriggerUpscale={handleTriggerUpscale}
-            />
+            <Box
+              onPointerDown={(e) => {
+                e.preventDefault();
+                e.currentTarget.setPointerCapture(e.pointerId);
+                isResizingRef.current = true;
+                resizeStartRef.current = { x: e.clientX, width: rightPanelWidth };
+              }}
+              onPointerMove={(e) => {
+                if (isResizingRef.current) {
+                  setRightPanelWidth(
+                    Math.max(
+                      280,
+                      Math.min(
+                        650,
+                        resizeStartRef.current.width + resizeStartRef.current.x - e.clientX
+                      )
+                    )
+                  );
+                }
+              }}
+              onPointerUp={(e) => {
+                isResizingRef.current = false;
+                e.currentTarget.releasePointerCapture(e.pointerId);
+              }}
+              sx={{
+                display: { xs: 'none', md: 'flex' },
+                width: 16,
+                flexShrink: 0,
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'col-resize',
+                touchAction: 'none',
+                '&:hover .divider-bar': { bgcolor: 'primary.main' },
+              }}
+            >
+              <Box
+                className="divider-bar"
+                sx={{ width: 2, height: '100%', bgcolor: 'divider', borderRadius: 1 }}
+              />
+            </Box>
+
+            <Box
+              sx={{
+                width: { xs: '100%', md: rightPanelWidth },
+                flexShrink: 0,
+                minHeight: 0,
+                height: { xs: 'auto', md: '100%' },
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1.25,
+                pl: { md: 1 },
+                pr: 0.5,
+              }}
+            >
+              <Box sx={{ flex: '1 1 auto', minHeight: { xs: 480, md: 0 } }}>
+                <EditorSidebar
+                  width="100%"
+                  currentTab={currentTab}
+                  onTabChange={setCurrentTab}
+                  state={editorState}
+                  onStateChange={handleStateChange}
+                  onTriggerEraser={handleTriggerEraser}
+                  onTriggerBgRemove={handleTriggerBgRemove}
+                  onTriggerUpscale={handleTriggerUpscale}
+                />
+              </Box>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.85, flexShrink: 0 }}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0.85 }}>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    color="inherit"
+                    size="small"
+                    onClick={() => setImageSrc('')}
+                    startIcon={<RefreshRoundedIcon sx={{ fontSize: 18 }} />}
+                    sx={{ py: 0.75, borderRadius: 1.5, fontWeight: 600, fontSize: '0.8rem' }}
+                  >
+                    다른 사진
+                  </Button>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    color="secondary"
+                    size="small"
+                    onClick={handleShare}
+                    disabled={isSaving || !resultDataUrl}
+                    startIcon={<ShareRoundedIcon sx={{ fontSize: 18 }} />}
+                    sx={{ py: 0.75, borderRadius: 1.5, fontWeight: 600, fontSize: '0.8rem' }}
+                  >
+                    공유
+                  </Button>
+                </Box>
+                <Button
+                  fullWidth
+                  variant="contained"
+                  color="primary"
+                  onClick={handleSaveResult}
+                  disabled={isSaving || !resultDataUrl}
+                  startIcon={
+                    isSaving ? (
+                      <CircularProgress size={18} color="inherit" />
+                    ) : (
+                      <DownloadRoundedIcon />
+                    )
+                  }
+                  sx={{ py: 1, borderRadius: 2, fontWeight: 700, fontSize: '0.88rem' }}
+                >
+                  결과물 저장
+                </Button>
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  color="primary"
+                  size="small"
+                  onClick={handleSaveSplit}
+                  disabled={isSaving || !resultDataUrl}
+                  startIcon={<CompareArrowsRoundedIcon sx={{ fontSize: 18 }} />}
+                  sx={{ py: 0.65, borderRadius: 1.5, fontWeight: 600, fontSize: '0.78rem' }}
+                >
+                  비교 상태 저장 (Split View)
+                </Button>
+                <Button
+                  fullWidth
+                  variant="text"
+                  size="small"
+                  onClick={() => setIsExportModalOpen(true)}
+                  disabled={!resultDataUrl}
+                >
+                  고급 내보내기
+                </Button>
+              </Box>
+            </Box>
           </Box>
 
           {/* 내보내기 다이얼로그 */}

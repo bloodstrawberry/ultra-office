@@ -10,6 +10,7 @@ import Slider from '@mui/material/Slider';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
 
 // ----------------------------------------------------------------------
@@ -147,16 +148,19 @@ export function BasicPanel({ values, onChange, onReset }: BasicPanelProps) {
                   mb: 0.5,
                 }}
               >
-                <Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25, minWidth: 0 }}>
                   <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.primary' }}>
                     {cfg.label}
                   </Typography>
-                  <Typography
-                    variant="caption"
-                    sx={{ display: 'block', color: 'text.disabled', fontSize: '0.6875rem' }}
-                  >
-                    {cfg.desc}
-                  </Typography>
+                  <Tooltip title={cfg.desc} arrow>
+                    <IconButton
+                      size="small"
+                      aria-label={`${cfg.label} 설명: ${cfg.desc}`}
+                      sx={{ p: 0.25 }}
+                    >
+                      <InfoOutlinedIcon sx={{ fontSize: 14 }} />
+                    </IconButton>
+                  </Tooltip>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   <Typography

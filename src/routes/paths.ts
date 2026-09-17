@@ -23,6 +23,9 @@ export const paths = {
     ladder: `/drawing/ladder`,
     roulette: `/drawing/roulette`,
   },
+  game: {
+    veryHardPuzzle: `/game/very-hard-puzzle`,
+  },
   puzzle: {
     root: `/puzzle`,
     sudoku: `/puzzle/sudoku`,
