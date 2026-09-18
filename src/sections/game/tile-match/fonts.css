@@ -1,0 +1,55 @@
+@import url("https://static.toss.im/tps/main.css");
+@import url("https://static.toss.im/tps/others.css");
+@import url("https://cdn.jsdelivr.net/gh/toss/tossface/dist/tossface.css");
+@import url("https://fonts.googleapis.com/css2?family=Dongle:wght@700&family=Fredoka:wght@700&family=Jua&display=swap");
+
+@font-face {
+  font-family: "MyFont";
+  src:
+    url("/fonts/my-font.ttf") format("truetype"),
+    url("./fonts/my-font.ttf") format("truetype");
+  font-weight: 1;
+  font-style: normal;
+  font-display: swap;
+}
+
+*,
+*::before,
+*::after,
+html,
+body,
+button,
+input,
+select,
+textarea,
+div,
+span,
+p,
+a,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family:
+    "MyFont",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif !important;
+  font-weight: 900 !important;
+}
+
+.font-cute,
+.font-jua,
+.font-sans,
+.font-my-font {
+  font-family:
+    "MyFont",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif !important;
+  font-weight: 900 !important;
+}

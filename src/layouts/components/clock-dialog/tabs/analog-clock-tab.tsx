@@ -1,16 +1,31 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
+import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded';
 
 const formatTime = (date: Date) =>
   `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}:${String(date.getSeconds()).padStart(2, '0')}`;
+
+const toSeconds = (time: string) => {
+  const [hours, minutes, seconds] = time.split(':').map(Number);
+  return hours * 3600 + minutes * 60 + seconds;
+};
+
+const formatSeconds = (totalSeconds: number) => {
+  const secondsInDay = ((totalSeconds % 86400) + 86400) % 86400;
+  const hours = Math.floor(secondsInDay / 3600);
+  const minutes = Math.floor((secondsInDay % 3600) / 60);
+  const seconds = secondsInDay % 60;
+  return [hours, minutes, seconds].map((value) => String(value).padStart(2, '0')).join(':');
+};
 
 const CLOCK_COLORS = {
   face: '#ffffff',
@@ -23,10 +38,56 @@ const CLOCK_COLORS = {
 
 export function AnalogClockTab() {
   const [time, setTime] = useState('10:10:00');
+  const [isRunning, setIsRunning] = useState(true);
+  const anchorRef = useRef<{ seconds: number; startedAt: number } | null>(null);
 
   useEffect(() => {
-    setTime(formatTime(new Date()));
+    const now = new Date();
+    anchorRef.current = {
+      seconds: toSeconds(formatTime(now)),
+      startedAt: now.getTime() - now.getMilliseconds(),
+    };
+    setTime(formatTime(now));
   }, []);
+
+  useEffect(() => {
+    if (!isRunning) return undefined;
+
+    const tick = () => {
+      if (!anchorRef.current) return;
+      const elapsedSeconds = Math.floor((Date.now() - anchorRef.current.startedAt) / 1000);
+      setTime(formatSeconds(anchorRef.current.seconds + elapsedSeconds));
+    };
+
+    tick();
+    const interval = window.setInterval(tick, 200);
+    return () => window.clearInterval(interval);
+  }, [isRunning]);
+
+  const handleToggleRunning = () => {
+    if (isRunning) {
+      if (anchorRef.current) {
+        const elapsedSeconds = Math.floor((Date.now() - anchorRef.current.startedAt) / 1000);
+        setTime(formatSeconds(anchorRef.current.seconds + elapsedSeconds));
+      }
+      setIsRunning(false);
+      return;
+    }
+
+    anchorRef.current = { seconds: toSeconds(time), startedAt: Date.now() };
+    setIsRunning(true);
+  };
+
+  const handleResetToNow = () => {
+    const now = new Date();
+    const currentTime = formatTime(now);
+    anchorRef.current = {
+      seconds: toSeconds(currentTime),
+      startedAt: now.getTime() - now.getMilliseconds(),
+    };
+    setTime(currentTime);
+    setIsRunning(true);
+  };
 
   const [hours, minutes, seconds] = time.split(':').map(Number);
   const hourAngle = ((hours % 12) + minutes / 60 + seconds / 3600) * 30;
@@ -40,7 +101,7 @@ export function AnalogClockTab() {
           아날로그 시계
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          시간을 입력하면 시침, 분침, 초침의 위치가 바로 표시됩니다.
+          시계를 정지한 뒤 시간을 바꾸고 시작하면, 그 시간부터 다시 움직입니다.
         </Typography>
       </Box>
 
@@ -159,6 +220,7 @@ export function AnalogClockTab() {
           label="표시할 시간"
           type="time"
           size="small"
+          disabled={isRunning}
           value={time}
           onChange={(event) => {
             if (/^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/.test(event.target.value)) {
@@ -172,11 +234,14 @@ export function AnalogClockTab() {
           sx={{ width: 200 }}
         />
         <Button
-          variant="outlined"
-          startIcon={<AccessTimeRoundedIcon />}
-          onClick={() => setTime(formatTime(new Date()))}
+          variant="contained"
+          startIcon={isRunning ? <PauseRoundedIcon /> : <PlayArrowRoundedIcon />}
+          onClick={handleToggleRunning}
         >
-          현재 시간
+          {isRunning ? '정지' : '시작'}
+        </Button>
+        <Button variant="outlined" startIcon={<AccessTimeRoundedIcon />} onClick={handleResetToNow}>
+          현재 시간으로
         </Button>
       </Box>
     </Box>
