@@ -29,6 +29,10 @@ export const paths = {
     pushPush: `/game/push-push`,
     tileMatch: `/game/tile-match`,
     snakePuzzle: `/game/snake-puzzle`,
+    bubbleShooter: `/game/bubble-shooter`,
+    tetris: `/game/tetris`,
+    game2048: `/game/2048`,
+    jigsawPuzzle: `/game/jigsaw-puzzle`,
   },
   puzzle: {
     root: `/puzzle`,
@@ -80,6 +84,7 @@ export const paths = {
     othello: '/algo-visualizer/othello',
     gomoku: '/algo-visualizer/gomoku',
     alkkagi: '/algo-visualizer/alkkagi',
+    solitaire: '/algo-visualizer/solitaire',
     compare: '/algo-visualizer/compare',
     challenge: '/algo-visualizer/challenge',
     playground: '/algo-visualizer/playground',

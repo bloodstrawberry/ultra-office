@@ -282,6 +282,10 @@ export const navData: NavSectionProps['data'] = [
           { title: '푸시푸시 (Push Push)', path: paths.game.pushPush, info: newFeatureBadge },
           { title: '턴제 사천성', path: paths.game.tileMatch },
           { title: '스네이크 퍼즐', path: paths.game.snakePuzzle },
+          { title: '버블 슈터', path: paths.game.bubbleShooter },
+          { title: '테트리스', path: paths.game.tetris },
+          { title: '2048', path: paths.game.game2048 },
+          { title: '사진 직쏘 퍼즐', path: paths.game.jigsawPuzzle },
         ],
       },
       {
@@ -331,6 +335,7 @@ export const navData: NavSectionProps['data'] = [
           { title: '오셀로 전술 & 리버시', path: paths.algo.othello },
           { title: '오목 전술 & 5목 대국', path: paths.algo.gomoku },
           { title: '피직스 알까기 (바둑/장기)', path: paths.algo.alkkagi },
+          { title: '솔리테어', path: paths.algo.solitaire },
         ],
       },
       {

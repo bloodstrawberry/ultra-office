@@ -1,5 +1,7 @@
 'use client';
 
+import { exportCheckerboardJpeg } from './checkerboard-export';
+
 // ----------------------------------------------------------------------
 // Types & Interfaces
 // ----------------------------------------------------------------------
@@ -348,7 +350,8 @@ export function renderCompositeImage(
   fgCanvas: HTMLCanvasElement,
   originalImg: HTMLImageElement,
   options: BgCompositeOptions,
-  mimeType: 'image/png' | 'image/jpeg' | 'image/webp' = 'image/png'
+  mimeType: 'image/png' | 'image/jpeg' | 'image/webp' = 'image/png',
+  checkerSquareSize = 8
 ): string {
   const w = fgCanvas.width;
   const h = fgCanvas.height;
@@ -362,12 +365,10 @@ export function renderCompositeImage(
   // Clear canvas completely to transparent
   ctx.clearRect(0, 0, w, h);
 
-  // If style is transparent and format is JPEG, draw white background so JPEG doesn't turn black
+  // JPEG cannot carry alpha: preserve the preview's checkerboard appearance.
   if (mimeType === 'image/jpeg' && options.style === 'transparent') {
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(0, 0, w, h);
     ctx.drawImage(fgCanvas, 0, 0);
-    return canvas.toDataURL('image/jpeg', 0.95);
+    return exportCheckerboardJpeg(canvas, checkerSquareSize);
   }
 
   // Draw Background according to style
@@ -447,7 +448,8 @@ export function renderSplitCompositeImage(
   options: BgCompositeOptions,
   mode: 'inside' | 'outside' = 'inside',
   orientation: 'horizontal' | 'vertical' = 'horizontal',
-  mimeType: 'image/png' | 'image/jpeg' | 'image/webp' = 'image/png'
+  mimeType: 'image/png' | 'image/jpeg' | 'image/webp' = 'image/png',
+  checkerSquareSize = 8
 ): string {
   const w = result.width;
   const h = result.height;
@@ -559,18 +561,9 @@ export function renderSplitCompositeImage(
     }
   }
 
-  // If user requested JPEG and background is transparent, fill transparent areas with white so JPEG doesn't turn black
+  // JPEG cannot carry alpha: preserve the preview's checkerboard appearance.
   if (mimeType === 'image/jpeg' && options.style === 'transparent') {
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = w;
-    tempCanvas.height = h;
-    const tempCtx = tempCanvas.getContext('2d');
-    if (tempCtx) {
-      tempCtx.fillStyle = '#FFFFFF';
-      tempCtx.fillRect(0, 0, w, h);
-      tempCtx.drawImage(canvas, 0, 0);
-      return tempCanvas.toDataURL('image/jpeg', 0.95);
-    }
+    return exportCheckerboardJpeg(canvas, checkerSquareSize);
   }
 
   return canvas.toDataURL(mimeType, 0.95);

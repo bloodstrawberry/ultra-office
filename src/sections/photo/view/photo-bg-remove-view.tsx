@@ -6,6 +6,7 @@ import React, { useRef, useMemo, useState, useEffect, useCallback } from 'react'
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
+import Menu from '@mui/material/Menu';
 import Button from '@mui/material/Button';
 import Slider from '@mui/material/Slider';
 import Select from '@mui/material/Select';
@@ -38,6 +39,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import { PhotoUploadWorkspace } from '../components';
 import { shareToKakaoTalk } from '../utils/image-processor';
+import { checkerboardBackground, exportCheckerboardJpeg } from '../utils/checkerboard-export';
 import {
   BG_REMOVE_MODELS,
   applyBrushStroke,
@@ -96,9 +98,21 @@ const SOLID_COLORS = [
   { label: '소프트 옐로우', hex: '#FEF3C7' },
 ];
 
+function downloadImage(dataUrl: string, filename: string) {
+  const link = document.createElement('a');
+  link.href = dataUrl;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
 // ----------------------------------------------------------------------
 
 export function BgRemoveView() {
+  const [saveMenuAnchor, setSaveMenuAnchor] = useState<HTMLElement | null>(null);
+  const [saveMenuKind, setSaveMenuKind] = useState<'result' | 'split'>('result');
+  const [checkerSquareSize, setCheckerSquareSize] = useState(8);
   const [imageSrc, setImageSrc] = useState<string>('');
   const [selectedModel, setSelectedModel] = useState<string>('briaai/RMBG-1.4');
   const [gpuStatus, setGpuStatus] = useState<{ supported: boolean; message: string }>({
@@ -627,14 +641,31 @@ export function BgRemoveView() {
 
   // Download Handler
   // Download Handlers: 1) Clean Result, 2) Split Comparison State
-  const handleDownloadResult = (format: 'png' | 'jpeg' | 'webp' = 'png') => {
+  const handleDownloadResult = (format: 'png' | 'jpeg') => {
     if (!result) return;
-    const mimeType =
-      format === 'jpeg' ? 'image/jpeg' : format === 'webp' ? 'image/webp' : 'image/png';
+    const mimeType = format === 'jpeg' ? 'image/jpeg' : 'image/png';
     let exportUrl = '';
 
     if (previewMode === 'mask') {
-      exportUrl = result.maskDataUrl;
+      if (format === 'png') {
+        exportUrl = result.maskDataUrl;
+      } else {
+        const maskCanvas = document.createElement('canvas');
+        maskCanvas.width = result.width;
+        maskCanvas.height = result.height;
+        const maskCtx = maskCanvas.getContext('2d');
+        if (!maskCtx) return;
+        const maskImage = new Image();
+        maskImage.onload = () => {
+          maskCtx.drawImage(maskImage, 0, 0);
+          downloadImage(
+            exportCheckerboardJpeg(maskCanvas, checkerSquareSize),
+            `ai_bg_result_${Date.now()}.jpeg`
+          );
+        };
+        maskImage.src = result.maskDataUrl;
+        return;
+      }
     } else if (bgStyle === 'transparent' && format === 'png') {
       exportUrl = result.foregroundCanvas.toDataURL('image/png');
     } else {
@@ -647,23 +678,18 @@ export function BgRemoveView() {
           gradientPreset,
           blurAmount,
         },
-        mimeType
+        mimeType,
+        checkerSquareSize
       );
     }
 
-    const link = document.createElement('a');
-    link.href = exportUrl;
-    link.download = `ai_bg_result_${Date.now()}.${format}`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadImage(exportUrl, `ai_bg_result_${Date.now()}.${format}`);
     toast.success('완성된 결과물 이미지가 저장되었습니다.');
   };
 
-  const handleDownloadSplit = (format: 'png' | 'jpeg' | 'webp' = 'png') => {
+  const handleDownloadSplit = (format: 'png' | 'jpeg') => {
     if (!result) return;
-    const mimeType =
-      format === 'jpeg' ? 'image/jpeg' : format === 'webp' ? 'image/webp' : 'image/png';
+    const mimeType = format === 'jpeg' ? 'image/jpeg' : 'image/png';
 
     const exportUrl = renderSplitCompositeImage(
       result,
@@ -677,15 +703,11 @@ export function BgRemoveView() {
       },
       splitMode,
       splitOrientation,
-      mimeType
+      mimeType,
+      checkerSquareSize
     );
 
-    const link = document.createElement('a');
-    link.href = exportUrl;
-    link.download = `ai_bg_split_comparison_${Date.now()}.${format}`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadImage(exportUrl, `ai_bg_split_comparison_${Date.now()}.${format}`);
     toast.success('슬라이더 비교 상태 그대로 이미지가 저장되었습니다.');
   };
 
@@ -1035,7 +1057,7 @@ export function BgRemoveView() {
                         background: isTouchupMode
                           ? 'none'
                           : bgStyle === 'transparent' || previewMode === 'split'
-                            ? 'repeating-conic-gradient(#cbd5e1 0% 25%, #f1f5f9 0% 50%) 50% / 16px 16px'
+                            ? checkerboardBackground(checkerSquareSize)
                             : 'background.neutral',
                       }}
                     >
@@ -1761,6 +1783,28 @@ export function BgRemoveView() {
                   </ToggleButton>
                 </ToggleButtonGroup>
 
+                {bgStyle === 'transparent' && (
+                  <Box sx={{ mb: 2 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                        투명 표시 네모 크기
+                      </Typography>
+                      <Typography variant="caption" sx={{ fontWeight: 800, color: 'primary.main' }}>
+                        {checkerSquareSize}px
+                      </Typography>
+                    </Box>
+                    <Slider
+                      size="small"
+                      min={4}
+                      max={32}
+                      step={2}
+                      value={checkerSquareSize}
+                      onChange={(_, value) => setCheckerSquareSize(value as number)}
+                      aria-label="투명 표시 네모 크기"
+                    />
+                  </Box>
+                )}
+
                 {/* Solid Color Options */}
                 {bgStyle === 'solid' && (
                   <Box>
@@ -1889,7 +1933,10 @@ export function BgRemoveView() {
                   fullWidth
                   variant="contained"
                   color="primary"
-                  onClick={() => handleDownloadResult('png')}
+                  onClick={(event) => {
+                    setSaveMenuKind('result');
+                    setSaveMenuAnchor(event.currentTarget);
+                  }}
                   disabled={!result || isLoading}
                   startIcon={<DownloadRoundedIcon />}
                   sx={{ py: 1.3, borderRadius: 2, fontWeight: 700, fontSize: '0.95rem' }}
@@ -1902,13 +1949,40 @@ export function BgRemoveView() {
                   fullWidth
                   variant="outlined"
                   color="primary"
-                  onClick={() => handleDownloadSplit('png')}
+                  onClick={(event) => {
+                    setSaveMenuKind('split');
+                    setSaveMenuAnchor(event.currentTarget);
+                  }}
                   disabled={!result || isLoading}
                   startIcon={<CompareArrowsRoundedIcon />}
                   sx={{ py: 1.1, borderRadius: 2, fontWeight: 700, fontSize: '0.85rem' }}
                 >
                   비교 상태 저장 (Split View)
                 </Button>
+                <Menu
+                  anchorEl={saveMenuAnchor}
+                  open={Boolean(saveMenuAnchor)}
+                  onClose={() => setSaveMenuAnchor(null)}
+                >
+                  <MenuItem
+                    onClick={() => {
+                      setSaveMenuAnchor(null);
+                      if (saveMenuKind === 'result') handleDownloadResult('png');
+                      else handleDownloadSplit('png');
+                    }}
+                  >
+                    PNG (투명도 유지)
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      setSaveMenuAnchor(null);
+                      if (saveMenuKind === 'result') handleDownloadResult('jpeg');
+                      else handleDownloadSplit('jpeg');
+                    }}
+                  >
+                    JPEG (체크무늬 포함)
+                  </MenuItem>
+                </Menu>
 
                 <Button
                   fullWidth

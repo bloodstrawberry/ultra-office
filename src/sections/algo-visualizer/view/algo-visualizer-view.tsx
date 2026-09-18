@@ -41,6 +41,7 @@ import { ChessSolverTab } from '../components/games/chess/ChessSolverTab';
 import { JanggiSolverTab } from '../components/games/janggi/JanggiSolverTab';
 import { GomokuSolverTab } from '../components/games/gomoku/GomokuSolverTab';
 import { OthelloSolverTab } from '../components/games/othello/OthelloSolverTab';
+import { SolitaireTab } from '../components/games/solitaire/SolitaireTab';
 
 // ----------------------------------------------------------------------
 
@@ -53,6 +54,7 @@ export type VisualizerMainTab =
   | 'othello'
   | 'gomoku'
   | 'alkkagi'
+  | 'solitaire'
   | 'compare'
   | 'challenge'
   | 'playground'
@@ -207,29 +209,36 @@ function AlgoVisualizerMain({ defaultTab = 'visualizer' }: AlgoVisualizerViewPro
             sx={{ fontWeight: 700 }}
           />
           <Tab
+            value="solitaire"
+            label="9. 솔리테어"
+            icon={<SportsEsportsRoundedIcon sx={{ color: '#10b981' }} />}
+            iconPosition="start"
+            sx={{ fontWeight: 700 }}
+          />
+          <Tab
             value="compare"
-            label="9. 1:1 알고리즘 비교"
+            label="10. 1:1 알고리즘 비교"
             icon={<CompareArrowsRoundedIcon />}
             iconPosition="start"
             sx={{ fontWeight: 700 }}
           />
           <Tab
             value="challenge"
-            label="10. CS 챌린지 모드"
+            label="11. CS 챌린지 모드"
             icon={<SportsEsportsRoundedIcon />}
             iconPosition="start"
             sx={{ fontWeight: 700 }}
           />
           <Tab
             value="playground"
-            label="11. 커스텀 코드 샌드박스"
+            label="12. 커스텀 코드 샌드박스"
             icon={<TerminalRoundedIcon />}
             iconPosition="start"
             sx={{ fontWeight: 700 }}
           />
           <Tab
             value="catalog"
-            label="12. Big-O 마스터 & 카탈로그"
+            label="13. Big-O 마스터 & 카탈로그"
             icon={<TableChartRoundedIcon />}
             iconPosition="start"
             sx={{ fontWeight: 700 }}
@@ -249,6 +258,7 @@ function AlgoVisualizerMain({ defaultTab = 'visualizer' }: AlgoVisualizerViewPro
         {currentTab === 'othello' && <OthelloSolverTab />}
         {currentTab === 'gomoku' && <GomokuSolverTab />}
         {currentTab === 'alkkagi' && <AlkkagiTab />}
+        {currentTab === 'solitaire' && <SolitaireTab />}
         {currentTab === 'compare' && <CompareTab />}
         {currentTab === 'challenge' && <ChallengeTab />}
         {currentTab === 'playground' && <PlaygroundTab />}

@@ -2,7 +2,6 @@
 
 import React from 'react';
 
-import { getAssetPath } from '../utils/asset';
 
 export interface GameLoadingViewProps {
   title?: string;
@@ -24,14 +23,12 @@ export default function GameLoadingView({
         <div className="absolute top-0 right-0 w-32 h-32 bg-amber-200/40 rounded-full blur-2xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-emerald-200/30 rounded-full blur-2xl pointer-events-none" />
 
-        {/* 로고와 원형 로딩 스피너 (화면 절반 크기) */}
+        {/* 게임 아이콘과 원형 로딩 스피너 */}
         <div className="relative w-[50vw] h-[50vw] max-w-[220px] max-h-[220px] min-w-[160px] min-h-[160px] flex items-center justify-center">
           <div className="absolute inset-0 border-[6px] border-rose-200 border-t-[#FF4B6E] rounded-full animate-spin shadow-xs" />
-          <img
-            src={getAssetPath('/logo.png')}
-            alt="베리 하드 퍼즐 로고"
-            className="w-[78%] h-[78%] object-contain select-none relative z-10"
-          />
+          <span className="relative z-10 text-7xl" role="img" aria-label="스네이크 퍼즐">
+            🐍
+          </span>
         </div>
 
         <div className="text-center relative z-10">

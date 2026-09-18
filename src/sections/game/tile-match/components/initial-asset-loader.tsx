@@ -6,8 +6,6 @@ import { getAssetPath } from '../utils/asset';
 import { useAssetLoader } from './asset-loader-context';
 
 const ASSETS_TO_PRELOAD: string[] = [
-  getAssetPath('/images/title.png'),
-  getAssetPath('/logo.png'),
   getAssetPath('/images/background.png'),
   getAssetPath('/images/button-start.png'),
   getAssetPath('/images/button-editor.png'),
@@ -163,19 +161,17 @@ export default function InitialAssetLoader() {
 
       {/* Main Loader Glass Card */}
       <div className="relative z-10 w-full max-w-sm sm:max-w-md bg-white/85 backdrop-blur-md rounded-3xl p-6 sm:p-8 shadow-2xl border border-white/60 flex flex-col items-center space-y-6 text-center">
-        {/* Animated Logo with Circle Loading (Occupies ~50% of viewport width) */}
+        {/* Game icon with circular loading indicator */}
         <div className="relative w-[50vw] h-[50vw] max-w-[220px] max-h-[220px] min-w-[160px] min-h-[160px] flex items-center justify-center">
           <div className="absolute inset-0 rounded-full border-[6px] border-rose-200 border-t-[#FF4B6E] animate-spin shadow-md" />
-          <img
-            src={getAssetPath('/logo.png')}
-            alt="베리 하드 퍼즐 로고"
-            className="w-[78%] h-[78%] object-contain select-none relative z-10"
-          />
+          <span className="relative z-10 text-7xl" role="img" aria-label="턴제 사천성">
+            🀄
+          </span>
         </div>
 
         {/* Title and Status Text */}
         <div className="space-y-1">
-          <h2 className="text-2xl font-black text-slate-800 tracking-tight">베리 하드 퍼즐</h2>
+          <h2 className="text-2xl font-black text-slate-800 tracking-tight">턴제 사천성</h2>
           <p className="text-xs font-bold text-slate-500 tracking-wide">
             리소스를 불러오는 중입니다...
           </p>

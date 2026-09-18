@@ -2,13 +2,13 @@
 
 import { getLocalSync, setLocalSync } from "./local-storage";
 
-const SFX_MUTED_STORAGE_KEY = "multi_touch_sound_muted";
-const BGM_MUTED_STORAGE_KEY = "berry_puzzle_bgm_muted";
-const BGM_VOLUME_STORAGE_KEY = "berry_puzzle_bgm_volume";
+const SFX_MUTED_STORAGE_KEY = "sfx_muted";
+const BGM_MUTED_STORAGE_KEY = "bgm_muted";
+const BGM_VOLUME_STORAGE_KEY = "bgm_volume";
 
-export const BGM_CHANGE_EVENT = "berry_puzzle_bgm_change";
-export const BGM_VOLUME_CHANGE_EVENT = "berry_puzzle_bgm_volume_change";
-export const SFX_CHANGE_EVENT = "berry_puzzle_sfx_change";
+export const BGM_CHANGE_EVENT = "delivery_bgm_change";
+export const BGM_VOLUME_CHANGE_EVENT = "delivery_bgm_volume_change";
+export const SFX_CHANGE_EVENT = "delivery_sfx_change";
 
 let isSfxMutedState = false;
 let isBgmMutedState = false;

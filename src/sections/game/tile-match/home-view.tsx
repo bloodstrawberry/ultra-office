@@ -1,12 +1,10 @@
 'use client';
 
-import Image from 'next/image';
 import React, { useState } from 'react';
 
 import ShareButton from './share-button';
 import HomeButtons from './home-buttons';
 import { isSfxMuted } from './utils/sound';
-import { getAssetPath } from './utils/asset';
 import { playEngineSound } from './game/sound';
 import { setLocalSync } from './utils/local-storage';
 import SettingsModal from './components/settings-modal';
@@ -64,7 +62,7 @@ export default function HomeView({ onNavigate }: HomeViewProps) {
 
       {/* Main Content Area: Title & Direct Buttons */}
       <div className="flex-1 flex flex-col items-center justify-between w-full max-w-sm z-10 py-2 sm:py-6 my-auto">
-        {/* Title Image with Drop & Sway Animation */}
+        {/* Title with Drop & Sway Animation */}
         <div
           onAnimationEnd={(e) => {
             if (e.animationName.includes('title-drop')) {
@@ -73,14 +71,9 @@ export default function HomeView({ onNavigate }: HomeViewProps) {
           }}
           className={`relative flex items-center justify-center w-full max-w-[280px] sm:max-w-[340px] pt-4 sm:pt-8 filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.5)] ${getTitleAnimClass()}`}
         >
-          <Image
-            src={getAssetPath('/images/title.png')}
-            alt="턴제 사천성"
-            width={400}
-            height={200}
-            priority
-            className="w-full h-auto object-contain pointer-events-none"
-          />
+          <h1 className="rounded-3xl border-4 border-amber-200 bg-gradient-to-br from-amber-500 to-orange-600 px-8 py-5 text-center text-4xl font-black text-white shadow-2xl">
+            🀄 턴제 사천성
+          </h1>
         </div>
 
         {/* Action Buttons List */}

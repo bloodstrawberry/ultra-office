@@ -5,6 +5,7 @@ export * from './algo-visualizer-janggi-view';
 export * from './algo-visualizer-gomoku-view';
 export * from './algo-visualizer-othello-view';
 export * from './algo-visualizer-alkkagi-view';
+export * from './algo-visualizer-solitaire-view';
 export * from './algo-visualizer-catalog-view';
 export * from './algo-visualizer-compare-view';
 export * from './algo-visualizer-challenge-view';

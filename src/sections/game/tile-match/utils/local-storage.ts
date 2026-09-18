@@ -159,8 +159,8 @@ export const setStorageJSONSync = <T>(key: string, value: T): void => {
 // 전면 광고(Interstitial Ad) 전용 로컬 카운트 관리 헬퍼
 // ============================================================================
 
-const AD_EVENT_COUNT_KEY = 'berry_hard_puzzle_ad_event_count';
-const AD_PENDING_KEY = 'berry_hard_puzzle_ad_pending';
+const AD_EVENT_COUNT_KEY = 'ad_event_count';
+const AD_PENDING_KEY = 'ad_pending';
 
 /**
  * 광고 트리거 이벤트 카운트를 1 증가시키고 새 카운트 값을 반환합니다.

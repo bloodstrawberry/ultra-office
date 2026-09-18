@@ -35,7 +35,7 @@ export default function HomeView() {
     if (
       confirm("모든 저장 데이터 및 커스텀 에디터 문제를 초기화하시겠습니까?")
     ) {
-      setLocalSync("berry_hard_puzzle_custom_levels", "");
+      setLocalSync("custom_levels", "");
       showToast("데이터가 초기화되었습니다.");
     }
   };

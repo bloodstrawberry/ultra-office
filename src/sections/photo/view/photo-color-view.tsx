@@ -8,45 +8,48 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Tabs from '@mui/material/Tabs';
 import Chip from '@mui/material/Chip';
+import Menu from '@mui/material/Menu';
 import Button from '@mui/material/Button';
 import Slider from '@mui/material/Slider';
+import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
 import UndoRoundedIcon from '@mui/icons-material/UndoRounded';
+import CircularProgress from '@mui/material/CircularProgress';
 import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import CategoryRoundedIcon from '@mui/icons-material/CategoryRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
-import CircularProgress from '@mui/material/CircularProgress';
 import AutoFixHighRoundedIcon from '@mui/icons-material/AutoFixHighRounded';
 import InvertColorsRoundedIcon from '@mui/icons-material/InvertColorsRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
+import { checkerboardBackground, exportCheckerboardJpeg } from '../utils/checkerboard-export';
+import { AppsInTossNavHeader, PhotoUploadWorkspace, type SampleImageItem } from '../components';
 import {
-  drawShape,
-  moveShape,
-  resizeShape,
-  drawAllShapes,
-  isPointInShape,
-  getShapeResizeHandle,
-  type MaskShape,
-  type ShapePoint,
-  type ResizeHandleType,
-  sampleSurroundingColor,
-} from '../utils/watermark-remover';
-import {
+  type ToolMode,
   ColorShapePanel,
   ColorOneClickPanel,
-  type ToolMode,
   type ColorShapeTool,
 } from '../components/color-change';
-import { AppsInTossNavHeader, PhotoUploadWorkspace, type SampleImageItem } from '../components';
 import {
   downloadDataUrl,
   floodFillCanvas,
   shareToKakaoTalk,
   toggleBackgroundWhiteTransparent,
 } from '../utils/image-processor';
+import {
+  drawShape,
+  moveShape,
+  resizeShape,
+  drawAllShapes,
+  isPointInShape,
+  type MaskShape,
+  type ShapePoint,
+  getShapeResizeHandle,
+  type ResizeHandleType,
+  sampleSurroundingColor,
+} from '../utils/watermark-remover';
 
 // ----------------------------------------------------------------------
 
@@ -91,6 +94,8 @@ type ColorViewTab = 'one-click' | 'shapes';
 // ----------------------------------------------------------------------
 
 export function PhotoColorView() {
+  const [saveMenuAnchor, setSaveMenuAnchor] = useState<HTMLElement | null>(null);
+  const [checkerSquareSize, setCheckerSquareSize] = useState(8);
   const [imageSrc, setImageSrc] = useState<string>('');
   const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number }>({
     width: 0,
@@ -899,13 +904,17 @@ export function PhotoColorView() {
   }, [shapes]);
 
   // Save / Download
-  const handleSave = async () => {
+  const handleSave = async (format: 'png' | 'jpeg') => {
+    setSaveMenuAnchor(null);
     const canvas = getExportCanvas();
     if (!canvas) return;
     setIsProcessing(true);
     try {
-      const dataUrl = canvas.toDataURL('image/png');
-      const res = await downloadDataUrl(dataUrl, `background_color_${Date.now()}.png`);
+      const dataUrl =
+        format === 'jpeg'
+          ? exportCheckerboardJpeg(canvas, checkerSquareSize)
+          : canvas.toDataURL('image/png');
+      const res = await downloadDataUrl(dataUrl, `background_color_${Date.now()}.${format}`);
       toast.success(res.message);
     } catch {
       toast.error('저장 중 오류가 발생했습니다.');
@@ -1086,8 +1095,7 @@ export function PhotoColorView() {
                       maxWidth: '100%',
                       maxHeight: '100%',
                       objectFit: 'contain',
-                      background:
-                        'repeating-conic-gradient(#cbd5e1 0% 25%, #f1f5f9 0% 50%) 50% / 16px 16px',
+                      background: checkerboardBackground(checkerSquareSize),
                       boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
                       borderRadius: 0,
                       display: 'block',
@@ -1334,6 +1342,26 @@ export function PhotoColorView() {
                 />
               </Box>
 
+              <Box sx={{ mb: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                    투명 표시 네모 크기
+                  </Typography>
+                  <Typography variant="caption" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                    {checkerSquareSize}px
+                  </Typography>
+                </Box>
+                <Slider
+                  size="small"
+                  min={4}
+                  max={32}
+                  step={2}
+                  value={checkerSquareSize}
+                  onChange={(_, value) => setCheckerSquareSize(value as number)}
+                  aria-label="투명 표시 네모 크기"
+                />
+              </Box>
+
               {/* History Undo */}
               <Button
                 variant="outlined"
@@ -1376,7 +1404,7 @@ export function PhotoColorView() {
                 fullWidth
                 variant="contained"
                 color="primary"
-                onClick={handleSave}
+                onClick={(event) => setSaveMenuAnchor(event.currentTarget)}
                 disabled={isProcessing}
                 startIcon={
                   isProcessing ? (
@@ -1389,6 +1417,14 @@ export function PhotoColorView() {
               >
                 저장
               </Button>
+              <Menu
+                anchorEl={saveMenuAnchor}
+                open={Boolean(saveMenuAnchor)}
+                onClose={() => setSaveMenuAnchor(null)}
+              >
+                <MenuItem onClick={() => handleSave('png')}>PNG (투명도 유지)</MenuItem>
+                <MenuItem onClick={() => handleSave('jpeg')}>JPEG (체크무늬 포함)</MenuItem>
+              </Menu>
               <Button
                 fullWidth
                 variant="contained"
