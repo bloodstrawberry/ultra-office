@@ -286,6 +286,7 @@ export const navData: NavSectionProps['data'] = [
           { title: '테트리스', path: paths.game.tetris },
           { title: '2048', path: paths.game.game2048 },
           { title: '사진 직쏘 퍼즐', path: paths.game.jigsawPuzzle },
+          { title: '스택 게임', path: paths.game.stack },
         ],
       },
       {

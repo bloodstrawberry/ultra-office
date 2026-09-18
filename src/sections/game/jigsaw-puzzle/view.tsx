@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useRef, useState, useEffect } from 'react';
+import { memo, useId, useRef, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -60,7 +60,7 @@ function makePuzzle(size: number): Puzzle {
   };
 }
 
-function PieceArtwork({ piece, size, imageUrl }: { piece: Piece; size: number; imageUrl: string }) {
+const PieceArtwork = memo(function PieceArtwork({ piece, size, imageUrl }: { piece: Piece; size: number; imageUrl: string }) {
   const clipId = useId().replace(/:/g, '');
   const path = piecePath(piece);
   return (
@@ -95,19 +95,35 @@ function PieceArtwork({ piece, size, imageUrl }: { piece: Piece; size: number; i
       <path d={path} fill="none" stroke="white" strokeWidth="1.5" strokeLinejoin="round" />
     </svg>
   );
+});
+
+function formatTime(seconds: number) {
+  return `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
 }
+
+const PuzzleClock = memo(function PuzzleClock({ startedAt, completed, finalSeconds }: { startedAt: number; completed: boolean; finalSeconds: number }) {
+  const [elapsed, setElapsed] = useState(0);
+  useEffect(() => {
+    if (completed) return undefined;
+    const update = () => setElapsed(Math.floor((Date.now() - startedAt) / 1000));
+    update();
+    const timer = window.setInterval(update, 1000);
+    return () => window.clearInterval(timer);
+  }, [startedAt, completed]);
+  return <>{formatTime(completed ? finalSeconds : elapsed)}</>;
+});
 
 export function JigsawPuzzleView() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [puzzle, setPuzzle] = useState<Puzzle | null>(null);
   const [size, setSize] = useState(3);
-  const [seconds, setSeconds] = useState(0);
+  const [startedAt, setStartedAt] = useState(0);
+  const [completedSeconds, setCompletedSeconds] = useState(0);
   const [showGuide, setShowGuide] = useState(true);
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState('');
   const objectUrlRef = useRef<string | null>(null);
   const requestRef = useRef(0);
-  const isRunning = Boolean(puzzle && !puzzle.completed);
 
   useEffect(
     () => () => {
@@ -117,16 +133,11 @@ export function JigsawPuzzleView() {
     []
   );
 
-  useEffect(() => {
-    if (!isRunning) return undefined;
-    const timer = window.setInterval(() => setSeconds((value) => value + 1), 1000);
-    return () => window.clearInterval(timer);
-  }, [isRunning]);
-
   const startPuzzle = (nextSize: number) => {
     setSize(nextSize);
     setPuzzle(makePuzzle(nextSize));
-    setSeconds(0);
+    setStartedAt(Date.now());
+    setCompletedSeconds(0);
     setNotice('조각을 선택한 뒤 맞는 위치를 누르세요. 드래그해서 놓아도 됩니다.');
   };
 
@@ -186,13 +197,11 @@ export function JigsawPuzzleView() {
     placed[id] = true;
     const completed = placed.every(Boolean);
     setPuzzle({ ...puzzle, placed, selected: null, attempts: puzzle.attempts + 1, completed });
+    if (completed) setCompletedSeconds(Math.floor((Date.now() - startedAt) / 1000));
     setNotice(completed ? '퍼즐을 완성했습니다! 🎉' : '정답입니다! 다음 조각을 골라 보세요.');
   };
 
   const placedCount = puzzle?.placed.filter(Boolean).length ?? 0;
-  const timeLabel = `${Math.floor(seconds / 60)
-    .toString()
-    .padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
 
   return (
     <DashboardContent
@@ -277,7 +286,7 @@ export function JigsawPuzzleView() {
                   </Button>
                 </Stack>
                 <Typography fontWeight={700}>
-                  {placedCount}/{size * size} 조각 · 시도 {puzzle.attempts}회 · {timeLabel}
+                  {placedCount}/{size * size} 조각 · 시도 {puzzle.attempts}회 · <PuzzleClock startedAt={startedAt} completed={puzzle.completed} finalSeconds={completedSeconds} />
                 </Typography>
               </Stack>
               <Typography
@@ -421,7 +430,7 @@ export function JigsawPuzzleView() {
                     </Box>
                     {puzzle.completed && (
                       <Typography sx={{ mt: 2, color: 'success.main', fontWeight: 800 }}>
-                        완성! {timeLabel} 만에 맞췄어요.
+                        완성! {formatTime(completedSeconds)} 만에 맞췄어요.
                       </Typography>
                     )}
                   </Card>

@@ -33,6 +33,7 @@ export const paths = {
     tetris: `/game/tetris`,
     game2048: `/game/2048`,
     jigsawPuzzle: `/game/jigsaw-puzzle`,
+    stack: `/game/stack`,
   },
   puzzle: {
     root: `/puzzle`,

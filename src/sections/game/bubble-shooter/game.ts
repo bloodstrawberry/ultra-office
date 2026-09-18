@@ -26,6 +26,22 @@ export const center = (row: number, col: number) => ({
   y: RADIUS + row * ROW_HEIGHT,
 });
 
+export function collides(grid: Grid, x: number, y: number): boolean {
+  if (y <= RADIUS) return true;
+  const nearestRow = Math.round((y - RADIUS) / ROW_HEIGHT);
+  for (let row = Math.max(0, nearestRow - 1); row <= Math.min(ROWS - 1, nearestRow + 1); row += 1) {
+    const nearestCol = Math.round((x - RADIUS - (row % 2) * RADIUS) / (RADIUS * 2));
+    for (let col = Math.max(0, nearestCol - 1); col <= Math.min(COLUMNS - 1, nearestCol + 1); col += 1) {
+      if (grid[row][col] == null) continue;
+      const point = center(row, col);
+      const dx = point.x - x;
+      const dy = point.y - y;
+      if (dx * dx + dy * dy < (RADIUS * 2 - 2) ** 2) return true;
+    }
+  }
+  return false;
+}
+
 const randomColor = (colors: Bubble[]) => colors[Math.floor(Math.random() * colors.length)];
 
 export function createGame(): Game {

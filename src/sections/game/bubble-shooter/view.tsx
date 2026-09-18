@@ -16,6 +16,7 @@ import {
   HEIGHT,
   RADIUS,
   center,
+  collides,
   settle,
   COLUMNS,
   SHOOTER_X,
@@ -25,6 +26,16 @@ import {
 } from './game';
 
 type Shot = { x: number; y: number; vx: number; vy: number; color: number };
+type SceneAssets = {
+  background: HTMLCanvasElement;
+  board: HTMLCanvasElement;
+  sprites: HTMLCanvasElement[];
+  smallSprites: HTMLCanvasElement[];
+  boardGrid: Game['grid'] | null;
+  guideGrid: Game['grid'] | null;
+  guideAngle: number;
+  guidePoints: { x: number; y: number }[];
+};
 
 function bubble(
   ctx: CanvasRenderingContext2D,
@@ -61,39 +72,63 @@ function bubble(
   ctx.fill();
 }
 
-function collision(game: Game, x: number, y: number) {
-  if (y <= RADIUS) return true;
-  for (let row = 0; row < ROWS; row += 1) {
-    for (let col = 0; col < COLUMNS; col += 1) {
-      if (game.grid[row][col] == null) continue;
-      const point = center(row, col);
-      if (Math.hypot(point.x - x, point.y - y) < RADIUS * 2 - 2) return true;
-    }
-  }
-  return false;
+function canvas(width: number, height: number) {
+  const element = document.createElement('canvas');
+  element.width = width;
+  element.height = height;
+  return element;
 }
 
-function render(ctx: CanvasRenderingContext2D, game: Game, angle: number, shot: Shot | null) {
-  ctx.clearRect(0, 0, WIDTH, HEIGHT);
+function sprite(color: number, radius: number) {
+  const padding = 9;
+  const element = canvas((radius + padding) * 2, (radius + padding) * 2);
+  const ctx = element.getContext('2d');
+  if (ctx) bubble(ctx, radius + padding, radius + padding, color, radius);
+  return element;
+}
+
+function createSceneAssets(): SceneAssets {
+  const backgroundCanvas = canvas(WIDTH, HEIGHT);
+  const ctx = backgroundCanvas.getContext('2d')!;
   const background = ctx.createLinearGradient(0, 0, 0, HEIGHT);
   background.addColorStop(0, '#102454');
   background.addColorStop(1, '#09122e');
   ctx.fillStyle = background;
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
   ctx.fillStyle = '#ffffff08';
-  for (let x = 18; x < WIDTH; x += 36)
+  for (let x = 18; x < WIDTH; x += 36) {
     for (let y = 20; y < HEIGHT; y += 36) {
       ctx.beginPath();
       ctx.arc(x, y, 1.5, 0, Math.PI * 2);
       ctx.fill();
     }
+  }
+  return {
+    background: backgroundCanvas,
+    board: canvas(WIDTH, HEIGHT),
+    sprites: COLORS.map((_, index) => sprite(index, RADIUS - 1)),
+    smallSprites: COLORS.map((_, index) => sprite(index, 12)),
+    boardGrid: null,
+    guideGrid: null,
+    guideAngle: Number.NaN,
+    guidePoints: [],
+  };
+}
 
+function drawSprite(ctx: CanvasRenderingContext2D, element: HTMLCanvasElement, x: number, y: number) {
+  ctx.drawImage(element, x - element.width / 2, y - element.height / 2);
+}
+
+function updateBoard(game: Game, assets: SceneAssets) {
+  if (assets.boardGrid === game.grid) return;
+  const ctx = assets.board.getContext('2d')!;
+  ctx.clearRect(0, 0, WIDTH, HEIGHT);
   for (let row = 0; row < ROWS; row += 1) {
     for (let col = 0; col < COLUMNS; col += 1) {
       const color = game.grid[row][col];
       if (color != null) {
         const point = center(row, col);
-        bubble(ctx, point.x, point.y, color);
+        drawSprite(ctx, assets.sprites[color], point.x, point.y);
       }
     }
   }
@@ -105,27 +140,44 @@ function render(ctx: CanvasRenderingContext2D, game: Game, angle: number, shot: 
   ctx.lineTo(WIDTH, center(14, 0).y);
   ctx.stroke();
   ctx.setLineDash([]);
+  assets.boardGrid = game.grid;
+}
+
+function updateGuide(game: Game, angle: number, assets: SceneAssets) {
+  if (assets.guideGrid === game.grid && assets.guideAngle === angle) return;
+  const points: { x: number; y: number }[] = [];
+  let x = SHOOTER_X;
+  let y = SHOOTER_Y;
+  let dx = Math.sin(angle) * 11;
+  const dy = -Math.cos(angle) * 11;
+  for (let index = 0; index < 55; index += 1) {
+    x += dx;
+    y += dy;
+    if (x < RADIUS || x > WIDTH - RADIUS) {
+      x = Math.max(RADIUS, Math.min(WIDTH - RADIUS, x));
+      dx = -dx;
+    }
+    if (collides(game.grid, x, y)) break;
+    if (index % 2 === 0) points.push({ x, y });
+  }
+  assets.guideGrid = game.grid;
+  assets.guideAngle = angle;
+  assets.guidePoints = points;
+}
+
+function render(ctx: CanvasRenderingContext2D, game: Game, angle: number, shot: Shot | null, assets: SceneAssets) {
+  updateBoard(game, assets);
+  ctx.drawImage(assets.background, 0, 0);
+  ctx.drawImage(assets.board, 0, 0);
 
   if (game.status === 'playing') {
     if (!shot) {
-      let x = SHOOTER_X;
-      let y = SHOOTER_Y;
-      let dx = Math.sin(angle) * 11;
-      const dy = -Math.cos(angle) * 11;
+      updateGuide(game, angle, assets);
       ctx.fillStyle = '#ffffff88';
-      for (let index = 0; index < 55; index += 1) {
-        x += dx;
-        y += dy;
-        if (x < RADIUS || x > WIDTH - RADIUS) {
-          x = Math.max(RADIUS, Math.min(WIDTH - RADIUS, x));
-          dx = -dx;
-        }
-        if (collision(game, x, y)) break;
-        if (index % 2 === 0) {
-          ctx.beginPath();
-          ctx.arc(x, y, 2.5, 0, Math.PI * 2);
-          ctx.fill();
-        }
+      for (const point of assets.guidePoints) {
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, 2.5, 0, Math.PI * 2);
+        ctx.fill();
       }
     }
     ctx.save();
@@ -140,12 +192,12 @@ function render(ctx: CanvasRenderingContext2D, game: Game, angle: number, shot: 
     ctx.roundRect(-11, -38, 22, 50, 10);
     ctx.fill();
     ctx.restore();
-    bubble(ctx, SHOOTER_X, SHOOTER_Y, game.current);
-    bubble(ctx, 44, HEIGHT - 36, game.next, 12);
+    drawSprite(ctx, assets.sprites[game.current], SHOOTER_X, SHOOTER_Y);
+    drawSprite(ctx, assets.smallSprites[game.next], 44, HEIGHT - 36);
     ctx.fillStyle = '#cbd5e1';
     ctx.font = 'bold 12px sans-serif';
     ctx.fillText('NEXT', 63, HEIGHT - 32);
-    if (shot) bubble(ctx, shot.x, shot.y, shot.color);
+    if (shot) drawSprite(ctx, assets.sprites[shot.color], shot.x, shot.y);
   } else {
     ctx.fillStyle = '#070d26cc';
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
@@ -202,11 +254,18 @@ export function BubbleShooterView() {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext('2d');
     if (!ctx) return undefined;
+    const assets = createSceneAssets();
     let frame = 0;
     let previous = performance.now();
+    let lastDrawnGame: Game | null = null;
+    let lastAngle = Number.NaN;
     const tick = (now: number) => {
       const dt = Math.min((now - previous) / 1000, 0.04);
       previous = now;
+      if (document.hidden) {
+        frame = requestAnimationFrame(tick);
+        return;
+      }
       const current = gameRef.current;
       const shot = shotRef.current;
       if (current && shot) {
@@ -218,7 +277,7 @@ export function BubbleShooterView() {
             shot.x = Math.max(RADIUS, Math.min(WIDTH - RADIUS, shot.x));
             shot.vx *= -1;
           }
-          if (collision(current, shot.x, shot.y)) {
+          if (collides(current.grid, shot.x, shot.y)) {
             const next = settle(current, shot.x, shot.y);
             gameRef.current = next;
             setGame(next);
@@ -227,7 +286,11 @@ export function BubbleShooterView() {
           }
         }
       }
-      if (gameRef.current) render(ctx, gameRef.current, angleRef.current, shotRef.current);
+      if (gameRef.current && (shotRef.current || gameRef.current !== lastDrawnGame || angleRef.current !== lastAngle)) {
+        render(ctx, gameRef.current, angleRef.current, shotRef.current, assets);
+        lastDrawnGame = gameRef.current;
+        lastAngle = angleRef.current;
+      }
       frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
