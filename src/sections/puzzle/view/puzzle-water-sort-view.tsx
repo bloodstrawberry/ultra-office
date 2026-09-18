@@ -25,6 +25,7 @@ import { PuzzleMediaActions } from '../components/puzzle-media-actions';
 import { usePuzzleMediaExport } from '../hooks/use-puzzle-media-export';
 import { PuzzlePlayerControls } from '../components/puzzle-player-controls';
 import { WaterSortProblemDialog } from '../components/water-sort-problem-dialog';
+import { PuzzleImageUploadDialog } from '../components/puzzle-image-upload-dialog';
 import {
   canPour,
   executePour,
@@ -61,9 +62,8 @@ export function PuzzleWaterSortView() {
   const [importBalanced, setImportBalanced] = useState(true);
   const [palette, setPalette] = useState<Record<number, WaterColorDef>>(WATER_COLORS);
   const [isImporting, setIsImporting] = useState(false);
-  const [isDraggingImage, setIsDraggingImage] = useState(false);
+  const [uploadOpen, setUploadOpen] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const currentPreset = useMemo(
     () =>
       selectedPresetId === 'image' && importedTubes
@@ -230,36 +230,16 @@ export function PuzzleWaterSortView() {
         toast.success(
           `${imported.tubes.length - 2}개 시험관과 ${Object.keys(imported.colors).length}가지 색상을 불러왔습니다.`
         );
+        return true;
       } catch (error) {
         toast.error(error instanceof Error ? error.message : '이미지를 분석하지 못했습니다.');
+        return false;
       } finally {
         setIsImporting(false);
       }
     },
     [clearPourTimers, stopPlayback]
   );
-
-  useEffect(() => {
-    const handlePaste = (event: ClipboardEvent) => {
-      if (editorOpen || isImporting) return;
-      const target = event.target;
-      if (
-        target instanceof HTMLElement &&
-        (target.isContentEditable || target.closest('input, textarea, [contenteditable="true"]'))
-      ) {
-        return;
-      }
-      const imageItem = Array.from(event.clipboardData?.items || []).find(
-        (item) => item.kind === 'file' && item.type.startsWith('image/')
-      );
-      const imageFile = imageItem?.getAsFile();
-      if (!imageFile) return;
-      event.preventDefault();
-      void handleImageFile(imageFile);
-    };
-    window.addEventListener('paste', handlePaste);
-    return () => window.removeEventListener('paste', handlePaste);
-  }, [editorOpen, handleImageFile, isImporting]);
 
   const handleTubeClick = useCallback(
     (idx: number) => {
@@ -857,63 +837,14 @@ export function PuzzleWaterSortView() {
           }}
         >
           {/* Preset Selector */}
-          <Box
-            onDragEnter={(event) => {
-              event.preventDefault();
-              setIsDraggingImage(true);
-            }}
-            onDragOver={(event) => {
-              event.preventDefault();
-              event.dataTransfer.dropEffect = 'copy';
-              setIsDraggingImage(true);
-            }}
-            onDragLeave={(event) => {
-              if (!event.currentTarget.contains(event.relatedTarget as Node)) {
-                setIsDraggingImage(false);
-              }
-            }}
-            onDrop={(event) => {
-              event.preventDefault();
-              setIsDraggingImage(false);
-              if (isImporting) return;
-              const file = event.dataTransfer.files[0];
-              if (file) void handleImageFile(file);
-              else toast.error('이미지 파일을 여기에 놓아 주세요.');
-            }}
-            sx={{
-              border: '2px dashed',
-              borderColor: isDraggingImage ? 'primary.main' : 'divider',
-              bgcolor: isDraggingImage ? 'action.hover' : 'transparent',
-              borderRadius: 1.5,
-              p: 1.5,
-              transition: 'border-color .2s, background-color .2s',
-            }}
+          <Button
+            variant="outlined"
+            fullWidth
+            startIcon={<CloudUploadRoundedIcon />}
+            onClick={() => setUploadOpen(true)}
           >
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              hidden
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                if (file) void handleImageFile(file);
-                event.target.value = '';
-              }}
-            />
-            <Button
-              variant="outlined"
-              fullWidth
-              startIcon={<CloudUploadRoundedIcon />}
-              disabled={isImporting}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              {isImporting ? '이미지 분석 중...' : 'Water Sort 이미지 업로드'}
-            </Button>
-            <Typography variant="caption" color="text.secondary">
-              이미지 파일을 선택하거나 여기에 드래그하세요. 화면 캡처는 Ctrl+V로 붙여넣을 수
-              있습니다.
-            </Typography>
-          </Box>
+            Water Sort 이미지 업로드
+          </Button>
           <Button
             variant="outlined"
             startIcon={<EditRoundedIcon />}
@@ -1010,6 +941,13 @@ export function PuzzleWaterSortView() {
           </Box>
         </Card>
       </Box>
+      <PuzzleImageUploadDialog
+        open={uploadOpen}
+        title="Water Sort"
+        isImporting={isImporting}
+        onClose={() => setUploadOpen(false)}
+        onImage={handleImageFile}
+      />
       {editorOpen && (
         <WaterSortProblemDialog
           initialTubes={tubes}

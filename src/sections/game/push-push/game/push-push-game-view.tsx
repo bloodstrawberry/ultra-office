@@ -97,6 +97,7 @@ export default function PushPushGameView({
         onNextLevel={handleNextLevel}
         onRetry={resetLevel}
         onOpenStageSelect={() => setShowStageSelect(true)}
+        onNavigateHome={handleNavigateHome}
       />
 
       {/* Hint Modal */}

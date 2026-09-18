@@ -6,6 +6,10 @@ import { createPortal } from 'react-dom';
 import type { PushPushLevelData, ParsedLevel } from './push-push-types';
 import type { StageRecord } from './push-push-engine';
 
+function renderModal(content: React.ReactNode) {
+  return createPortal(<div className="push-push-root">{content}</div>, document.body);
+}
+
 // ----------------------------------------------------------------------
 // 1. Stage Clear Modal
 // ----------------------------------------------------------------------
@@ -20,6 +24,7 @@ interface StageClearModalProps {
   onNextLevel: () => void;
   onRetry: () => void;
   onOpenStageSelect: () => void;
+  onNavigateHome: () => void;
 }
 
 export function StageClearModal({
@@ -32,6 +37,7 @@ export function StageClearModal({
   onNextLevel,
   onRetry,
   onOpenStageSelect,
+  onNavigateHome,
 }: StageClearModalProps) {
   const [mounted, setMounted] = useState(false);
 
@@ -56,7 +62,7 @@ export function StageClearModal({
         {/* Confetti / Trophy header */}
         <div className="text-4xl animate-bounce">🏆</div>
         <h2 className="text-2xl font-black text-amber-950 tracking-tight text-center">
-          STAGE {levelIndex + 1} CLEAR!
+          {isFinalLevel ? 'GAME CLEAR!' : `STAGE ${levelIndex + 1} CLEAR!`}
         </h2>
         <div className="text-xs font-bold text-amber-800/80 -mt-2">{level.name}</div>
 
@@ -104,9 +110,18 @@ export function StageClearModal({
               <span>다음 스테이지</span> ➔
             </button>
           ) : (
-            <div className="text-center py-2 text-sm font-extrabold text-amber-600">
-              🎉 모든 스테이지를 정복하셨습니다! 🎉
-            </div>
+            <>
+              <div className="text-center py-2 text-sm font-extrabold text-amber-600">
+                🎉 모든 스테이지를 정복하셨습니다! 🎉
+              </div>
+              <button
+                type="button"
+                onClick={onNavigateHome}
+                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 active:scale-98 text-white font-black text-base shadow-lg transition-all"
+              >
+                메인 메뉴로
+              </button>
+            </>
           )}
 
           <div className="flex gap-2 w-full">
@@ -130,7 +145,7 @@ export function StageClearModal({
     </div>
   );
 
-  return createPortal(content, document.body);
+  return renderModal(content);
 }
 
 // ----------------------------------------------------------------------
@@ -233,7 +248,7 @@ export function StageSelectModal({
     </div>
   );
 
-  return createPortal(content, document.body);
+  return renderModal(content);
 }
 
 // ----------------------------------------------------------------------
@@ -289,7 +304,7 @@ export function HintModal({ isOpen, onClose, hint, stageName }: HintModalProps) 
     </div>
   );
 
-  return createPortal(content, document.body);
+  return renderModal(content);
 }
 
 // ----------------------------------------------------------------------
@@ -380,5 +395,5 @@ export function RulesModal({ isOpen, onClose }: RulesModalProps) {
     </div>
   );
 
-  return createPortal(content, document.body);
+  return renderModal(content);
 }

@@ -32,6 +32,7 @@ import { readRushHourImage } from '../utils/rush-hour-image';
 import { PuzzleMediaActions } from '../components/puzzle-media-actions';
 import { usePuzzleMediaExport } from '../hooks/use-puzzle-media-export';
 import { PuzzlePlayerControls } from '../components/puzzle-player-controls';
+import { PuzzleImageUploadDialog } from '../components/puzzle-image-upload-dialog';
 import {
   EXIT_ROW,
   GRID_SIZE,
@@ -84,9 +85,7 @@ export function PuzzleRushHourView() {
   const [addOrientation, setAddOrientation] = useState<'H' | 'V'>('H');
   const [addLength, setAddLength] = useState<1 | 2 | 3>(2);
   const [isImporting, setIsImporting] = useState(false);
-  const [isDraggingImage, setIsDraggingImage] = useState(false);
-  const uploadRef = useRef<HTMLInputElement | null>(null);
-  const dragDepthRef = useRef(0);
+  const [uploadOpen, setUploadOpen] = useState(false);
   const currentPreset =
     RUSH_HOUR_PRESETS.find((p) => p.id === selectedPresetId) || RUSH_HOUR_PRESETS[0];
 
@@ -157,8 +156,8 @@ export function PuzzleRushHourView() {
   );
 
   const handleImageUpload = useCallback(
-    async (file?: File) => {
-      if (!file || isImporting) return;
+    async (file: File) => {
+      if (isImporting) return false;
       setIsImporting(true);
       try {
         const board = await readRushHourImage(file);
@@ -166,34 +165,16 @@ export function PuzzleRushHourView() {
         toast.success(
           `이미지에서 차량 ${board.length}대를 읽었습니다. 배치를 확인하고 편집을 완료해 주세요.`
         );
+        return true;
       } catch (error) {
         toast.error(error instanceof Error ? error.message : '이미지를 읽지 못했습니다.');
+        return false;
       } finally {
         setIsImporting(false);
-        if (uploadRef.current) uploadRef.current.value = '';
       }
     },
     [applyCustomBoard, isImporting]
   );
-
-  useEffect(() => {
-    const handlePaste = (event: ClipboardEvent) => {
-      const target = event.target;
-      if (
-        target instanceof HTMLElement &&
-        (target.isContentEditable || ['INPUT', 'TEXTAREA'].includes(target.tagName))
-      )
-        return;
-      const image = Array.from(event.clipboardData?.items || [])
-        .find((item) => item.type.startsWith('image/'))
-        ?.getAsFile();
-      if (!image) return;
-      event.preventDefault();
-      void handleImageUpload(image);
-    };
-    window.addEventListener('paste', handlePaste);
-    return () => window.removeEventListener('paste', handlePaste);
-  }, [handleImageUpload]);
 
   const updateBoard = useCallback(
     (board: Vehicle[]) => {
@@ -886,63 +867,14 @@ export function PuzzleRushHourView() {
           }}
         >
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <Box
-              onDragEnter={(event) => {
-                if (!event.dataTransfer.types.includes('Files')) return;
-                event.preventDefault();
-                dragDepthRef.current += 1;
-                setIsDraggingImage(true);
-              }}
-              onDragOver={(event) => {
-                if (!event.dataTransfer.types.includes('Files')) return;
-                event.preventDefault();
-                event.dataTransfer.dropEffect = 'copy';
-              }}
-              onDragLeave={(event) => {
-                event.preventDefault();
-                dragDepthRef.current = Math.max(0, dragDepthRef.current - 1);
-                if (dragDepthRef.current === 0) setIsDraggingImage(false);
-              }}
-              onDrop={(event) => {
-                event.preventDefault();
-                dragDepthRef.current = 0;
-                setIsDraggingImage(false);
-                const image = Array.from(event.dataTransfer.files).find((file) =>
-                  file.type.startsWith('image/')
-                );
-                if (image) void handleImageUpload(image);
-                else toast.error('이미지 파일을 놓아 주세요.');
-              }}
-              sx={{
-                border: '2px dashed',
-                borderColor: isDraggingImage ? 'primary.main' : 'divider',
-                bgcolor: isDraggingImage ? 'action.hover' : 'transparent',
-                borderRadius: 1.5,
-                p: 1.5,
-                textAlign: 'center',
-                transition: 'background-color 0.2s, border-color 0.2s',
-              }}
+            <Button
+              variant="outlined"
+              fullWidth
+              startIcon={<UploadFileRoundedIcon />}
+              onClick={() => setUploadOpen(true)}
             >
-              <input
-                ref={uploadRef}
-                type="file"
-                accept="image/*"
-                hidden
-                onChange={(event) => void handleImageUpload(event.target.files?.[0])}
-              />
-              <Button
-                variant="outlined"
-                fullWidth
-                startIcon={<UploadFileRoundedIcon />}
-                disabled={isImporting}
-                onClick={() => uploadRef.current?.click()}
-              >
-                {isImporting ? '이미지 분석 중...' : '문제 이미지 업로드'}
-              </Button>
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                이미지를 여기에 끌어 놓거나 화면에서 Ctrl+V로 붙여 넣으세요.
-              </Typography>
-            </Box>
+              문제 이미지 업로드
+            </Button>
             <Box sx={{ display: 'flex', gap: 1 }}>
               <Button
                 fullWidth
@@ -1195,6 +1127,13 @@ export function PuzzleRushHourView() {
           </Box>
         </Card>
       </Box>
+      <PuzzleImageUploadDialog
+        open={uploadOpen}
+        title="Rush Hour"
+        isImporting={isImporting}
+        onClose={() => setUploadOpen(false)}
+        onImage={handleImageUpload}
+      />
     </DashboardContent>
   );
 }

@@ -3,7 +3,7 @@
 import '../styles.css';
 import '../tailwind.css';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 
@@ -45,22 +45,20 @@ export function PushPushView({ initialMode = 'home' }: PushPushViewProps) {
     }
   }, []);
 
-  useEffect(() => {
-    const handleGoHome = () => {
-      setMode('home');
-      if (typeof window !== 'undefined') {
-        const url = new URL(window.location.href);
-        url.searchParams.delete('mode');
-        url.searchParams.delete('stage');
-        window.history.replaceState(null, '', url.pathname);
-      }
-    };
-
-    window.addEventListener('push-push-go-home', handleGoHome);
-    return () => {
-      window.removeEventListener('push-push-go-home', handleGoHome);
-    };
+  const navigateHome = useCallback(() => {
+    setMode('home');
+    const url = new URL(window.location.href);
+    url.searchParams.delete('mode');
+    url.searchParams.delete('stage');
+    window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
   }, []);
+
+  useEffect(() => {
+    window.addEventListener('push-push-go-home', navigateHome);
+    return () => {
+      window.removeEventListener('push-push-go-home', navigateHome);
+    };
+  }, [navigateHome]);
 
   return (
     <DashboardContent
@@ -97,12 +95,9 @@ export function PushPushView({ initialMode = 'home' }: PushPushViewProps) {
           <BgmPlayer />
           {mode === 'home' && <HomeView onNavigate={(nextMode) => setMode(nextMode)} />}
           {mode === 'game' && (
-            <PushPushGameView
-              initialLevelIndex={initialLevelIndex}
-              onNavigateHome={() => setMode('home')}
-            />
+            <PushPushGameView initialLevelIndex={initialLevelIndex} onNavigateHome={navigateHome} />
           )}
-          {mode === 'editor' && <PushPushEditorView onNavigateHome={() => setMode('home')} />}
+          {mode === 'editor' && <PushPushEditorView onNavigateHome={navigateHome} />}
           <ToastContainer />
         </AssetLoaderProvider>
       </Box>

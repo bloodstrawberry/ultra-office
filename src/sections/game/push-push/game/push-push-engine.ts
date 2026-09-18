@@ -44,6 +44,14 @@ function countRemainingTargets(grid: number[][]): number {
   return remaining;
 }
 
+function isStageCleared(grid: number[][], remainingTargets: number, totalTargets: number): boolean {
+  return (
+    totalTargets > 0 &&
+    remainingTargets === 0 &&
+    grid.every((row) => row.every((cell) => cell !== CELL_BOX))
+  );
+}
+
 export interface StageRecord {
   moves: number;
   pushes: number;
@@ -249,13 +257,16 @@ export function usePushPushEngine(initialLevelIndex = 0, isEditorMode = false) {
         }
 
         const remaining = countRemainingTargets(newGrid);
-        const isCleared = remaining === 0;
+        const isCleared = isStageCleared(newGrid, remaining, gameState.totalTargets);
 
         if (isCleared) {
           playSound('clear');
 
           // Save unlock and best record
-          const nextStageToUnlock = Math.max(unlockedStage, levelIndex + 2);
+          const nextStageToUnlock = Math.min(
+            allLevels.length,
+            Math.max(unlockedStage, levelIndex + 2)
+          );
           setUnlockedStage(nextStageToUnlock);
           setLocalSync('unlocked_stage', String(nextStageToUnlock));
 
@@ -297,7 +308,7 @@ export function usePushPushEngine(initialLevelIndex = 0, isEditorMode = false) {
         }));
       }
     },
-    [gameState, currentLevel, unlockedStage, levelIndex, bestRecords]
+    [gameState, currentLevel, unlockedStage, levelIndex, bestRecords, allLevels.length]
   );
 
   const undo = useCallback(() => {
