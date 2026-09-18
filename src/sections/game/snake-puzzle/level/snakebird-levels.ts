@@ -1,0 +1,358 @@
+import type { SnakebirdLevelData } from '../game/snakebird-types';
+
+export const SNAKEBIRD_LEVELS: SnakebirdLevelData[] = [
+  {
+    name: '1. 첫 걸음 (First Steps)',
+    width: 9,
+    height: 7,
+    walls: [
+      { x: 1, y: 5 },
+      { x: 2, y: 5 },
+      { x: 3, y: 5 },
+      { x: 4, y: 5 },
+      { x: 5, y: 5 },
+      { x: 6, y: 5 },
+      { x: 7, y: 5 },
+    ],
+    fruits: [{ id: 'f1', x: 4, y: 4, type: 'strawberry' }],
+    spikes: [],
+    portal: { x: 7, y: 4 },
+    birds: [
+      {
+        id: 'bird-1',
+        color: 'red',
+        segments: [
+          { x: 2, y: 4 },
+          { x: 1, y: 4 },
+        ],
+        facingDir: 'right',
+      },
+    ],
+    hint: ['오른쪽으로 이동하여 딸기를 먹고, 몸길이를 늘린 후 무지개 포털로 들어가세요!'],
+  },
+  {
+    name: '2. 중력의 법칙 (Gravity)',
+    width: 9,
+    height: 7,
+    walls: [
+      { x: 1, y: 3 },
+      { x: 2, y: 3 },
+      { x: 4, y: 5 },
+      { x: 5, y: 5 },
+      { x: 6, y: 5 },
+      { x: 7, y: 5 },
+    ],
+    fruits: [{ id: 'f1', x: 5, y: 4, type: 'apple' }],
+    spikes: [],
+    portal: { x: 7, y: 4 },
+    birds: [
+      {
+        id: 'bird-1',
+        color: 'red',
+        segments: [
+          { x: 2, y: 2 },
+          { x: 1, y: 2 },
+        ],
+        facingDir: 'right',
+      },
+    ],
+    hint: ['절벽 밖으로 전진하면 아래로 안전하게 떨어집니다. 사과를 먹고 탈출하세요.'],
+  },
+  {
+    name: '3. 틈 건너기 (Bridge the Gap)',
+    width: 9,
+    height: 7,
+    walls: [
+      { x: 1, y: 4 },
+      { x: 2, y: 4 },
+      { x: 6, y: 4 },
+      { x: 7, y: 4 },
+      { x: 1, y: 6 },
+      { x: 2, y: 6 },
+    ],
+    fruits: [{ id: 'f1', x: 1, y: 2, type: 'strawberry' }],
+    spikes: [
+      { id: 's1', x: 3, y: 6, direction: 'up' },
+      { id: 's2', x: 4, y: 6, direction: 'up' },
+      { id: 's3', x: 5, y: 6, direction: 'up' },
+    ],
+    portal: { x: 7, y: 3 },
+    birds: [
+      {
+        id: 'bird-1',
+        color: 'red',
+        segments: [
+          { x: 2, y: 3 },
+          { x: 1, y: 3 },
+        ],
+        facingDir: 'right',
+      },
+    ],
+    hint: [
+      '길이가 2칸일 때는 틈을 건널 수 없습니다! 위쪽의 딸기를 먼저 먹고 3칸으로 늘려 틈을 건너세요.',
+    ],
+  },
+  {
+    name: '4. 걸치기와 등반 (Ledge Hook)',
+    width: 9,
+    height: 8,
+    walls: [
+      { x: 1, y: 6 },
+      { x: 2, y: 6 },
+      { x: 3, y: 6 },
+      { x: 5, y: 3 },
+      { x: 6, y: 3 },
+      { x: 7, y: 3 },
+    ],
+    fruits: [{ id: 'f1', x: 2, y: 4, type: 'pineapple' }],
+    spikes: [{ id: 's1', x: 4, y: 7, direction: 'up' }],
+    portal: { x: 7, y: 2 },
+    birds: [
+      {
+        id: 'bird-1',
+        color: 'green',
+        segments: [
+          { x: 3, y: 5 },
+          { x: 2, y: 5 },
+          { x: 1, y: 5 },
+        ],
+        facingDir: 'right',
+      },
+    ],
+    hint: ["파인애플을 먹고 몸을 'ㄱ'자로 꺾어 높은 벽 모서리에 걸치며 올라가 보세요."],
+  },
+  {
+    name: '5. 가시밭 탈출 (Spike Alley)',
+    width: 10,
+    height: 8,
+    walls: [
+      { x: 1, y: 4 },
+      { x: 2, y: 4 },
+      { x: 4, y: 5 },
+      { x: 7, y: 4 },
+      { x: 8, y: 4 },
+      { x: 0, y: 7 },
+      { x: 1, y: 7 },
+      { x: 2, y: 7 },
+      { x: 3, y: 7 },
+      { x: 4, y: 7 },
+      { x: 5, y: 7 },
+      { x: 6, y: 7 },
+      { x: 7, y: 7 },
+      { x: 8, y: 7 },
+      { x: 9, y: 7 },
+    ],
+    fruits: [{ id: 'f1', x: 4, y: 3, type: 'watermelon' }],
+    spikes: [
+      { id: 's1', x: 3, y: 6, direction: 'up' },
+      { id: 's2', x: 5, y: 6, direction: 'up' },
+      { id: 's3', x: 6, y: 6, direction: 'up' },
+    ],
+    portal: { x: 8, y: 3 },
+    birds: [
+      {
+        id: 'bird-1',
+        color: 'blue',
+        segments: [
+          { x: 2, y: 3 },
+          { x: 1, y: 3 },
+          { x: 1, y: 2 },
+        ],
+        facingDir: 'right',
+      },
+    ],
+    hint: ['가시에 몸이 닿지 않도록 중간 디딤돌을 딛고 수박을 먹으며 전진하세요.'],
+  },
+  {
+    name: '6. 둘이서 함께 (Two Birds)',
+    width: 10,
+    height: 8,
+    walls: [
+      { x: 1, y: 6 },
+      { x: 2, y: 6 },
+      { x: 3, y: 6 },
+      { x: 4, y: 6 },
+      { x: 5, y: 6 },
+      { x: 7, y: 3 },
+      { x: 8, y: 3 },
+    ],
+    fruits: [{ id: 'f1', x: 4, y: 3, type: 'strawberry' }],
+    spikes: [],
+    portal: { x: 8, y: 2 },
+    birds: [
+      {
+        id: 'bird-1',
+        color: 'red',
+        segments: [
+          { x: 2, y: 5 },
+          { x: 1, y: 5 },
+        ],
+        facingDir: 'right',
+      },
+      {
+        id: 'bird-2',
+        color: 'green',
+        segments: [
+          { x: 4, y: 5 },
+          { x: 5, y: 5 },
+        ],
+        facingDir: 'left',
+      },
+    ],
+    hint: [
+      '스위칭 버튼(또는 Tab/Space)으로 새를 번갈아 조작하세요. 빨간 새가 초록 새를 발판 삼아 높이 올라갈 수 있습니다.',
+    ],
+  },
+  {
+    name: '7. 친구 밀어주기 (Push)',
+    width: 10,
+    height: 8,
+    walls: [
+      { x: 1, y: 5 },
+      { x: 2, y: 5 },
+      { x: 6, y: 5 },
+      { x: 7, y: 5 },
+      { x: 8, y: 5 },
+    ],
+    fruits: [{ id: 'f1', x: 7, y: 3, type: 'apple' }],
+    spikes: [
+      { id: 's1', x: 3, y: 7, direction: 'up' },
+      { id: 's2', x: 4, y: 7, direction: 'up' },
+      { id: 's3', x: 5, y: 7, direction: 'up' },
+    ],
+    portal: { x: 8, y: 4 },
+    birds: [
+      {
+        id: 'bird-1',
+        color: 'red',
+        segments: [
+          { x: 1, y: 4 },
+          { x: 1, y: 3 },
+        ],
+        facingDir: 'right',
+      },
+      {
+        id: 'bird-2',
+        color: 'yellow',
+        segments: [
+          { x: 2, y: 4 },
+          { x: 2, y: 3 },
+        ],
+        facingDir: 'right',
+      },
+    ],
+    hint: ['빨간 새가 노란 새를 오른쪽으로 밀어 건너편으로 보내보세요!'],
+  },
+  {
+    name: '8. 꼬리 물기 (Tail Balance)',
+    width: 10,
+    height: 8,
+    walls: [
+      { x: 2, y: 5 },
+      { x: 3, y: 5 },
+      { x: 7, y: 4 },
+      { x: 8, y: 4 },
+    ],
+    fruits: [
+      { id: 'f1', x: 5, y: 3, type: 'blueberry' },
+      { id: 'f2', x: 2, y: 2, type: 'strawberry' },
+    ],
+    spikes: [],
+    portal: { x: 8, y: 3 },
+    birds: [
+      {
+        id: 'bird-1',
+        color: 'red',
+        segments: [
+          { x: 3, y: 4 },
+          { x: 2, y: 4 },
+          { x: 2, y: 3 },
+        ],
+        facingDir: 'up',
+      },
+    ],
+    hint: ['과일을 먹는 순서와 몸의 균형 유지가 핵심입니다.'],
+  },
+  {
+    name: '9. 악마의 퍼즐 (Evil U-Turn)',
+    width: 10,
+    height: 8,
+    walls: [
+      { x: 1, y: 4 },
+      { x: 2, y: 4 },
+      { x: 3, y: 4 },
+      { x: 3, y: 2 },
+      { x: 4, y: 2 },
+      { x: 5, y: 2 },
+      { x: 7, y: 5 },
+      { x: 8, y: 5 },
+    ],
+    fruits: [
+      { id: 'f1', x: 5, y: 1, type: 'grape' },
+      { id: 'f2', x: 1, y: 2, type: 'apple' },
+    ],
+    spikes: [
+      { id: 's1', x: 4, y: 4, direction: 'up' },
+      { id: 's2', x: 5, y: 4, direction: 'up' },
+    ],
+    portal: { x: 8, y: 4 },
+    birds: [
+      {
+        id: 'bird-1',
+        color: 'green',
+        segments: [
+          { x: 2, y: 3 },
+          { x: 1, y: 3 },
+          { x: 1, y: 2 },
+        ],
+        facingDir: 'right',
+      },
+    ],
+    hint: ['가시 위를 아슬아슬하게 통과하며 몸을 U자로 회전시켜야 합니다.'],
+  },
+  {
+    name: '10. 스네이크 마스터 (Grand Finale)',
+    width: 11,
+    height: 9,
+    walls: [
+      { x: 1, y: 7 },
+      { x: 2, y: 7 },
+      { x: 3, y: 7 },
+      { x: 5, y: 5 },
+      { x: 6, y: 5 },
+      { x: 8, y: 6 },
+      { x: 9, y: 6 },
+    ],
+    fruits: [
+      { id: 'f1', x: 2, y: 4, type: 'strawberry' },
+      { id: 'f2', x: 6, y: 3, type: 'watermelon' },
+      { id: 'f3', x: 9, y: 4, type: 'pineapple' },
+    ],
+    spikes: [
+      { id: 's1', x: 4, y: 8, direction: 'up' },
+      { id: 's2', x: 7, y: 8, direction: 'up' },
+    ],
+    portal: { x: 9, y: 5 },
+    birds: [
+      {
+        id: 'bird-1',
+        color: 'red',
+        segments: [
+          { x: 2, y: 6 },
+          { x: 1, y: 6 },
+        ],
+        facingDir: 'right',
+      },
+      {
+        id: 'bird-2',
+        color: 'blue',
+        segments: [
+          { x: 3, y: 6 },
+          { x: 3, y: 5 },
+        ],
+        facingDir: 'up',
+      },
+    ],
+    hint: ['두 마리의 새가 서로를 지탱하고 밀며 3개의 과일을 모두 획득한 뒤 포털로 탈출하세요!'],
+  },
+];

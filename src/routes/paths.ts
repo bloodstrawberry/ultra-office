@@ -27,6 +27,7 @@ export const paths = {
     veryHardPuzzle: `/game/very-hard-puzzle`,
     delivery: `/game/delivery`,
     tileMatch: `/game/tile-match`,
+    snakePuzzle: `/game/snake-puzzle`,
   },
   puzzle: {
     root: `/puzzle`,

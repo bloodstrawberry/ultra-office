@@ -280,6 +280,7 @@ export const navData: NavSectionProps['data'] = [
           { title: '베리 하드 퍼즐', path: paths.game.veryHardPuzzle },
           { title: '택배 배송', path: paths.game.delivery },
           { title: '턴제 사천성', path: paths.game.tileMatch },
+          { title: '스네이크 퍼즐', path: paths.game.snakePuzzle },
         ],
       },
       {
