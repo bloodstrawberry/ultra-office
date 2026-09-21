@@ -1,6 +1,6 @@
 'use client';
 
-import type { TouchColor} from '../utils/colors';
+import type { TouchColor } from '../utils/colors';
 
 import { useRef, useState, useEffect, useCallback } from 'react';
 

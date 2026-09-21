@@ -1,4 +1,4 @@
-import type { CellType, Position} from './types';
+import type { CellType, Position } from './types';
 
 import { copyGrid } from './types';
 import {

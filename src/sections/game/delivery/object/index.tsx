@@ -24,7 +24,10 @@ import WallAutoH from './wall-auto-h';
 import SweetPotato from './sweet-potato';
 import KoreanMelon from './korean-melon';
 import LetterBlock from './letter-block';
-import { BLOCK_NONE, BLOCK_WALL, BLOCK_CORN ,
+import {
+  BLOCK_NONE,
+  BLOCK_WALL,
+  BLOCK_CORN,
   BLOCK_BOMB,
   BLOCK_APPLE,
   BLOCK_PEACH,

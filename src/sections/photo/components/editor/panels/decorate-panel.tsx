@@ -558,3 +558,5 @@ export function DecoratePanel({ values, onChange, onReset }: DecoratePanelProps)
     </Box>
   );
 }
+
+export default DecoratePanel;

@@ -1,6 +1,6 @@
 'use client';
 
-import type { CellType, LevelData} from './types';
+import type { CellType, LevelData } from './types';
 
 import { useState, useCallback } from 'react';
 

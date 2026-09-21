@@ -9,11 +9,7 @@ import { playEngineSound } from './sound';
 import { useGameUndo } from './use-game-undo';
 import { useEditorEngine } from './editor-logic';
 import { slideOrbox, type Direction, findPlayerSpawn } from './physics';
-import {
-  BLOCK_EMPTY,
-  getBaseBlockId,
-  BLOCK_STRAWBERRY,
-} from '../object/constants';
+import { BLOCK_EMPTY, getBaseBlockId, BLOCK_STRAWBERRY } from '../object/constants';
 import {
   realMap,
   copyGrid,

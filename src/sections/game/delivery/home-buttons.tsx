@@ -61,7 +61,7 @@ export default function HomeButtons({
     };
   };
 
-  const getButtonClass = () => isLoaderFinished ? 'animate-button-pop' : 'opacity-0';
+  const getButtonClass = () => (isLoaderFinished ? 'animate-button-pop' : 'opacity-0');
 
   const startDelay = 250;
   const editorDelay = 370;

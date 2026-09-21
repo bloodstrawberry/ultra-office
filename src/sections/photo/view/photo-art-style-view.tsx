@@ -670,3 +670,6 @@ export function ArtStyleView() {
     </DashboardContent>
   );
 }
+
+export { ArtStyleView as PhotoArtStyleView };
+export default ArtStyleView;

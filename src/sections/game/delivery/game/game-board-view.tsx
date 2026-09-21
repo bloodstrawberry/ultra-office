@@ -3,7 +3,7 @@
 import type { MoveInfo } from './game-engine';
 import type { IceBreakEffectItem } from './ice-break-burst';
 import type { DisappearingEffectItem } from './disappear-burst';
-import type { CellType, Position, Bullet as BulletType} from './types';
+import type { CellType, Position, Bullet as BulletType } from './types';
 
 import React, { useRef, useMemo, useState, useEffect } from 'react';
 

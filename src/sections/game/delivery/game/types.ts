@@ -1,6 +1,6 @@
 declare const require: (path: string) => unknown;
 
-import type { BlockId} from '../object/constants';
+import type { BlockId } from '../object/constants';
 
 import { getBlockProperties } from '../object/constants';
 

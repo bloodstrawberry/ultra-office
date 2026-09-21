@@ -1,6 +1,6 @@
 'use client';
 
-import type { CellType, Position} from './types';
+import type { CellType, Position } from './types';
 
 import { useRef, useState, useEffect, useCallback } from 'react';
 

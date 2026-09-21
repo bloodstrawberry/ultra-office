@@ -1,5 +1,5 @@
 import type { Direction } from './physics';
-import type { CellType, Position} from './types';
+import type { CellType, Position } from './types';
 
 import { copyGrid } from './types';
 import { slideOrbox, findPlayerSpawn } from './physics';

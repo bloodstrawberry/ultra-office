@@ -1,12 +1,12 @@
 'use client';
 
-import type { CellType} from '../game-engine';
+import type { CellType } from '../game-engine';
 import type { GameContentProps } from './types';
 
 import { useRouter } from 'next/navigation';
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 
-import { copyGrid  } from '../types';
+import { copyGrid } from '../types';
 import { findPlayerSpawn } from '../physics';
 import { useToast } from './hooks/use-toast';
 import GameStageView from '../game-stage-view';

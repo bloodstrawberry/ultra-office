@@ -242,15 +242,15 @@ export default function StagePreviewModal({
               >
                 {grid.map((row, y) =>
                   row.map((cell, x) => (
-                      <div
-                        key={`preview-cell-${y}-${x}`}
-                        className="w-full h-full relative flex items-center justify-center overflow-visible p-[8%]"
-                      >
-                        {cell !== BLOCK_EMPTY && cell !== BLOCK_NONE && (
-                          <BlockRenderer id={cell} x={x} y={y} grid={grid} />
-                        )}
-                      </div>
-                    ))
+                    <div
+                      key={`preview-cell-${y}-${x}`}
+                      className="w-full h-full relative flex items-center justify-center overflow-visible p-[8%]"
+                    >
+                      {cell !== BLOCK_EMPTY && cell !== BLOCK_NONE && (
+                        <BlockRenderer id={cell} x={x} y={y} grid={grid} />
+                      )}
+                    </div>
+                  ))
                 )}
               </div>
             </div>
