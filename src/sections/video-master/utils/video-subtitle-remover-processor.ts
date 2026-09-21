@@ -817,16 +817,20 @@ export function applySubtitleRemovalToCanvas(
     if (pw <= 4 || ph <= 4) continue;
 
     let finalPx = px;
+    let finalPy = py;
     let finalPw = pw;
+    let finalPh = ph;
 
-    // Dynamic Width & Presence Detection (해당 자막 너비까지만 지우기 & 없을 땐 안 지우기)
+    // Dynamic Bounds Detection (해당 자막의 정확한 상하좌우 크기까지만 타이트하게 지우기)
     try {
       const imgData = ctx.getImageData(px, py, pw, ph);
       const data = imgData.data;
       
       const step = 2;
       const numCols = Math.ceil(pw / step);
+      const numRows = Math.ceil(ph / step);
       const colEnergies = new Float32Array(numCols);
+      const rowEnergies = new Float32Array(numRows);
       let totalEdges = 0;
 
       for (let y = 0; y < ph; y += step) {
@@ -836,69 +840,87 @@ export function applySubtitleRemovalToCanvas(
           const lum1 = 0.299 * data[idx1] + 0.587 * data[idx1 + 1] + 0.114 * data[idx1 + 2];
           const lum2 = 0.299 * data[idx2] + 0.587 * data[idx2 + 1] + 0.114 * data[idx2 + 2];
 
-          // 텍스트는 뚜렷한 경계선을 가짐
-          if (Math.abs(lum1 - lum2) > 35) {
+          // 경계선(Edge) 검출 임계값을 45로 높여 배경 노이즈(옷 질감 등)보다 뚜렷한 글자만 잡도록 강화
+          if (Math.abs(lum1 - lum2) > 45) {
             colEnergies[Math.floor(x / step)]++;
+            rowEnergies[Math.floor(y / step)]++;
             totalEdges++;
           }
         }
       }
 
-      // 엣지가 거의 없으면(자막이 없는 프레임) 지우기 생략
-      if (totalEdges < 15) continue;
+      if (totalEdges >= 10) {
+        // --- 가로(X) 너비 타이트하게 줄이기 ---
+        const smoothCol = new Float32Array(numCols);
+        const winX = Math.max(2, Math.floor((pw * 0.03) / step)); 
+        let maxCol = 0;
+        for (let i = 0; i < numCols; i++) {
+          let sum = 0, count = 0;
+          for (let d = -winX; d <= winX; d++) {
+            if (i + d >= 0 && i + d < numCols) { sum += colEnergies[i + d]; count++; }
+          }
+          smoothCol[i] = sum / count;
+          if (smoothCol[i] > maxCol) maxCol = smoothCol[i];
+        }
 
-      // 컬럼 에너지를 부드럽게 펴서(Moving Average) 배경 노이즈 제거
-      const smoothed = new Float32Array(numCols);
-      const window = Math.max(2, Math.floor((pw * 0.03) / step)); 
-      let maxSmooth = 0;
-
-      for (let i = 0; i < numCols; i++) {
-        let sum = 0;
-        let count = 0;
-        for (let d = -window; d <= window; d++) {
-          if (i + d >= 0 && i + d < numCols) {
-            sum += colEnergies[i + d];
-            count++;
+        const threshX = Math.max(0.5, maxCol * 0.25);
+        let minX = pw, maxX = 0;
+        for (let i = 0; i < numCols; i++) {
+          if (smoothCol[i] >= threshX) {
+            const x = i * step;
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
           }
         }
-        smoothed[i] = sum / count;
-        if (smoothed[i] > maxSmooth) {
-          maxSmooth = smoothed[i];
+
+        // --- 세로(Y) 높이 타이트하게 줄이기 ---
+        const smoothRow = new Float32Array(numRows);
+        const winY = Math.max(1, Math.floor((ph * 0.05) / step)); 
+        let maxRow = 0;
+        for (let i = 0; i < numRows; i++) {
+          let sum = 0, count = 0;
+          for (let d = -winY; d <= winY; d++) {
+            if (i + d >= 0 && i + d < numRows) { sum += rowEnergies[i + d]; count++; }
+          }
+          smoothRow[i] = sum / count;
+          if (smoothRow[i] > maxRow) maxRow = smoothRow[i];
         }
-      }
 
-      // 텍스트가 있는 곳은 가장 엣지가 밀집된 곳이므로 최대값에 비례한 임계치 설정
-      const activeThresh = Math.max(1.0, maxSmooth * 0.25);
-
-      let minX = pw;
-      let maxX = 0;
-      for (let i = 0; i < numCols; i++) {
-        if (smoothed[i] >= activeThresh) {
-          const x = i * step;
-          if (x < minX) minX = x;
-          if (x > maxX) maxX = x;
+        const threshY = Math.max(0.5, maxRow * 0.25);
+        let minY = ph, maxY = 0;
+        for (let i = 0; i < numRows; i++) {
+          if (smoothRow[i] >= threshY) {
+            const y = i * step;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+          }
         }
-      }
 
-      // 엣지가 발견된 실제 너비만큼만 영역 축소 (여백 추가)
-      if (maxX > minX) {
-        const dynamicPad = pad + 16; // 좌우 넉넉한 여백
-        finalPx = Math.max(px, px + minX - dynamicPad);
-        const rightEdge = Math.min(px + pw, px + maxX + dynamicPad);
-        finalPw = Math.max(4, rightEdge - finalPx);
+        if (maxX > minX && maxY > minY) {
+          const padX = pad + 12; // 좌우 넉넉한 여백
+          const padY = pad + 6;  // 상하 약간의 여백
+          
+          finalPx = Math.max(px, px + minX - padX);
+          const rightEdge = Math.min(px + pw, px + maxX + padX);
+          finalPw = Math.max(4, rightEdge - finalPx);
+
+          finalPy = Math.max(py, py + minY - padY);
+          const bottomEdge = Math.min(py + ph, py + maxY + padY);
+          finalPh = Math.max(4, bottomEdge - finalPy);
+        }
       }
     } catch {
-      // Ignore extraction errors and fallback to full box
+      // 에러 시 기존 전체 박스 사용
     }
 
     const mode = box.mode || options.defaultMode || 'hybrid';
 
     if (mode === 'hybrid') {
-      applyHybridVerticalDiffusion(ctx, width, height, finalPx, py, finalPw, ph, box);
+      applyHybridVerticalDiffusion(ctx, width, height, finalPx, finalPy, finalPw, finalPh, box);
     } else if (mode === 'color-fill') {
-      applyAdaptiveSurroundingFill(ctx, width, height, finalPx, py, finalPw, ph, box);
+      applyAdaptiveSurroundingFill(ctx, width, height, finalPx, finalPy, finalPw, finalPh, box);
     } else if (mode === 'blur') {
-      applyFeatheredDefocusBlur(ctx, width, height, finalPx, py, finalPw, ph, box);
+      applyFeatheredDefocusBlur(ctx, width, height, finalPx, finalPy, finalPw, finalPh, box);
     }
   }
 
