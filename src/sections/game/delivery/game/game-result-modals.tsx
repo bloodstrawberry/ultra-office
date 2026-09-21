@@ -1,22 +1,14 @@
-"use client";
+'use client';
 
-import React from "react";
-import { useRouter } from "next/navigation";
-import { requestReview } from "../utils/platform";
-import { BUILTIN_LEVELS } from "./types";
+import React from 'react';
+import { useRouter } from 'next/navigation';
+import { requestReview } from '../utils/platform';
+import { BUILTIN_LEVELS } from './types';
 
 interface SoundPlayFn {
   (
-    type:
-      | "coin"
-      | "select"
-      | "start"
-      | "error"
-      | "match"
-      | "fall"
-      | "shoot"
-      | "break",
-    muted: boolean,
+    type: 'coin' | 'select' | 'start' | 'error' | 'match' | 'fall' | 'shoot' | 'break',
+    muted: boolean
   ): void;
 }
 
@@ -67,7 +59,7 @@ export function GameAllClearModal({
           <h2
             className="text-xl sm:text-2xl font-black text-amber-900 tracking-tight"
             style={{
-              textShadow: "0 2px 4px rgba(180, 83, 9, 0.2)",
+              textShadow: '0 2px 4px rgba(180, 83, 9, 0.2)',
             }}
           >
             모든 배송 완료! 🏆
@@ -90,7 +82,7 @@ export function GameAllClearModal({
               className="text-3xl sm:text-4xl hover:scale-125 transition-transform cursor-pointer drop-shadow-sm"
               aria-label={`${star}점 선택`}
             >
-              {star <= finalRating ? "⭐" : "☆"}
+              {star <= finalRating ? '⭐' : '☆'}
             </button>
           ))}
         </div>
@@ -105,12 +97,12 @@ export function GameAllClearModal({
                   await requestReview();
                 }
               } catch (err) {
-                console.error("requestReview error:", err);
+                console.error('requestReview error:', err);
               } finally {
                 if (onBackToStageSelect) {
                   onBackToStageSelect();
                 } else {
-                  router.push("/game/delivery");
+                  router.push('/game/delivery');
                 }
               }
             }}
@@ -123,7 +115,7 @@ export function GameAllClearModal({
             <button
               type="button"
               onClick={() => {
-                playSound("select", muted);
+                playSound('select', muted);
                 onBackToStageSelect();
               }}
               className="w-full py-2.5 bg-amber-100/90 hover:bg-amber-200/90 text-amber-950 font-black text-xs sm:text-sm rounded-2xl border border-amber-300/80 active:scale-[0.98] transition-all cursor-pointer shadow-xs"
@@ -205,9 +197,9 @@ export function GameClearModal({
           <h2
             className="text-2xl sm:text-3xl font-black text-emerald-600 tracking-tight leading-none"
             style={{
-              WebkitTextStroke: "1px #065f46",
-              paintOrder: "stroke fill",
-              textShadow: "0 3px 6px rgba(5, 150, 105, 0.4)",
+              WebkitTextStroke: '1px #065f46',
+              paintOrder: 'stroke fill',
+              textShadow: '0 3px 6px rgba(5, 150, 105, 0.4)',
             }}
           >
             배송 완료! 🎉
@@ -230,18 +222,18 @@ export function GameClearModal({
               } else {
                 resetLevel();
               }
-              playSound("start", muted);
+              playSound('start', muted);
             }}
             className="w-full py-3 sm:py-3.5 bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:from-sky-400 hover:to-blue-500 active:scale-[0.97] transition-all text-white rounded-2xl text-base sm:text-lg font-black cursor-pointer tracking-wider shadow-lg shadow-blue-600/30 border border-sky-400/50 flex items-center justify-center gap-2"
           >
-            <span>{isEditor ? "확인" : "다음 배송지 🚚"}</span>
+            <span>{isEditor ? '확인' : '다음 배송지 🚚'}</span>
           </button>
 
           {onBackToStageSelect && !isEditor && (
             <button
               type="button"
               onClick={() => {
-                playSound("select", muted);
+                playSound('select', muted);
                 onBackToStageSelect();
               }}
               className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-800 font-black rounded-2xl text-xs sm:text-sm cursor-pointer transition-all border border-slate-300 shadow-xs flex items-center justify-center gap-1.5"
@@ -306,13 +298,11 @@ export function GameOverModal({
             onClick={() => {
               setGrabbed(false);
               if (!isEditor && onFullReset) {
-                onFullReset(
-                  levelIndex !== undefined ? levelIndex + 1 : undefined,
-                );
+                onFullReset(levelIndex !== undefined ? levelIndex + 1 : undefined);
               } else {
                 resetLevel();
               }
-              playSound("start", muted);
+              playSound('start', muted);
             }}
             className="w-full py-3 bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-600 hover:from-emerald-400 hover:to-teal-500 active:scale-[0.97] transition-all text-white rounded-2xl text-base sm:text-lg font-black cursor-pointer tracking-wider shadow-lg shadow-emerald-600/30 border border-emerald-400/50 flex items-center justify-center gap-2"
           >
@@ -323,7 +313,7 @@ export function GameOverModal({
             <button
               type="button"
               onClick={() => {
-                playSound("select", muted);
+                playSound('select', muted);
                 onBackToStageSelect();
               }}
               className="w-full py-2.5 bg-amber-100/90 hover:bg-amber-200/90 active:scale-[0.98] text-amber-950 font-black rounded-2xl text-xs sm:text-sm cursor-pointer transition-all border border-amber-300/80 shadow-xs flex items-center justify-center gap-1.5"
@@ -335,11 +325,11 @@ export function GameOverModal({
           <button
             type="button"
             onClick={() => {
-              playSound("select", muted);
+              playSound('select', muted);
               try {
-                router.push("/game/delivery");
+                router.push('/game/delivery');
               } catch {
-                window.location.href = "/game/delivery";
+                window.location.href = '/game/delivery';
               }
             }}
             className="w-full py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-xs rounded-xl border border-amber-200 active:scale-[0.98] transition-all cursor-pointer"

@@ -152,6 +152,18 @@ export interface VideoStudioTextItem {
   yPercent: number; // 0% - 100% (vertical position = 85)
 }
 
+export interface VideoStudioAudioItem {
+  id: string;
+  name: string;
+  blob?: Blob;
+  src: string; // Object URL or audio URL
+  startTime: number; // in seconds on global timeline
+  duration: number; // in seconds
+  volume: number; // 0.0 to 2.0 (default 1.0)
+  mute: boolean;
+  sourceType: 'mic' | 'system' | 'mixed' | 'file';
+}
+
 export interface VideoStudioExportSettings {
   aspectRatio: 'original' | '16:9' | '9:16' | '1:1' | '4:3';
   resolution: 'original' | '1080p' | '720p' | '480p';

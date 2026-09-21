@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef } from 'react';
 import {
   BLOCK_NONE,
   BLOCK_WALL,
@@ -22,7 +22,7 @@ import {
   PORTAL_BLOCK_TYPES,
   BLACKHOLE_BLOCK_TYPES,
   type BlockId,
-} from "../object";
+} from '../object';
 
 export type CellType = BlockId;
 
@@ -58,32 +58,32 @@ export interface HotkeyConfig {
 
 // Default Hotkey Mappings - Edit this object to change default keyboard shortcuts
 export const DEFAULT_HOTKEYS: HotkeyConfig = {
-  prevStage: { key: "ArrowLeft", shift: true },
-  nextStage: { key: "ArrowRight", shift: true },
-  addStage: { key: "n" },
-  undo: { key: "z", ctrl: true },
-  borderWall: { key: "b" },
-  clearGrid: { key: "c" },
-  exportJson: { key: "e", ctrl: true },
-  selectBrick: { key: "1" },
-  selectBlock2: { key: "2" },
-  selectBlock3: { key: "3" },
-  selectBlock4: { key: "4" },
-  selectBlock5: { key: "5" },
-  selectBlock6: { key: "6" },
-  selectBlock7: { key: "7" },
-  selectBlock8: { key: "8" },
-  selectBlock9: { key: "9" },
-  selectNextBlock: { key: "Tab" },
-  selectPrevBlock: { key: "Tab", shift: true },
-  togglePlayTest: { key: "F8" },
-  addHint: { key: "F9" },
+  prevStage: { key: 'ArrowLeft', shift: true },
+  nextStage: { key: 'ArrowRight', shift: true },
+  addStage: { key: 'n' },
+  undo: { key: 'z', ctrl: true },
+  borderWall: { key: 'b' },
+  clearGrid: { key: 'c' },
+  exportJson: { key: 'e', ctrl: true },
+  selectBrick: { key: '1' },
+  selectBlock2: { key: '2' },
+  selectBlock3: { key: '3' },
+  selectBlock4: { key: '4' },
+  selectBlock5: { key: '5' },
+  selectBlock6: { key: '6' },
+  selectBlock7: { key: '7' },
+  selectBlock8: { key: '8' },
+  selectBlock9: { key: '9' },
+  selectNextBlock: { key: 'Tab' },
+  selectPrevBlock: { key: 'Tab', shift: true },
+  togglePlayTest: { key: 'F8' },
+  addHint: { key: 'F9' },
 };
 
 // All paint tools in sequence for selection cycling (Tab/Shift+Tab)
-export const ALL_PAINT_TOOLS: (CellType | "eraser" | "ice")[] = [
-  "eraser",
-  "ice",
+export const ALL_PAINT_TOOLS: (CellType | 'eraser' | 'ice')[] = [
+  'eraser',
+  'ice',
   BLOCK_NONE,
   BLOCK_WALL,
   ...PUZZLE_BLOCK_TYPES,
@@ -165,8 +165,8 @@ export function useEditorHotkeys({
       const activeEl = document.activeElement as HTMLElement | null;
       if (
         activeEl &&
-        (activeEl.tagName === "INPUT" ||
-          activeEl.tagName === "TEXTAREA" ||
+        (activeEl.tagName === 'INPUT' ||
+          activeEl.tagName === 'TEXTAREA' ||
           activeEl.isContentEditable)
       ) {
         return;
@@ -250,7 +250,7 @@ export function useEditorHotkeys({
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [active, config]);
 }

@@ -4,23 +4,20 @@
  * 토스 앱 내에서는 이미 실제 값이 설정되어 있으므로 기존 값이 우선됩니다.
  */
 export function setupConstantHandlerFallbacks() {
-  if (typeof window === "undefined") return;
+  if (typeof window === 'undefined') return;
 
   const win = window as unknown as Record<string, unknown>;
-  if (
-    !win.__CONSTANT_HANDLER_MAP ||
-    typeof win.__CONSTANT_HANDLER_MAP !== "object"
-  ) {
+  if (!win.__CONSTANT_HANDLER_MAP || typeof win.__CONSTANT_HANDLER_MAP !== 'object') {
     win.__CONSTANT_HANDLER_MAP = {};
   }
 
   const map = win.__CONSTANT_HANDLER_MAP as Record<string, unknown>;
   const fallbacks: Record<string, unknown> = {
     getSafeAreaInsets: { top: 0, bottom: 0, left: 0, right: 0 },
-    deploymentId: "",
-    brandDisplayName: "",
-    brandIcon: "",
-    brandPrimaryColor: "#2B68C8",
+    deploymentId: '',
+    brandDisplayName: '',
+    brandIcon: '',
+    brandPrimaryColor: '#2B68C8',
     fetchTossAd_isSupported: false,
     fetchAppsInTossAd_isSupported: false,
   };
@@ -33,6 +30,6 @@ export function setupConstantHandlerFallbacks() {
 }
 
 // 브라우저 환경일 경우 모듈 로딩 즉시 실행하여 하위 컴포넌트 렌더링 전 fallbacks 보장
-if (typeof window !== "undefined") {
+if (typeof window !== 'undefined') {
   setupConstantHandlerFallbacks();
 }

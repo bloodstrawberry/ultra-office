@@ -1,5 +1,5 @@
-import React from "react";
-import { OBJECT_SCALES } from "./constants";
+import React from 'react';
+import { OBJECT_SCALES } from './constants';
 
 // 개별 크기 조절 변수 (1.0 = 100%, 1.2 = 120% 등)
 const SCALE = OBJECT_SCALES.blueberry;
@@ -12,12 +12,9 @@ export default function Blueberry({ isFrozen = false }: BlueberryProps) {
   return (
     <div
       className="w-full h-full flex items-center justify-center pointer-events-none select-none animate-bounce"
-      style={{ transform: `scale(${SCALE})`, animationDuration: "2.5s" }}
+      style={{ transform: `scale(${SCALE})`, animationDuration: '2.5s' }}
     >
-      <svg
-        viewBox="0 0 100 100"
-        className="w-full h-full overflow-visible drop-shadow-md"
-      >
+      <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible drop-shadow-md">
         {/* 그림자 */}
         <ellipse cx="50" cy="86" rx="28" ry="6" fill="#0f172a" opacity="0.2" />
 
@@ -26,7 +23,7 @@ export default function Blueberry({ isFrozen = false }: BlueberryProps) {
           cx="50"
           cy="50"
           r="34"
-          fill={isFrozen ? "#bae6fd" : "#f59e0b"}
+          fill={isFrozen ? '#bae6fd' : '#f59e0b'}
           stroke="#0f172a"
           strokeWidth="3.5"
         />
@@ -36,7 +33,7 @@ export default function Blueberry({ isFrozen = false }: BlueberryProps) {
           cx="50"
           cy="50"
           r="28"
-          fill={isFrozen ? "#e0f2fe" : "#fbbf24"}
+          fill={isFrozen ? '#e0f2fe' : '#fbbf24'}
           stroke="#d97706"
           strokeWidth="2"
         />
@@ -46,7 +43,7 @@ export default function Blueberry({ isFrozen = false }: BlueberryProps) {
           x="50"
           y="54"
           fontSize="24"
-          fill={isFrozen ? "#0284c7" : "#b45309"}
+          fill={isFrozen ? '#0284c7' : '#b45309'}
           textAnchor="middle"
           dominantBaseline="central"
           fontWeight="900"

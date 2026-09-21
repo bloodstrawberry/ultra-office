@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect, useRef } from "react";
-import { requestReview } from "../utils/platform";
-import { getItem, getLocalSync } from "../utils/local-storage";
-import { BUILTIN_LEVELS } from "./types";
-import SettingsModal from "../components/settings-modal";
-import StagePreviewModal from "../components/stage-preview-modal";
+import React, { useState, useEffect, useRef } from 'react';
+import { requestReview } from '../utils/platform';
+import { getItem, getLocalSync } from '../utils/local-storage';
+import { BUILTIN_LEVELS } from './types';
+import SettingsModal from '../components/settings-modal';
+import StagePreviewModal from '../components/stage-preview-modal';
 
 export interface GameStageViewProps {
   onSelectStage: (stageIndex: number) => void;
@@ -13,16 +13,8 @@ export interface GameStageViewProps {
   muted: boolean;
   setMuted?: (muted: boolean) => void;
   playSound: (
-    type:
-      | "coin"
-      | "select"
-      | "start"
-      | "error"
-      | "match"
-      | "fall"
-      | "shoot"
-      | "break",
-    muted: boolean,
+    type: 'coin' | 'select' | 'start' | 'error' | 'match' | 'fall' | 'shoot' | 'break',
+    muted: boolean
   ) => void;
 }
 
@@ -38,9 +30,7 @@ export default function GameStageView({
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [showReviewModal, setShowReviewModal] = useState<boolean>(false);
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
-  const [previewStageIndex, setPreviewStageIndex] = useState<number | null>(
-    null,
-  );
+  const [previewStageIndex, setPreviewStageIndex] = useState<number | null>(null);
   const [rating, setRating] = useState<number>(5);
 
   const currentStageRef = useRef<HTMLButtonElement | null>(null);
@@ -48,7 +38,7 @@ export default function GameStageView({
 
   useEffect(() => {
     let isMounted = true;
-    const syncVal = getLocalSync("puzznic_max_unlocked");
+    const syncVal = getLocalSync('puzznic_max_unlocked');
     if (syncVal) {
       const parsed = parseInt(syncVal, 10);
       if (!isNaN(parsed) && parsed >= 1) {
@@ -59,14 +49,11 @@ export default function GameStageView({
 
     const init = async () => {
       try {
-        if (typeof window !== "undefined" && document.fonts?.ready) {
-          await Promise.race([
-            document.fonts.ready,
-            new Promise((res) => setTimeout(res, 200)),
-          ]);
+        if (typeof window !== 'undefined' && document.fonts?.ready) {
+          await Promise.race([document.fonts.ready, new Promise((res) => setTimeout(res, 200))]);
         }
         const stored = await Promise.race([
-          getItem("puzznic_max_unlocked"),
+          getItem('puzznic_max_unlocked'),
           new Promise<string | null>((res) => setTimeout(() => res(null), 300)),
         ]);
         if (isMounted && stored) {
@@ -76,7 +63,7 @@ export default function GameStageView({
           }
         }
       } catch (err) {
-        console.warn("Failed to initialize stage view:", err);
+        console.warn('Failed to initialize stage view:', err);
       }
     };
 
@@ -95,13 +82,11 @@ export default function GameStageView({
         if (container && target) {
           const containerRect = container.getBoundingClientRect();
           const targetRect = target.getBoundingClientRect();
-          const relativeTop =
-            targetRect.top - containerRect.top + container.scrollTop;
-          const targetScrollTop =
-            relativeTop - container.clientHeight / 2 + targetRect.height / 2;
+          const relativeTop = targetRect.top - containerRect.top + container.scrollTop;
+          const targetScrollTop = relativeTop - container.clientHeight / 2 + targetRect.height / 2;
           container.scrollTo({
             top: Math.max(0, targetScrollTop),
-            behavior: "smooth",
+            behavior: 'smooth',
           });
         }
       }, 150);
@@ -116,7 +101,7 @@ export default function GameStageView({
     }, 2500);
   };
 
-  const isLocalEnv = process.env.NEXT_PUBLIC_APP_ENV?.toUpperCase() === "LOCAL";
+  const isLocalEnv = process.env.NEXT_PUBLIC_APP_ENV?.toUpperCase() === 'LOCAL';
 
   // 처음엔 50개만 보이고, 50번째 클리어 시(maxUnlocked > 50) 5개 단위로 확장
   const totalCount = BUILTIN_LEVELS.length;
@@ -138,7 +123,7 @@ export default function GameStageView({
         <button
           type="button"
           onClick={() => {
-            playSound("select", muted);
+            playSound('select', muted);
             onBackToHome();
           }}
           className="px-3.5 py-2 sm:px-4 sm:py-2.5 bg-[#FFFDF6]/90 hover:bg-[#FFFDF6] active:scale-95 text-amber-900 font-black text-xs sm:text-sm rounded-2xl shadow-md border-2 border-amber-400/80 backdrop-blur-md flex items-center gap-1.5 transition-all cursor-pointer"
@@ -176,19 +161,19 @@ export default function GameStageView({
                   type="button"
                   onClick={() => {
                     if (isUnlocked) {
-                      playSound("select", muted);
+                      playSound('select', muted);
                       setPreviewStageIndex(idx);
                     } else {
-                      playSound("error", muted);
+                      playSound('error', muted);
                       showToast(`이전 문제를 클리어 해주세요!`);
                     }
                   }}
                   className={`relative group p-1.5 sm:p-4 rounded-2xl sm:rounded-3xl border-2 flex flex-col items-center justify-center gap-1 sm:gap-2 transition-all cursor-pointer shadow-md overflow-hidden aspect-square isolate transform-gpu ${
                     isCurrent
-                      ? "bg-gradient-to-b from-amber-50 via-amber-100 to-amber-200 border-amber-500 ring-4 ring-amber-400/90 shadow-xl shadow-amber-500/30 scale-105 z-20"
+                      ? 'bg-gradient-to-b from-amber-50 via-amber-100 to-amber-200 border-amber-500 ring-4 ring-amber-400/90 shadow-xl shadow-amber-500/30 scale-105 z-20'
                       : isUnlocked
-                        ? "bg-gradient-to-b from-[#FFFDF6] via-amber-50/90 to-amber-100/80 border-amber-400/80 hover:border-amber-500 hover:scale-105 active:scale-95 shadow-amber-900/10"
-                        : "bg-amber-100/30 border-amber-200/60 opacity-70 cursor-not-allowed"
+                        ? 'bg-gradient-to-b from-[#FFFDF6] via-amber-50/90 to-amber-100/80 border-amber-400/80 hover:border-amber-500 hover:scale-105 active:scale-95 shadow-amber-900/10'
+                        : 'bg-amber-100/30 border-amber-200/60 opacity-70 cursor-not-allowed'
                   }`}
                 >
                   {/* 은은한 광택 효과 (해금된 문제) */}
@@ -221,10 +206,10 @@ export default function GameStageView({
                     <span
                       className={`text-xl sm:text-4xl md:text-5xl font-black tracking-tight ${
                         isCurrent
-                          ? "text-amber-950 scale-105"
+                          ? 'text-amber-950 scale-105'
                           : isUnlocked
-                            ? "text-amber-900"
-                            : "text-amber-900/30"
+                            ? 'text-amber-900'
+                            : 'text-amber-900/30'
                       }`}
                     >
                       {stageNum}
@@ -247,7 +232,7 @@ export default function GameStageView({
               <button
                 type="button"
                 onClick={() => {
-                  playSound("select", muted);
+                  playSound('select', muted);
                   setShowReviewModal(true);
                 }}
                 className="px-6 py-2.5 bg-[#FFFDF6] border-2 border-amber-400/90 hover:border-amber-500 rounded-2xl shadow-md text-amber-900 font-black text-xs sm:text-sm flex items-center gap-2.5 active:scale-95 transition-all cursor-pointer animate-bounce"
@@ -263,7 +248,7 @@ export default function GameStageView({
               <button
                 type="button"
                 onClick={() => {
-                  playSound("error", muted);
+                  playSound('error', muted);
                   showToast(`${visibleCount}번 문제를 클리어 해주세요!`);
                 }}
                 className="px-6 py-2.5 bg-[#FFFDF6] border-2 border-amber-400/80 hover:border-amber-500 rounded-2xl shadow-md text-amber-900 font-black text-sm flex items-center gap-2 active:scale-95 transition-all cursor-pointer"
@@ -309,7 +294,7 @@ export default function GameStageView({
                   className="text-2xl sm:text-3xl hover:scale-125 transition-transform cursor-pointer"
                   aria-label={`${star}점 별점 선택`}
                 >
-                  {star <= rating ? "⭐" : "☆"}
+                  {star <= rating ? '⭐' : '☆'}
                 </button>
               ))}
             </div>
@@ -320,20 +305,17 @@ export default function GameStageView({
                 type="button"
                 onClick={async () => {
                   try {
-                    if (
-                      requestReview.isSupported &&
-                      requestReview.isSupported()
-                    ) {
+                    if (requestReview.isSupported && requestReview.isSupported()) {
                       await requestReview();
                     } else {
                       showToast(
-                        "소중한 평점에 감사드립니다! 힘을 내서 더 멋진 문제로 찾아올게요! 🌟",
+                        '소중한 평점에 감사드립니다! 힘을 내서 더 멋진 문제로 찾아올게요! 🌟'
                       );
                     }
                   } catch (err) {
-                    console.error("requestReview error:", err);
+                    console.error('requestReview error:', err);
                     showToast(
-                      "소중한 평점에 감사드립니다! 힘을 내서 더 멋진 문제로 찾아올게요! 🌟",
+                      '소중한 평점에 감사드립니다! 힘을 내서 더 멋진 문제로 찾아올게요! 🌟'
                     );
                   } finally {
                     setShowReviewModal(false);
@@ -357,20 +339,13 @@ export default function GameStageView({
       )}
 
       {/* Settings Modal */}
-      <SettingsModal
-        isOpen={showSettingsModal}
-        onClose={() => setShowSettingsModal(false)}
-      />
+      <SettingsModal isOpen={showSettingsModal} onClose={() => setShowSettingsModal(false)} />
 
       {/* Stage Preview Modal */}
       <StagePreviewModal
         isOpen={previewStageIndex !== null}
         stageIndex={previewStageIndex ?? 0}
-        levelData={
-          previewStageIndex !== null
-            ? (visibleLevels[previewStageIndex] ?? null)
-            : null
-        }
+        levelData={previewStageIndex !== null ? (visibleLevels[previewStageIndex] ?? null) : null}
         hasPrev={previewStageIndex !== null && previewStageIndex > 0}
         hasNext={
           previewStageIndex !== null &&
@@ -379,7 +354,7 @@ export default function GameStageView({
         }
         onPrevStage={() => {
           if (previewStageIndex !== null && previewStageIndex > 0) {
-            playSound("select", muted);
+            playSound('select', muted);
             setPreviewStageIndex(previewStageIndex - 1);
           }
         }}
@@ -389,19 +364,19 @@ export default function GameStageView({
             previewStageIndex < visibleLevels.length - 1 &&
             (isLocalEnv || previewStageIndex + 2 <= maxUnlocked)
           ) {
-            playSound("select", muted);
+            playSound('select', muted);
             setPreviewStageIndex(previewStageIndex + 1);
           }
         }}
         onClose={() => {
-          playSound("select", muted);
+          playSound('select', muted);
           setPreviewStageIndex(null);
         }}
         onStart={() => {
           if (previewStageIndex !== null) {
             const idx = previewStageIndex;
             setPreviewStageIndex(null);
-            playSound("start", muted);
+            playSound('start', muted);
             onSelectStage(idx);
           }
         }}

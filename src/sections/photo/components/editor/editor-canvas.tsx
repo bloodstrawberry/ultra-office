@@ -51,6 +51,9 @@ export function EditorCanvas({
   const [draggingLayerId, setDraggingLayerId] = useState<string | null>(null);
   const layerDragOffsetRef = useRef<{ dx: number; dy: number }>({ dx: 0, dy: 0 });
 
+  const selectedLayer =
+    state.decorate.layers.find((l) => l.id === state.decorate.selectedLayerId) || null;
+
   // 1. Initial Render & Offscreen Buffer Setup
   useEffect(() => {
     if (!originalImage) return;
@@ -208,13 +211,19 @@ export function EditorCanvas({
     if (state.decorate.layers.length > 0) {
       for (let i = state.decorate.layers.length - 1; i >= 0; i--) {
         const layer = state.decorate.layers[i];
-        const dist = Math.sqrt((layer.x - normX) ** 2 + (layer.y - normY) ** 2);
-        if (dist < 0.15) {
+        if (!layer.visible) continue;
+        const halfW = Math.max((layer.width || 0.3) / 2 + 0.04, 0.08);
+        const halfH = Math.max((layer.height || 0.1) / 2 + 0.04, 0.06);
+        const inBox = Math.abs(normX - layer.x) <= halfW && Math.abs(normY - layer.y) <= halfH;
+        if (inBox) {
           setDraggingLayerId(layer.id);
           layerDragOffsetRef.current = { dx: normX - layer.x, dy: normY - layer.y };
           onUpdateState({ ...state, decorate: { ...state.decorate, selectedLayerId: layer.id } });
           return;
         }
+      }
+      if (state.decorate.selectedLayerId) {
+        onUpdateState({ ...state, decorate: { ...state.decorate, selectedLayerId: null } });
       }
     }
 
@@ -385,6 +394,7 @@ export function EditorCanvas({
           transition: isPanningRef.current ? 'none' : 'transform 0.05s ease-out',
           boxShadow: '0 20px 50px rgba(0,0,0,0.6)',
           display: 'inline-block',
+          position: 'relative',
           lineHeight: 0,
         }}
       >
@@ -398,6 +408,43 @@ export function EditorCanvas({
             objectFit: 'contain',
           }}
         />
+
+        {/* Selected Layer Bounding Box Overlay */}
+        {selectedLayer && selectedLayer.visible && (
+          <Box
+            sx={{
+              position: 'absolute',
+              left: `${Math.max(0, (selectedLayer.x - (selectedLayer.width || 0.3) / 2) * 100)}%`,
+              top: `${Math.max(0, (selectedLayer.y - (selectedLayer.height || 0.1) / 2) * 100)}%`,
+              width: `${Math.min(100, (selectedLayer.width || 0.3) * 100)}%`,
+              height: `${Math.min(100, (selectedLayer.height || 0.1) * 100)}%`,
+              border: '2px dashed #3b82f6',
+              bgcolor: 'rgba(59, 130, 246, 0.08)',
+              borderRadius: 0.5,
+              pointerEvents: 'none',
+              zIndex: 10,
+            }}
+          >
+            <Box
+              sx={{
+                position: 'absolute',
+                top: -22,
+                left: 0,
+                bgcolor: '#2563eb',
+                color: '#ffffff',
+                fontSize: 10,
+                fontWeight: 700,
+                px: 0.75,
+                py: 0.25,
+                borderRadius: 0.5,
+                whiteSpace: 'nowrap',
+                lineHeight: 1,
+              }}
+            >
+              {selectedLayer.name}
+            </Box>
+          </Box>
+        )}
       </Box>
 
       {/* 하단 플로팅 힌트 바 */}

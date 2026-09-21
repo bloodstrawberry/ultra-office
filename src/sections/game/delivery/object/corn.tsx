@@ -1,5 +1,5 @@
-import React from "react";
-import { OBJECT_SCALES } from "./constants";
+import React from 'react';
+import { OBJECT_SCALES } from './constants';
 
 // 개별 크기 조절 변수 (1.0 = 100%, 1.2 = 120% 등)
 const SCALE = OBJECT_SCALES.corn;
@@ -14,21 +14,18 @@ export default function Corn({ isFrozen = false }: CornProps) {
       className="w-full h-full flex items-center justify-center pointer-events-none select-none"
       style={{ transform: `scale(${SCALE})` }}
     >
-      <svg
-        viewBox="0 0 100 100"
-        className="w-full h-full overflow-visible drop-shadow-sm"
-      >
+      <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible drop-shadow-sm">
         {/* Rear Husks / Leaves */}
         <path
           d="M 25 75 C 10 50, 15 35, 30 25 C 25 45, 30 65, 45 85 Z"
-          fill={isFrozen ? "#558855" : "#689F38"}
+          fill={isFrozen ? '#558855' : '#689F38'}
           stroke="#221C14"
           strokeWidth="3"
           strokeLinejoin="round"
         />
         <path
           d="M 75 75 C 90 50, 85 35, 70 25 C 75 45, 70 65, 55 85 Z"
-          fill={isFrozen ? "#558855" : "#689F38"}
+          fill={isFrozen ? '#558855' : '#689F38'}
           stroke="#221C14"
           strokeWidth="3"
           strokeLinejoin="round"
@@ -37,7 +34,7 @@ export default function Corn({ isFrozen = false }: CornProps) {
         {/* Main Corn Cob Body */}
         <path
           d="M 32 40 C 32 20, 40 10, 50 10 C 60 10, 68 20, 68 40 C 68 65, 62 85, 50 85 C 38 85, 32 65, 32 40 Z"
-          fill={isFrozen ? "#E6C542" : "#FFD54F"}
+          fill={isFrozen ? '#E6C542' : '#FFD54F'}
           stroke="#221C14"
           strokeWidth="4"
           strokeLinejoin="round"
@@ -72,14 +69,14 @@ export default function Corn({ isFrozen = false }: CornProps) {
         {/* Front Husks / Leaves at Base */}
         <path
           d="M 22 80 C 20 60, 30 45, 42 52 C 32 62, 30 75, 35 88 Z"
-          fill={isFrozen ? "#669933" : "#7CB342"}
+          fill={isFrozen ? '#669933' : '#7CB342'}
           stroke="#221C14"
           strokeWidth="3.5"
           strokeLinejoin="round"
         />
         <path
           d="M 78 80 C 80 60, 70 45, 58 52 C 68 62, 70 75, 65 88 Z"
-          fill={isFrozen ? "#77AA44" : "#8BC34A"}
+          fill={isFrozen ? '#77AA44' : '#8BC34A'}
           stroke="#221C14"
           strokeWidth="3.5"
           strokeLinejoin="round"

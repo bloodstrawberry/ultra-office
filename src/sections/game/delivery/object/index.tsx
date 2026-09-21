@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   BLOCK_NONE,
   BLOCK_WALL,
@@ -64,70 +64,66 @@ import {
   BLOCK_WORMHOLE_5,
   BLOCK_WORMHOLE_6,
   BLOCK_WORMHOLE_7,
-} from "./constants";
-import Wall from "./wall";
-import Spike from "./spike";
-import Strawberry from "./strawberry";
-import Pineapple from "./pineapple";
-import Chestnut from "./chestnut";
-import Corn from "./corn";
-import Watermelon from "./watermelon";
-import SweetPotato from "./sweet-potato";
-import Apple from "./apple";
-import Peach from "./peach";
-import KoreanMelon from "./korean-melon";
-import Blueberry from "./blueberry";
-import Grape from "./grape";
-import WallV from "./wall-v";
-import WallH from "./wall-h";
-import WallAutoV from "./wall-auto-v";
-import WallAutoH from "./wall-auto-h";
-import Bomb from "./bomb";
-import Shooter from "./shooter";
-import NumBlock from "./num-block";
-import LetterBlock from "./letter-block";
-import Straw from "./straw";
-import Wormhole from "./wormhole";
-import Portal from "./portal";
-import Blackhole from "./blackhole";
+} from './constants';
+import Wall from './wall';
+import Spike from './spike';
+import Strawberry from './strawberry';
+import Pineapple from './pineapple';
+import Chestnut from './chestnut';
+import Corn from './corn';
+import Watermelon from './watermelon';
+import SweetPotato from './sweet-potato';
+import Apple from './apple';
+import Peach from './peach';
+import KoreanMelon from './korean-melon';
+import Blueberry from './blueberry';
+import Grape from './grape';
+import WallV from './wall-v';
+import WallH from './wall-h';
+import WallAutoV from './wall-auto-v';
+import WallAutoH from './wall-auto-h';
+import Bomb from './bomb';
+import Shooter from './shooter';
+import NumBlock from './num-block';
+import LetterBlock from './letter-block';
+import Straw from './straw';
+import Wormhole from './wormhole';
+import Portal from './portal';
+import Blackhole from './blackhole';
 
-import IceCasing from "./ice-casing";
-import {
-  isFrozenBlock,
-  getBaseBlockId,
-  getStrawberryDirection,
-} from "./constants";
+import IceCasing from './ice-casing';
+import { isFrozenBlock, getBaseBlockId, getStrawberryDirection } from './constants';
 
-export { default as IceCasing } from "./ice-casing";
-export { default as Wall } from "./wall";
-export { default as Strawberry } from "./strawberry";
-export { default as Pineapple } from "./pineapple";
-export { default as Chestnut } from "./chestnut";
-export { default as Corn } from "./corn";
-export { default as Watermelon } from "./watermelon";
-export { default as SweetPotato } from "./sweet-potato";
-export { default as Apple } from "./apple";
-export { default as Peach } from "./peach";
-export { default as KoreanMelon } from "./korean-melon";
-export { default as Blueberry } from "./blueberry";
-export { default as Grape } from "./grape";
-export { default as WallV } from "./wall-v";
-export { default as WallH } from "./wall-h";
-export { default as WallAutoV } from "./wall-auto-v";
-export { default as WallAutoH } from "./wall-auto-h";
-export { default as Bomb } from "./bomb";
-export { default as Shooter } from "./shooter";
-export { default as Spike } from "./spike";
-export { default as NumBlock } from "./num-block";
-export { default as LetterBlock } from "./letter-block";
-export { default as Straw } from "./straw";
-export { default as Wormhole } from "./wormhole";
-export { default as Portal } from "./portal";
-export { default as Blackhole } from "./blackhole";
-export { default as SoilTileDark } from "./soil-tile-dark";
-export { default as SoilTileLight } from "./soil-tile-light";
-export * from "./constants";
-export * from "./preload";
+export { default as IceCasing } from './ice-casing';
+export { default as Wall } from './wall';
+export { default as Strawberry } from './strawberry';
+export { default as Pineapple } from './pineapple';
+export { default as Chestnut } from './chestnut';
+export { default as Corn } from './corn';
+export { default as Watermelon } from './watermelon';
+export { default as SweetPotato } from './sweet-potato';
+export { default as Apple } from './apple';
+export { default as Peach } from './peach';
+export { default as KoreanMelon } from './korean-melon';
+export { default as Blueberry } from './blueberry';
+export { default as Grape } from './grape';
+export { default as WallV } from './wall-v';
+export { default as WallH } from './wall-h';
+export { default as WallAutoV } from './wall-auto-v';
+export { default as WallAutoH } from './wall-auto-h';
+export { default as Bomb } from './bomb';
+export { default as Shooter } from './shooter';
+export { default as Spike } from './spike';
+export { default as NumBlock } from './num-block';
+export { default as LetterBlock } from './letter-block';
+export { default as Straw } from './straw';
+export { default as Wormhole } from './wormhole';
+export { default as Portal } from './portal';
+export { default as Blackhole } from './blackhole';
+export { default as SoilTileDark } from './soil-tile-dark';
+export { default as SoilTileLight } from './soil-tile-light';
+export * from './constants';
+export * from './preload';
 
 interface BlockRendererProps {
   id: number;
@@ -137,13 +133,7 @@ interface BlockRendererProps {
   firedOnce?: Record<string, boolean>;
 }
 
-export default function BlockRenderer({
-  id,
-  x,
-  y,
-  grid,
-  firedOnce,
-}: BlockRendererProps) {
+export default function BlockRenderer({ id, x, y, grid, firedOnce }: BlockRendererProps) {
   const isFrozen = isFrozenBlock(id);
   const baseId = getBaseBlockId(id);
 
@@ -171,12 +161,7 @@ export default function BlockRenderer({
       case BLOCK_WALL:
         return <Wall x={x} y={y} isFrozen={isFrozen} />;
       case BLOCK_STRAWBERRY:
-        return (
-          <Strawberry
-            isFrozen={isFrozen}
-            direction={getStrawberryDirection(id)}
-          />
-        );
+        return <Strawberry isFrozen={isFrozen} direction={getStrawberryDirection(id)} />;
       case BLOCK_PINEAPPLE:
         return <Pineapple isFrozen={isFrozen} />;
       case BLOCK_CHESTNUT:
@@ -207,13 +192,9 @@ export default function BlockRenderer({
       case BLOCK_BOMB:
         return <Bomb isFrozen={isFrozen} />;
       case BLOCK_SHOOTER_L:
-        return (
-          <Shooter direction="left" mode="repeated" isPressed={isPressed} />
-        );
+        return <Shooter direction="left" mode="repeated" isPressed={isPressed} />;
       case BLOCK_SHOOTER_R:
-        return (
-          <Shooter direction="right" mode="repeated" isPressed={isPressed} />
-        );
+        return <Shooter direction="right" mode="repeated" isPressed={isPressed} />;
       case BLOCK_SHOOTER_L_ONCE:
         return <Shooter direction="left" mode="once" isPressed={isPressed} />;
       case BLOCK_SHOOTER_R_ONCE:

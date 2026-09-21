@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import ShareButton from "./share-button";
-import { setLocalSync } from "./utils/local-storage";
-import { resolveDynamicPath } from "./object/constants";
-import HomeButtons from "./home-buttons";
-import SettingsModal from "./components/settings-modal";
-import { playEngineSound } from "./game/sound";
-import { isSfxMuted } from "./utils/sound";
-import { useAssetLoader } from "./components/asset-loader-context";
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import ShareButton from './share-button';
+import { setLocalSync } from './utils/local-storage';
+import { resolveDynamicPath } from './object/constants';
+import HomeButtons from './home-buttons';
+import SettingsModal from './components/settings-modal';
+import { playEngineSound } from './game/sound';
+import { isSfxMuted } from './utils/sound';
+import { useAssetLoader } from './components/asset-loader-context';
 
 export default function HomeView() {
   const router = useRouter();
@@ -17,12 +17,11 @@ export default function HomeView() {
   const [showRulesModal, setShowRulesModal] = useState<boolean>(false);
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [isTitleDropFinished, setIsTitleDropFinished] =
-    useState<boolean>(false);
+  const [isTitleDropFinished, setIsTitleDropFinished] = useState<boolean>(false);
 
   const handleNavigate = (path: string) => {
     const muted = isSfxMuted();
-    playEngineSound(path === "/game/delivery/play" ? "start" : "select", muted);
+    playEngineSound(path === '/game/delivery/play' ? 'start' : 'select', muted);
 
     try {
       router.push(path);
@@ -32,11 +31,9 @@ export default function HomeView() {
   };
 
   const _handleResetData = () => {
-    if (
-      confirm("모든 저장 데이터 및 커스텀 에디터 문제를 초기화하시겠습니까?")
-    ) {
-      setLocalSync("custom_levels", "");
-      showToast("데이터가 초기화되었습니다.");
+    if (confirm('모든 저장 데이터 및 커스텀 에디터 문제를 초기화하시겠습니까?')) {
+      setLocalSync('custom_levels', '');
+      showToast('데이터가 초기화되었습니다.');
     }
   };
 
@@ -48,9 +45,9 @@ export default function HomeView() {
   };
 
   const getTitleAnimClass = () => {
-    if (!isLoaderFinished) return "opacity-0 scale-95 pointer-events-none";
-    if (isTitleDropFinished) return "animate-title-sway";
-    return "animate-title-drop";
+    if (!isLoaderFinished) return 'opacity-0 scale-95 pointer-events-none';
+    if (isTitleDropFinished) return 'animate-title-sway';
+    return 'animate-title-drop';
   };
 
   return (
@@ -64,7 +61,7 @@ export default function HomeView() {
         {/* Title Image with Drop & Sway Animation */}
         <div
           onAnimationEnd={(e) => {
-            if (e.animationName.includes("title-drop")) {
+            if (e.animationName.includes('title-drop')) {
               setIsTitleDropFinished(true);
             }
           }}
@@ -117,7 +114,8 @@ export default function HomeView() {
                   <span>🚚</span> 배송 목표
                 </p>
                 <p className="text-slate-800/90 font-medium">
-                  벽과 장애물에 부딪히며 경로를 찾아 택배차를 정해진 <b>배송 목적지(🏠)</b>까지 안전하게 이동시키세요!
+                  벽과 장애물에 부딪히며 경로를 찾아 택배차를 정해진 <b>배송 목적지(🏠)</b>까지
+                  안전하게 이동시키세요!
                 </p>
               </div>
 
@@ -128,7 +126,8 @@ export default function HomeView() {
                 <p className="text-slate-800/90 font-medium">
                   방향키 또는 화면 스와이프로 택배차를 출발시킬 수 있습니다.
                   <br />
-                  출발한 택배차는 벽에 부딪힐 때까지 멈추지 않고 직진하며, 도로 밖으로 떨어지면 실패합니다!
+                  출발한 택배차는 벽에 부딪힐 때까지 멈추지 않고 직진하며, 도로 밖으로 떨어지면
+                  실패합니다!
                 </p>
               </div>
 
@@ -137,9 +136,9 @@ export default function HomeView() {
                   <span>📦</span> 특수 오브젝트
                 </p>
                 <p className="text-slate-800/90 font-medium">
-                  • <b>골판지 상자(📦)</b>: 충돌 시 멈춘 후 파손되어 사라집니다.<br />
-                  • <b>위험물 상자(⚠️)</b>: 충돌 시 3x3 주변 장애물을 폭파합니다.<br />
-                  • <b>물류 터널(🚇)</b>: 연결된 짝 터널로 순간이동합니다.
+                  • <b>골판지 상자(📦)</b>: 충돌 시 멈춘 후 파손되어 사라집니다.
+                  <br />• <b>위험물 상자(⚠️)</b>: 충돌 시 3x3 주변 장애물을 폭파합니다.
+                  <br />• <b>물류 터널(🚇)</b>: 연결된 짝 터널로 순간이동합니다.
                 </p>
               </div>
             </div>
@@ -156,10 +155,7 @@ export default function HomeView() {
       )}
 
       {/* Settings Modal (Bright Farm Theme & Toss Big Banner Ad & Sound Toggles) */}
-      <SettingsModal
-        isOpen={showSettingsModal}
-        onClose={() => setShowSettingsModal(false)}
-      />
+      <SettingsModal isOpen={showSettingsModal} onClose={() => setShowSettingsModal(false)} />
 
       {/* Toast Notification */}
       {toastMessage && (

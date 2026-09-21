@@ -1,5 +1,5 @@
-import React from "react";
-import { SOIL_TILE_BORDER_WIDTH } from "./constants";
+import React from 'react';
+import { SOIL_TILE_BORDER_WIDTH } from './constants';
 
 export interface SoilTileProps {
   borderTop?: boolean;
@@ -51,13 +51,7 @@ export default function SoilTileDark({
       )}
       {borderBottom && (
         <>
-          <rect
-            x="-1"
-            y={100 - borderWidth}
-            width="102"
-            height={borderWidth + 1}
-            fill="#0f172a"
-          />
+          <rect x="-1" y={100 - borderWidth} width="102" height={borderWidth + 1} fill="#0f172a" />
           <line
             x1="-1"
             y1={100 - innerLineOffset}
@@ -85,13 +79,7 @@ export default function SoilTileDark({
       )}
       {borderRight && (
         <>
-          <rect
-            x={100 - borderWidth}
-            y="-1"
-            width={borderWidth + 1}
-            height="102"
-            fill="#0f172a"
-          />
+          <rect x={100 - borderWidth} y="-1" width={borderWidth + 1} height="102" fill="#0f172a" />
           <line
             x1={100 - innerLineOffset}
             y1="-1"

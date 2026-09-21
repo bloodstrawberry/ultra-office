@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * Returns static asset paths as standard absolute paths (e.g. "/delivery/images/title.png").

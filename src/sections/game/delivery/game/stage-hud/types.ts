@@ -1,5 +1,5 @@
-import React from "react";
-import { CellType } from "../types";
+import React from 'react';
+import { CellType } from '../types';
 
 export interface WoodSignBoardProps {
   label: string;
@@ -17,16 +17,8 @@ export interface EditorStageControlsProps {
   editorAddLevel?: () => void;
   editorDeleteLevel?: () => void;
   playSound: (
-    type:
-      | "coin"
-      | "select"
-      | "start"
-      | "error"
-      | "match"
-      | "fall"
-      | "shoot"
-      | "break",
-    muted: boolean,
+    type: 'coin' | 'select' | 'start' | 'error' | 'match' | 'fall' | 'shoot' | 'break',
+    muted: boolean
   ) => void;
   muted: boolean;
 }
@@ -51,16 +43,8 @@ export interface MenuActionsSectionProps {
   onFullReset?: () => void;
   resetLevel: () => void;
   playSound: (
-    type:
-      | "coin"
-      | "select"
-      | "start"
-      | "error"
-      | "match"
-      | "fall"
-      | "shoot"
-      | "break",
-    muted: boolean,
+    type: 'coin' | 'select' | 'start' | 'error' | 'match' | 'fall' | 'shoot' | 'break',
+    muted: boolean
   ) => void;
   setIsMenuOpen: (open: boolean) => void;
   onBackToStageSelect?: () => void;
@@ -69,20 +53,12 @@ export interface MenuActionsSectionProps {
 }
 
 export interface MenuEditorSectionProps {
-  editorMapType?: "real" | "test";
-  setEditorMapType?: (type: "real" | "test") => void;
-  changeMapType?: (type: "real" | "test") => void;
+  editorMapType?: 'real' | 'test';
+  setEditorMapType?: (type: 'real' | 'test') => void;
+  changeMapType?: (type: 'real' | 'test') => void;
   playSound: (
-    type:
-      | "coin"
-      | "select"
-      | "start"
-      | "error"
-      | "match"
-      | "fall"
-      | "shoot"
-      | "break",
-    muted: boolean,
+    type: 'coin' | 'select' | 'start' | 'error' | 'match' | 'fall' | 'shoot' | 'break',
+    muted: boolean
   ) => void;
   muted: boolean;
   togglePlayTest?: () => void;
@@ -110,23 +86,15 @@ export interface GameMenuModalProps {
   onFullReset?: () => void;
   resetLevel: () => void;
   playSound: (
-    type:
-      | "coin"
-      | "select"
-      | "start"
-      | "error"
-      | "match"
-      | "fall"
-      | "shoot"
-      | "break",
-    muted: boolean,
+    type: 'coin' | 'select' | 'start' | 'error' | 'match' | 'fall' | 'shoot' | 'break',
+    muted: boolean
   ) => void;
   onBackToStageSelect?: () => void;
   handleGoHome: () => void;
   onClearAllBlocks?: () => void;
-  editorMapType?: "real" | "test";
-  setEditorMapType?: (type: "real" | "test") => void;
-  changeMapType?: (type: "real" | "test") => void;
+  editorMapType?: 'real' | 'test';
+  setEditorMapType?: (type: 'real' | 'test') => void;
+  changeMapType?: (type: 'real' | 'test') => void;
   togglePlayTest?: () => void;
   playTestMode: boolean;
 }
@@ -140,7 +108,7 @@ export interface GameStageHudProps {
   editorLevels?: Array<{ name: string; grid: CellType[][] }>;
   muted: boolean;
   playTestMode: boolean;
-  editorMapType?: "real" | "test";
+  editorMapType?: 'real' | 'test';
   selectEditorLevel?: (index: number) => void;
   editorAddLevel?: () => void;
   editorDeleteLevel?: () => void;
@@ -149,20 +117,12 @@ export interface GameStageHudProps {
   resetLevel: () => void;
   setGrabbed: (grabbed: boolean) => void;
   playSound: (
-    type:
-      | "coin"
-      | "select"
-      | "start"
-      | "error"
-      | "match"
-      | "fall"
-      | "shoot"
-      | "break",
-    muted: boolean,
+    type: 'coin' | 'select' | 'start' | 'error' | 'match' | 'fall' | 'shoot' | 'break',
+    muted: boolean
   ) => void;
   togglePlayTest?: () => void;
-  setEditorMapType?: (type: "real" | "test") => void;
-  changeMapType?: (type: "real" | "test") => void;
+  setEditorMapType?: (type: 'real' | 'test') => void;
+  changeMapType?: (type: 'real' | 'test') => void;
   onBackToStageSelect?: () => void;
   onClearAllBlocks?: () => void;
   onMenuToggle?: (isOpen: boolean) => void;

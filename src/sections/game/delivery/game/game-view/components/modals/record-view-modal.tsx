@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React from "react";
-import BlockRenderer from "../../../../object";
-import { RecordViewModalProps } from "../../types";
+import React from 'react';
+import BlockRenderer from '../../../../object';
+import { RecordViewModalProps } from '../../types';
 
 export function RecordViewModal({
   isRecordModalOpen,
@@ -24,38 +24,29 @@ export function RecordViewModal({
   React.useEffect(() => {
     if (!isRecordModalOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "ArrowLeft") {
+      if (e.key === 'ArrowLeft') {
         e.preventDefault();
         setCurrentRecordIndex((prev) => Math.max(0, prev - 1));
-        playSound("select", !!muted);
-      } else if (e.key === "ArrowRight") {
+        playSound('select', !!muted);
+      } else if (e.key === 'ArrowRight') {
         e.preventDefault();
-        setCurrentRecordIndex((prev) =>
-          Math.min(recordedSteps.length - 1, prev + 1),
-        );
-        playSound("select", !!muted);
-      } else if (e.key === "Escape") {
+        setCurrentRecordIndex((prev) => Math.min(recordedSteps.length - 1, prev + 1));
+        playSound('select', !!muted);
+      } else if (e.key === 'Escape') {
         e.preventDefault();
         onClose();
       }
     };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [
-    isRecordModalOpen,
-    recordedSteps.length,
-    playSound,
-    muted,
-    onClose,
-    setCurrentRecordIndex,
-  ]);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isRecordModalOpen, recordedSteps.length, playSound, muted, onClose, setCurrentRecordIndex]);
 
   if (!isRecordModalOpen) return null;
 
   const currentGrid = recordedSteps[currentRecordIndex];
   const currentLevelName = isEditor
     ? editorLevels[editorActiveIndex]?.name || `Level ${editorActiveIndex + 1}`
-    : builtinLevelName || "Game Test";
+    : builtinLevelName || 'Game Test';
 
   return (
     <div className="absolute inset-0 bg-stone-900/50 backdrop-blur-[4px] z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
@@ -109,7 +100,7 @@ export function RecordViewModal({
                         >
                           <BlockRenderer id={cell} />
                         </div>
-                      )),
+                      ))
                     )}
                   </div>
                 </div>
@@ -122,7 +113,7 @@ export function RecordViewModal({
                       type="button"
                       onClick={() => {
                         setCurrentRecordIndex((prev) => Math.max(0, prev - 1));
-                        playSound("select", !!muted);
+                        playSound('select', !!muted);
                       }}
                       disabled={currentRecordIndex === 0}
                       className="w-6 h-6 rounded-lg bg-sky-100 hover:bg-sky-200 active:bg-sky-300 border border-sky-300 text-sky-900 font-black flex items-center justify-center disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed text-[10px]"
@@ -139,9 +130,9 @@ export function RecordViewModal({
                       type="button"
                       onClick={() => {
                         setCurrentRecordIndex((prev) =>
-                          Math.min(recordedSteps.length - 1, prev + 1),
+                          Math.min(recordedSteps.length - 1, prev + 1)
                         );
-                        playSound("select", !!muted);
+                        playSound('select', !!muted);
                       }}
                       disabled={currentRecordIndex === recordedSteps.length - 1}
                       className="w-6 h-6 rounded-lg bg-sky-100 hover:bg-sky-200 active:bg-sky-300 border border-sky-300 text-sky-900 font-black flex items-center justify-center disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed text-[10px]"
@@ -160,14 +151,11 @@ export function RecordViewModal({
                           onDeleteSingleRecord(currentRecordIndex);
                           if (recordedSteps.length - 1 <= 0) {
                             onClose();
-                          } else if (
-                            currentRecordIndex >=
-                            recordedSteps.length - 1
-                          ) {
+                          } else if (currentRecordIndex >= recordedSteps.length - 1) {
                             setCurrentRecordIndex(recordedSteps.length - 2);
                           }
-                          onToast?.("현재 녹화 기록이 삭제되었습니다.");
-                          playSound("select", !!muted);
+                          onToast?.('현재 녹화 기록이 삭제되었습니다.');
+                          playSound('select', !!muted);
                         }}
                         className="px-2 sm:px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-300 text-rose-700 font-bold text-xs rounded-xl cursor-pointer shadow-xs flex items-center gap-1 active:scale-95 shrink-0"
                         title="현재 스텝 삭제"
@@ -182,8 +170,8 @@ export function RecordViewModal({
                         onClick={() => {
                           onClearRecord();
                           onClose();
-                          onToast?.("전체 녹화 기록이 초기화되었습니다.");
-                          playSound("select", !!muted);
+                          onToast?.('전체 녹화 기록이 초기화되었습니다.');
+                          playSound('select', !!muted);
                         }}
                         className="px-2 sm:px-2.5 py-1.5 bg-stone-100 hover:bg-stone-200 border border-stone-300 text-stone-700 font-bold text-xs rounded-xl cursor-pointer shadow-xs flex items-center gap-1 active:scale-95 shrink-0"
                         title="전체 녹화 기록 삭제"
@@ -197,8 +185,8 @@ export function RecordViewModal({
                         type="button"
                         onClick={() => {
                           onAddHint(currentGrid);
-                          onToast?.("현재 기록이 힌트로 추가되었습니다!");
-                          playSound("select", !!muted);
+                          onToast?.('현재 기록이 힌트로 추가되었습니다!');
+                          playSound('select', !!muted);
                         }}
                         className="px-2 sm:px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-800 font-bold text-xs rounded-xl cursor-pointer shadow-xs flex items-center gap-1 active:scale-95 shrink-0"
                       >

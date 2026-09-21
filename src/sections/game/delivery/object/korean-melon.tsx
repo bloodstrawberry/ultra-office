@@ -1,5 +1,5 @@
-import React from "react";
-import { OBJECT_SCALES } from "./constants";
+import React from 'react';
+import { OBJECT_SCALES } from './constants';
 
 // 개별 크기 조절 변수 (1.0 = 100%, 1.2 = 120% 등)
 const SCALE = OBJECT_SCALES.koreanMelon;
@@ -14,16 +14,13 @@ export default function KoreanMelon({ isFrozen = false }: KoreanMelonProps) {
       className="w-full h-full flex items-center justify-center pointer-events-none select-none"
       style={{ transform: `scale(${SCALE})` }}
     >
-      <svg
-        viewBox="0 0 100 100"
-        className="w-full h-full overflow-visible drop-shadow-sm"
-      >
+      <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible drop-shadow-sm">
         <ellipse
           cx="50"
           cy="55"
           rx="28"
           ry="38"
-          fill={isFrozen ? "#E6C200" : "#FFD700"}
+          fill={isFrozen ? '#E6C200' : '#FFD700'}
           stroke="#221C14"
           strokeWidth="4"
         />
@@ -80,38 +77,10 @@ export default function KoreanMelon({ isFrozen = false }: KoreanMelonProps) {
               stroke="#221C14"
               strokeWidth="2.5"
             />
-            <line
-              x1="46"
-              y1="61"
-              x2="46"
-              y2="69"
-              stroke="#221C14"
-              strokeWidth="1.2"
-            />
-            <line
-              x1="50"
-              y1="61"
-              x2="50"
-              y2="69"
-              stroke="#221C14"
-              strokeWidth="1.2"
-            />
-            <line
-              x1="54"
-              y1="61"
-              x2="54"
-              y2="69"
-              stroke="#221C14"
-              strokeWidth="1.2"
-            />
-            <line
-              x1="42"
-              y1="65"
-              x2="58"
-              y2="65"
-              stroke="#221C14"
-              strokeWidth="1.2"
-            />
+            <line x1="46" y1="61" x2="46" y2="69" stroke="#221C14" strokeWidth="1.2" />
+            <line x1="50" y1="61" x2="50" y2="69" stroke="#221C14" strokeWidth="1.2" />
+            <line x1="54" y1="61" x2="54" y2="69" stroke="#221C14" strokeWidth="1.2" />
+            <line x1="42" y1="65" x2="58" y2="65" stroke="#221C14" strokeWidth="1.2" />
           </>
         ) : (
           <>

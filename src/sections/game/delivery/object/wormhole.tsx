@@ -1,5 +1,5 @@
-import React from "react";
-import Portal, { PortalProps } from "./portal";
+import React from 'react';
+import Portal, { PortalProps } from './portal';
 
 export type WormholeProps = PortalProps;
 

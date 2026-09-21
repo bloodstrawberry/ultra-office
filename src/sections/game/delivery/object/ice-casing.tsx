@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 interface IceCasingProps {
   children?: React.ReactNode;
@@ -14,18 +14,9 @@ export default function IceCasing({ children }: IceCasingProps) {
 
       {/* Glossy 3D Ice Casing SVG Overlay */}
       <div className="absolute inset-0 z-10 pointer-events-none flex items-center justify-center p-0.5">
-        <svg
-          viewBox="0 0 100 100"
-          className="w-full h-full overflow-visible drop-shadow-md"
-        >
+        <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible drop-shadow-md">
           <defs>
-            <linearGradient
-              id="iceGradient"
-              x1="0%"
-              y1="0%"
-              x2="100%"
-              y2="100%"
-            >
+            <linearGradient id="iceGradient" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#E0F2FE" stopOpacity="0.65" />
               <stop offset="50%" stopColor="#38BDF8" stopOpacity="0.3" />
               <stop offset="100%" stopColor="#0284C7" stopOpacity="0.5" />
@@ -65,11 +56,7 @@ export default function IceCasing({ children }: IceCasingProps) {
           />
 
           {/* Shiny Top-Left Corner Diagonal Reflections */}
-          <path
-            d="M 12 8 L 88 8 C 88 8, 48 48, 12 8 Z"
-            fill="url(#iceHighlight)"
-            opacity="0.5"
-          />
+          <path d="M 12 8 L 88 8 C 88 8, 48 48, 12 8 Z" fill="url(#iceHighlight)" opacity="0.5" />
           <path d="M 14 14 L 38 14 L 14 38 Z" fill="#FFFFFF" opacity="0.65" />
           <path
             d="M 14 44 L 54 14"

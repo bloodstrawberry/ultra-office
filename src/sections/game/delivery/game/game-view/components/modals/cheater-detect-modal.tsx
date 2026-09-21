@@ -1,12 +1,9 @@
-"use client";
+'use client';
 
-import React from "react";
-import { CheaterDetectModalProps } from "../../types";
+import React from 'react';
+import { CheaterDetectModalProps } from '../../types';
 
-export function CheaterDetectModal({
-  cheaterPopupOpen,
-  onConfirm,
-}: CheaterDetectModalProps) {
+export function CheaterDetectModal({ cheaterPopupOpen, onConfirm }: CheaterDetectModalProps) {
   if (!cheaterPopupOpen) return null;
 
   return (
@@ -28,10 +25,7 @@ export function CheaterDetectModal({
           잠겨있는 문제에는 바로 입장하실 수 없습니다.
           <br />
           <br />
-          <span className="text-rose-600 font-bold">
-            진행 상황 패널티:
-          </span>{" "}
-          처음 레벨로{" "}
+          <span className="text-rose-600 font-bold">진행 상황 패널티:</span> 처음 레벨로{' '}
           <span className="text-stone-900 font-bold underline">초기화</span>
           됩니다!
         </p>

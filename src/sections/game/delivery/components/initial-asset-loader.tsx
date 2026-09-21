@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import { useAssetLoader } from "./asset-loader-context";
-import { getAssetPath } from "../utils/asset";
+import React, { useState, useEffect } from 'react';
+import { useAssetLoader } from './asset-loader-context';
+import { getAssetPath } from '../utils/asset';
 
 const ASSETS_TO_PRELOAD: string[] = [
-  getAssetPath("/delivery/images/background.png"),
-  getAssetPath("/delivery/images/button-start.png"),
-  getAssetPath("/delivery/images/button-editor.png"),
-  getAssetPath("/delivery/images/button-rule.png"),
-  getAssetPath("/delivery/images/button-setting.png"),
-  getAssetPath("/delivery/sounds/bgm.mp3"),
+  getAssetPath('/delivery/images/background.png'),
+  getAssetPath('/delivery/images/button-start.png'),
+  getAssetPath('/delivery/images/button-editor.png'),
+  getAssetPath('/delivery/images/button-rule.png'),
+  getAssetPath('/delivery/images/button-setting.png'),
+  getAssetPath('/delivery/sounds/bgm.mp3'),
 ];
 
 export default function InitialAssetLoader() {
@@ -37,7 +37,9 @@ export default function InitialAssetLoader() {
       setTimeout(() => {
         if (!isCancelled) {
           setIsLoaded(true);
-          try { markLoaderAsFinished(); } catch {}
+          try {
+            markLoaderAsFinished();
+          } catch {}
           setTimeout(() => {
             if (!isCancelled) {
               setIsDismissed(true);
@@ -47,10 +49,10 @@ export default function InitialAssetLoader() {
       }, 300);
     };
 
-    if (typeof window !== "undefined") {
+    if (typeof window !== 'undefined') {
       ASSETS_TO_PRELOAD.forEach((src) => {
         try {
-          if (src.endsWith(".mp3") || src.endsWith(".wav") || src.endsWith(".ogg")) {
+          if (src.endsWith('.mp3') || src.endsWith('.wav') || src.endsWith('.ogg')) {
             const audio = new Audio();
             let handled = false;
             const onDone = () => {
@@ -128,7 +130,7 @@ export default function InitialAssetLoader() {
   return (
     <div
       className={`fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-[url('/delivery/images/background.png')] bg-cover bg-center text-slate-800 select-none font-jua p-6 transition-opacity duration-500 ease-out ${
-        isLoaded ? "opacity-0 pointer-events-none" : "opacity-100"
+        isLoaded ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
     >
       {/* Decorative background sparkles */}
@@ -147,14 +149,14 @@ export default function InitialAssetLoader() {
         {/* Animated Logo with Circle Loading (Occupies ~50% of viewport width) */}
         <div className="relative w-[50vw] h-[50vw] max-w-[220px] max-h-[220px] min-w-[160px] min-h-[160px] flex items-center justify-center">
           <div className="absolute inset-0 rounded-full border-[6px] border-rose-200 border-t-[#FF4B6E] animate-spin shadow-md" />
-          <span className="relative z-10 text-7xl" aria-hidden="true">🚚</span>
+          <span className="relative z-10 text-7xl" aria-hidden="true">
+            🚚
+          </span>
         </div>
 
         {/* Title and Status Text */}
         <div className="space-y-1">
-          <h2 className="text-2xl font-black text-slate-800 tracking-tight">
-            택배 배송
-          </h2>
+          <h2 className="text-2xl font-black text-slate-800 tracking-tight">택배 배송</h2>
           <p className="text-xs font-bold text-slate-500 tracking-wide">
             리소스를 불러오는 중입니다...
           </p>

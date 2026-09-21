@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import { Position } from "./types";
+import React, { useState, useEffect } from 'react';
+import { Position } from './types';
 
 export type TutorialStep = 1 | 2 | 3 | 4;
 
@@ -19,11 +19,7 @@ export interface GameTutorialProps {
   onStepChange?: (step: TutorialStep) => void;
 }
 
-export default function GameTutorial({
-  levelIndex,
-  isEditor,
-  playTestMode,
-}: GameTutorialProps) {
+export default function GameTutorial({ levelIndex, isEditor, playTestMode }: GameTutorialProps) {
   const [showGuide, setShowGuide] = useState<boolean>(false);
 
   useEffect(() => {

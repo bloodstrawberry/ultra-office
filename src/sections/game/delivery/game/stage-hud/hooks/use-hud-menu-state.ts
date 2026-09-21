@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   isBgmMuted,
   setBgmMuted,
@@ -13,12 +13,12 @@ import {
   BGM_CHANGE_EVENT,
   BGM_VOLUME_CHANGE_EVENT,
   SFX_CHANGE_EVENT,
-} from "../../../utils/sound";
+} from '../../../utils/sound';
 import {
   isTouchMoveEnabled,
   toggleTouchMoveEnabled,
   TOUCH_MOVE_CHANGE_EVENT,
-} from "../../../utils/touch-move";
+} from '../../../utils/touch-move';
 
 interface UseHudMenuStateOptions {
   externalMenuOpen?: boolean;
@@ -27,16 +27,8 @@ interface UseHudMenuStateOptions {
   editorActiveIndex?: number;
   setMuted?: (muted: boolean) => void;
   playSound: (
-    type:
-      | "coin"
-      | "select"
-      | "start"
-      | "error"
-      | "match"
-      | "fall"
-      | "shoot"
-      | "break",
-    muted: boolean,
+    type: 'coin' | 'select' | 'start' | 'error' | 'match' | 'fall' | 'shoot' | 'break',
+    muted: boolean
   ) => void;
   muted: boolean;
 }
@@ -52,8 +44,7 @@ export function useHudMenuState({
 }: UseHudMenuStateOptions) {
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpenState] = useState<boolean>(false);
-  const [showTouchGuideModal, setShowTouchGuideModal] =
-    useState<boolean>(false);
+  const [showTouchGuideModal, setShowTouchGuideModal] = useState<boolean>(false);
   const [mounted, setMounted] = useState<boolean>(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -82,7 +73,7 @@ export function useHudMenuState({
   const [touchMoveEnabled, setTouchMoveEnabledState] = useState<boolean>(false);
 
   const [stageInputValue, setStageInputValue] = useState<string>(
-    ((editorActiveIndex ?? 0) + 1).toString(),
+    ((editorActiveIndex ?? 0) + 1).toString()
   );
 
   useEffect(() => {
@@ -90,7 +81,7 @@ export function useHudMenuState({
     setStageInputValue(((editorActiveIndex ?? 0) + 1).toString());
   }, [editorActiveIndex]);
 
-  const isLocal = process.env.NEXT_PUBLIC_APP_ENV?.toUpperCase() === "LOCAL";
+  const isLocal = process.env.NEXT_PUBLIC_APP_ENV?.toUpperCase() === 'LOCAL';
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -123,9 +114,7 @@ export function useHudMenuState({
 
     const handleTouchMoveChange = (e: Event) => {
       const customEvt = e as CustomEvent<{ enabled: boolean }>;
-      setTouchMoveEnabledState(
-        customEvt.detail?.enabled ?? isTouchMoveEnabled(),
-      );
+      setTouchMoveEnabledState(customEvt.detail?.enabled ?? isTouchMoveEnabled());
     };
 
     window.addEventListener(BGM_CHANGE_EVENT, handleBgmChange);
@@ -137,10 +126,7 @@ export function useHudMenuState({
       window.removeEventListener(BGM_CHANGE_EVENT, handleBgmChange);
       window.removeEventListener(BGM_VOLUME_CHANGE_EVENT, handleVolumeChange);
       window.removeEventListener(SFX_CHANGE_EVENT, handleSfxChange);
-      window.removeEventListener(
-        TOUCH_MOVE_CHANGE_EVENT,
-        handleTouchMoveChange,
-      );
+      window.removeEventListener(TOUCH_MOVE_CHANGE_EVENT, handleTouchMoveChange);
     };
   }, [isMenuOpen]);
 
@@ -177,16 +163,16 @@ export function useHudMenuState({
   const handleToggleTouchMove = () => {
     const next = toggleTouchMoveEnabled();
     setTouchMoveEnabledState(next);
-    playSound("select", muted);
+    playSound('select', muted);
   };
 
   const handleGoHome = () => {
-    playSound("select", muted);
+    playSound('select', muted);
     setIsMenuOpen(false);
     try {
-      router.push("/game/delivery");
+      router.push('/game/delivery');
     } catch {
-      window.location.href = "/game/delivery";
+      window.location.href = '/game/delivery';
     }
   };
 
@@ -198,8 +184,8 @@ export function useHudMenuState({
         setIsMenuOpen(false);
       }
     };
-    document.addEventListener("mousedown", handleOutsideClick);
-    return () => document.removeEventListener("mousedown", handleOutsideClick);
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, [isMenuOpen]);
 
   return {

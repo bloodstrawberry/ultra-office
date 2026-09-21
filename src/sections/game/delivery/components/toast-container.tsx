@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 
 interface ToastMessage {
   id: string;
@@ -8,11 +8,9 @@ interface ToastMessage {
 }
 
 export function showToast(message: string) {
-  if (typeof window !== "undefined") {
+  if (typeof window !== 'undefined') {
     setTimeout(() => {
-      window.dispatchEvent(
-        new CustomEvent("show-toss-toast", { detail: { message } }),
-      );
+      window.dispatchEvent(new CustomEvent('show-toss-toast', { detail: { message } }));
     }, 0);
   }
 }
@@ -41,9 +39,9 @@ export default function ToastContainer() {
       }, 3000);
     };
 
-    window.addEventListener("show-toss-toast", handleShowToast);
+    window.addEventListener('show-toss-toast', handleShowToast);
     return () => {
-      window.removeEventListener("show-toss-toast", handleShowToast);
+      window.removeEventListener('show-toss-toast', handleShowToast);
     };
   }, []);
 

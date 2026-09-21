@@ -1,5 +1,5 @@
-import React from "react";
-import { OBJECT_SCALES } from "./constants";
+import React from 'react';
+import { OBJECT_SCALES } from './constants';
 
 // 개별 크기 조절 변수 (1.0 = 100%, 1.2 = 120% 등)
 const SCALE = OBJECT_SCALES.wallH;
@@ -14,10 +14,7 @@ export default function WallH({ isFrozen = false }: WallHProps) {
       className="w-full h-full flex items-center justify-center pointer-events-none select-none"
       style={{ transform: `scale(${SCALE})` }}
     >
-      <svg
-        viewBox="0 0 100 100"
-        className="w-full h-full overflow-visible drop-shadow-md"
-      >
+      <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible drop-shadow-md">
         {/* 가로형 주택 가벽/차단 펜스 본체 */}
         <rect
           x="4"
@@ -25,7 +22,7 @@ export default function WallH({ isFrozen = false }: WallHProps) {
           width="92"
           height="68"
           rx="12"
-          fill={isFrozen ? "#c7d2fe" : "#3b82f6"}
+          fill={isFrozen ? '#c7d2fe' : '#3b82f6'}
           stroke="#0f172a"
           strokeWidth="3.5"
         />
@@ -37,7 +34,7 @@ export default function WallH({ isFrozen = false }: WallHProps) {
           width="80"
           height="56"
           rx="8"
-          fill={isFrozen ? "#dbeafe" : "#60a5fa"}
+          fill={isFrozen ? '#dbeafe' : '#60a5fa'}
           stroke="#0f172a"
           strokeWidth="2"
         />
@@ -47,9 +44,33 @@ export default function WallH({ isFrozen = false }: WallHProps) {
         <polygon points="86,50 76,38 76,62" fill="#ffffff" stroke="#0f172a" strokeWidth="1.5" />
 
         {/* 가로 줄무늬 펜스 디테일 */}
-        <line x1="28" y1="36" x2="72" y2="36" stroke="#1d4ed8" strokeWidth="3" strokeLinecap="round" />
-        <line x1="28" y1="50" x2="72" y2="50" stroke="#1d4ed8" strokeWidth="3" strokeLinecap="round" />
-        <line x1="28" y1="64" x2="72" y2="64" stroke="#1d4ed8" strokeWidth="3" strokeLinecap="round" />
+        <line
+          x1="28"
+          y1="36"
+          x2="72"
+          y2="36"
+          stroke="#1d4ed8"
+          strokeWidth="3"
+          strokeLinecap="round"
+        />
+        <line
+          x1="28"
+          y1="50"
+          x2="72"
+          y2="50"
+          stroke="#1d4ed8"
+          strokeWidth="3"
+          strokeLinecap="round"
+        />
+        <line
+          x1="28"
+          y1="64"
+          x2="72"
+          y2="64"
+          stroke="#1d4ed8"
+          strokeWidth="3"
+          strokeLinecap="round"
+        />
 
         {/* 중앙 보안 센서등 */}
         <circle cx="50" cy="50" r="7" fill="#facc15" stroke="#0f172a" strokeWidth="2" />

@@ -212,27 +212,23 @@ export function isStrawberryBlock(id: BlockId): boolean {
   return uniced === BLOCK_STRAWBERRY || (uniced >= 201 && uniced <= 203);
 }
 
-export function getStrawberryDirection(
-  id: BlockId,
-): "up" | "down" | "left" | "right" {
+export function getStrawberryDirection(id: BlockId): 'up' | 'down' | 'left' | 'right' {
   const uniced = isFrozenBlock(id) ? id - BLOCK_ICE_OFFSET : id;
-  if (uniced === BLOCK_STRAWBERRY_U) return "up";
-  if (uniced === BLOCK_STRAWBERRY_R) return "right";
-  if (uniced === BLOCK_STRAWBERRY_D) return "down";
-  return "left";
+  if (uniced === BLOCK_STRAWBERRY_U) return 'up';
+  if (uniced === BLOCK_STRAWBERRY_R) return 'right';
+  if (uniced === BLOCK_STRAWBERRY_D) return 'down';
+  return 'left';
 }
 
-export function getStrawberryBlockId(
-  dir?: "up" | "down" | "left" | "right",
-): BlockId {
+export function getStrawberryBlockId(dir?: 'up' | 'down' | 'left' | 'right'): BlockId {
   switch (dir) {
-    case "up":
+    case 'up':
       return BLOCK_STRAWBERRY_U;
-    case "right":
+    case 'right':
       return BLOCK_STRAWBERRY_R;
-    case "down":
+    case 'down':
       return BLOCK_STRAWBERRY_D;
-    case "left":
+    case 'left':
     default:
       return BLOCK_STRAWBERRY_L;
   }
@@ -649,10 +645,7 @@ export function isLetterBlockActive(id: BlockId, grid?: BlockId[][]): boolean {
   return true;
 }
 
-export function getBlockProperties(
-  id: BlockId,
-  grid?: BlockId[][],
-): BlockProperties {
+export function getBlockProperties(id: BlockId, grid?: BlockId[][]): BlockProperties {
   const isFrozen = isFrozenBlock(id);
   const baseId = getBaseBlockId(id);
 
@@ -693,65 +686,63 @@ export function getBlockProperties(
   return baseProps;
 }
 
-export const BASE_PATH = (process.env.NEXT_PUBLIC_BASE_PATH || "").trim();
+export const BASE_PATH = (process.env.NEXT_PUBLIC_BASE_PATH || '').trim();
 
 export function getBlockAssetPath(path: string): string {
-  if (!path) return "";
-  if (path.startsWith("http://") || path.startsWith("https://")) return path;
-  const cleanPath = path.startsWith("/") ? path : `/${path}`;
-  const base = (process.env.NEXT_PUBLIC_BASE_PATH || "").trim();
+  if (!path) return '';
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  const base = (process.env.NEXT_PUBLIC_BASE_PATH || '').trim();
   return `${base}${cleanPath}`;
 }
 
 export function resolveDynamicPath(targetPath: string): string {
-  if (typeof window === "undefined") return targetPath;
+  if (typeof window === 'undefined') return targetPath;
 
   const href = window.location.href;
 
   // 1. Get the clean URL without query string or hash
-  const urlWithoutQuery = href.split("?")[0].split("#")[0];
+  const urlWithoutQuery = href.split('?')[0].split('#')[0];
 
   // 2. Find the root directory URL of the application
   let appRootUrl = urlWithoutQuery;
 
-  if (appRootUrl.endsWith("/index.html")) {
+  if (appRootUrl.endsWith('/index.html')) {
     appRootUrl = appRootUrl.slice(0, -11);
   }
 
   // Strip sub-folder route names if we are inside a sub-route page
-  const subFolders = ["/game", "/editor", "/home"];
+  const subFolders = ['/game', '/editor', '/home'];
   for (const folder of subFolders) {
     if (appRootUrl.endsWith(folder)) {
       appRootUrl = appRootUrl.slice(0, -folder.length);
       break;
-    } else if (appRootUrl.endsWith(folder + "/")) {
+    } else if (appRootUrl.endsWith(folder + '/')) {
       appRootUrl = appRootUrl.slice(0, -(folder.length + 1));
       break;
     }
   }
 
   // Ensure root URL ends with a trailing slash
-  if (!appRootUrl.endsWith("/")) {
-    appRootUrl += "/";
+  if (!appRootUrl.endsWith('/')) {
+    appRootUrl += '/';
   }
 
   // 3. Prepare clean target path
-  const cleanTarget = targetPath.startsWith("/")
-    ? targetPath.slice(1)
-    : targetPath;
-  const [pathPart, queryPart] = cleanTarget.split("?");
-  const queryStr = queryPart ? `?${queryPart}` : "";
+  const cleanTarget = targetPath.startsWith('/') ? targetPath.slice(1) : targetPath;
+  const [pathPart, queryPart] = cleanTarget.split('?');
+  const queryStr = queryPart ? `?${queryPart}` : '';
 
   const isLocal =
-    process.env.NEXT_PUBLIC_APP_ENV?.toUpperCase() === "LOCAL" ||
-    process.env.NODE_ENV === "development";
-  const useIndexHtml = !isLocal || href.includes("index.html");
+    process.env.NEXT_PUBLIC_APP_ENV?.toUpperCase() === 'LOCAL' ||
+    process.env.NODE_ENV === 'development';
+  const useIndexHtml = !isLocal || href.includes('index.html');
 
   let targetFilePath = pathPart;
   if (useIndexHtml) {
-    if (targetFilePath.endsWith("/")) {
+    if (targetFilePath.endsWith('/')) {
       targetFilePath = `${targetFilePath}index.html`;
-    } else if (targetFilePath === "") {
+    } else if (targetFilePath === '') {
       targetFilePath = `index.html`;
     } else {
       targetFilePath = `${targetFilePath}/index.html`;

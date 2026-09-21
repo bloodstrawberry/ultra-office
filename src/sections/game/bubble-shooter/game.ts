@@ -31,7 +31,11 @@ export function collides(grid: Grid, x: number, y: number): boolean {
   const nearestRow = Math.round((y - RADIUS) / ROW_HEIGHT);
   for (let row = Math.max(0, nearestRow - 1); row <= Math.min(ROWS - 1, nearestRow + 1); row += 1) {
     const nearestCol = Math.round((x - RADIUS - (row % 2) * RADIUS) / (RADIUS * 2));
-    for (let col = Math.max(0, nearestCol - 1); col <= Math.min(COLUMNS - 1, nearestCol + 1); col += 1) {
+    for (
+      let col = Math.max(0, nearestCol - 1);
+      col <= Math.min(COLUMNS - 1, nearestCol + 1);
+      col += 1
+    ) {
       if (grid[row][col] == null) continue;
       const point = center(row, col);
       const dx = point.x - x;

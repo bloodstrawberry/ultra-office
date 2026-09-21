@@ -1,25 +1,25 @@
-"use client";
+'use client';
 
-import React from "react";
+import React from 'react';
 
 // =========================================================================
 // [헤더 스타일 & 크기 조절 변수]
 // 필요에 따라 헤더 높이, 패딩, 폰트 크기, 수직 위치 등을 이 변수에서 수정하실 수 있습니다.
 // =========================================================================
 /** 헤더 높이 및 패딩 */
-export const HEADER_HEIGHT_CLASS = "h-14 px-4";
+export const HEADER_HEIGHT_CLASS = 'h-14 px-4';
 
 /** 타이틀 폰트 크기 */
-export const TITLE_FONT_SIZE_CLASS = "text-lg sm:text-xl";
+export const TITLE_FONT_SIZE_CLASS = 'text-lg sm:text-xl';
 
 /** 뒤로가기 버튼 박스 크기 */
-export const BUTTON_SIZE_CLASS = "w-8 h-8";
+export const BUTTON_SIZE_CLASS = 'w-8 h-8';
 
 /** 뒤로가기 화살표 아이콘 크기 */
-export const ARROW_ICON_SIZE_CLASS = "w-4.5 h-4.5";
+export const ARROW_ICON_SIZE_CLASS = 'w-4.5 h-4.5';
 
 /** 타이틀 전용 상단 공간(여백) 조절 변수 */
-export const TITLE_TOP_SPACE_CLASS = "pt-0";
+export const TITLE_TOP_SPACE_CLASS = 'pt-0';
 
 export interface StepHeaderProps {
   title?: string;
@@ -29,10 +29,10 @@ export interface StepHeaderProps {
 }
 
 export function StepHeader({
-  title = "콕!",
+  title = '콕!',
   onBack,
   showBack = false,
-  className = "",
+  className = '',
 }: StepHeaderProps) {
   const shouldShowBack = showBack || Boolean(onBack);
 
@@ -54,11 +54,7 @@ export function StepHeader({
               fill="none"
               viewBox="0 0 24 24"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15.75 19.5L8.25 12l7.5-7.5"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
             </svg>
           </button>
         )}

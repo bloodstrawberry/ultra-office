@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import { createPortal } from "react-dom";
-import TossBigBannerAd from "../toss/toss-big-banner-ad";
-import { getItem, setItem, setLocalSync, clear } from "../utils/local-storage";
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import TossBigBannerAd from '../toss/toss-big-banner-ad';
+import { getItem, setItem, setLocalSync, clear } from '../utils/local-storage';
 import {
   isBgmMuted,
   setBgmMuted,
@@ -15,7 +15,7 @@ import {
   BGM_CHANGE_EVENT,
   BGM_VOLUME_CHANGE_EVENT,
   SFX_CHANGE_EVENT,
-} from "../utils/sound";
+} from '../utils/sound';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -27,9 +27,9 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const [bgmMuted, setBgmMutedState] = useState<boolean>(false);
   const [bgmVolume, setBgmVolumeState] = useState<number>(0.003);
   const [sfxMuted, setSfxMutedState] = useState<boolean>(false);
-  const [stageInput, setStageInput] = useState<string>("");
+  const [stageInput, setStageInput] = useState<string>('');
 
-  const isLocal = process.env.NEXT_PUBLIC_APP_ENV?.toUpperCase() === "LOCAL";
+  const isLocal = process.env.NEXT_PUBLIC_APP_ENV?.toUpperCase() === 'LOCAL';
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -45,8 +45,8 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     setSfxMutedState(isSfxMuted());
 
     if (isLocal) {
-      getItem("puzznic_max_unlocked").then((stored) => {
-        setStageInput(stored || "1");
+      getItem('puzznic_max_unlocked').then((stored) => {
+        setStageInput(stored || '1');
       });
     }
 
@@ -110,21 +110,19 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const handleSetStage = async () => {
     const parsed = parseInt(stageInput, 10);
     if (isNaN(parsed) || parsed < 1) {
-      alert("올바른 문제 번호를 입력해주세요.");
+      alert('올바른 문제 번호를 입력해주세요.');
       return;
     }
-    setLocalSync("puzznic_max_unlocked", String(parsed));
-    await setItem("puzznic_max_unlocked", String(parsed));
+    setLocalSync('puzznic_max_unlocked', String(parsed));
+    await setItem('puzznic_max_unlocked', String(parsed));
     alert(`최대 해금 문제가 ${parsed}단계로 설정되었습니다.`);
     window.location.reload();
   };
 
   const handleResetAll = async () => {
-    if (
-      confirm("정말 모든 데이터를 초기화하시겠습니까?\n모든 문제가 삭제됩니다.")
-    ) {
+    if (confirm('정말 모든 데이터를 초기화하시겠습니까?\n모든 문제가 삭제됩니다.')) {
       await clear();
-      alert("모든 데이터가 초기화되었습니다.");
+      alert('모든 데이터가 초기화되었습니다.');
       window.location.reload();
     }
   };
@@ -166,13 +164,9 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           <div className="flex flex-col gap-2 p-3 bg-amber-100/70 rounded-2xl border border-amber-300/80 shadow-xs">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-xl">
-                  {bgmMuted || bgmVolume === 0 ? "🔇" : "🎵"}
-                </span>
+                <span className="text-xl">{bgmMuted || bgmVolume === 0 ? '🔇' : '🎵'}</span>
                 <div className="flex flex-col">
-                  <span className="font-extrabold text-xs text-amber-950">
-                    배경음 (BGM)
-                  </span>
+                  <span className="font-extrabold text-xs text-amber-950">배경음 (BGM)</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -184,11 +178,11 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   onClick={handleToggleBgm}
                   className={`px-2.5 py-1 rounded-xl font-black text-[11px] transition-all cursor-pointer shadow-xs active:scale-95 ${
                     bgmMuted
-                      ? "bg-amber-200 text-amber-800 border border-amber-300 hover:bg-amber-300"
-                      : "bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20"
+                      ? 'bg-amber-200 text-amber-800 border border-amber-300 hover:bg-amber-300'
+                      : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20'
                   }`}
                 >
-                  {bgmMuted ? "OFF" : "ON"}
+                  {bgmMuted ? 'OFF' : 'ON'}
                 </button>
               </div>
             </div>
@@ -212,21 +206,19 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           {/* 효과음 (SFX) 컨트롤 */}
           <div className="flex items-center justify-between p-2.5 bg-amber-100/70 rounded-2xl border border-amber-300/80 shadow-xs">
             <div className="flex items-center gap-2 min-w-0">
-              <span className="text-xl">{sfxMuted ? "🔇" : "🔔"}</span>
-              <span className="font-extrabold text-xs text-amber-950 truncate">
-                효과음 (SFX)
-              </span>
+              <span className="text-xl">{sfxMuted ? '🔇' : '🔔'}</span>
+              <span className="font-extrabold text-xs text-amber-950 truncate">효과음 (SFX)</span>
             </div>
             <button
               type="button"
               onClick={handleToggleSfx}
               className={`px-2.5 py-1 rounded-xl font-black text-[11px] transition-all cursor-pointer shadow-xs active:scale-95 shrink-0 ${
                 sfxMuted
-                  ? "bg-amber-200 text-amber-800 border border-amber-300 hover:bg-amber-300"
-                  : "bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20"
+                  ? 'bg-amber-200 text-amber-800 border border-amber-300 hover:bg-amber-300'
+                  : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20'
               }`}
             >
-              {sfxMuted ? "OFF" : "ON"}
+              {sfxMuted ? 'OFF' : 'ON'}
             </button>
           </div>
         </div>
@@ -261,9 +253,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             </div>
 
             <div className="flex items-center justify-between pt-1 border-t border-amber-200/80">
-              <span className="font-bold text-[11px] text-amber-900/80">
-                Storage 전체 초기화
-              </span>
+              <span className="font-bold text-[11px] text-amber-900/80">Storage 전체 초기화</span>
               <button
                 type="button"
                 onClick={handleResetAll}
@@ -293,6 +283,6 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         </div>
       </div>
     </div>,
-    document.body,
+    document.body
   );
 }

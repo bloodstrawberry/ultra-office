@@ -1,5 +1,5 @@
-import React from "react";
-import { OBJECT_SCALES } from "./constants";
+import React from 'react';
+import { OBJECT_SCALES } from './constants';
 
 // 개별 크기 조절 변수 (1.0 = 100%, 1.2 = 120% 등)
 const SCALE = OBJECT_SCALES.bomb;
@@ -14,10 +14,7 @@ export default function Bomb({ isFrozen = false }: BombProps) {
       className="w-full h-full flex items-center justify-center pointer-events-none select-none"
       style={{ transform: `scale(${SCALE})` }}
     >
-      <svg
-        viewBox="0 0 100 100"
-        className="w-full h-full overflow-visible drop-shadow-md"
-      >
+      <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible drop-shadow-md">
         {/* 그림자 */}
         <ellipse cx="50" cy="88" rx="36" ry="7" fill="#0f172a" opacity="0.25" />
 
@@ -30,7 +27,10 @@ export default function Bomb({ isFrozen = false }: BombProps) {
           strokeLinecap="round"
         />
         {!isFrozen ? (
-          <g className="animate-ping" style={{ transformOrigin: "58px 2px", animationDuration: "1s" }}>
+          <g
+            className="animate-ping"
+            style={{ transformOrigin: '58px 2px', animationDuration: '1s' }}
+          >
             <circle cx="58" cy="2" r="4" fill="#ef4444" />
             <circle cx="58" cy="2" r="2" fill="#facc15" />
           </g>
@@ -45,20 +45,13 @@ export default function Bomb({ isFrozen = false }: BombProps) {
           width="76"
           height="68"
           rx="8"
-          fill={isFrozen ? "#475569" : "#dc2626"}
+          fill={isFrozen ? '#475569' : '#dc2626'}
           stroke="#7f1d1d"
           strokeWidth="3.5"
         />
 
         {/* 안쪽 쉐이드 */}
-        <rect
-          x="16"
-          y="22"
-          width="68"
-          height="60"
-          rx="6"
-          fill={isFrozen ? "#64748b" : "#ef4444"}
-        />
+        <rect x="16" y="22" width="68" height="60" rx="6" fill={isFrozen ? '#64748b' : '#ef4444'} />
 
         {/* 상단/하단 경고 노랑-검정 스트라이프 띠 */}
         <g stroke="#facc15" strokeWidth="4">
@@ -80,12 +73,7 @@ export default function Bomb({ isFrozen = false }: BombProps) {
         </g>
 
         {/* 중앙 노란색 다이아몬드 위험물 라벨 (HAZARD / DANGER) */}
-        <polygon
-          points="50,34 72,52 50,70 28,52"
-          fill="#facc15"
-          stroke="#0f172a"
-          strokeWidth="2"
-        />
+        <polygon points="50,34 72,52 50,70 28,52" fill="#facc15" stroke="#0f172a" strokeWidth="2" />
 
         {/* 폭탄 심볼 (💣) / TNT 글씨 */}
         <g transform="translate(42, 44)">

@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React from "react";
-import { UndoGuideModalProps } from "../../types";
+import React from 'react';
+import { UndoGuideModalProps } from '../../types';
 
 export function UndoGuideModal({
   showUndoGuideModal,
@@ -25,10 +25,10 @@ export function UndoGuideModal({
         {/* Title */}
         <h3 className="text-xl sm:text-2xl font-black text-amber-950 tracking-tight leading-snug mb-3 relative z-10">
           {remainingUndos === 1
-            ? "한 번 되돌릴 수 있어요!"
+            ? '한 번 되돌릴 수 있어요!'
             : remainingUndos === 2
-              ? "두 번 되돌릴 수 있어요!"
-              : "최대 세 번 되돌릴 수 있어요!"}
+              ? '두 번 되돌릴 수 있어요!'
+              : '최대 세 번 되돌릴 수 있어요!'}
         </h3>
 
         {/* Description Box */}

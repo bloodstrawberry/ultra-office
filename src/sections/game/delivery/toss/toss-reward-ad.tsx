@@ -22,8 +22,19 @@ export default function TossRewardAdModal({ isOpen, onClose, onRewardEarned, tit
         <h2 className="mb-4 text-lg font-bold">{title || '보상 받기'}</h2>
         <p className="mb-6 text-sm">보상을 받고 계속 플레이하세요.</p>
         <div className="flex justify-end gap-3">
-          <button type="button" onClick={onClose} className="rounded-lg px-4 py-2">닫기</button>
-          <button type="button" onClick={() => { onRewardEarned(); onClose(); }} className="rounded-lg bg-blue-600 px-4 py-2 text-white">보상 받기</button>
+          <button type="button" onClick={onClose} className="rounded-lg px-4 py-2">
+            닫기
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              onRewardEarned();
+              onClose();
+            }}
+            className="rounded-lg bg-blue-600 px-4 py-2 text-white"
+          >
+            보상 받기
+          </button>
         </div>
       </div>
     </div>

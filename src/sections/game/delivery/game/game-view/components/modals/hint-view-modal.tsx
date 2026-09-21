@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React from "react";
-import BlockRenderer from "../../../../object";
-import { HintViewModalProps } from "../../types";
+import React from 'react';
+import BlockRenderer from '../../../../object';
+import { HintViewModalProps } from '../../types';
 
 export function HintViewModal({
   isHintModalOpen,
@@ -24,9 +24,7 @@ export function HintViewModal({
 
   const hints = activeHints || [];
   const currentGrid = hints[currentHintIndex];
-  const currentLevelName = isEditor
-    ? editorLevels[editorActiveIndex]?.name
-    : builtinLevelName;
+  const currentLevelName = isEditor ? editorLevels[editorActiveIndex]?.name : builtinLevelName;
 
   return (
     <div className="absolute inset-0 bg-stone-900/50 backdrop-blur-[4px] z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
@@ -79,7 +77,7 @@ export function HintViewModal({
                         >
                           <BlockRenderer id={cell} />
                         </div>
-                      )),
+                      ))
                     )}
                   </div>
                 </div>
@@ -92,7 +90,7 @@ export function HintViewModal({
                       type="button"
                       onClick={() => {
                         setCurrentHintIndex((prev) => Math.max(0, prev - 1));
-                        playSound("select", muted);
+                        playSound('select', muted);
                       }}
                       disabled={currentHintIndex === 0}
                       className="w-6 h-6 rounded-lg bg-amber-100 hover:bg-amber-200 active:bg-amber-300 border border-amber-300 text-amber-900 font-black flex items-center justify-center disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed text-[10px]"
@@ -108,10 +106,8 @@ export function HintViewModal({
                     <button
                       type="button"
                       onClick={() => {
-                        setCurrentHintIndex((prev) =>
-                          Math.min(hints.length - 1, prev + 1),
-                        );
-                        playSound("select", muted);
+                        setCurrentHintIndex((prev) => Math.min(hints.length - 1, prev + 1));
+                        playSound('select', muted);
                       }}
                       disabled={currentHintIndex === hints.length - 1}
                       className="w-6 h-6 rounded-lg bg-amber-100 hover:bg-amber-200 active:bg-amber-300 border border-amber-300 text-amber-900 font-black flex items-center justify-center disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed text-[10px]"
@@ -133,7 +129,7 @@ export function HintViewModal({
                           } else if (currentHintIndex >= hints.length - 1) {
                             setCurrentHintIndex(hints.length - 2);
                           }
-                          onToast("힌트가 삭제되었습니다.");
+                          onToast('힌트가 삭제되었습니다.');
                         }}
                         className="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-300 text-rose-700 font-bold text-xs rounded-xl cursor-pointer shadow-xs flex items-center gap-1 active:scale-95 shrink-0"
                       >

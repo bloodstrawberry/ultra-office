@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties } from 'react';
 
 /**
  * 최소 border-radius 수치 (픽셀 단위: 5px)

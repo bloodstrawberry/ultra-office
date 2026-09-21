@@ -1,5 +1,5 @@
-import React from "react";
-import { OBJECT_SCALES } from "./constants";
+import React from 'react';
+import { OBJECT_SCALES } from './constants';
 
 // 개별 크기 조절 변수 (1.0 = 100%, 1.2 = 120% 등)
 const SCALE = OBJECT_SCALES.pineapple;
@@ -14,27 +14,24 @@ export default function Pineapple({ isFrozen = false }: PineappleProps) {
       className="w-full h-full flex items-center justify-center pointer-events-none select-none"
       style={{ transform: `scale(${SCALE})` }}
     >
-      <svg
-        viewBox="0 0 100 100"
-        className="w-full h-full overflow-visible drop-shadow-sm"
-      >
+      <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible drop-shadow-sm">
         <path
           d="M 50 30 L 35 5 L 45 25 L 50 5 L 55 25 L 65 5 L 50 30 Z"
-          fill={isFrozen ? "#66B088" : "#84D136"}
+          fill={isFrozen ? '#66B088' : '#84D136'}
           stroke="#221C14"
           strokeWidth="3"
           strokeLinejoin="round"
         />
         <path
           d="M 42 30 L 25 15 L 38 35 Z"
-          fill={isFrozen ? "#448060" : "#66B022"}
+          fill={isFrozen ? '#448060' : '#66B022'}
           stroke="#221C14"
           strokeWidth="2"
           strokeLinejoin="round"
         />
         <path
           d="M 58 30 L 75 15 L 62 35 Z"
-          fill={isFrozen ? "#448060" : "#66B022"}
+          fill={isFrozen ? '#448060' : '#66B022'}
           stroke="#221C14"
           strokeWidth="2"
           strokeLinejoin="round"
@@ -44,7 +41,7 @@ export default function Pineapple({ isFrozen = false }: PineappleProps) {
           cy="65"
           rx="30"
           ry="34"
-          fill={isFrozen ? "#E6B822" : "#FFC926"}
+          fill={isFrozen ? '#E6B822' : '#FFC926'}
           stroke="#221C14"
           strokeWidth="4"
         />
@@ -66,18 +63,8 @@ export default function Pineapple({ isFrozen = false }: PineappleProps) {
         {isFrozen ? (
           <>
             {/* Top leaf icicles */}
-            <path
-              d="M 33 22 L 35 30 L 37 22 Z"
-              fill="#E0F2FE"
-              stroke="#221C14"
-              strokeWidth="1"
-            />
-            <path
-              d="M 63 22 L 65 30 L 67 22 Z"
-              fill="#E0F2FE"
-              stroke="#221C14"
-              strokeWidth="1"
-            />
+            <path d="M 33 22 L 35 30 L 37 22 Z" fill="#E0F2FE" stroke="#221C14" strokeWidth="1" />
+            <path d="M 63 22 L 65 30 L 67 22 Z" fill="#E0F2FE" stroke="#221C14" strokeWidth="1" />
 
             {/* Frosted / Cracked Icy Sunglasses */}
             <path
@@ -92,27 +79,10 @@ export default function Pineapple({ isFrozen = false }: PineappleProps) {
               stroke="#221C14"
               strokeWidth="2.5"
             />
-            <line
-              x1="47"
-              y1="61"
-              x2="53"
-              y2="61"
-              stroke="#221C14"
-              strokeWidth="3"
-            />
+            <line x1="47" y1="61" x2="53" y2="61" stroke="#221C14" strokeWidth="3" />
             {/* Ice cracks on lenses */}
-            <path
-              d="M 31 61 L 38 65 L 45 62"
-              stroke="#7DD3FC"
-              strokeWidth="1.5"
-              fill="none"
-            />
-            <path
-              d="M 55 62 L 62 66 L 69 63"
-              stroke="#7DD3FC"
-              strokeWidth="1.5"
-              fill="none"
-            />
+            <path d="M 31 61 L 38 65 L 45 62" stroke="#7DD3FC" strokeWidth="1.5" fill="none" />
+            <path d="M 55 62 L 62 66 L 69 63" stroke="#7DD3FC" strokeWidth="1.5" fill="none" />
 
             {/* Snow on top of sunglasses rim */}
             <path
@@ -134,22 +104,8 @@ export default function Pineapple({ isFrozen = false }: PineappleProps) {
               strokeWidth="2"
               strokeLinejoin="round"
             />
-            <line
-              x1="47"
-              y1="75"
-              x2="47"
-              y2="80"
-              stroke="#221C14"
-              strokeWidth="1.2"
-            />
-            <line
-              x1="53"
-              y1="75"
-              x2="53"
-              y2="80"
-              stroke="#221C14"
-              strokeWidth="1.2"
-            />
+            <line x1="47" y1="75" x2="47" y2="80" stroke="#221C14" strokeWidth="1.2" />
+            <line x1="53" y1="75" x2="53" y2="80" stroke="#221C14" strokeWidth="1.2" />
           </>
         ) : (
           <>
@@ -162,14 +118,7 @@ export default function Pineapple({ isFrozen = false }: PineappleProps) {
               d="M 52 59 H 72 V 66 C 72 69, 68 71, 62 71 C 56 71, 52 69, 52 66 Z"
               fill="#221C14"
             />
-            <line
-              x1="47"
-              y1="61"
-              x2="53"
-              y2="61"
-              stroke="#221C14"
-              strokeWidth="3"
-            />
+            <line x1="47" y1="61" x2="53" y2="61" stroke="#221C14" strokeWidth="3" />
             <line
               x1="31"
               y1="61"

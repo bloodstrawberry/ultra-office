@@ -11,7 +11,12 @@ export default function ShareButton() {
   };
 
   return (
-    <button type="button" onClick={share} aria-label="공유하기" className="rounded-full bg-purple-500 p-3 text-white shadow-lg">
+    <button
+      type="button"
+      onClick={share}
+      aria-label="공유하기"
+      className="rounded-full bg-purple-500 p-3 text-white shadow-lg"
+    >
       공유
     </button>
   );

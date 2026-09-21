@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import React from "react";
+import React from 'react';
 
 export interface DisappearingEffectItem {
   id: string;
@@ -26,13 +26,13 @@ export function DisappearBurst() {
           style={{
             backgroundColor:
               i % 4 === 0
-                ? "#fbbf24"
+                ? '#fbbf24'
                 : i % 4 === 1
-                  ? "#f43f5e"
+                  ? '#f43f5e'
                   : i % 4 === 2
-                    ? "#38bdf8"
-                    : "#a855f7",
-            boxShadow: "0 0 6px currentColor",
+                    ? '#38bdf8'
+                    : '#a855f7',
+            boxShadow: '0 0 6px currentColor',
           }}
         />
       ))}

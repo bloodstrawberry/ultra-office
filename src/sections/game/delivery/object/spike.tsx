@@ -1,16 +1,16 @@
-import React from "react";
+import React from 'react';
 
 interface SpikeProps {
-  direction: "up" | "down" | "left" | "right";
+  direction: 'up' | 'down' | 'left' | 'right';
 }
 
 export default function Spike({ direction }: SpikeProps) {
   // Rotate the group based on direction around center (20, 20)
   const rotation = {
-    up: "rotate(0 20 20)",
-    down: "rotate(180 20 20)",
-    left: "rotate(-90 20 20)",
-    right: "rotate(90 20 20)",
+    up: 'rotate(0 20 20)',
+    down: 'rotate(180 20 20)',
+    left: 'rotate(-90 20 20)',
+    right: 'rotate(90 20 20)',
   }[direction];
 
   return (
@@ -89,14 +89,7 @@ export default function Spike({ direction }: SpikeProps) {
         <path d="M 28 7 L 30 2 L 32 7 Z" fill="url(#tipGrad)" />
 
         {/* Shadow under the spikes on base */}
-        <rect
-          x="4"
-          y="14"
-          width="32"
-          height="2"
-          fill="#111827"
-          fillOpacity="0.4"
-        />
+        <rect x="4" y="14" width="32" height="2" fill="#111827" fillOpacity="0.4" />
       </g>
     </svg>
   );

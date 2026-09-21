@@ -1,31 +1,20 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import { createPortal } from "react-dom";
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import BlockRenderer, {
   BLOCK_WALL,
   BLOCK_STRAWBERRY,
   SoilTileDark,
   SoilTileLight,
-} from "../object";
-import {
-  isTouchMoveEnabled,
-  toggleTouchMoveEnabled,
-} from "../utils/touch-move";
+} from '../object';
+import { isTouchMoveEnabled, toggleTouchMoveEnabled } from '../utils/touch-move';
 
 export interface TouchMoveGuideModalProps {
   onClose: () => void;
   playSound?: (
-    type:
-      | "coin"
-      | "select"
-      | "start"
-      | "error"
-      | "match"
-      | "fall"
-      | "shoot"
-      | "break",
-    muted: boolean,
+    type: 'coin' | 'select' | 'start' | 'error' | 'match' | 'fall' | 'shoot' | 'break',
+    muted: boolean
   ) => void;
   muted?: boolean;
 }
@@ -36,13 +25,9 @@ export default function TouchMoveGuideModal({
   muted = false,
 }: TouchMoveGuideModalProps) {
   const [mounted, setMounted] = useState<boolean>(false);
-  const [isEnabled, setIsEnabled] = useState<boolean>(() =>
-    isTouchMoveEnabled(),
-  );
+  const [isEnabled, setIsEnabled] = useState<boolean>(() => isTouchMoveEnabled());
   const [blockX, setBlockX] = useState<number>(2);
-  const [lastDirection, setLastDirection] = useState<"left" | "right" | null>(
-    null,
-  );
+  const [lastDirection, setLastDirection] = useState<'left' | 'right' | null>(null);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -55,13 +40,13 @@ export default function TouchMoveGuideModal({
   const handleToggle = () => {
     const next = toggleTouchMoveEnabled();
     setIsEnabled(next);
-    if (playSound) playSound("select", muted);
+    if (playSound) playSound('select', muted);
   };
 
-  const handleDemoClick = (dir: "left" | "right") => {
+  const handleDemoClick = (dir: 'left' | 'right') => {
     setLastDirection(dir);
-    if (playSound) playSound("select", muted);
-    if (dir === "left") {
+    if (playSound) playSound('select', muted);
+    if (dir === 'left') {
       setBlockX((prev) => Math.max(1, prev - 1));
     } else {
       setBlockX((prev) => Math.min(4, prev + 1));
@@ -115,7 +100,7 @@ export default function TouchMoveGuideModal({
             </span>
             {lastDirection && (
               <span className="text-[11px] font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full animate-bounce">
-                {lastDirection === "left" ? "⬅️ 왼쪽 이동!" : "➡️ 오른쪽 이동!"}
+                {lastDirection === 'left' ? '⬅️ 왼쪽 이동!' : '➡️ 오른쪽 이동!'}
               </span>
             )}
           </div>
@@ -128,36 +113,28 @@ export default function TouchMoveGuideModal({
               style={{
                 gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
                 gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
-                gap: "2px",
+                gap: '2px',
               }}
             >
               {Array.from({ length: rows }).map((_, y) =>
                 Array.from({ length: cols }).map((_, x) => {
-                  const isWall =
-                    y === 0 || y === rows - 1 || x === 0 || x === cols - 1;
+                  const isWall = y === 0 || y === rows - 1 || x === 0 || x === cols - 1;
                   const isStrawberry = y === 2 && x === blockX;
                   const isLeftZone = !isWall && !isStrawberry && x < blockX;
                   const isRightZone = !isWall && !isStrawberry && x > blockX;
-                  const TileComponent =
-                    (x + y) % 2 === 0 ? SoilTileDark : SoilTileLight;
+                  const TileComponent = (x + y) % 2 === 0 ? SoilTileDark : SoilTileLight;
 
                   return (
                     <div
                       key={`demo-${y}-${x}`}
                       onClick={() => {
-                        if (isLeftZone) handleDemoClick("left");
-                        if (isRightZone) handleDemoClick("right");
+                        if (isLeftZone) handleDemoClick('left');
+                        if (isRightZone) handleDemoClick('right');
                       }}
                       className={`w-full h-full aspect-square relative flex items-center justify-center overflow-hidden transition-all ${
-                        isLeftZone || isRightZone ? "cursor-pointer group" : ""
-                      } ${
-                        isLeftZone
-                          ? "hover:bg-emerald-500/25 active:bg-emerald-500/40"
-                          : ""
-                      } ${
-                        isRightZone
-                          ? "hover:bg-sky-500/25 active:bg-sky-500/40"
-                          : ""
+                        isLeftZone || isRightZone ? 'cursor-pointer group' : ''
+                      } ${isLeftZone ? 'hover:bg-emerald-500/25 active:bg-emerald-500/40' : ''} ${
+                        isRightZone ? 'hover:bg-sky-500/25 active:bg-sky-500/40' : ''
                       }`}
                     >
                       {/* Soil / Wall background */}
@@ -179,16 +156,12 @@ export default function TouchMoveGuideModal({
                       {/* Directional hint overlay on empty clickable cells */}
                       {isLeftZone && (
                         <div className="absolute inset-0 z-20 flex items-center justify-center opacity-40 group-hover:opacity-100 transition-opacity">
-                          <span className="text-xs font-black text-emerald-800">
-                            👈
-                          </span>
+                          <span className="text-xs font-black text-emerald-800">👈</span>
                         </div>
                       )}
                       {isRightZone && (
                         <div className="absolute inset-0 z-20 flex items-center justify-center opacity-40 group-hover:opacity-100 transition-opacity">
-                          <span className="text-xs font-black text-sky-800">
-                            👉
-                          </span>
+                          <span className="text-xs font-black text-sky-800">👉</span>
                         </div>
                       )}
 
@@ -209,7 +182,7 @@ export default function TouchMoveGuideModal({
                       )}
                     </div>
                   );
-                }),
+                })
               )}
             </div>
           </div>
@@ -219,9 +192,7 @@ export default function TouchMoveGuideModal({
         <div className="flex items-center justify-between p-3 bg-amber-100/90 rounded-2xl border border-amber-300/80 shadow-xs relative z-10">
           <div className="flex items-center gap-2">
             <span className="text-lg">👆</span>
-            <span className="font-extrabold text-xs text-amber-950">
-              화면 터치 이동 사용 여부
-            </span>
+            <span className="font-extrabold text-xs text-amber-950">화면 터치 이동 사용 여부</span>
           </div>
 
           <button
@@ -229,11 +200,11 @@ export default function TouchMoveGuideModal({
             onClick={handleToggle}
             className={`px-3 py-1.5 rounded-xl font-black text-xs transition-all cursor-pointer shadow-xs active:scale-95 flex items-center gap-1 ${
               isEnabled
-                ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20"
-                : "bg-amber-200 hover:bg-amber-300 text-amber-800 border border-amber-300"
+                ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20'
+                : 'bg-amber-200 hover:bg-amber-300 text-amber-800 border border-amber-300'
             }`}
           >
-            <span>{isEnabled ? "ON (사용 함)" : "OFF (사용 안 함)"}</span>
+            <span>{isEnabled ? 'ON (사용 함)' : 'OFF (사용 안 함)'}</span>
           </button>
         </div>
 
@@ -248,6 +219,6 @@ export default function TouchMoveGuideModal({
         </button>
       </div>
     </div>,
-    document.body,
+    document.body
   );
 }

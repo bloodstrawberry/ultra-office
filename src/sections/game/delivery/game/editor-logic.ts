@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useState, useCallback } from "react";
+import { useState, useCallback } from 'react';
 import {
   BLOCK_EMPTY,
   BLOCK_WALL,
@@ -8,11 +8,11 @@ import {
   getBaseBlockId,
   canBeFrozen,
   getFrozenBlockId,
-} from "../object/constants";
+} from '../object/constants';
 
-import { CellType, LevelData, copyGrid, realMap, testMap } from "./types";
-import { playEngineSound } from "./sound";
-import { findPlayerSpawn } from "./physics";
+import { CellType, LevelData, copyGrid, realMap, testMap } from './types';
+import { playEngineSound } from './sound';
+import { findPlayerSpawn } from './physics';
 
 /** Custom hook for all level-editor state and actions. */
 export const useEditorEngine = (
@@ -40,23 +40,21 @@ export const useEditorEngine = (
       }[]
     >
   >,
-  setFlashingBlocks: React.Dispatch<
-    React.SetStateAction<Record<string, CellType | boolean>>
-  >,
+  setFlashingBlocks: React.Dispatch<React.SetStateAction<Record<string, CellType | boolean>>>,
   stateRef: React.MutableRefObject<
     { flashingBlocks: Record<string, CellType | boolean> } | undefined
   >,
   setHasMovedFirstBlock: React.Dispatch<React.SetStateAction<boolean>>,
   updateGrabbed: (updater: boolean | ((prev: boolean) => boolean)) => void,
   setFiredOnce: React.Dispatch<React.SetStateAction<Record<string, boolean>>>,
-  firedOnceRef: React.MutableRefObject<Record<string, boolean>>,
+  firedOnceRef: React.MutableRefObject<Record<string, boolean>>
 ) => {
   // Editor level states
   const [editorLevels, setEditorLevels] = useState<LevelData[]>(() => {
     if (realMap.length === 0) {
       return [
         {
-          name: "LEVEL 1-1",
+          name: 'LEVEL 1-1',
           grid: Array.from({ length: 8 }, () => Array(8).fill(BLOCK_EMPTY)),
         },
       ];
@@ -64,9 +62,7 @@ export const useEditorEngine = (
     return realMap.map((lvl) => ({
       name: lvl.name,
       grid: copyGrid(lvl.grid as CellType[][]),
-      hint: lvl.hint
-        ? (lvl.hint as CellType[][][]).map((g) => copyGrid(g))
-        : undefined,
+      hint: lvl.hint ? (lvl.hint as CellType[][][]).map((g) => copyGrid(g)) : undefined,
     }));
   });
   const [editorActiveIndex, setEditorActiveIndex] = useState<number>(0);
@@ -75,25 +71,21 @@ export const useEditorEngine = (
   const [copiedRow, setCopiedRow] = useState<CellType[] | null>(null);
 
   const changeMapType = useCallback(
-    (mapType: "real" | "test") => {
+    (mapType: 'real' | 'test') => {
       if (!isEditorMode) return;
-      const selectedMap = mapType === "test" ? testMap : realMap;
+      const selectedMap = mapType === 'test' ? testMap : realMap;
       const newLevels =
         selectedMap.length === 0
           ? [
               {
-                name: "LEVEL 1-1",
-                grid: Array.from({ length: 8 }, () =>
-                  Array(8).fill(BLOCK_EMPTY),
-                ),
+                name: 'LEVEL 1-1',
+                grid: Array.from({ length: 8 }, () => Array(8).fill(BLOCK_EMPTY)),
               },
             ]
           : selectedMap.map((lvl) => ({
               name: lvl.name,
               grid: copyGrid(lvl.grid as CellType[][]),
-              hint: lvl.hint
-                ? (lvl.hint as CellType[][][]).map((g) => copyGrid(g))
-                : undefined,
+              hint: lvl.hint ? (lvl.hint as CellType[][][]).map((g) => copyGrid(g)) : undefined,
             }));
 
       setEditorLevels(newLevels);
@@ -105,7 +97,7 @@ export const useEditorEngine = (
       updateBlockCounts(lvl.grid);
       setEditorHistory([]);
     },
-    [isEditorMode, setGrid, setCursor, updateBlockCounts],
+    [isEditorMode, setGrid, setCursor, updateBlockCounts]
   );
 
   const editorPushHistory = useCallback(
@@ -119,7 +111,7 @@ export const useEditorEngine = (
         return next;
       });
     },
-    [grid],
+    [grid]
   );
 
   const updateEditorLevelGrid = useCallback(
@@ -135,7 +127,7 @@ export const useEditorEngine = (
         return next;
       });
     },
-    [editorActiveIndex],
+    [editorActiveIndex]
   );
 
   const selectEditorLevel = useCallback(
@@ -148,7 +140,7 @@ export const useEditorEngine = (
       updateBlockCounts(lvl.grid);
       setEditorHistory([]);
     },
-    [editorLevels, updateBlockCounts, setGrid, setCursor],
+    [editorLevels, updateBlockCounts, setGrid, setCursor]
   );
 
   const editorAddLevel = useCallback(() => {
@@ -159,10 +151,8 @@ export const useEditorEngine = (
     setEditorLevels((prev) => {
       const next = [...prev];
       const newLvl: LevelData = {
-        name: "",
-        grid: Array.from({ length: currentRows }, () =>
-          Array(currentCols).fill(BLOCK_EMPTY),
-        ),
+        name: '',
+        grid: Array.from({ length: currentRows }, () => Array(currentCols).fill(BLOCK_EMPTY)),
       };
       next.splice(insertIdx, 0, newLvl);
       const reindexed = next.map((lvl, i) => ({
@@ -181,16 +171,8 @@ export const useEditorEngine = (
       }, 0);
       return reindexed;
     });
-    playEngineSound("start", muted);
-  }, [
-    isEditorMode,
-    muted,
-    editorActiveIndex,
-    updateBlockCounts,
-    grid,
-    setGrid,
-    setCursor,
-  ]);
+    playEngineSound('start', muted);
+  }, [isEditorMode, muted, editorActiveIndex, updateBlockCounts, grid, setGrid, setCursor]);
 
   const editorDeleteLevel = useCallback(() => {
     if (!isEditorMode || editorLevels.length <= 1) return;
@@ -200,10 +182,7 @@ export const useEditorEngine = (
         ...lvl,
         name: `LEVEL 1-${i + 1}`,
       }));
-      const nextIdx = Math.max(
-        0,
-        Math.min(reindexed.length - 1, editorActiveIndex),
-      );
+      const nextIdx = Math.max(0, Math.min(reindexed.length - 1, editorActiveIndex));
       setTimeout(() => {
         setEditorActiveIndex(nextIdx);
         const lvl = reindexed[nextIdx];
@@ -216,7 +195,7 @@ export const useEditorEngine = (
       }, 0);
       return reindexed;
     });
-    playEngineSound("error", muted);
+    playEngineSound('error', muted);
   }, [
     isEditorMode,
     editorLevels.length,
@@ -245,9 +224,9 @@ export const useEditorEngine = (
       return next;
     });
     if (reverted) {
-      playEngineSound("select", muted);
+      playEngineSound('select', muted);
     } else {
-      playEngineSound("error", muted);
+      playEngineSound('error', muted);
     }
   }, [isEditorMode, muted, updateBlockCounts, updateEditorLevelGrid, setGrid]);
 
@@ -278,7 +257,7 @@ export const useEditorEngine = (
           }
         } else if (parsed && Array.isArray(parsed.grid)) {
           const cleaned: LevelData = {
-            name: parsed.name || "CUSTOM LEVEL",
+            name: parsed.name || 'CUSTOM LEVEL',
             grid: copyGrid(parsed.grid as CellType[][]),
             hint: Array.isArray(parsed.hint)
               ? (parsed.hint as CellType[][][]).map((g) => copyGrid(g))
@@ -288,9 +267,7 @@ export const useEditorEngine = (
           setEditorActiveIndex(0);
           setGrid(copyGrid(cleaned.grid));
           setCursor({
-            x: Math.floor(
-              cleaned.grid.length > 0 ? cleaned.grid[0].length / 2 : 4,
-            ),
+            x: Math.floor(cleaned.grid.length > 0 ? cleaned.grid[0].length / 2 : 4),
             y: cleaned.grid.length > 0 ? cleaned.grid.length - 1 : 7,
           });
           updateBlockCounts(cleaned.grid);
@@ -302,7 +279,7 @@ export const useEditorEngine = (
         return false;
       }
     },
-    [updateBlockCounts, setGrid, setCursor],
+    [updateBlockCounts, setGrid, setCursor]
   );
 
   const editorRestoreLevel = useCallback(() => {
@@ -339,18 +316,18 @@ export const useEditorEngine = (
   ]);
 
   const editorPlaceBlock = useCallback(
-    (x: number, y: number, blockType: CellType | "eraser" | "ice") => {
+    (x: number, y: number, blockType: CellType | 'eraser' | 'ice') => {
       if (!isEditorMode) return;
       const currentCell = grid[y]?.[x];
       let targetBlock: CellType;
 
-      if (blockType === "ice") {
+      if (blockType === 'ice') {
         if (currentCell === undefined || currentCell === BLOCK_EMPTY) return;
         if (!canBeFrozen(currentCell)) return;
         targetBlock = isFrozenBlock(currentCell)
           ? getBaseBlockId(currentCell)
           : getFrozenBlockId(currentCell);
-      } else if (blockType === "eraser") {
+      } else if (blockType === 'eraser') {
         targetBlock = BLOCK_EMPTY;
       } else {
         targetBlock = blockType;
@@ -362,16 +339,9 @@ export const useEditorEngine = (
       setGrid(nextGrid);
       updateBlockCounts(nextGrid);
       updateEditorLevelGrid(nextGrid);
-      playEngineSound("select", muted);
+      playEngineSound('select', muted);
     },
-    [
-      grid,
-      isEditorMode,
-      updateBlockCounts,
-      updateEditorLevelGrid,
-      muted,
-      setGrid,
-    ],
+    [grid, isEditorMode, updateBlockCounts, updateEditorLevelGrid, muted, setGrid]
   );
 
   const editorClearGrid = useCallback(() => {
@@ -380,13 +350,11 @@ export const useEditorEngine = (
     editorPushHistory(grid);
     const currentRows = grid.length;
     const currentCols = grid[0]?.length || 8;
-    const newGrid = Array.from({ length: currentRows }, () =>
-      Array(currentCols).fill(BLOCK_EMPTY),
-    );
+    const newGrid = Array.from({ length: currentRows }, () => Array(currentCols).fill(BLOCK_EMPTY));
     setGrid(newGrid);
     setBlockCounts({});
     updateEditorLevelGrid(newGrid);
-    playEngineSound("error", muted);
+    playEngineSound('error', muted);
   }, [
     isEditorMode,
     muted,
@@ -413,14 +381,14 @@ export const useEditorEngine = (
             return BLOCK_WALL;
           }
           return cell;
-        }),
+        })
       );
 
       updateBlockCounts(nextGrid);
       updateEditorLevelGrid(nextGrid);
       return nextGrid;
     });
-    playEngineSound("select", muted);
+    playEngineSound('select', muted);
   }, [
     isEditorMode,
     muted,
@@ -482,7 +450,7 @@ export const useEditorEngine = (
       editorPushHistory,
       setGrid,
       setCursor,
-    ],
+    ]
   );
 
   const editorDeleteRow = useCallback(
@@ -499,16 +467,16 @@ export const useEditorEngine = (
       if (!isRowEmpty) {
         // Not empty: make the whole row empty
         const nextGrid = grid.map((row, idx) =>
-          idx === y ? row.map(() => BLOCK_EMPTY) : [...row],
+          idx === y ? row.map(() => BLOCK_EMPTY) : [...row]
         );
         setGrid(nextGrid);
         updateBlockCounts(nextGrid);
         updateEditorLevelGrid(nextGrid);
-        playEngineSound("select", muted);
+        playEngineSound('select', muted);
       } else {
         // Already empty: remove the row itself
         if (grid.length <= 4) {
-          playEngineSound("error", muted);
+          playEngineSound('error', muted);
           return;
         }
         const nextGrid = grid.filter((_, idx) => idx !== y);
@@ -522,7 +490,7 @@ export const useEditorEngine = (
 
         updateBlockCounts(nextGrid);
         updateEditorLevelGrid(nextGrid);
-        playEngineSound("break", muted);
+        playEngineSound('break', muted);
       }
     },
     [
@@ -534,7 +502,7 @@ export const useEditorEngine = (
       updateBlockCounts,
       updateEditorLevelGrid,
       editorPushHistory,
-    ],
+    ]
   );
 
   const editorDeleteCol = useCallback(
@@ -548,17 +516,17 @@ export const useEditorEngine = (
       if (!isColEmpty) {
         // Not empty: make the whole column empty
         const nextGrid = grid.map((row) =>
-          row.map((cell, idx) => (idx === x ? BLOCK_EMPTY : cell)),
+          row.map((cell, idx) => (idx === x ? BLOCK_EMPTY : cell))
         );
         setGrid(nextGrid);
         updateBlockCounts(nextGrid);
         updateEditorLevelGrid(nextGrid);
-        playEngineSound("select", muted);
+        playEngineSound('select', muted);
       } else {
         // Already empty: remove the column itself
         const currentCols = grid[0]?.length || 0;
         if (currentCols <= 4) {
-          playEngineSound("error", muted);
+          playEngineSound('error', muted);
           return;
         }
         const nextGrid = grid.map((row) => row.filter((_, idx) => idx !== x));
@@ -572,7 +540,7 @@ export const useEditorEngine = (
 
         updateBlockCounts(nextGrid);
         updateEditorLevelGrid(nextGrid);
-        playEngineSound("break", muted);
+        playEngineSound('break', muted);
       }
     },
     [
@@ -584,7 +552,7 @@ export const useEditorEngine = (
       updateBlockCounts,
       updateEditorLevelGrid,
       editorPushHistory,
-    ],
+    ]
   );
 
   const editorInsertColLeft = useCallback(
@@ -592,16 +560,12 @@ export const useEditorEngine = (
       if (!isEditorMode) return;
       const currentCols = grid[0]?.length || 0;
       if (currentCols >= 16) {
-        playEngineSound("error", muted);
+        playEngineSound('error', muted);
         return;
       }
 
       editorPushHistory(grid);
-      const nextGrid = grid.map((row) => [
-        ...row.slice(0, x),
-        BLOCK_EMPTY,
-        ...row.slice(x),
-      ]);
+      const nextGrid = grid.map((row) => [...row.slice(0, x), BLOCK_EMPTY, ...row.slice(x)]);
       setGrid(nextGrid);
 
       setCursor((prev) => ({
@@ -611,7 +575,7 @@ export const useEditorEngine = (
 
       updateBlockCounts(nextGrid);
       updateEditorLevelGrid(nextGrid);
-      playEngineSound("select", muted);
+      playEngineSound('select', muted);
     },
     [
       isEditorMode,
@@ -622,7 +586,7 @@ export const useEditorEngine = (
       updateBlockCounts,
       updateEditorLevelGrid,
       editorPushHistory,
-    ],
+    ]
   );
 
   const editorInsertColRight = useCallback(
@@ -630,7 +594,7 @@ export const useEditorEngine = (
       if (!isEditorMode) return;
       const currentCols = grid[0]?.length || 0;
       if (currentCols >= 16) {
-        playEngineSound("error", muted);
+        playEngineSound('error', muted);
         return;
       }
 
@@ -649,7 +613,7 @@ export const useEditorEngine = (
 
       updateBlockCounts(nextGrid);
       updateEditorLevelGrid(nextGrid);
-      playEngineSound("select", muted);
+      playEngineSound('select', muted);
     },
     [
       isEditorMode,
@@ -660,7 +624,7 @@ export const useEditorEngine = (
       updateBlockCounts,
       updateEditorLevelGrid,
       editorPushHistory,
-    ],
+    ]
   );
 
   const editorInsertRowAbove = useCallback(
@@ -668,7 +632,7 @@ export const useEditorEngine = (
       if (!isEditorMode) return;
       const currentRows = grid.length;
       if (currentRows >= 12) {
-        playEngineSound("error", muted);
+        playEngineSound('error', muted);
         return;
       }
 
@@ -685,7 +649,7 @@ export const useEditorEngine = (
 
       updateBlockCounts(nextGrid);
       updateEditorLevelGrid(nextGrid);
-      playEngineSound("select", muted);
+      playEngineSound('select', muted);
     },
     [
       isEditorMode,
@@ -696,7 +660,7 @@ export const useEditorEngine = (
       updateBlockCounts,
       updateEditorLevelGrid,
       editorPushHistory,
-    ],
+    ]
   );
 
   const editorInsertRowBelow = useCallback(
@@ -704,7 +668,7 @@ export const useEditorEngine = (
       if (!isEditorMode) return;
       const currentRows = grid.length;
       if (currentRows >= 12) {
-        playEngineSound("error", muted);
+        playEngineSound('error', muted);
         return;
       }
 
@@ -721,7 +685,7 @@ export const useEditorEngine = (
 
       updateBlockCounts(nextGrid);
       updateEditorLevelGrid(nextGrid);
-      playEngineSound("select", muted);
+      playEngineSound('select', muted);
     },
     [
       isEditorMode,
@@ -732,7 +696,7 @@ export const useEditorEngine = (
       updateBlockCounts,
       updateEditorLevelGrid,
       editorPushHistory,
-    ],
+    ]
   );
 
   const editorFlipHorizontal = useCallback(() => {
@@ -750,7 +714,7 @@ export const useEditorEngine = (
     setGrid(nextGrid);
     updateBlockCounts(nextGrid);
     updateEditorLevelGrid(nextGrid);
-    playEngineSound("select", muted);
+    playEngineSound('select', muted);
   }, [
     isEditorMode,
     muted,
@@ -779,9 +743,9 @@ export const useEditorEngine = (
         }
         return next;
       });
-      playEngineSound("coin", muted);
+      playEngineSound('coin', muted);
     },
-    [isEditorPage, isEditorMode, editorActiveIndex, muted],
+    [isEditorPage, isEditorMode, editorActiveIndex, muted]
   );
 
   const editorDeleteHint = useCallback(
@@ -799,9 +763,9 @@ export const useEditorEngine = (
         }
         return next;
       });
-      playEngineSound("break", muted);
+      playEngineSound('break', muted);
     },
-    [isEditorPage, isEditorMode, editorActiveIndex, muted],
+    [isEditorPage, isEditorMode, editorActiveIndex, muted]
   );
 
   const editorCopyCol = useCallback(
@@ -809,9 +773,9 @@ export const useEditorEngine = (
       if (!isEditorMode) return;
       const colData = grid.map((row) => row[x] ?? BLOCK_EMPTY);
       setCopiedCol(colData);
-      playEngineSound("select", muted);
+      playEngineSound('select', muted);
     },
-    [isEditorMode, grid, muted],
+    [isEditorMode, grid, muted]
   );
 
   const editorPasteCol = useCallback(
@@ -819,14 +783,12 @@ export const useEditorEngine = (
       if (!isEditorMode || !copiedCol) return;
       editorPushHistory(grid);
       const nextGrid = grid.map((row, y) =>
-        row.map((cell, idx) =>
-          idx === x ? (copiedCol[y] ?? BLOCK_EMPTY) : cell,
-        ),
+        row.map((cell, idx) => (idx === x ? (copiedCol[y] ?? BLOCK_EMPTY) : cell))
       );
       setGrid(nextGrid);
       updateBlockCounts(nextGrid);
       updateEditorLevelGrid(nextGrid);
-      playEngineSound("select", muted);
+      playEngineSound('select', muted);
     },
     [
       isEditorMode,
@@ -837,7 +799,7 @@ export const useEditorEngine = (
       updateBlockCounts,
       updateEditorLevelGrid,
       editorPushHistory,
-    ],
+    ]
   );
 
   const editorCopyRow = useCallback(
@@ -845,9 +807,9 @@ export const useEditorEngine = (
       if (!isEditorMode) return;
       const rowData = grid[y] ? [...grid[y]] : [];
       setCopiedRow(rowData);
-      playEngineSound("select", muted);
+      playEngineSound('select', muted);
     },
-    [isEditorMode, grid, muted],
+    [isEditorMode, grid, muted]
   );
 
   const editorPasteRow = useCallback(
@@ -857,15 +819,12 @@ export const useEditorEngine = (
       editorPushHistory(grid);
       const nextGrid = grid.map((row, idx) => {
         if (idx !== y) return [...row];
-        return Array.from(
-          { length: cols },
-          (_, x) => copiedRow[x] ?? BLOCK_EMPTY,
-        );
+        return Array.from({ length: cols }, (_, x) => copiedRow[x] ?? BLOCK_EMPTY);
       });
       setGrid(nextGrid);
       updateBlockCounts(nextGrid);
       updateEditorLevelGrid(nextGrid);
-      playEngineSound("select", muted);
+      playEngineSound('select', muted);
     },
     [
       isEditorMode,
@@ -876,7 +835,7 @@ export const useEditorEngine = (
       updateBlockCounts,
       updateEditorLevelGrid,
       editorPushHistory,
-    ],
+    ]
   );
 
   return {

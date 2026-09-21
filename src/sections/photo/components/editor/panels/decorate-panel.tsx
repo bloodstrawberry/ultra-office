@@ -143,8 +143,8 @@ export function DecoratePanel({ values, onChange, onReset }: DecoratePanelProps)
         fontWeight: 'bold',
         color: '#FFFFFF',
         outlineColor: '#000000',
-        outlineWidth: 5,
-        shadow: true,
+        outlineWidth: 3,
+        shadow: false,
         align: 'center',
       },
     };
@@ -169,8 +169,8 @@ export function DecoratePanel({ values, onChange, onReset }: DecoratePanelProps)
         fontWeight: 'bold',
         color: '#FFFFFF',
         outlineColor: '#000000',
-        outlineWidth: 6,
-        shadow: true,
+        outlineWidth: 3,
+        shadow: false,
         align: 'center',
       },
     };
@@ -508,26 +508,51 @@ export function DecoratePanel({ values, onChange, onReset }: DecoratePanelProps)
             추가된 레이어 목록 ({values.layers.length})
           </Typography>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            {values.layers.map((l) => (
-              <Box
-                key={l.id}
-                sx={{
-                  p: 1,
-                  borderRadius: 1.5,
-                  bgcolor: 'background.paper',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
-              >
-                <Typography variant="caption" sx={{ fontWeight: 700 }} noWrap>
-                  {l.name}
-                </Typography>
-                <IconButton size="small" color="error" onClick={() => handleDeleteLayer(l.id)}>
-                  <DeleteOutlineRoundedIcon fontSize="small" />
-                </IconButton>
-              </Box>
-            ))}
+            {values.layers.map((l) => {
+              const isSelected = values.selectedLayerId === l.id;
+              return (
+                <Box
+                  key={l.id}
+                  onClick={() => updateField('selectedLayerId', l.id)}
+                  sx={{
+                    p: 1,
+                    borderRadius: 1.5,
+                    bgcolor: isSelected ? 'action.selected' : 'background.paper',
+                    border: '1px solid',
+                    borderColor: isSelected ? 'primary.main' : 'divider',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    '&:hover': {
+                      borderColor: 'primary.light',
+                    },
+                  }}
+                >
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      fontWeight: isSelected ? 800 : 600,
+                      color: isSelected ? 'primary.main' : 'text.primary',
+                    }}
+                    noWrap
+                  >
+                    {l.name}
+                  </Typography>
+                  <IconButton
+                    size="small"
+                    color="error"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteLayer(l.id);
+                    }}
+                  >
+                    <DeleteOutlineRoundedIcon fontSize="small" />
+                  </IconButton>
+                </Box>
+              );
+            })}
           </Box>
         </Card>
       )}

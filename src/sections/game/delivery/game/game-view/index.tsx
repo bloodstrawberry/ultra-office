@@ -1,25 +1,23 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import { GameContent } from "./game-content";
-import { useBlockImagesPreloader } from "../../object";
-import TossInterstitialAd from "../../toss/toss-interstitial-ad";
-import GameLoadingView from "../../components/game-loading-view";
+import React, { useState, useEffect } from 'react';
+import { GameContent } from './game-content';
+import { useBlockImagesPreloader } from '../../object';
+import TossInterstitialAd from '../../toss/toss-interstitial-ad';
+import GameLoadingView from '../../components/game-loading-view';
 import {
   incrementAdEventCountSync,
   resetAdCountsSync,
   isAdPendingSync,
   clearAdPendingSync,
-} from "../../utils/local-storage";
-import { AD_TRIGGER_COUNT } from "../../utils/ad";
-import { GameViewProps } from "./types";
+} from '../../utils/local-storage';
+import { AD_TRIGGER_COUNT } from '../../utils/ad';
+import { GameViewProps } from './types';
 
 export default function GameView({ isEditor = false }: GameViewProps) {
   const [resetKey, setResetKey] = useState(0);
   const [isAdOpen, setIsAdOpen] = useState<boolean>(false);
-  const [currentStage, setCurrentStage] = useState<number | undefined>(
-    undefined,
-  );
+  const [currentStage, setCurrentStage] = useState<number | undefined>(undefined);
   const isLoaded = useBlockImagesPreloader();
 
   const handleFullReset = (stageNum?: number) => {
@@ -82,4 +80,4 @@ export default function GameView({ isEditor = false }: GameViewProps) {
   );
 }
 
-export * from "./types";
+export * from './types';

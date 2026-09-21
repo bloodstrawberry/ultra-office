@@ -72,7 +72,13 @@ function blockSprite(block: Block, assets: SceneAssets) {
   return sprite;
 }
 
-function drawBlock(ctx: CanvasRenderingContext2D, block: Block, camera: number, assets: SceneAssets, glow = false) {
+function drawBlock(
+  ctx: CanvasRenderingContext2D,
+  block: Block,
+  camera: number,
+  assets: SceneAssets,
+  glow = false
+) {
   const y = block.y + camera;
   if (y < -BLOCK_HEIGHT || y > HEIGHT + BLOCK_HEIGHT) return;
   const sprite = blockSprite(block, assets);

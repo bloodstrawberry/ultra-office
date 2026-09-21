@@ -115,6 +115,7 @@ export const paths = {
     mp4ToMp3: '/video-master/mp4-to-mp3',
     batch: '/video-master/batch',
     aiWatermark: '/video-master/ai-watermark',
+    voiceRecord: '/video-master/voice-record',
   },
   gigaViewer: '/giga-viewer',
   privacySanitizer: '/privacy-sanitizer',

@@ -1,5 +1,5 @@
-import React from "react";
-import { CellType } from "../game-engine";
+import React from 'react';
+import { CellType } from '../game-engine';
 
 export interface GameViewProps {
   isEditor?: boolean;
@@ -30,7 +30,7 @@ export interface JsonExportImportModalProps {
   handleDownload: () => void;
   handleImport: (jsonStr: string) => void;
   onCopyText: () => void;
-  playSound: (type: "select" | "start" | "error", muted: boolean) => void;
+  playSound: (type: 'select' | 'start' | 'error', muted: boolean) => void;
   muted: boolean;
 }
 
@@ -50,7 +50,7 @@ export interface HintViewModalProps {
   currentHintIndex: number;
   setCurrentHintIndex: React.Dispatch<React.SetStateAction<number>>;
   editorDeleteHint: (index: number) => void;
-  playSound: (type: "select" | "start" | "error", muted: boolean) => void;
+  playSound: (type: 'select' | 'start' | 'error', muted: boolean) => void;
   muted: boolean;
   onToast: (msg: string) => void;
 }
@@ -70,7 +70,7 @@ export interface RecordViewModalProps {
   recordedSteps: CellType[][][];
   currentRecordIndex: number;
   setCurrentRecordIndex: React.Dispatch<React.SetStateAction<number>>;
-  playSound: (type: "select" | "start" | "error", muted: boolean) => void;
+  playSound: (type: 'select' | 'start' | 'error', muted: boolean) => void;
   muted?: boolean;
   onToast?: (msg: string) => void;
   onClearRecord?: () => void;
@@ -80,8 +80,8 @@ export interface RecordViewModalProps {
 
 export interface EditorPaletteProps {
   activeEditor: boolean;
-  selectedPaint: CellType | "eraser" | "ice";
-  setSelectedPaint: (paint: CellType | "eraser" | "ice") => void;
+  selectedPaint: CellType | 'eraser' | 'ice';
+  setSelectedPaint: (paint: CellType | 'eraser' | 'ice') => void;
   grid: CellType[][];
   editorResizeGrid: (rows: number, cols: number) => void;
   editorFillBorder: () => void;
@@ -96,7 +96,7 @@ export interface EditorPaletteProps {
   recordedStepsLength?: number;
   onOpenRecordModal?: () => void;
   onAutoSolve?: () => void;
-  playSound: (type: "select" | "start" | "error", muted: boolean) => void;
+  playSound: (type: 'select' | 'start' | 'error', muted: boolean) => void;
   muted: boolean;
 }
 

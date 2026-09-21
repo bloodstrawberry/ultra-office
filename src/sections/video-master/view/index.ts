@@ -5,3 +5,4 @@ export * from './video-master-merge-view';
 export * from './video-master-subtitle-view';
 export * from './video-master-mp4-to-mp3-view';
 export * from './video-master-ai-watermark-view';
+export * from './video-master-voice-record-view';

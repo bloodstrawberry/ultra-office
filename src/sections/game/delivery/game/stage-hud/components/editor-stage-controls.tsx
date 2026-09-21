@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React from "react";
-import { EditorStageControlsProps } from "../types";
+import React from 'react';
+import { EditorStageControlsProps } from '../types';
 
 export function EditorStageControls({
   editorActiveIndex,
@@ -21,7 +21,7 @@ export function EditorStageControls({
         onClick={(e) => {
           e.stopPropagation();
           if (editorActiveIndex !== undefined && editorActiveIndex > 0) {
-            playSound("select", muted);
+            playSound('select', muted);
             selectEditorLevel?.(editorActiveIndex - 1);
           }
         }}
@@ -39,24 +39,19 @@ export function EditorStageControls({
           value={stageInputValue}
           onChange={(e) => setStageInputValue(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "Enter") {
+            if (e.key === 'Enter') {
               e.currentTarget.blur();
             }
           }}
           onBlur={() => {
             const num = parseInt(stageInputValue, 10);
-            if (
-              !isNaN(num) &&
-              num >= 1 &&
-              editorLevels &&
-              num <= editorLevels.length
-            ) {
+            if (!isNaN(num) && num >= 1 && editorLevels && num <= editorLevels.length) {
               if (num - 1 !== editorActiveIndex) {
-                playSound("select", muted);
+                playSound('select', muted);
                 selectEditorLevel?.(num - 1);
               }
             } else {
-              playSound("error", muted);
+              playSound('error', muted);
               setStageInputValue(((editorActiveIndex ?? 0) + 1).toString());
             }
           }}
@@ -78,7 +73,7 @@ export function EditorStageControls({
             editorLevels &&
             editorActiveIndex < editorLevels.length - 1
           ) {
-            playSound("select", muted);
+            playSound('select', muted);
             selectEditorLevel?.(editorActiveIndex + 1);
           }
         }}

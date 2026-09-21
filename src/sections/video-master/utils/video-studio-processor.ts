@@ -2,7 +2,12 @@
 // Multi-Track Video Studio Processing Engine
 // ----------------------------------------------------------------------
 
-import type { VideoStudioClipItem, VideoStudioTextItem, VideoStudioExportSettings } from '../types';
+import type {
+  VideoStudioClipItem,
+  VideoStudioTextItem,
+  VideoStudioAudioItem,
+  VideoStudioExportSettings,
+} from '../types';
 
 import gifshot from 'gifshot';
 
@@ -324,6 +329,7 @@ export async function exportStudioVideo(
   clips: VideoStudioClipItem[],
   textClips: VideoStudioTextItem[],
   settings: VideoStudioExportSettings,
+  audioClips?: VideoStudioAudioItem[],
   onProgress?: (percent: number, phase: string) => void,
   abortSignal?: AbortSignal
 ): Promise<Blob> {
@@ -417,6 +423,32 @@ export async function exportStudioVideo(
   recorder.ondataavailable = (e) => {
     if (e.data && e.data.size > 0) chunks.push(e.data);
   };
+
+  // Pre-schedule audio clips if available
+  if (audioCtx && audioDest && audioClips && audioClips.length > 0) {
+    for (const aClip of audioClips) {
+      if (aClip.mute) continue;
+      try {
+        let arrayBuffer: ArrayBuffer;
+        if (aClip.blob) {
+          arrayBuffer = await aClip.blob.arrayBuffer();
+        } else {
+          const res = await fetch(aClip.src);
+          arrayBuffer = await res.arrayBuffer();
+        }
+        const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+        const sourceNode = audioCtx.createBufferSource();
+        sourceNode.buffer = audioBuffer;
+        const gainNode = audioCtx.createGain();
+        gainNode.gain.value = aClip.volume ?? 1.0;
+        sourceNode.connect(gainNode);
+        gainNode.connect(audioDest);
+        sourceNode.start(audioCtx.currentTime + aClip.startTime);
+      } catch (e) {
+        console.warn('Failed to decode audio track clip', aClip.name, e);
+      }
+    }
+  }
 
   return new Promise((resolve, reject) => {
     recorder.onstop = () => {

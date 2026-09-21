@@ -1,5 +1,5 @@
-import React from "react";
-import { OBJECT_SCALES } from "./constants";
+import React from 'react';
+import { OBJECT_SCALES } from './constants';
 
 // 개별 크기 조절 변수 (1.0 = 100%, 1.2 = 120% 등)
 const SCALE = OBJECT_SCALES.grape;
@@ -12,12 +12,9 @@ export default function Grape({ isFrozen = false }: GrapeProps) {
   return (
     <div
       className="w-full h-full flex items-center justify-center pointer-events-none select-none animate-pulse"
-      style={{ transform: `scale(${SCALE})`, animationDuration: "2s" }}
+      style={{ transform: `scale(${SCALE})`, animationDuration: '2s' }}
     >
-      <svg
-        viewBox="0 0 100 100"
-        className="w-full h-full overflow-visible drop-shadow-md"
-      >
+      <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible drop-shadow-md">
         {/* 그림자 */}
         <ellipse cx="50" cy="88" rx="30" ry="6" fill="#0f172a" opacity="0.2" />
 
@@ -28,7 +25,7 @@ export default function Grape({ isFrozen = false }: GrapeProps) {
           width="60"
           height="62"
           rx="10"
-          fill={isFrozen ? "#c4b5fd" : "#8b5cf6"}
+          fill={isFrozen ? '#c4b5fd' : '#8b5cf6'}
           stroke="#0f172a"
           strokeWidth="3"
         />
@@ -40,7 +37,7 @@ export default function Grape({ isFrozen = false }: GrapeProps) {
           width="64"
           height="14"
           rx="4"
-          fill={isFrozen ? "#e9d5ff" : "#a78bfa"}
+          fill={isFrozen ? '#e9d5ff' : '#a78bfa'}
           stroke="#0f172a"
           strokeWidth="2.5"
         />
@@ -64,7 +61,9 @@ export default function Grape({ isFrozen = false }: GrapeProps) {
         <polygon points="51,48 46,55 50,55 49,60 55,53 51,53" fill="#78350f" />
 
         {/* 반짝이 */}
-        <text x="14" y="22" fontSize="12">✨</text>
+        <text x="14" y="22" fontSize="12">
+          ✨
+        </text>
       </svg>
     </div>
   );

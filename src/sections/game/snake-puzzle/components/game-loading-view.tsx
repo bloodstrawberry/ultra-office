@@ -2,7 +2,6 @@
 
 import React from 'react';
 
-
 export interface GameLoadingViewProps {
   title?: string;
   description?: string;

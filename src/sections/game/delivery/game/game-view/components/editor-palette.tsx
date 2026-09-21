@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React from "react";
-import { CellType } from "../../game-engine";
+import React from 'react';
+import { CellType } from '../../game-engine';
 import BlockRenderer, {
   BLOCK_NONE,
   BLOCK_WALL,
@@ -23,8 +23,8 @@ import BlockRenderer, {
   PORTAL_BLOCK_TYPES,
   WORMHOLE_BLOCK_TYPES,
   BLACKHOLE_BLOCK_TYPES,
-} from "../../../object";
-import { EditorPaletteProps } from "../types";
+} from '../../../object';
+import { EditorPaletteProps } from '../types';
 
 export function EditorPalette({
   activeEditor,
@@ -52,9 +52,7 @@ export function EditorPalette({
   return (
     <div className="flex flex-col gap-1 font-sans">
       <div className="hidden sm:flex text-[11px] text-stone-500 border-b border-stone-200 pb-0.5 justify-between items-center font-semibold">
-        <span>
-          그리기 도구를 선택하고 격자 셀을 클릭하거나 드래그하여 그려보세요.
-        </span>
+        <span>그리기 도구를 선택하고 격자 셀을 클릭하거나 드래그하여 그려보세요.</span>
         <span className="text-emerald-700 font-bold">에디터 팔레트</span>
       </div>
 
@@ -63,11 +61,11 @@ export function EditorPalette({
         {/* Eraser */}
         <button
           type="button"
-          onClick={() => setSelectedPaint("eraser")}
+          onClick={() => setSelectedPaint('eraser')}
           className={`px-2 py-0.5 rounded-lg text-xs border cursor-pointer flex items-center gap-1 transition-all ${
-            selectedPaint === "eraser"
-              ? "bg-rose-600 border-rose-700 text-white shadow-md scale-102 font-black"
-              : "bg-white border-stone-200 text-stone-700 hover:bg-stone-50 font-bold"
+            selectedPaint === 'eraser'
+              ? 'bg-rose-600 border-rose-700 text-white shadow-md scale-102 font-black'
+              : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50 font-bold'
           }`}
         >
           🧹 지우개
@@ -76,11 +74,11 @@ export function EditorPalette({
         {/* Ice tool */}
         <button
           type="button"
-          onClick={() => setSelectedPaint("ice")}
+          onClick={() => setSelectedPaint('ice')}
           className={`px-2 py-0.5 rounded-lg text-xs border cursor-pointer flex items-center gap-1 transition-all ${
-            selectedPaint === "ice"
-              ? "bg-cyan-600 border-cyan-700 text-white shadow-md scale-102 font-black"
-              : "bg-white border-stone-200 text-stone-700 hover:bg-stone-50 font-bold"
+            selectedPaint === 'ice'
+              ? 'bg-cyan-600 border-cyan-700 text-white shadow-md scale-102 font-black'
+              : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50 font-bold'
           }`}
           title="얼음 도구 (블럭을 얼리기/해제)"
         >
@@ -93,8 +91,8 @@ export function EditorPalette({
           onClick={() => setSelectedPaint(BLOCK_NONE)}
           className={`w-7 h-7 p-0.5 rounded-lg border cursor-pointer transition-all ${
             selectedPaint === BLOCK_NONE
-              ? "border-emerald-600 bg-emerald-50 scale-105 shadow-md"
-              : "border-stone-200 hover:border-stone-300 bg-white/80"
+              ? 'border-emerald-600 bg-emerald-50 scale-105 shadow-md'
+              : 'border-stone-200 hover:border-stone-300 bg-white/80'
           }`}
           title="Invisible Wall (-1)"
         >
@@ -107,8 +105,8 @@ export function EditorPalette({
           onClick={() => setSelectedPaint(BLOCK_WALL)}
           className={`w-7 h-7 p-0.5 rounded-lg border cursor-pointer transition-all ${
             selectedPaint === BLOCK_WALL
-              ? "border-emerald-600 bg-emerald-50 scale-105 shadow-md"
-              : "border-stone-200 hover:border-stone-300 bg-white/80"
+              ? 'border-emerald-600 bg-emerald-50 scale-105 shadow-md'
+              : 'border-stone-200 hover:border-stone-300 bg-white/80'
           }`}
         >
           <BlockRenderer id={BLOCK_WALL} />
@@ -122,8 +120,8 @@ export function EditorPalette({
             onClick={() => setSelectedPaint(type)}
             className={`w-7 h-7 p-0.5 rounded-lg border cursor-pointer transition-all ${
               selectedPaint === type
-                ? "border-emerald-600 bg-emerald-50 scale-105 shadow-md"
-                : "border-stone-200 hover:border-stone-300 bg-white/80"
+                ? 'border-emerald-600 bg-emerald-50 scale-105 shadow-md'
+                : 'border-stone-200 hover:border-stone-300 bg-white/80'
             }`}
           >
             <BlockRenderer id={type} />
@@ -136,8 +134,8 @@ export function EditorPalette({
           onClick={() => setSelectedPaint(BLOCK_BOMB)}
           className={`w-7 h-7 p-0.5 rounded-lg border cursor-pointer transition-all ${
             selectedPaint === BLOCK_BOMB
-              ? "border-emerald-600 bg-emerald-50 scale-105 shadow-md"
-              : "border-stone-200 hover:border-stone-300 bg-white/80"
+              ? 'border-emerald-600 bg-emerald-50 scale-105 shadow-md'
+              : 'border-stone-200 hover:border-stone-300 bg-white/80'
           }`}
           title="Bomb Block"
         >
@@ -150,8 +148,8 @@ export function EditorPalette({
           onClick={() => setSelectedPaint(BLOCK_WALL_V)}
           className={`w-7 h-7 p-0.5 rounded-lg border cursor-pointer transition-all ${
             selectedPaint === BLOCK_WALL_V
-              ? "border-emerald-600 bg-emerald-50 scale-105 shadow-md"
-              : "border-stone-200 hover:border-stone-300 bg-white/80"
+              ? 'border-emerald-600 bg-emerald-50 scale-105 shadow-md'
+              : 'border-stone-200 hover:border-stone-300 bg-white/80'
           }`}
           title="Vertical Moving Wall"
         >
@@ -162,8 +160,8 @@ export function EditorPalette({
           onClick={() => setSelectedPaint(BLOCK_WALL_H)}
           className={`w-7 h-7 p-0.5 rounded-lg border cursor-pointer transition-all ${
             selectedPaint === BLOCK_WALL_H
-              ? "border-emerald-600 bg-emerald-50 scale-105 shadow-md"
-              : "border-stone-200 hover:border-stone-300 bg-white/80"
+              ? 'border-emerald-600 bg-emerald-50 scale-105 shadow-md'
+              : 'border-stone-200 hover:border-stone-300 bg-white/80'
           }`}
           title="Horizontal Moving Wall"
         >
@@ -174,8 +172,8 @@ export function EditorPalette({
           onClick={() => setSelectedPaint(BLOCK_AUTO_WALL_V)}
           className={`w-7 h-7 p-0.5 rounded-lg border cursor-pointer transition-all ${
             selectedPaint === BLOCK_AUTO_WALL_V
-              ? "border-emerald-600 bg-emerald-50 scale-105 shadow-md"
-              : "border-stone-200 hover:border-stone-300 bg-white/80"
+              ? 'border-emerald-600 bg-emerald-50 scale-105 shadow-md'
+              : 'border-stone-200 hover:border-stone-300 bg-white/80'
           }`}
           title="Vertical Auto-Moving Wall"
         >
@@ -186,8 +184,8 @@ export function EditorPalette({
           onClick={() => setSelectedPaint(BLOCK_AUTO_WALL_H)}
           className={`w-7 h-7 p-0.5 rounded-lg border cursor-pointer transition-all ${
             selectedPaint === BLOCK_AUTO_WALL_H
-              ? "border-emerald-600 bg-emerald-50 scale-105 shadow-md"
-              : "border-stone-200 hover:border-stone-300 bg-white/80"
+              ? 'border-emerald-600 bg-emerald-50 scale-105 shadow-md'
+              : 'border-stone-200 hover:border-stone-300 bg-white/80'
           }`}
           title="Horizontal Auto-Moving Wall"
         >
@@ -200,8 +198,8 @@ export function EditorPalette({
           onClick={() => setSelectedPaint(BLOCK_SHOOTER_L)}
           className={`w-7 h-7 p-0.5 rounded-lg border cursor-pointer transition-all ${
             selectedPaint === BLOCK_SHOOTER_L
-              ? "border-emerald-600 bg-emerald-50 scale-105 shadow-md"
-              : "border-stone-200 hover:border-stone-300 bg-white/80"
+              ? 'border-emerald-600 bg-emerald-50 scale-105 shadow-md'
+              : 'border-stone-200 hover:border-stone-300 bg-white/80'
           }`}
           title="Shooter Left (Repeated)"
         >
@@ -212,8 +210,8 @@ export function EditorPalette({
           onClick={() => setSelectedPaint(BLOCK_SHOOTER_R)}
           className={`w-7 h-7 p-0.5 rounded-lg border cursor-pointer transition-all ${
             selectedPaint === BLOCK_SHOOTER_R
-              ? "border-emerald-600 bg-emerald-50 scale-105 shadow-md"
-              : "border-stone-200 hover:border-stone-300 bg-white/80"
+              ? 'border-emerald-600 bg-emerald-50 scale-105 shadow-md'
+              : 'border-stone-200 hover:border-stone-300 bg-white/80'
           }`}
           title="Shooter Right (Repeated)"
         >
@@ -224,8 +222,8 @@ export function EditorPalette({
           onClick={() => setSelectedPaint(BLOCK_SHOOTER_L_ONCE)}
           className={`w-7 h-7 p-0.5 rounded-lg border cursor-pointer transition-all ${
             selectedPaint === BLOCK_SHOOTER_L_ONCE
-              ? "border-emerald-600 bg-emerald-50 scale-105 shadow-md"
-              : "border-stone-200 hover:border-stone-300 bg-white/80"
+              ? 'border-emerald-600 bg-emerald-50 scale-105 shadow-md'
+              : 'border-stone-200 hover:border-stone-300 bg-white/80'
           }`}
           title="Shooter Left (Once)"
         >
@@ -236,8 +234,8 @@ export function EditorPalette({
           onClick={() => setSelectedPaint(BLOCK_SHOOTER_R_ONCE)}
           className={`w-7 h-7 p-0.5 rounded-lg border cursor-pointer transition-all ${
             selectedPaint === BLOCK_SHOOTER_R_ONCE
-              ? "border-emerald-600 bg-emerald-50 scale-105 shadow-md"
-              : "border-stone-200 hover:border-stone-300 bg-white/80"
+              ? 'border-emerald-600 bg-emerald-50 scale-105 shadow-md'
+              : 'border-stone-200 hover:border-stone-300 bg-white/80'
           }`}
           title="Shooter Right (Once)"
         >
@@ -250,8 +248,8 @@ export function EditorPalette({
           onClick={() => setSelectedPaint(BLOCK_SPIKE_U)}
           className={`w-7 h-7 p-0.5 rounded-lg border cursor-pointer transition-all ${
             selectedPaint === BLOCK_SPIKE_U
-              ? "border-emerald-600 bg-emerald-50 scale-105 shadow-md"
-              : "border-stone-200 hover:border-stone-300 bg-white/80"
+              ? 'border-emerald-600 bg-emerald-50 scale-105 shadow-md'
+              : 'border-stone-200 hover:border-stone-300 bg-white/80'
           }`}
           title="Spike Up"
         >
@@ -262,8 +260,8 @@ export function EditorPalette({
           onClick={() => setSelectedPaint(BLOCK_SPIKE_D)}
           className={`w-7 h-7 p-0.5 rounded-lg border cursor-pointer transition-all ${
             selectedPaint === BLOCK_SPIKE_D
-              ? "border-emerald-600 bg-emerald-50 scale-105 shadow-md"
-              : "border-stone-200 hover:border-stone-300 bg-white/80"
+              ? 'border-emerald-600 bg-emerald-50 scale-105 shadow-md'
+              : 'border-stone-200 hover:border-stone-300 bg-white/80'
           }`}
           title="Spike Down"
         >
@@ -274,8 +272,8 @@ export function EditorPalette({
           onClick={() => setSelectedPaint(BLOCK_SPIKE_L)}
           className={`w-7 h-7 p-0.5 rounded-lg border cursor-pointer transition-all ${
             selectedPaint === BLOCK_SPIKE_L
-              ? "border-emerald-600 bg-emerald-50 scale-105 shadow-md"
-              : "border-stone-200 hover:border-stone-300 bg-white/80"
+              ? 'border-emerald-600 bg-emerald-50 scale-105 shadow-md'
+              : 'border-stone-200 hover:border-stone-300 bg-white/80'
           }`}
           title="Spike Left"
         >
@@ -286,8 +284,8 @@ export function EditorPalette({
           onClick={() => setSelectedPaint(BLOCK_SPIKE_R)}
           className={`w-7 h-7 p-0.5 rounded-lg border cursor-pointer transition-all ${
             selectedPaint === BLOCK_SPIKE_R
-              ? "border-emerald-600 bg-emerald-50 scale-105 shadow-md"
-              : "border-stone-200 hover:border-stone-300 bg-white/80"
+              ? 'border-emerald-600 bg-emerald-50 scale-105 shadow-md'
+              : 'border-stone-200 hover:border-stone-300 bg-white/80'
           }`}
           title="Spike Right"
         >
@@ -302,8 +300,8 @@ export function EditorPalette({
             onClick={() => setSelectedPaint(type)}
             className={`w-7 h-7 p-0.5 rounded-lg border cursor-pointer transition-all ${
               selectedPaint === type
-                ? "border-emerald-600 bg-emerald-50 scale-105 shadow-md"
-                : "border-stone-200 hover:border-stone-300 bg-white/80"
+                ? 'border-emerald-600 bg-emerald-50 scale-105 shadow-md'
+                : 'border-stone-200 hover:border-stone-300 bg-white/80'
             }`}
             title={`Straw Block (${type})`}
           >
@@ -319,8 +317,8 @@ export function EditorPalette({
             onClick={() => setSelectedPaint(type)}
             className={`w-7 h-7 p-0.5 rounded-lg border cursor-pointer transition-all ${
               selectedPaint === type
-                ? "border-emerald-600 bg-emerald-50 scale-105 shadow-md"
-                : "border-stone-200 hover:border-stone-300 bg-white/80"
+                ? 'border-emerald-600 bg-emerald-50 scale-105 shadow-md'
+                : 'border-stone-200 hover:border-stone-300 bg-white/80'
             }`}
             title={`순간이동 포탈 (${type})`}
           >
@@ -336,8 +334,8 @@ export function EditorPalette({
             onClick={() => setSelectedPaint(type)}
             className={`w-7 h-7 p-0.5 rounded-lg border cursor-pointer transition-all ${
               selectedPaint === type
-                ? "border-emerald-600 bg-emerald-50 scale-105 shadow-md"
-                : "border-stone-200 hover:border-stone-300 bg-white/80"
+                ? 'border-emerald-600 bg-emerald-50 scale-105 shadow-md'
+                : 'border-stone-200 hover:border-stone-300 bg-white/80'
             }`}
             title={`블랙홀 (${type})`}
           >
@@ -360,9 +358,7 @@ export function EditorPalette({
             >
               -
             </button>
-            <span className="text-xs text-amber-700 font-black w-4 text-center">
-              {grid.length}
-            </span>
+            <span className="text-xs text-amber-700 font-black w-4 text-center">{grid.length}</span>
             <button
               type="button"
               onClick={() => editorResizeGrid(grid.length + 1, grid[0].length)}
@@ -447,12 +443,12 @@ export function EditorPalette({
               type="button"
               onClick={() => {
                 onOpenHintModal();
-                playSound("select", muted);
+                playSound('select', muted);
               }}
               className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gradient-to-tr from-amber-500 via-amber-400 to-yellow-300 text-stone-900 border-2 border-amber-300 shadow-md cursor-pointer flex items-center justify-center text-[10px] sm:text-xs font-black transition-all duration-300 ${
                 isHintAttention
-                  ? "scale-125 -translate-y-1 shadow-[0_0_18px_rgba(245,158,11,0.9)] ring-4 ring-amber-300/80 animate-bounce"
-                  : "hover:scale-110"
+                  ? 'scale-125 -translate-y-1 shadow-[0_0_18px_rgba(245,158,11,0.9)] ring-4 ring-amber-300/80 animate-bounce'
+                  : 'hover:scale-110'
               }`}
               title={`힌트 보기 (${activeHintsLength}개)`}
             >
@@ -464,7 +460,7 @@ export function EditorPalette({
               type="button"
               onClick={() => {
                 onOpenRecordModal?.();
-                playSound("select", muted);
+                playSound('select', muted);
               }}
               className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gradient-to-tr from-sky-500 via-sky-400 to-indigo-300 text-stone-900 border-2 border-sky-300 shadow-md cursor-pointer flex items-center justify-center text-[10px] sm:text-xs font-black transition-all duration-300 hover:scale-110 active:scale-95"
               title={`녹화 기록 보기 (${recordedStepsLength}단계)`}

@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState } from 'react';
 
 interface AssetLoaderContextType {
   isLoaderFinished: boolean;
@@ -12,11 +12,7 @@ const AssetLoaderContext = createContext<AssetLoaderContextType>({
   markLoaderAsFinished: () => {},
 });
 
-export function AssetLoaderProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function AssetLoaderProvider({ children }: { children: React.ReactNode }) {
   const [isLoaderFinished, setIsLoaderFinished] = useState<boolean>(false);
 
   const markLoaderAsFinished = () => {
@@ -24,9 +20,7 @@ export function AssetLoaderProvider({
   };
 
   return (
-    <AssetLoaderContext.Provider
-      value={{ isLoaderFinished, markLoaderAsFinished }}
-    >
+    <AssetLoaderContext.Provider value={{ isLoaderFinished, markLoaderAsFinished }}>
       {children}
     </AssetLoaderContext.Provider>
   );

@@ -1,16 +1,12 @@
-import React from "react";
+import React from 'react';
 
 interface ShooterProps {
-  direction: "left" | "right";
-  mode: "once" | "repeated";
+  direction: 'left' | 'right';
+  mode: 'once' | 'repeated';
   isPressed?: boolean;
 }
 
-export default function Shooter({
-  direction,
-  mode,
-  isPressed = false,
-}: ShooterProps) {
+export default function Shooter({ direction, mode, isPressed = false }: ShooterProps) {
   return (
     <svg className="w-full h-full" viewBox="0 0 40 40">
       <defs>
@@ -37,7 +33,7 @@ export default function Shooter({
           width="16"
           height="2"
           rx="0.5"
-          fill={mode === "repeated" ? "url(#btnRed)" : "url(#btnGreen)"}
+          fill={mode === 'repeated' ? 'url(#btnRed)' : 'url(#btnGreen)'}
           stroke="#000000"
           strokeWidth="1"
         />
@@ -48,7 +44,7 @@ export default function Shooter({
           width="16"
           height="5"
           rx="1"
-          fill={mode === "repeated" ? "url(#btnRed)" : "url(#btnGreen)"}
+          fill={mode === 'repeated' ? 'url(#btnRed)' : 'url(#btnGreen)'}
           stroke="#000000"
           strokeWidth="1.5"
         />
@@ -78,24 +74,8 @@ export default function Shooter({
       />
 
       {/* Inner highlights (Bevel) */}
-      <line
-        x1="5"
-        y1="9"
-        x2="35"
-        y2="9"
-        stroke="#9ca3af"
-        strokeWidth="1"
-        strokeOpacity="0.4"
-      />
-      <line
-        x1="5"
-        y1="9"
-        x2="5"
-        y2="35"
-        stroke="#9ca3af"
-        strokeWidth="1"
-        strokeOpacity="0.4"
-      />
+      <line x1="5" y1="9" x2="35" y2="9" stroke="#9ca3af" strokeWidth="1" strokeOpacity="0.4" />
+      <line x1="5" y1="9" x2="5" y2="35" stroke="#9ca3af" strokeWidth="1" strokeOpacity="0.4" />
 
       {/* Rivets in corners */}
       <circle cx="8" cy="12" r="1" fill="#9ca3af" fillOpacity="0.6" />
@@ -104,7 +84,7 @@ export default function Shooter({
       <circle cx="32" cy="32" r="1" fill="#9ca3af" fillOpacity="0.6" />
 
       {/* Nozzle/Barrel on left or right */}
-      {direction === "left" ? (
+      {direction === 'left' ? (
         <g>
           {/* Left barrel */}
           <rect
@@ -120,7 +100,7 @@ export default function Shooter({
           <circle cx="2" cy="21" r="1.5" fill="#111827" />
 
           {/* Arrow pointing Left */}
-          {mode === "repeated" ? (
+          {mode === 'repeated' ? (
             <path
               d="M 27 21 L 13 21 M 17 17 L 13 21 L 17 25 M 22 17 L 18 21 L 22 25"
               fill="none"
@@ -156,7 +136,7 @@ export default function Shooter({
           <circle cx="38" cy="21" r="1.5" fill="#111827" />
 
           {/* Arrow pointing Right */}
-          {mode === "repeated" ? (
+          {mode === 'repeated' ? (
             <path
               d="M 13 21 L 27 21 M 23 17 L 27 21 L 23 25 M 18 17 L 22 21 L 18 25"
               fill="none"

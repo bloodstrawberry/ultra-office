@@ -1,5 +1,5 @@
-import React from "react";
-import { OBJECT_SCALES } from "./constants";
+import React from 'react';
+import { OBJECT_SCALES } from './constants';
 
 const SCALE = OBJECT_SCALES.straw ?? 1.2;
 
@@ -47,19 +47,10 @@ export default function Straw({ count = 2 }: StrawProps) {
       className="w-full h-full flex items-center justify-center pointer-events-none select-none"
       style={{ transform: `scale(${SCALE})` }}
     >
-      <svg
-        viewBox="0 0 100 100"
-        className="w-full h-full overflow-visible drop-shadow-sm"
-      >
+      <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible drop-shadow-sm">
         <defs>
           {/* Vibrant Golden Straw Body Gradient */}
-          <linearGradient
-            id="strawFruitThemeGrad"
-            x1="0%"
-            y1="0%"
-            x2="100%"
-            y2="100%"
-          >
+          <linearGradient id="strawFruitThemeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#FFE082" />
             <stop offset="40%" stopColor="#FFCA28" />
             <stop offset="80%" stopColor="#FFA000" />
@@ -232,14 +223,7 @@ export default function Straw({ count = 2 }: StrawProps) {
               opacity="0.7"
             />
             {/* Tied Knot Detail at Bottom Edge */}
-            <circle
-              cx={xPos}
-              cy="90"
-              r="3"
-              fill="#3E2723"
-              stroke="#221C14"
-              strokeWidth="1.5"
-            />
+            <circle cx={xPos} cy="90" r="3" fill="#3E2723" stroke="#221C14" strokeWidth="1.5" />
             <path
               d={`M ${xPos + 1.5} 90 C ${xPos + 4} 93, ${xPos + 6} 95, ${xPos + 4} 97`}
               fill="none"

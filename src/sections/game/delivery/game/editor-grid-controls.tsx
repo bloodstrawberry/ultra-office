@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { CellType } from "./types";
-import { BLOCK_EMPTY, STAGE_GRID_GAP_REM } from "../object";
+import React, { useState } from 'react';
+import { CellType } from './types';
+import { BLOCK_EMPTY, STAGE_GRID_GAP_REM } from '../object';
 
 export interface EditorColControlsProps {
   grid: CellType[][];
@@ -62,16 +62,16 @@ export function EditorColControls({
               onMouseLeave={() => setHoveredCol(null)}
               className={`w-full h-6 sm:h-7 rounded-md flex items-center justify-center transition-all border text-xs md:text-sm font-black cursor-pointer shadow-sm select-none p-0 ${
                 isColEmpty
-                  ? "bg-rose-100 border-rose-200 text-rose-700 hover:bg-rose-200 active:scale-95"
-                  : "bg-white border-stone-200 text-stone-600 hover:bg-stone-100 hover:text-stone-900 active:scale-95"
+                  ? 'bg-rose-100 border-rose-200 text-rose-700 hover:bg-rose-200 active:scale-95'
+                  : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-100 hover:text-stone-900 active:scale-95'
               }`}
               title={
                 isColEmpty
-                  ? "이 열 완전히 지우기 (우클릭: 열 메뉴)"
-                  : "이 열 비우기 (우클릭: 열 메뉴)"
+                  ? '이 열 완전히 지우기 (우클릭: 열 메뉴)'
+                  : '이 열 비우기 (우클릭: 열 메뉴)'
               }
             >
-              {isColEmpty ? "❌" : "⬇️"}
+              {isColEmpty ? '❌' : '⬇️'}
             </button>
           );
         })}
@@ -93,12 +93,11 @@ export function EditorColControls({
             style={{
               top: Math.min(
                 contextMenu.y,
-                (typeof window !== "undefined" ? window.innerHeight : 600) -
-                  220,
+                (typeof window !== 'undefined' ? window.innerHeight : 600) - 220
               ),
               left: Math.min(
                 contextMenu.x,
-                (typeof window !== "undefined" ? window.innerWidth : 800) - 190,
+                (typeof window !== 'undefined' ? window.innerWidth : 800) - 190
               ),
             }}
           >
@@ -141,8 +140,8 @@ export function EditorColControls({
               disabled={!copiedCol}
               className={`w-full text-left px-3 py-2 rounded-lg flex items-center gap-2 transition-colors ${
                 copiedCol
-                  ? "hover:bg-sky-50 hover:text-sky-700 cursor-pointer text-stone-700"
-                  : "opacity-40 cursor-not-allowed text-stone-400"
+                  ? 'hover:bg-sky-50 hover:text-sky-700 cursor-pointer text-stone-700'
+                  : 'opacity-40 cursor-not-allowed text-stone-400'
               }`}
               onClick={() => {
                 if (copiedCol) {
@@ -226,16 +225,16 @@ export function EditorRowControls({
             onMouseLeave={() => setHoveredRow(null)}
             className={`w-full aspect-square rounded-lg flex items-center justify-center transition-all border text-xs md:text-sm font-black cursor-pointer shadow-sm select-none p-0 ${
               isRowEmpty
-                ? "bg-rose-100 border-rose-200 text-rose-700 hover:bg-rose-200 active:scale-95"
-                : "bg-white border-stone-200 text-stone-600 hover:bg-stone-100 hover:text-stone-900 active:scale-95"
+                ? 'bg-rose-100 border-rose-200 text-rose-700 hover:bg-rose-200 active:scale-95'
+                : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-100 hover:text-stone-900 active:scale-95'
             }`}
             title={
               isRowEmpty
-                ? "이 행 완전히 지우기 (우클릭: 행 메뉴)"
-                : "이 행 비우기 (우클릭: 행 메뉴)"
+                ? '이 행 완전히 지우기 (우클릭: 행 메뉴)'
+                : '이 행 비우기 (우클릭: 행 메뉴)'
             }
           >
-            {isRowEmpty ? "❌" : "➡️"}
+            {isRowEmpty ? '❌' : '➡️'}
           </button>
         );
       })}
@@ -256,12 +255,11 @@ export function EditorRowControls({
             style={{
               top: Math.min(
                 contextMenu.y,
-                (typeof window !== "undefined" ? window.innerHeight : 600) -
-                  220,
+                (typeof window !== 'undefined' ? window.innerHeight : 600) - 220
               ),
               left: Math.min(
                 contextMenu.x,
-                (typeof window !== "undefined" ? window.innerWidth : 800) - 190,
+                (typeof window !== 'undefined' ? window.innerWidth : 800) - 190
               ),
             }}
           >
@@ -304,8 +302,8 @@ export function EditorRowControls({
               disabled={!copiedRow}
               className={`w-full text-left px-3 py-2 rounded-lg flex items-center gap-2 transition-colors ${
                 copiedRow
-                  ? "hover:bg-sky-50 hover:text-sky-700 cursor-pointer text-stone-700"
-                  : "opacity-40 cursor-not-allowed text-stone-400"
+                  ? 'hover:bg-sky-50 hover:text-sky-700 cursor-pointer text-stone-700'
+                  : 'opacity-40 cursor-not-allowed text-stone-400'
               }`}
               onClick={() => {
                 if (copiedRow) {

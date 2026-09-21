@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState, useCallback, useRef, useEffect } from "react";
-import { CellType, Position, copyGrid } from "./types";
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { CellType, Position, copyGrid } from './types';
 
 export interface UndoSnapshot {
   grid: CellType[][];
@@ -103,25 +103,20 @@ export function useUndoHotkey({ enabled, onUndo }: UseUndoHotkeyOptions) {
       const activeEl = document.activeElement as HTMLElement | null;
       if (
         activeEl &&
-        (activeEl.tagName === "INPUT" ||
-          activeEl.tagName === "TEXTAREA" ||
+        (activeEl.tagName === 'INPUT' ||
+          activeEl.tagName === 'TEXTAREA' ||
           activeEl.isContentEditable)
       ) {
         return;
       }
 
-      if (
-        (e.ctrlKey || e.metaKey) &&
-        e.key.toLowerCase() === "z" &&
-        !e.shiftKey &&
-        !e.altKey
-      ) {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey && !e.altKey) {
         e.preventDefault();
         onUndoRef.current();
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [enabled]);
 }

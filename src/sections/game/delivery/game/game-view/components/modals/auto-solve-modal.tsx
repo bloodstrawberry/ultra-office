@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { DFSSolveResult } from "../../../solver";
+import React, { useState } from 'react';
+import { DFSSolveResult } from '../../../solver';
 
 export interface AutoSolveModalProps {
   isOpen: boolean;
@@ -24,12 +24,10 @@ export function AutoSolveModal({
 
   const handleCopy = () => {
     if (!result.solvable) return;
-    const text = result.solutionKorean
-      .map((dir, idx) => `[${idx + 1}] ${dir}`)
-      .join(" → ");
+    const text = result.solutionKorean.map((dir, idx) => `[${idx + 1}] ${dir}`).join(' → ');
     navigator.clipboard?.writeText(text);
     setCopied(true);
-    onToast?.("클리어 경로가 클립보드에 복사되었습니다!");
+    onToast?.('클리어 경로가 클립보드에 복사되었습니다!');
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -68,26 +66,24 @@ export function AutoSolveModal({
         <div
           className={`p-3.5 rounded-2xl border flex items-center gap-3 ${
             result.solvable
-              ? "bg-emerald-50 border-emerald-300 text-emerald-950"
-              : "bg-rose-50 border-rose-300 text-rose-950"
+              ? 'bg-emerald-50 border-emerald-300 text-emerald-950'
+              : 'bg-rose-50 border-rose-300 text-rose-950'
           }`}
         >
           <div
             className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0 ${
               result.solvable
-                ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/30"
-                : "bg-rose-500 text-white shadow-md shadow-rose-500/30"
+                ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30'
+                : 'bg-rose-500 text-white shadow-md shadow-rose-500/30'
             }`}
           >
-            {result.solvable ? "✓" : "✕"}
+            {result.solvable ? '✓' : '✕'}
           </div>
           <div className="flex-1">
             <div className="font-black text-sm">
-              {result.solvable ? "클리어 가능한 맵입니다!" : "클리어 불가능"}
+              {result.solvable ? '클리어 가능한 맵입니다!' : '클리어 불가능'}
             </div>
-            <div className="text-xs font-semibold opacity-90 mt-0.5">
-              {result.message}
-            </div>
+            <div className="text-xs font-semibold opacity-90 mt-0.5">{result.message}</div>
           </div>
         </div>
 
@@ -127,7 +123,7 @@ export function AutoSolveModal({
                 onClick={handleCopy}
                 className="flex-1 py-2.5 px-3 rounded-2xl bg-amber-100 hover:bg-amber-200 active:scale-[0.98] text-amber-950 font-black text-xs sm:text-sm border border-amber-300 transition-all cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
               >
-                <span>{copied ? "✓ 복사됨!" : "📋 경로 복사"}</span>
+                <span>{copied ? '✓ 복사됨!' : '📋 경로 복사'}</span>
               </button>
               {onPlaySolution && (
                 <button

@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React from "react";
-import { MenuActionsSectionProps } from "../types";
+import React from 'react';
+import { MenuActionsSectionProps } from '../types';
 
 export function MenuActionsSection({
   isEditor,
@@ -29,7 +29,7 @@ export function MenuActionsSection({
             } else {
               resetLevel();
             }
-            playSound("select", muted);
+            playSound('select', muted);
             setIsMenuOpen(false);
           }}
           className="w-full py-2 px-2 bg-amber-100/80 hover:bg-amber-200/90 active:scale-[0.98] text-amber-950 font-black text-xs sm:text-sm rounded-2xl border border-amber-300/80 flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs"
@@ -40,7 +40,7 @@ export function MenuActionsSection({
         <button
           type="button"
           onClick={() => {
-            playSound("select", muted);
+            playSound('select', muted);
             setIsMenuOpen(false);
             if (onBackToStageSelect) {
               onBackToStageSelect();
@@ -59,7 +59,7 @@ export function MenuActionsSection({
         <button
           type="button"
           onClick={() => {
-            playSound("break", muted);
+            playSound('break', muted);
             setIsMenuOpen(false);
             onClearAllBlocks?.();
           }}

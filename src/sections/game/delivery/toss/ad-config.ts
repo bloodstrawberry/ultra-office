@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * Centralized Toss Ads Configuration & Group IDs
@@ -13,8 +13,8 @@ export const TOSS_AD_GROUP_IDS = {
 export type AdType = keyof typeof TOSS_AD_GROUP_IDS;
 
 export function getAdGroupId(type: AdType, overrideId?: string): string {
-  if (overrideId && overrideId.trim() !== "") {
+  if (overrideId && overrideId.trim() !== '') {
     return overrideId;
   }
-  return TOSS_AD_GROUP_IDS[type] || "";
+  return TOSS_AD_GROUP_IDS[type] || '';
 }

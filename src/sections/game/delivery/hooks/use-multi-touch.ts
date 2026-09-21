@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState, useCallback, useEffect, useRef } from "react";
-import { TouchColor, getShuffledTouchColors } from "../utils/colors";
-import { playCuteTouchSound } from "../utils/sound";
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { TouchColor, getShuffledTouchColors } from '../utils/colors';
+import { playCuteTouchSound } from '../utils/sound';
 
 export interface TouchPoint {
   id: number;
@@ -14,9 +14,7 @@ export interface TouchPoint {
 
 export function useMultiTouch(gameState: string) {
   const [touchPoints, setTouchPoints] = useState<TouchPoint[]>([]);
-  const [mousePoint, setMousePoint] = useState<{ x: number; y: number } | null>(
-    null,
-  );
+  const [mousePoint, setMousePoint] = useState<{ x: number; y: number } | null>(null);
   const [isMouseDown, setIsMouseDown] = useState(false);
 
   // Track previously active touch IDs to detect new finger touches
@@ -35,26 +33,23 @@ export function useMultiTouch(gameState: string) {
   // Lock body scrolling during touch games
   useEffect(() => {
     const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = prev;
     };
   }, []);
 
-  const getOrAssignColor = useCallback(
-    (id: number): { colorIndex: number; color: TouchColor } => {
-      let assigned = touchColorMapRef.current.get(id);
-      if (!assigned) {
-        const palette = paletteRef.current;
-        const index = touchColorMapRef.current.size % palette.length;
-        assigned = palette[index];
-        touchColorMapRef.current.set(id, assigned);
-      }
-      const colorIndex = paletteRef.current.indexOf(assigned);
-      return { colorIndex, color: assigned };
-    },
-    [],
-  );
+  const getOrAssignColor = useCallback((id: number): { colorIndex: number; color: TouchColor } => {
+    let assigned = touchColorMapRef.current.get(id);
+    if (!assigned) {
+      const palette = paletteRef.current;
+      const index = touchColorMapRef.current.size % palette.length;
+      assigned = palette[index];
+      touchColorMapRef.current.set(id, assigned);
+    }
+    const colorIndex = paletteRef.current.indexOf(assigned);
+    return { colorIndex, color: assigned };
+  }, []);
 
   const handleTouchChange = useCallback(
     (e: React.TouchEvent<HTMLDivElement>) => {
@@ -62,7 +57,7 @@ export function useMultiTouch(gameState: string) {
       const currentTouchIds = new Set<number>();
 
       // When all fingers are lifted in idle state, refresh palette shuffle
-      if (touches.length === 0 && gameState === "idle") {
+      if (touches.length === 0 && gameState === 'idle') {
         shufflePalette();
       }
 
@@ -90,7 +85,7 @@ export function useMultiTouch(gameState: string) {
 
       setTouchPoints(points);
     },
-    [gameState, getOrAssignColor, shufflePalette],
+    [gameState, getOrAssignColor, shufflePalette]
   );
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {

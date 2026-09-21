@@ -60,7 +60,15 @@ function makePuzzle(size: number): Puzzle {
   };
 }
 
-const PieceArtwork = memo(function PieceArtwork({ piece, size, imageUrl }: { piece: Piece; size: number; imageUrl: string }) {
+const PieceArtwork = memo(function PieceArtwork({
+  piece,
+  size,
+  imageUrl,
+}: {
+  piece: Piece;
+  size: number;
+  imageUrl: string;
+}) {
   const clipId = useId().replace(/:/g, '');
   const path = piecePath(piece);
   return (
@@ -98,10 +106,20 @@ const PieceArtwork = memo(function PieceArtwork({ piece, size, imageUrl }: { pie
 });
 
 function formatTime(seconds: number) {
-  return `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
+  return `${Math.floor(seconds / 60)
+    .toString()
+    .padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
 }
 
-const PuzzleClock = memo(function PuzzleClock({ startedAt, completed, finalSeconds }: { startedAt: number; completed: boolean; finalSeconds: number }) {
+const PuzzleClock = memo(function PuzzleClock({
+  startedAt,
+  completed,
+  finalSeconds,
+}: {
+  startedAt: number;
+  completed: boolean;
+  finalSeconds: number;
+}) {
   const [elapsed, setElapsed] = useState(0);
   useEffect(() => {
     if (completed) return undefined;
@@ -286,7 +304,12 @@ export function JigsawPuzzleView() {
                   </Button>
                 </Stack>
                 <Typography fontWeight={700}>
-                  {placedCount}/{size * size} 조각 · 시도 {puzzle.attempts}회 · <PuzzleClock startedAt={startedAt} completed={puzzle.completed} finalSeconds={completedSeconds} />
+                  {placedCount}/{size * size} 조각 · 시도 {puzzle.attempts}회 ·{' '}
+                  <PuzzleClock
+                    startedAt={startedAt}
+                    completed={puzzle.completed}
+                    finalSeconds={completedSeconds}
+                  />
                 </Typography>
               </Stack>
               <Typography
@@ -365,9 +388,9 @@ export function JigsawPuzzleView() {
                       alt="퍼즐 원본 사진"
                       sx={{
                         display: 'block',
-                      width: 180,
-                      height: 180,
-                      maxWidth: '100%',
+                        width: 180,
+                        height: 180,
+                        maxWidth: '100%',
                         objectFit: 'cover',
                         borderRadius: 2,
                       }}

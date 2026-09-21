@@ -15,7 +15,7 @@ const Storage = {
   clearItems: async () => clearDeliveryStorage(),
 };
 
-const isBrowser = typeof window !== "undefined";
+const isBrowser = typeof window !== 'undefined';
 
 /**
  * Storage API 및 브라우저 localStorage 호환 래퍼 함수들
@@ -27,13 +27,13 @@ export const getItem = async (key: string): Promise<string | null> => {
     const val = await Storage.getItem(key);
     if (val !== null && val !== undefined) return val;
   } catch (e) {
-    console.warn("Storage.getItem failed, fallback to localStorage", e);
+    console.warn('Storage.getItem failed, fallback to localStorage', e);
   }
 
   try {
     return localStorage.getItem(storageKey(key));
   } catch (e) {
-    console.warn("localStorage.getItem failed", e);
+    console.warn('localStorage.getItem failed', e);
     return null;
   }
 };
@@ -48,7 +48,7 @@ export const setItem = async (key: string, value: string): Promise<void> => {
     try {
       localStorage.setItem(storageKey(key), value);
     } catch (err) {
-      console.warn("localStorage.setItem failed", err);
+      console.warn('localStorage.setItem failed', err);
     }
   }
 };
@@ -62,7 +62,7 @@ export const removeItem = async (key: string): Promise<void> => {
     try {
       localStorage.removeItem(storageKey(key));
     } catch (err) {
-      console.warn("localStorage.removeItem failed", err);
+      console.warn('localStorage.removeItem failed', err);
     }
   }
 };
@@ -79,7 +79,7 @@ export const clear = async (): Promise<void> => {
     try {
       clearDeliveryStorage();
     } catch (err) {
-      console.warn("localStorage.clear failed", err);
+      console.warn('localStorage.clear failed', err);
     }
   }
 };
@@ -95,15 +95,12 @@ export const getStorageJSON = async <T>(key: string): Promise<T | null> => {
   try {
     return JSON.parse(value) as T;
   } catch (e) {
-    console.warn("Failed to parse storage JSON", e);
+    console.warn('Failed to parse storage JSON', e);
     return null;
   }
 };
 
-export const setStorageJSON = async <T>(
-  key: string,
-  value: T,
-): Promise<void> => {
+export const setStorageJSON = async <T>(key: string, value: T): Promise<void> => {
   await setItem(key, JSON.stringify(value));
 };
 
@@ -115,7 +112,7 @@ export const getLocalSync = (key: string): string | null => {
   try {
     return localStorage.getItem(storageKey(key));
   } catch (e) {
-    console.warn("localStorage.getItem failed", e);
+    console.warn('localStorage.getItem failed', e);
     return null;
   }
 };
@@ -125,7 +122,7 @@ export const setLocalSync = (key: string, value: string): void => {
   try {
     localStorage.setItem(storageKey(key), value);
   } catch (e) {
-    console.warn("localStorage.setItem failed", e);
+    console.warn('localStorage.setItem failed', e);
   }
 };
 
@@ -134,14 +131,14 @@ export const removeLocalSync = (key: string): void => {
   try {
     localStorage.removeItem(storageKey(key));
   } catch (e) {
-    console.warn("localStorage.removeItem failed", e);
+    console.warn('localStorage.removeItem failed', e);
   }
 };
 
 /**
  * 워터마크 공유/결과 횟수 관련 Storage 헬퍼
  */
-const WATERMARK_SHARE_COUNT_KEY = "ai_watermark_share_count";
+const WATERMARK_SHARE_COUNT_KEY = 'ai_watermark_share_count';
 
 export const getShareCountSync = (): number => {
   const val = getLocalSync(WATERMARK_SHARE_COUNT_KEY);
@@ -172,7 +169,7 @@ export const incrementShareCount = async (): Promise<number> => {
 /**
  * 전면형 광고 이벤트(문제 진입 + 문제 클리어) 카운트 Storage 헬퍼
  */
-const GAME_AD_EVENT_COUNT_KEY = "game_ad_event_count";
+const GAME_AD_EVENT_COUNT_KEY = 'game_ad_event_count';
 
 export const getAdEventCountSync = (): number => {
   const val = getLocalSync(GAME_AD_EVENT_COUNT_KEY);
@@ -202,21 +199,21 @@ export const incrementStageClearCountSync = (): number => {
  * 전면형 광고 시청 완료 시 이벤트 카운트를 초기화
  */
 export const resetAdCountsSync = (): void => {
-  setLocalSync(GAME_AD_EVENT_COUNT_KEY, "0");
-  setItem(GAME_AD_EVENT_COUNT_KEY, "0").catch(() => {});
+  setLocalSync(GAME_AD_EVENT_COUNT_KEY, '0');
+  setItem(GAME_AD_EVENT_COUNT_KEY, '0').catch(() => {});
 };
 
 /**
  * 전면형 광고 시청 미완료(중도 종료 등) 여부 Storage 헬퍼
  */
-const GAME_AD_PENDING_KEY = "interstitial_ad_pending";
+const GAME_AD_PENDING_KEY = 'interstitial_ad_pending';
 
 export const isAdPendingSync = (): boolean => {
-  return getLocalSync(GAME_AD_PENDING_KEY) === "true";
+  return getLocalSync(GAME_AD_PENDING_KEY) === 'true';
 };
 
 export const setAdPendingSync = (pending: boolean): void => {
-  const val = pending ? "true" : "false";
+  const val = pending ? 'true' : 'false';
   setLocalSync(GAME_AD_PENDING_KEY, val);
   setItem(GAME_AD_PENDING_KEY, val).catch(() => {});
 };
@@ -228,7 +225,7 @@ export const clearAdPendingSync = (): void => {
 /**
  * 힌트 광고 시청 완료 문제 Storage 헬퍼
  */
-const WATCHED_HINT_STAGES_KEY = "puzznic_watched_hint_stages";
+const WATCHED_HINT_STAGES_KEY = 'puzznic_watched_hint_stages';
 
 export const getWatchedHintStagesSync = (): Record<number, boolean> => {
   const val = getLocalSync(WATCHED_HINT_STAGES_KEY);
@@ -240,19 +237,13 @@ export const getWatchedHintStagesSync = (): Record<number, boolean> => {
   }
 };
 
-export const getWatchedHintStages = async (): Promise<
-  Record<number, boolean>
-> => {
-  const data = await getStorageJSON<Record<number, boolean>>(
-    WATCHED_HINT_STAGES_KEY,
-  );
+export const getWatchedHintStages = async (): Promise<Record<number, boolean>> => {
+  const data = await getStorageJSON<Record<number, boolean>>(WATCHED_HINT_STAGES_KEY);
   if (data) return data;
   return getWatchedHintStagesSync();
 };
 
-export const setWatchedHintStage = async (
-  levelIndex: number,
-): Promise<void> => {
+export const setWatchedHintStage = async (levelIndex: number): Promise<void> => {
   const current = getWatchedHintStagesSync();
   const next = { ...current, [levelIndex]: true };
   setLocalSync(WATCHED_HINT_STAGES_KEY, JSON.stringify(next));
@@ -267,10 +258,10 @@ export const clearWatchedHintStages = async (): Promise<void> => {
 // ============================================================
 // NEW_ADS & Logo Image Caching Storage 헬퍼
 // ============================================================
-const NEW_ADS_SAVED_IDS_KEY = "new_ads_saved_ids_v1";
-const NEW_AD_LOGO_PREFIX = "new_ad_logo_v1_";
-const NEW_ADS_CACHED_LIST_KEY = "new_ads_cached_list_v1";
-const NEW_ADS_LAST_FETCH_DATE_KEY = "new_ads_last_fetch_date_v1";
+const NEW_ADS_SAVED_IDS_KEY = 'new_ads_saved_ids_v1';
+const NEW_AD_LOGO_PREFIX = 'new_ad_logo_v1_';
+const NEW_ADS_CACHED_LIST_KEY = 'new_ads_cached_list_v1';
+const NEW_ADS_LAST_FETCH_DATE_KEY = 'new_ads_last_fetch_date_v1';
 
 export interface CachedNewAdData {
   id: string;
@@ -287,8 +278,8 @@ export interface CachedNewAdData {
 export const getTodayDateString = (): string => {
   const now = new Date();
   const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 };
 
@@ -338,10 +329,7 @@ export const getSavedAdLogoSync = (id: string): string | null => {
   return getLocalSync(`${NEW_AD_LOGO_PREFIX}${id}`);
 };
 
-export const setSavedAdLogo = async (
-  id: string,
-  logoData: string,
-): Promise<void> => {
+export const setSavedAdLogo = async (id: string, logoData: string): Promise<void> => {
   setLocalSync(`${NEW_AD_LOGO_PREFIX}${id}`, logoData);
   await setItem(`${NEW_AD_LOGO_PREFIX}${id}`, logoData);
 };

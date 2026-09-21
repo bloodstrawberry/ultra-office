@@ -1,28 +1,28 @@
-"use client";
+'use client';
 
-import { getLocalSync, setLocalSync } from "./local-storage";
+import { getLocalSync, setLocalSync } from './local-storage';
 
-const SFX_MUTED_STORAGE_KEY = "sfx_muted";
-const BGM_MUTED_STORAGE_KEY = "bgm_muted";
-const BGM_VOLUME_STORAGE_KEY = "bgm_volume";
+const SFX_MUTED_STORAGE_KEY = 'sfx_muted';
+const BGM_MUTED_STORAGE_KEY = 'bgm_muted';
+const BGM_VOLUME_STORAGE_KEY = 'bgm_volume';
 
-export const BGM_CHANGE_EVENT = "delivery_bgm_change";
-export const BGM_VOLUME_CHANGE_EVENT = "delivery_bgm_volume_change";
-export const SFX_CHANGE_EVENT = "delivery_sfx_change";
+export const BGM_CHANGE_EVENT = 'delivery_bgm_change';
+export const BGM_VOLUME_CHANGE_EVENT = 'delivery_bgm_volume_change';
+export const SFX_CHANGE_EVENT = 'delivery_sfx_change';
 
 let isSfxMutedState = false;
 let isBgmMutedState = false;
 let bgmVolumeState = 0.018;
 
 // Synchronize state on load in browser
-if (typeof window !== "undefined") {
+if (typeof window !== 'undefined') {
   const savedSfx = getLocalSync(SFX_MUTED_STORAGE_KEY);
-  if (savedSfx === "true") {
+  if (savedSfx === 'true') {
     isSfxMutedState = true;
   }
 
   const savedBgm = getLocalSync(BGM_MUTED_STORAGE_KEY);
-  if (savedBgm === "true") {
+  if (savedBgm === 'true') {
     isBgmMutedState = true;
   }
 
@@ -39,10 +39,10 @@ if (typeof window !== "undefined") {
 // SFX (Sound Effects) State Management
 // ----------------------------------------------------
 export function isSfxMuted(): boolean {
-  if (typeof window !== "undefined") {
+  if (typeof window !== 'undefined') {
     const saved = getLocalSync(SFX_MUTED_STORAGE_KEY);
     if (saved !== null) {
-      isSfxMutedState = saved === "true";
+      isSfxMutedState = saved === 'true';
     }
   }
   return isSfxMutedState;
@@ -51,10 +51,8 @@ export function isSfxMuted(): boolean {
 export function setSfxMuted(muted: boolean): void {
   isSfxMutedState = muted;
   setLocalSync(SFX_MUTED_STORAGE_KEY, String(muted));
-  if (typeof window !== "undefined") {
-    window.dispatchEvent(
-      new CustomEvent(SFX_CHANGE_EVENT, { detail: { muted } }),
-    );
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(SFX_CHANGE_EVENT, { detail: { muted } }));
   }
 }
 
@@ -76,10 +74,10 @@ export const toggleSoundMuted = toggleSfxMuted;
 // BGM (Background Music) State Management
 // ----------------------------------------------------
 export function isBgmMuted(): boolean {
-  if (typeof window !== "undefined") {
+  if (typeof window !== 'undefined') {
     const saved = getLocalSync(BGM_MUTED_STORAGE_KEY);
     if (saved !== null) {
-      isBgmMutedState = saved === "true";
+      isBgmMutedState = saved === 'true';
     }
   }
   return isBgmMutedState;
@@ -88,10 +86,8 @@ export function isBgmMuted(): boolean {
 export function setBgmMuted(muted: boolean): void {
   isBgmMutedState = muted;
   setLocalSync(BGM_MUTED_STORAGE_KEY, String(muted));
-  if (typeof window !== "undefined") {
-    window.dispatchEvent(
-      new CustomEvent(BGM_CHANGE_EVENT, { detail: { muted } }),
-    );
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(BGM_CHANGE_EVENT, { detail: { muted } }));
   }
 }
 
@@ -102,7 +98,7 @@ export function toggleBgmMuted(): boolean {
 }
 
 export function getBgmVolume(): number {
-  if (typeof window !== "undefined") {
+  if (typeof window !== 'undefined') {
     const savedVol = getLocalSync(BGM_VOLUME_STORAGE_KEY);
     if (savedVol !== null) {
       const parsed = parseFloat(savedVol);
@@ -118,10 +114,8 @@ export function setBgmVolume(volume: number): void {
   const clamped = Math.max(0, Math.min(1, volume));
   bgmVolumeState = clamped;
   setLocalSync(BGM_VOLUME_STORAGE_KEY, String(clamped));
-  if (typeof window !== "undefined") {
-    window.dispatchEvent(
-      new CustomEvent(BGM_VOLUME_CHANGE_EVENT, { detail: { volume: clamped } }),
-    );
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(BGM_VOLUME_CHANGE_EVENT, { detail: { volume: clamped } }));
   }
 }
 
@@ -131,19 +125,18 @@ export function setBgmVolume(volume: number): void {
 let audioCtx: AudioContext | null = null;
 
 function getAudioContext(): AudioContext | null {
-  if (typeof window === "undefined") return null;
+  if (typeof window === 'undefined') return null;
 
   if (!audioCtx) {
     const AudioContextClass =
       window.AudioContext ||
-      (window as unknown as { webkitAudioContext: typeof AudioContext })
-        .webkitAudioContext;
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
     if (AudioContextClass) {
       audioCtx = new AudioContextClass();
     }
   }
 
-  if (audioCtx && audioCtx.state === "suspended") {
+  if (audioCtx && audioCtx.state === 'suspended') {
     audioCtx.resume().catch(() => {});
   }
 
@@ -151,7 +144,7 @@ function getAudioContext(): AudioContext | null {
 }
 
 export function suspendAudioContext(): void {
-  if (audioCtx && audioCtx.state === "running") {
+  if (audioCtx && audioCtx.state === 'running') {
     audioCtx.suspend().catch(() => {});
   }
 }
@@ -175,8 +168,8 @@ export function playCuteTouchSound(soundIndex: number = 0): void {
     const oscHarmonic = ctx.createOscillator();
     const gain = ctx.createGain();
 
-    osc.type = "sine";
-    oscHarmonic.type = "triangle";
+    osc.type = 'sine';
+    oscHarmonic.type = 'triangle';
 
     // Cute pitch pop sweep
     osc.frequency.setValueAtTime(baseFreq * 0.85, now);
@@ -221,7 +214,7 @@ export function playCountdownTickSound(count: number): void {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
 
-    osc.type = "sine";
+    osc.type = 'sine';
     osc.frequency.setValueAtTime(freq * 0.9, now);
     osc.frequency.exponentialRampToValueAtTime(freq * 1.15, now + 0.02);
     osc.frequency.exponentialRampToValueAtTime(freq, now + 0.07);
@@ -255,7 +248,7 @@ export function playResultFanfareSound(): void {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
 
-      osc.type = "sine";
+      osc.type = 'sine';
       osc.frequency.setValueAtTime(freq, startTime);
 
       gain.gain.setValueAtTime(0.16, startTime);
@@ -284,7 +277,7 @@ export function playCountdownCancelSound(): void {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
 
-    osc.type = "sine";
+    osc.type = 'sine';
     osc.frequency.setValueAtTime(523.25, now);
     osc.frequency.exponentialRampToValueAtTime(261.63, now + 0.12);
 

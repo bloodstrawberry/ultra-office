@@ -25,30 +25,55 @@ export type CaptionStyleId =
 
 export type FontFamilyChoice = 'myeongjo' | 'gothic' | 'retro' | 'impact';
 
+export type CaptionElementType = 'headline' | 'subText' | 'titleBadge' | 'liveBadge' | 'custom';
+
+export type CaptionFontWeight = 'normal' | 'bold' | '800' | '900';
+
+export interface CaptionElement {
+  id: string;
+  type: CaptionElementType;
+  name: string;
+  text: string;
+  x: number; // 0.0 ~ 1.0 (정규화된 X 좌표)
+  y: number; // 0.0 ~ 1.0 (정규화된 Y 좌표)
+  align: 'center' | 'left' | 'right';
+  fontSize: number; // 1200px 기준 기본 픽셀
+  fontWeight: CaptionFontWeight;
+  outlineWidth: number; // 외곽선 두께 (px)
+  outlineColor: string;
+  textColor: string;
+  fontFamily: FontFamilyChoice;
+  visible: boolean;
+  isDeletable?: boolean;
+}
+
 export interface NewsCaptionConfig {
   styleId: CaptionStyleId;
-  // Content
-  headline: string; // 메인 대사 또는 뉴스 헤드라인
-  subText: string; // 인물 정보 또는 기자/리포터 (예: 시능지(23) / 자취생)
-  badgeText: string; // 뱃지 (예: [속보], [단독], [인간극장])
-  locationText: string; // 위치/시간/LIVE (예: 서울 영등포구, ● LIVE 21:00)
-  // Typography
-  fontFamily: FontFamilyChoice;
-  fontSizeScale: number; // 0.6 ~ 1.6
-  outlineWidth: number; // 외곽선 두께 (0 ~ 16)
-  textAlign: 'center' | 'left';
-  // Position & Layout
-  bottomOffset: number; // 0 ~ 30 (%)
+  // Drag & Drop Elements
+  elements: CaptionElement[];
+  selectedElementId: string | null;
+
+  // Global / Broadcast Frame Options
   enableLetterbox: boolean; // 16:9 시네마틱 상하 레터박스
   letterboxSize: number; // 5 ~ 18 (%)
   enableVignette: boolean; // 하단 다크 비네팅
   showStationLogo: boolean; // 방송국/타이틀 로고 표시
   showLiveBadge: boolean; // LIVE / 시간 뱃지 표시
-  // Colors
-  textColor: string;
-  outlineColor: string;
   bannerColor: string;
   accentColor: string;
+  bottomOffset: number; // 0 ~ 30 (%)
+  fontSizeScale: number; // 전역 스케일 배율 (0.6 ~ 1.6)
+
+  // Backwards-compatible fields (automatically synced with elements)
+  headline?: string;
+  subText?: string;
+  badgeText?: string;
+  locationText?: string;
+  fontFamily?: FontFamilyChoice;
+  outlineWidth?: number;
+  textAlign?: 'center' | 'left';
+  textColor?: string;
+  outlineColor?: string;
 }
 
 export interface CaptionStylePreset {
@@ -99,6 +124,499 @@ export const NEWS_SAMPLE_IMAGES: NewsCaptionSampleImageItem[] = [
 ];
 
 // ----------------------------------------------------------------------
+// Default Elements Factory by Style
+// ----------------------------------------------------------------------
+
+export function createDefaultElementsForStyle(
+  styleId: CaptionStyleId,
+  headlineText?: string,
+  subText?: string,
+  badgeText?: string,
+  locationText?: string
+): CaptionElement[] {
+  switch (styleId) {
+    case 'human-theater':
+      return [
+        {
+          id: 'subText',
+          type: 'subText',
+          name: '인물 정보',
+          text: subText ?? '시능지(23) / 자취생',
+          x: 0.5,
+          y: 0.81,
+          align: 'center',
+          fontSize: 34,
+          fontWeight: 'bold',
+          outlineWidth: 2.8, // 첨부 사진에 맞춰 깔끔하고 또렷한 실선 외곽선 (기존 7px 블러에서 개선)
+          outlineColor: '#000000',
+          textColor: '#FFFFFF',
+          fontFamily: 'myeongjo',
+          visible: true,
+          isDeletable: true,
+        },
+        {
+          id: 'headline',
+          type: 'headline',
+          name: '인터뷰 대사',
+          text: headlineText ?? '"계란이 다 떨어졌다"',
+          x: 0.5,
+          y: 0.89,
+          align: 'center',
+          fontSize: 42,
+          fontWeight: 'bold',
+          outlineWidth: 2.8, // 첨부 사진에 맞춰 깔끔하고 또렷한 실선 외곽선
+          outlineColor: '#000000',
+          textColor: '#FFFFFF',
+          fontFamily: 'myeongjo',
+          visible: true,
+          isDeletable: false,
+        },
+        {
+          id: 'titleBadge',
+          type: 'titleBadge',
+          name: 'KBS 인간극장 타이틀',
+          text: badgeText ?? 'KBS 인간극장',
+          x: 0.9,
+          y: 0.08,
+          align: 'right',
+          fontSize: 24,
+          fontWeight: 'bold',
+          outlineWidth: 2.4,
+          outlineColor: '#000000',
+          textColor: '#FFFFFF',
+          fontFamily: 'myeongjo',
+          visible: true,
+          isDeletable: true,
+        },
+      ];
+
+    case 'kbs-news':
+      return [
+        {
+          id: 'titleBadge',
+          type: 'titleBadge',
+          name: '뉴스 뱃지',
+          text: badgeText ?? '[단독] KBS 뉴스 9',
+          x: 0.06,
+          y: 0.88,
+          align: 'left',
+          fontSize: 20,
+          fontWeight: '800',
+          outlineWidth: 0,
+          outlineColor: '#000000',
+          textColor: '#FFFFFF',
+          fontFamily: 'gothic',
+          visible: true,
+          isDeletable: true,
+        },
+        {
+          id: 'subText',
+          type: 'subText',
+          name: '기자 / 소속',
+          text: subText ?? '홍길동 기자 / 사회부',
+          x: 0.23,
+          y: 0.88,
+          align: 'left',
+          fontSize: 20,
+          fontWeight: 'bold',
+          outlineWidth: 0,
+          outlineColor: '#000000',
+          textColor: '#93c5fd',
+          fontFamily: 'gothic',
+          visible: true,
+          isDeletable: true,
+        },
+        {
+          id: 'headline',
+          type: 'headline',
+          name: '메인 헤드라인',
+          text: headlineText ?? '초강력 한파 속 계란 품귀 현상... 자취생들 "비상"',
+          x: 0.06,
+          y: 0.94,
+          align: 'left',
+          fontSize: 32,
+          fontWeight: '800',
+          outlineWidth: 0,
+          outlineColor: '#000000',
+          textColor: '#FFFFFF',
+          fontFamily: 'gothic',
+          visible: true,
+          isDeletable: false,
+        },
+        {
+          id: 'liveBadge',
+          type: 'liveBadge',
+          name: 'LIVE 위젯',
+          text: locationText ?? '● LIVE 여의도 21:15',
+          x: 0.06,
+          y: 0.08,
+          align: 'left',
+          fontSize: 20,
+          fontWeight: 'bold',
+          outlineWidth: 1.5,
+          outlineColor: '#000000',
+          textColor: '#FFFFFF',
+          fontFamily: 'gothic',
+          visible: true,
+          isDeletable: true,
+        },
+      ];
+
+    case 'mbc-news':
+      return [
+        {
+          id: 'subText',
+          type: 'subText',
+          name: '발언자 명패',
+          text: subText ?? '김철수(28) / 직장인',
+          x: 0.08,
+          y: 0.85,
+          align: 'left',
+          fontSize: 22,
+          fontWeight: 'bold',
+          outlineWidth: 0,
+          outlineColor: '#000000',
+          textColor: '#FFFFFF',
+          fontFamily: 'gothic',
+          visible: true,
+          isDeletable: true,
+        },
+        {
+          id: 'headline',
+          type: 'headline',
+          name: '메인 헤드라인',
+          text: headlineText ?? '"월급날만 기다려"... 치솟는 물가에 지갑 닫는 청년들',
+          x: 0.08,
+          y: 0.93,
+          align: 'left',
+          fontSize: 30,
+          fontWeight: '800',
+          outlineWidth: 0,
+          outlineColor: '#000000',
+          textColor: '#FFFFFF',
+          fontFamily: 'gothic',
+          visible: true,
+          isDeletable: false,
+        },
+        {
+          id: 'titleBadge',
+          type: 'titleBadge',
+          name: 'MBC 로고',
+          text: badgeText ?? 'MBC 뉴스데스크',
+          x: 0.9,
+          y: 0.08,
+          align: 'right',
+          fontSize: 22,
+          fontWeight: '800',
+          outlineWidth: 1.5,
+          outlineColor: '#000000',
+          textColor: '#FFFFFF',
+          fontFamily: 'gothic',
+          visible: true,
+          isDeletable: true,
+        },
+      ];
+
+    case 'sbs-news':
+      return [
+        {
+          id: 'subText',
+          type: 'subText',
+          name: '소제목 / 기자',
+          text: subText ?? 'SBS 8 NEWS  |  이현장 기자 / 기동취재반',
+          x: 0.06,
+          y: 0.87,
+          align: 'left',
+          fontSize: 20,
+          fontWeight: 'bold',
+          outlineWidth: 0,
+          outlineColor: '#000000',
+          textColor: '#38bdf8',
+          fontFamily: 'gothic',
+          visible: true,
+          isDeletable: true,
+        },
+        {
+          id: 'headline',
+          type: 'headline',
+          name: '메인 헤드라인',
+          text: headlineText ?? '[현장출동] "이불 밖은 위험해" 기습 한파에 얼어붙은 출근길',
+          x: 0.06,
+          y: 0.93,
+          align: 'left',
+          fontSize: 32,
+          fontWeight: '800',
+          outlineWidth: 0,
+          outlineColor: '#000000',
+          textColor: '#FFFFFF',
+          fontFamily: 'gothic',
+          visible: true,
+          isDeletable: false,
+        },
+        {
+          id: 'titleBadge',
+          type: 'titleBadge',
+          name: 'SBS 로고',
+          text: badgeText ?? 'SBS 8',
+          x: 0.9,
+          y: 0.08,
+          align: 'right',
+          fontSize: 22,
+          fontWeight: '800',
+          outlineWidth: 1.5,
+          outlineColor: '#000000',
+          textColor: '#FFFFFF',
+          fontFamily: 'gothic',
+          visible: true,
+          isDeletable: true,
+        },
+      ];
+
+    case 'jtbc-news':
+      return [
+        {
+          id: 'subText',
+          type: 'subText',
+          name: '카테고리 & 인물',
+          text: subText ?? '[팩트체크] 박민수(31) / 인터뷰',
+          x: 0.1,
+          y: 0.87,
+          align: 'left',
+          fontSize: 19,
+          fontWeight: 'bold',
+          outlineWidth: 0,
+          outlineColor: '#000000',
+          textColor: '#2dd4bf',
+          fontFamily: 'gothic',
+          visible: true,
+          isDeletable: true,
+        },
+        {
+          id: 'headline',
+          type: 'headline',
+          name: '인용구 헤드라인',
+          text: headlineText ?? '“배가 고픈데 밥을 먹으면 배가 부릅니다”',
+          x: 0.1,
+          y: 0.93,
+          align: 'left',
+          fontSize: 30,
+          fontWeight: 'bold',
+          outlineWidth: 0,
+          outlineColor: '#000000',
+          textColor: '#FFFFFF',
+          fontFamily: 'gothic',
+          visible: true,
+          isDeletable: false,
+        },
+        {
+          id: 'titleBadge',
+          type: 'titleBadge',
+          name: 'JTBC 로고',
+          text: badgeText ?? 'JTBC',
+          x: 0.9,
+          y: 0.08,
+          align: 'right',
+          fontSize: 24,
+          fontWeight: '800',
+          outlineWidth: 1.5,
+          outlineColor: '#000000',
+          textColor: '#FFFFFF',
+          fontFamily: 'gothic',
+          visible: true,
+          isDeletable: true,
+        },
+      ];
+
+    case 'ytn-news':
+      return [
+        {
+          id: 'headline',
+          type: 'headline',
+          name: '상단 속보 바',
+          text: headlineText ?? '[속보] 긴급 상황 발생... 전문가들 "침착하게 휴식 취해야"',
+          x: 0.05,
+          y: 0.88,
+          align: 'left',
+          fontSize: 22,
+          fontWeight: '800',
+          outlineWidth: 0,
+          outlineColor: '#000000',
+          textColor: '#FFFFFF',
+          fontFamily: 'gothic',
+          visible: true,
+          isDeletable: false,
+        },
+        {
+          id: 'subText',
+          type: 'subText',
+          name: '하단 티커 상세',
+          text: subText ?? 'YTN 보도국 24시 속보 시스템 가동 중',
+          x: 0.05,
+          y: 0.94,
+          align: 'left',
+          fontSize: 20,
+          fontWeight: 'normal',
+          outlineWidth: 0,
+          outlineColor: '#000000',
+          textColor: '#e2e8f0',
+          fontFamily: 'gothic',
+          visible: true,
+          isDeletable: true,
+        },
+        {
+          id: 'titleBadge',
+          type: 'titleBadge',
+          name: 'YTN 로고',
+          text: badgeText ?? 'YTN',
+          x: 0.9,
+          y: 0.08,
+          align: 'right',
+          fontSize: 24,
+          fontWeight: '900',
+          outlineWidth: 1.5,
+          outlineColor: '#000000',
+          textColor: '#f87171',
+          fontFamily: 'impact',
+          visible: true,
+          isDeletable: true,
+        },
+      ];
+
+    case 'cnn-news':
+      return [
+        {
+          id: 'titleBadge',
+          type: 'titleBadge',
+          name: 'BREAKING NEWS 헤더',
+          text: badgeText ?? 'BREAKING NEWS',
+          x: 0.05,
+          y: 0.88,
+          align: 'left',
+          fontSize: 28,
+          fontWeight: '900',
+          outlineWidth: 0,
+          outlineColor: '#000000',
+          textColor: '#FFFFFF',
+          fontFamily: 'impact',
+          visible: true,
+          isDeletable: true,
+        },
+        {
+          id: 'headline',
+          type: 'headline',
+          name: '속보 헤드라인',
+          text: headlineText ?? 'MASSIVE SHORTAGE OF COFFEE AND SLEEP REPORTED',
+          x: 0.05,
+          y: 0.94,
+          align: 'left',
+          fontSize: 26,
+          fontWeight: '800',
+          outlineWidth: 0,
+          outlineColor: '#000000',
+          textColor: '#FFFFFF',
+          fontFamily: 'impact',
+          visible: true,
+          isDeletable: false,
+        },
+      ];
+
+    case 'investigative':
+      return [
+        {
+          id: 'subText',
+          type: 'subText',
+          name: '제보자 정보',
+          text: subText ?? '제보자 A씨 (음성변조) / 전직 내부 관계자',
+          x: 0.5,
+          y: 0.81,
+          align: 'center',
+          fontSize: 30,
+          fontWeight: 'bold',
+          outlineWidth: 3.5,
+          outlineColor: '#000000',
+          textColor: '#f97316',
+          fontFamily: 'myeongjo',
+          visible: true,
+          isDeletable: true,
+        },
+        {
+          id: 'headline',
+          type: 'headline',
+          name: '인터뷰 진술 대사',
+          text: headlineText ?? '"그날 밤, 그곳에선 분명 무슨 일이 벌어지고 있었습니다..."',
+          x: 0.5,
+          y: 0.89,
+          align: 'center',
+          fontSize: 38,
+          fontWeight: 'bold',
+          outlineWidth: 4.0,
+          outlineColor: '#000000',
+          textColor: '#fef08a',
+          fontFamily: 'myeongjo',
+          visible: true,
+          isDeletable: false,
+        },
+        {
+          id: 'titleBadge',
+          type: 'titleBadge',
+          name: '프로그램 타이틀',
+          text: badgeText ?? '그것이 알고싶다',
+          x: 0.9,
+          y: 0.08,
+          align: 'right',
+          fontSize: 22,
+          fontWeight: 'bold',
+          outlineWidth: 2.0,
+          outlineColor: '#000000',
+          textColor: '#FFFFFF',
+          fontFamily: 'myeongjo',
+          visible: true,
+          isDeletable: true,
+        },
+      ];
+
+    case 'variety-meme':
+    default:
+      return [
+        {
+          id: 'subText',
+          type: 'subText',
+          name: '상황 설명',
+          text: subText ?? '시청자(99) / 멘붕 상태',
+          x: 0.5,
+          y: 0.8,
+          align: 'center',
+          fontSize: 32,
+          fontWeight: '900',
+          outlineWidth: 4.0,
+          outlineColor: '#000000',
+          textColor: '#FFFFFF',
+          fontFamily: 'retro',
+          visible: true,
+          isDeletable: true,
+        },
+        {
+          id: 'headline',
+          type: 'headline',
+          name: '밈 자막',
+          text: headlineText ?? '(대충 엄청난 일이 일어났다는 뜻)',
+          x: 0.5,
+          y: 0.89,
+          align: 'center',
+          fontSize: 46,
+          fontWeight: '900',
+          outlineWidth: 5.5,
+          outlineColor: '#000000',
+          textColor: '#fef08a',
+          fontFamily: 'retro',
+          visible: true,
+          isDeletable: false,
+        },
+      ];
+  }
+}
+
+// ----------------------------------------------------------------------
 // 9 Comprehensive News & Human Theater Styles
 // ----------------------------------------------------------------------
 
@@ -108,7 +626,7 @@ export const CAPTION_STYLES: CaptionStylePreset[] = [
     name: 'KBS 인간극장',
     channel: '휴먼 다큐멘터리',
     description:
-      '명조체 서체 + 깊은 블랙 외곽선의 정통 다큐멘터리 인터뷰 자막 (첨부 이미지 스타일)',
+      '명조체 서체 + 깔끔한 블랙 외곽선의 정통 다큐멘터리 인터뷰 자막 (첨부 이미지 스타일)',
     iconTag: '인간극장',
     themeColor: '#4f46e5',
     defaultConfig: {
@@ -117,8 +635,8 @@ export const CAPTION_STYLES: CaptionStylePreset[] = [
       badgeText: 'KBS 인간극장',
       locationText: '',
       fontFamily: 'myeongjo',
-      fontSizeScale: 1.05,
-      outlineWidth: 7,
+      fontSizeScale: 1.0,
+      outlineWidth: 2.8,
       textAlign: 'center',
       bottomOffset: 12,
       enableLetterbox: false,
@@ -314,7 +832,7 @@ export const CAPTION_STYLES: CaptionStylePreset[] = [
       locationText: '익명 제보 현장',
       fontFamily: 'myeongjo',
       fontSizeScale: 1.02,
-      outlineWidth: 4,
+      outlineWidth: 3.5,
       textAlign: 'center',
       bottomOffset: 10,
       enableLetterbox: true,
@@ -342,7 +860,7 @@ export const CAPTION_STYLES: CaptionStylePreset[] = [
       locationText: '현실 도피 중',
       fontFamily: 'retro',
       fontSizeScale: 1.15,
-      outlineWidth: 8,
+      outlineWidth: 5.5,
       textAlign: 'center',
       bottomOffset: 12,
       enableLetterbox: false,
@@ -376,6 +894,13 @@ export const MEME_QUOTE_PRESETS: MemeQuotePreset[] = [
     category: '인간극장',
     headline: '"계란이 다 떨어졌다"',
     subText: '시능지(23) / 자취생',
+    styleId: 'human-theater',
+  },
+  {
+    label: '💡 너의 판단이 옳은 거야 (인간극장 명대사)',
+    category: '인간극장',
+    headline: '"항상 \'네가 생각했던 너의 판단이 옳은 거야\'\n이런 식으로 말씀을 해주셨어요."',
+    subText: '인터뷰이(24) / 청년',
     styleId: 'human-theater',
   },
   {
@@ -442,13 +967,15 @@ export const MEME_QUOTE_PRESETS: MemeQuotePreset[] = [
 
 export const DEFAULT_NEWS_CAPTION_CONFIG: NewsCaptionConfig = {
   styleId: 'human-theater',
+  elements: createDefaultElementsForStyle('human-theater'),
+  selectedElementId: null,
   headline: '"계란이 다 떨어졌다"',
   subText: '시능지(23) / 자취생',
   badgeText: 'KBS 인간극장',
   locationText: '',
   fontFamily: 'myeongjo',
-  fontSizeScale: 1.05,
-  outlineWidth: 7,
+  fontSizeScale: 1.0,
+  outlineWidth: 2.8,
   textAlign: 'center',
   bottomOffset: 12,
   enableLetterbox: false,

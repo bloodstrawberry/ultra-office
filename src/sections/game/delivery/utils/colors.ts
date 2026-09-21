@@ -9,10 +9,7 @@ export interface TouchColor {
  * Generates a color with maximum hue separation using the Golden Ratio angle (137.508°).
  * Mathematically guarantees that consecutive fingers get dramatically different hues across the color spectrum.
  */
-export function getGoldenRatioTouchColor(
-  index: number,
-  startHue: number,
-): TouchColor {
+export function getGoldenRatioTouchColor(index: number, startHue: number): TouchColor {
   const goldenAngle = 137.507764;
   const hue = Math.round((startHue + index * goldenAngle) % 360);
   const saturation = 92;

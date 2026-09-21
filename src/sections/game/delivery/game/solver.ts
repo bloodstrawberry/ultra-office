@@ -1,9 +1,6 @@
-import {
-  BLOCK_PORTAL_1,
-  getBaseBlockId,
-} from "../object/constants";
-import { CellType, Position, copyGrid } from "./types";
-import { slideOrbox, findPlayerSpawn, Direction } from "./physics";
+import { BLOCK_PORTAL_1, getBaseBlockId } from '../object/constants';
+import { CellType, Position, copyGrid } from './types';
+import { slideOrbox, findPlayerSpawn, Direction } from './physics';
 
 export interface DFSSolveResult {
   solvable: boolean;
@@ -16,28 +13,28 @@ export interface DFSSolveResult {
 }
 
 const DIR_SYMBOLS: Record<Direction, string> = {
-  up: "↑",
-  down: "↓",
-  left: "←",
-  right: "→",
+  up: '↑',
+  down: '↓',
+  left: '←',
+  right: '→',
 };
 
 const DIR_KOREAN: Record<Direction, string> = {
-  up: "위(↑)",
-  down: "아래(↓)",
-  left: "왼쪽(←)",
-  right: "오른쪽(→)",
+  up: '위(↑)',
+  down: '아래(↓)',
+  left: '왼쪽(←)',
+  right: '오른쪽(→)',
 };
 
-const ALL_DIRECTIONS: Direction[] = ["up", "right", "down", "left"];
+const ALL_DIRECTIONS: Direction[] = ['up', 'right', 'down', 'left'];
 
 function serializeState(grid: CellType[][], pos: Position): string {
   let res = `${pos.x},${pos.y}|`;
   for (let r = 0; r < grid.length; r++) {
     for (let c = 0; c < grid[r].length; c++) {
-      res += grid[r][c] + ",";
+      res += grid[r][c] + ',';
     }
-    res += ";";
+    res += ';';
   }
   return res;
 }
@@ -51,10 +48,7 @@ export async function solveOrboxBFS(
   customStartPos?: Position,
   maxDepth = 45,
   timeLimitMs = 60000, // 60 seconds limit for visual search
-  onProgress?: (
-    path: string[],
-    status: "searching" | "deadend" | "success",
-  ) => Promise<void>,
+  onProgress?: (path: string[], status: 'searching' | 'deadend' | 'success') => Promise<void>
 ): Promise<DFSSolveResult> {
   const grid = copyGrid(initialGrid);
   const startPos = customStartPos || findPlayerSpawn(grid);
@@ -79,7 +73,7 @@ export async function solveOrboxBFS(
       solutionKorean: [],
       totalSteps: 0,
       totalExploredStates: 0,
-      message: "목표 포털(Goal Portal)이 맵에 존재하지 않습니다.",
+      message: '목표 포털(Goal Portal)이 맵에 존재하지 않습니다.',
     };
   }
 
@@ -162,7 +156,7 @@ export async function solveOrboxBFS(
       if (!sim.success) {
         if (onProgress) {
           const t0 = Date.now();
-          await onProgress(pathSymbols, "deadend");
+          await onProgress(pathSymbols, 'deadend');
           accumulatedDelay += Date.now() - t0;
         }
         continue;
@@ -172,7 +166,7 @@ export async function solveOrboxBFS(
       if (sim.isOutOfBounds) {
         if (onProgress) {
           const t0 = Date.now();
-          await onProgress(pathSymbols, "deadend");
+          await onProgress(pathSymbols, 'deadend');
           accumulatedDelay += Date.now() - t0;
         }
         continue;
@@ -182,7 +176,7 @@ export async function solveOrboxBFS(
       if (sim.isCleared) {
         if (onProgress) {
           const t0 = Date.now();
-          await onProgress(pathSymbols, "success");
+          await onProgress(pathSymbols, 'success');
           accumulatedDelay += Date.now() - t0;
         }
         const solution = getPathDirections(current, dir);
@@ -202,7 +196,7 @@ export async function solveOrboxBFS(
       if (visited.has(stateKey)) {
         if (onProgress) {
           const t0 = Date.now();
-          await onProgress(pathSymbols, "deadend");
+          await onProgress(pathSymbols, 'deadend');
           accumulatedDelay += Date.now() - t0;
         }
         continue;
@@ -214,10 +208,10 @@ export async function solveOrboxBFS(
       // 정상적으로 큐에 추가 (다음 깊이 대기)
       if (onProgress) {
         const t0 = Date.now();
-        await onProgress(pathSymbols, "searching");
+        await onProgress(pathSymbols, 'searching');
         accumulatedDelay += Date.now() - t0;
       }
-      
+
       queue.push({
         grid: sim.grid,
         pos: sim.finalPos,
@@ -235,6 +229,6 @@ export async function solveOrboxBFS(
     solutionKorean: [],
     totalSteps: 0,
     totalExploredStates: exploredStatesCount,
-    message: "해당 맵은 현재 배치로 클리어할 수 없습니다 (최단 경로 탐색 불가).",
+    message: '해당 맵은 현재 배치로 클리어할 수 없습니다 (최단 경로 탐색 불가).',
   };
 }

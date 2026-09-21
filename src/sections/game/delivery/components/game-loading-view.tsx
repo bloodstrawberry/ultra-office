@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import React from "react";
+import React from 'react';
 
 export interface GameLoadingViewProps {
   title?: string;
@@ -9,9 +9,9 @@ export interface GameLoadingViewProps {
 }
 
 export default function GameLoadingView({
-  title = "그래픽 데이터 로딩 중...",
-  description = "모든 블록 리소스를 준비하고 있습니다",
-  className = "",
+  title = '그래픽 데이터 로딩 중...',
+  description = '모든 블록 리소스를 준비하고 있습니다',
+  className = '',
 }: GameLoadingViewProps) {
   return (
     <div
@@ -25,7 +25,9 @@ export default function GameLoadingView({
         {/* 로고와 원형 로딩 스피너 (화면 절반 크기) */}
         <div className="relative w-[50vw] h-[50vw] max-w-[220px] max-h-[220px] min-w-[160px] min-h-[160px] flex items-center justify-center">
           <div className="absolute inset-0 border-[6px] border-rose-200 border-t-[#FF4B6E] rounded-full animate-spin shadow-xs" />
-          <span className="relative z-10 text-7xl" aria-hidden="true">🚚</span>
+          <span className="relative z-10 text-7xl" aria-hidden="true">
+            🚚
+          </span>
         </div>
 
         <div className="text-center relative z-10">
@@ -33,9 +35,7 @@ export default function GameLoadingView({
             {title}
           </h2>
           {description && (
-            <p className="text-xs sm:text-sm font-bold text-amber-800/70">
-              {description}
-            </p>
+            <p className="text-xs sm:text-sm font-bold text-amber-800/70">{description}</p>
           )}
         </div>
       </div>

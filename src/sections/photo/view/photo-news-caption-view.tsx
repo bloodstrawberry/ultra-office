@@ -1,7 +1,7 @@
 'use client';
 
 import { toast } from 'sonner';
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -20,19 +20,26 @@ import FormControl from '@mui/material/FormControl';
 import ToggleButton from '@mui/material/ToggleButton';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import ZoomInRoundedIcon from '@mui/icons-material/ZoomInRounded';
 import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
 import ZoomOutRoundedIcon from '@mui/icons-material/ZoomOutRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import TvRoundedIcon from '@mui/icons-material/LiveTvRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
+import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
+import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded';
 import FormatQuoteRoundedIcon from '@mui/icons-material/FormatQuoteRounded';
 import FormatColorTextRoundedIcon from '@mui/icons-material/FormatColorTextRounded';
 import CompareArrowsRoundedIcon from '@mui/icons-material/CompareArrowsRounded';
 import CenterFocusStrongRoundedIcon from '@mui/icons-material/CenterFocusStrongRounded';
+import LayersRoundedIcon from '@mui/icons-material/LayersRounded';
+import FormatBoldRoundedIcon from '@mui/icons-material/FormatBoldRounded';
+import BorderColorRoundedIcon from '@mui/icons-material/BorderColorRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
@@ -42,8 +49,11 @@ import {
   NEWS_SAMPLE_IMAGES,
   MEME_QUOTE_PRESETS,
   type NewsCaptionConfig,
+  type CaptionElement,
+  type CaptionFontWeight,
   type FontFamilyChoice,
   DEFAULT_NEWS_CAPTION_CONFIG,
+  createDefaultElementsForStyle,
 } from '../utils/news-caption-presets';
 import {
   type SplitMode,
@@ -52,7 +62,11 @@ import {
   type SplitOrientation,
   type ComparePreviewMode,
 } from '../components';
-import { renderNewsCaption } from '../utils/news-caption-renderer';
+import {
+  renderNewsCaption,
+  getElementBounds,
+  type ElementBounds,
+} from '../utils/news-caption-renderer';
 import { downloadDataUrl, shareToKakaoTalk } from '../utils/image-processor';
 
 // ----------------------------------------------------------------------
@@ -72,8 +86,15 @@ export function PhotoNewsCaptionView() {
   const [resultDataUrl, setResultDataUrl] = useState<string>('');
   const [isSaving, setIsSaving] = useState<boolean>(false);
 
-  // Hidden/Offscreen rendering canvas
+  // Drag & Drop / Selection states
+  const [hoveredElementId, setHoveredElementId] = useState<string | null>(null);
+  const [elementBounds, setElementBounds] = useState<Record<string, ElementBounds>>({});
+  const isDraggingRef = useRef<boolean>(false);
+  const dragStartOffsetRef = useRef<{ dx: number; dy: number }>({ dx: 0, dy: 0 });
+
+  // Canvas references
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const viewportContainerRef = useRef<HTMLDivElement | null>(null);
 
   // 1. Image load handler
   useEffect(() => {
@@ -95,10 +116,15 @@ export function PhotoNewsCaptionView() {
     img.src = imageSrc;
   }, [imageSrc]);
 
-  // 2. Real-time render when image or config updates
+  // 2. Real-time render pipeline
   const updateRender = useCallback(() => {
     if (!originalImage || !canvasRef.current) return;
     renderNewsCaption(canvasRef.current, originalImage, config);
+
+    // Compute bounding boxes for hit-testing & interactive overlays
+    const bounds = getElementBounds(canvasRef.current.width, canvasRef.current.height, config);
+    setElementBounds(bounds);
+
     setResultDataUrl(canvasRef.current.toDataURL('image/png'));
   }, [originalImage, config]);
 
@@ -106,16 +132,225 @@ export function PhotoNewsCaptionView() {
     updateRender();
   }, [updateRender]);
 
-  // 3. Handlers
+  // Selected element helper
+  const selectedElement = useMemo(
+    () => config.elements.find((el) => el.id === config.selectedElementId) || null,
+    [config.elements, config.selectedElementId]
+  );
+
+  // 3. Selection & Drag-and-Drop Handlers
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!canvasRef.current || previewMode !== 'single') return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    if (!rect || rect.width === 0 || rect.height === 0) return;
+
+    const normX = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const normY = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+
+    // Hit-test in reverse order (topmost element first) using normalized bounds
+    const boundsList = Object.values(elementBounds).reverse();
+    const hit = boundsList.find(
+      (b) =>
+        normX >= b.normX &&
+        normX <= b.normX + b.normWidth &&
+        normY >= b.normY &&
+        normY <= b.normY + b.normHeight
+    );
+
+    if (hit) {
+      const hitElement = config.elements.find((el) => el.id === hit.id);
+      if (hitElement) {
+        setConfig((prev) => ({ ...prev, selectedElementId: hit.id }));
+        isDraggingRef.current = true;
+        dragStartOffsetRef.current = {
+          dx: normX - hitElement.x,
+          dy: normY - hitElement.y,
+        };
+        e.currentTarget.setPointerCapture(e.pointerId);
+        return;
+      }
+    }
+
+    // Clicked outside elements -> deselect
+    setConfig((prev) => ({ ...prev, selectedElementId: null }));
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!canvasRef.current || previewMode !== 'single') return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    if (!rect || rect.width === 0 || rect.height === 0) return;
+
+    const normX = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const normY = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+
+    // If dragging an element
+    if (isDraggingRef.current && config.selectedElementId) {
+      const targetId = config.selectedElementId;
+      const newX = Math.max(0.04, Math.min(0.96, normX - dragStartOffsetRef.current.dx));
+      const newY = Math.max(0.04, Math.min(0.96, normY - dragStartOffsetRef.current.dy));
+
+      setConfig((prev) => ({
+        ...prev,
+        elements: prev.elements.map((el) =>
+          el.id === targetId ? { ...el, x: newX, y: newY } : el
+        ),
+      }));
+      return;
+    }
+
+    // Hover hit-test
+    const boundsList = Object.values(elementBounds).reverse();
+    const hit = boundsList.find(
+      (b) =>
+        normX >= b.normX &&
+        normX <= b.normX + b.normWidth &&
+        normY >= b.normY &&
+        normY <= b.normY + b.normHeight
+    );
+    setHoveredElementId(hit ? hit.id : null);
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (isDraggingRef.current) {
+      isDraggingRef.current = false;
+      try {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      } catch {
+        // Pointer capture release safety
+      }
+      // Regenerate result data URL after drag finishes
+      if (canvasRef.current) {
+        setResultDataUrl(canvasRef.current.toDataURL('image/png'));
+      }
+    }
+  };
+
+  // Keyboard shortcut: Delete key deletes selected element
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        // Only if active element is not an input / textarea
+        const activeTag = document.activeElement?.tagName.toLowerCase();
+        if (activeTag === 'input' || activeTag === 'textarea') return;
+
+        if (config.selectedElementId) {
+          handleDeleteElement(config.selectedElementId);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [config.selectedElementId]);
+
+  // 4. Update / Add / Delete Elements
+  const handleUpdateElement = (id: string, partial: Partial<CaptionElement>) => {
+    setConfig((prev) => ({
+      ...prev,
+      elements: prev.elements.map((el) => (el.id === id ? { ...el, ...partial } : el)),
+    }));
+  };
+
+  const handleAddNewCaption = () => {
+    const timestamp = Date.now();
+    const newElement: CaptionElement = {
+      id: `caption-${timestamp}`,
+      type: 'custom',
+      name: `추가 자막 ${config.elements.filter((e) => e.type === 'custom').length + 1}`,
+      text: '새로운 자막 텍스트',
+      x: 0.5,
+      y: 0.72,
+      align: 'center',
+      fontSize: 34,
+      fontWeight: 'bold',
+      outlineWidth: config.styleId === 'human-theater' ? 2.8 : 0,
+      outlineColor: '#000000',
+      textColor: config.styleId === 'variety-meme' ? '#fef08a' : '#FFFFFF',
+      fontFamily: config.styleId === 'human-theater' ? 'myeongjo' : 'gothic',
+      visible: true,
+      isDeletable: true,
+    };
+
+    setConfig((prev) => ({
+      ...prev,
+      elements: [...prev.elements, newElement],
+      selectedElementId: newElement.id,
+    }));
+    toast.success('새 자막이 추가되었습니다. 마우스로 원하는 위치로 드래그하세요.');
+  };
+
+  const handleDeleteElement = (id: string) => {
+    setConfig((prev) => {
+      const el = prev.elements.find((e) => e.id === id);
+      if (!el) return prev;
+
+      // Custom elements are removed completely; predefined ones are hidden
+      if (el.type === 'custom') {
+        return {
+          ...prev,
+          elements: prev.elements.filter((e) => e.id !== id),
+          selectedElementId: prev.selectedElementId === id ? null : prev.selectedElementId,
+        };
+      }
+
+      return {
+        ...prev,
+        elements: prev.elements.map((e) => (e.id === id ? { ...e, visible: false } : e)),
+        selectedElementId: prev.selectedElementId === id ? null : prev.selectedElementId,
+      };
+    });
+    toast.info('자막 요소가 삭제/숨김 처리되었습니다.');
+  };
+
+  const handleRestoreTitleBadge = () => {
+    setConfig((prev) => {
+      const existing = prev.elements.find((e) => e.type === 'titleBadge');
+      if (existing) {
+        return {
+          ...prev,
+          elements: prev.elements.map((e) =>
+            e.type === 'titleBadge' ? { ...e, visible: true } : e
+          ),
+          selectedElementId: existing.id,
+        };
+      }
+      // Re-create title badge
+      const newBadge: CaptionElement = {
+        id: 'titleBadge',
+        type: 'titleBadge',
+        name: config.styleId === 'human-theater' ? 'KBS 인간극장 타이틀' : '방송사 로고',
+        text: config.styleId === 'human-theater' ? 'KBS 인간극장' : '방송 로고',
+        x: 0.9,
+        y: 0.08,
+        align: 'right',
+        fontSize: 24,
+        fontWeight: 'bold',
+        outlineWidth: config.styleId === 'human-theater' ? 2.4 : 1.5,
+        outlineColor: '#000000',
+        textColor: '#FFFFFF',
+        fontFamily: config.styleId === 'human-theater' ? 'myeongjo' : 'gothic',
+        visible: true,
+        isDeletable: true,
+      };
+      return {
+        ...prev,
+        elements: [...prev.elements, newBadge],
+        selectedElementId: newBadge.id,
+      };
+    });
+    toast.success('상단 타이틀 로고가 복원되었습니다.');
+  };
+
+  // 5. Presets & Samples Handlers
   const handleSelectSample = (sampleUrl: string) => {
     setImageSrc(sampleUrl);
-    // If it's the empty fridge cat sample, default to Human Theater & "계란이 다 떨어졌다"
     if (sampleUrl.includes('514888286974')) {
       setConfig({
         ...DEFAULT_NEWS_CAPTION_CONFIG,
         styleId: 'human-theater',
-        headline: '"계란이 다 떨어졌다"',
-        subText: '시능지(23) / 자취생',
+        elements: createDefaultElementsForStyle('human-theater'),
+        selectedElementId: 'headline',
       });
     }
   };
@@ -133,22 +368,37 @@ export function PhotoNewsCaptionView() {
   const handleStyleChange = (styleId: CaptionStyleId) => {
     const found = CAPTION_STYLES.find((s) => s.id === styleId);
     if (!found) return;
+
+    // Retain current text if already customized
+    const currentHeadline = config.elements.find((e) => e.type === 'headline')?.text;
+    const currentSub = config.elements.find((e) => e.type === 'subText')?.text;
+
+    const newElements = createDefaultElementsForStyle(
+      styleId,
+      currentHeadline,
+      currentSub,
+      found.defaultConfig.badgeText,
+      found.defaultConfig.locationText
+    );
+
     setConfig((prev) => ({
       ...prev,
       ...found.defaultConfig,
       styleId,
-      // Preserve current text if already customized, unless blank
-      headline: prev.headline || (found.defaultConfig.headline as string),
-      subText: prev.subText || (found.defaultConfig.subText as string),
+      elements: newElements,
+      selectedElementId: 'headline',
     }));
   };
 
   const handleApplyMemeQuote = (meme: (typeof MEME_QUOTE_PRESETS)[number]) => {
+    const targetStyle = meme.styleId || config.styleId;
+    const newElements = createDefaultElementsForStyle(targetStyle, meme.headline, meme.subText);
+
     setConfig((prev) => ({
       ...prev,
-      headline: meme.headline,
-      subText: meme.subText,
-      ...(meme.styleId ? { styleId: meme.styleId } : {}),
+      styleId: targetStyle,
+      elements: newElements,
+      selectedElementId: 'headline',
     }));
     toast.success(`'${meme.label}' 대사가 적용되었습니다.`);
   };
@@ -190,9 +440,27 @@ export function PhotoNewsCaptionView() {
   };
 
   const handleResetConfig = () => {
-    setConfig(DEFAULT_NEWS_CAPTION_CONFIG);
+    setConfig({
+      ...DEFAULT_NEWS_CAPTION_CONFIG,
+      elements: createDefaultElementsForStyle('human-theater'),
+      selectedElementId: 'headline',
+    });
     toast.info('자막 설정이 기본값으로 초기화되었습니다.');
   };
+
+  // Selected element bounding box in normalized percentages for overlay
+  const selectedBounds = useMemo(() => {
+    if (!config.selectedElementId || !elementBounds[config.selectedElementId]) return null;
+    return elementBounds[config.selectedElementId];
+  }, [config.selectedElementId, elementBounds]);
+
+  // Hovered element bounding box in normalized percentages for hover feedback
+  const hoveredBounds = useMemo(() => {
+    if (!hoveredElementId || !elementBounds[hoveredElementId]) return null;
+    return elementBounds[hoveredElementId];
+  }, [hoveredElementId, elementBounds]);
+
+  const titleBadgeElement = config.elements.find((e) => e.type === 'titleBadge');
 
   return (
     <DashboardContent
@@ -204,7 +472,7 @@ export function PhotoNewsCaptionView() {
         overflow: 'hidden',
       }}
     >
-      {/* Hidden Master Canvas */}
+      {/* Offscreen / Master Canvas */}
       <canvas ref={canvasRef} style={{ display: 'none' }} />
 
       {!imageSrc ? (
@@ -219,7 +487,8 @@ export function PhotoNewsCaptionView() {
             </Box>
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
               KBS &lt;인간극장&gt; 명조체 감성 다큐 자막부터 지상파 9시 뉴스, YTN/CNN 긴급 속보
-              배너까지 사진에 1초 만에 방송 자막을 합성하세요.
+              배너까지 사진에 1초 만에 방송 자막을 합성하세요. 자막을 마우스로 잡고 자유롭게 이동할
+              수 있습니다.
             </Typography>
           </Box>
 
@@ -293,7 +562,7 @@ export function PhotoNewsCaptionView() {
                 onChange={(_, v) => v && setPreviewMode(v)}
               >
                 <ToggleButton value="single" sx={{ px: 1.5, py: 0.5, fontWeight: 700 }}>
-                  완성본
+                  인터랙티브 편집
                 </ToggleButton>
                 <ToggleButton value="split" sx={{ px: 1.5, py: 0.5, fontWeight: 700 }}>
                   <CompareArrowsRoundedIcon sx={{ fontSize: 18, mr: 0.5 }} /> 전후 비교
@@ -358,7 +627,80 @@ export function PhotoNewsCaptionView() {
             </Box>
           </Box>
 
-          {/* Main Body: Canvas Viewport + Right Options Sidebar */}
+          {/* Quick Sample Selector Bar */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.5,
+              px: 2,
+              py: 0.75,
+              bgcolor: 'background.neutral',
+              borderBottom: '1px solid',
+              borderColor: 'divider',
+              flexShrink: 0,
+              overflowX: 'auto',
+            }}
+          >
+            <Typography
+              variant="caption"
+              sx={{
+                fontWeight: 800,
+                color: 'text.secondary',
+                whiteSpace: 'nowrap',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.5,
+              }}
+            >
+              📷 샘플 사진 전환:
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+              {NEWS_SAMPLE_IMAGES.map((sample) => {
+                const isActive = imageSrc === sample.url;
+                return (
+                  <Tooltip key={sample.id} title={`${sample.label} - ${sample.subLabel || ''}`}>
+                    <Box
+                      onClick={() => handleSelectSample(sample.url)}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 0.75,
+                        px: 1,
+                        py: 0.4,
+                        borderRadius: 1,
+                        cursor: 'pointer',
+                        border: '1.5px solid',
+                        borderColor: isActive ? 'primary.main' : 'divider',
+                        bgcolor: isActive ? 'action.selected' : 'background.paper',
+                        boxShadow: isActive ? '0 0 0 2px rgba(37,99,235,0.2)' : 'none',
+                        transition: 'all 0.15s ease',
+                        '&:hover': {
+                          borderColor: 'primary.light',
+                          transform: 'translateY(-1px)',
+                        },
+                      }}
+                    >
+                      <Box
+                        component="img"
+                        src={sample.url}
+                        alt={sample.label}
+                        sx={{ width: 28, height: 20, borderRadius: 0.5, objectFit: 'cover' }}
+                      />
+                      <Typography
+                        variant="caption"
+                        sx={{ fontWeight: isActive ? 800 : 600, whiteSpace: 'nowrap' }}
+                      >
+                        {sample.label}
+                      </Typography>
+                    </Box>
+                  </Tooltip>
+                );
+              })}
+            </Box>
+          </Box>
+
+          {/* Main Body: Interactive Canvas Viewport + Right Options Sidebar */}
           <Box
             sx={{
               display: 'flex',
@@ -370,6 +712,7 @@ export function PhotoNewsCaptionView() {
           >
             {/* Viewport Area */}
             <Box
+              ref={viewportContainerRef}
               sx={{
                 flex: '1 1 0px',
                 minWidth: 0,
@@ -381,26 +724,174 @@ export function PhotoNewsCaptionView() {
                 p: 2,
                 position: 'relative',
                 overflow: 'auto',
+                userSelect: 'none',
               }}
             >
               {previewMode === 'single' ? (
-                /* Single Preview */
                 resultDataUrl ? (
                   <Box
-                    component="img"
-                    src={resultDataUrl}
-                    alt="News Caption Preview"
                     sx={{
-                      maxWidth: '100%',
-                      maxHeight: '100%',
-                      objectFit: 'contain',
+                      position: 'relative',
+                      display: 'inline-block',
                       transform: `scale(${zoom})`,
                       transformOrigin: 'center center',
-                      transition: 'transform 0.15s ease',
+                      transition: isDraggingRef.current ? 'none' : 'transform 0.15s ease',
                       boxShadow: (theme) => theme.shadows[24],
                       borderRadius: 1,
+                      cursor: isDraggingRef.current
+                        ? 'grabbing'
+                        : hoveredElementId
+                          ? 'grab'
+                          : 'default',
                     }}
-                  />
+                    onPointerDown={handlePointerDown}
+                    onPointerMove={handlePointerMove}
+                    onPointerUp={handlePointerUp}
+                  >
+                    {/* Rendered Image */}
+                    <Box
+                      component="img"
+                      src={resultDataUrl}
+                      alt="News Caption Preview"
+                      sx={{
+                        display: 'block',
+                        maxWidth: '82vw',
+                        maxHeight: '78vh',
+                        objectFit: 'contain',
+                        pointerEvents: 'none',
+                      }}
+                    />
+
+                    {/* Hover Outline for Quick Feedback */}
+                    {hoveredBounds && hoveredElementId !== config.selectedElementId && (
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          left: `${hoveredBounds.normX * 100}%`,
+                          top: `${hoveredBounds.normY * 100}%`,
+                          width: `${hoveredBounds.normWidth * 100}%`,
+                          height: `${hoveredBounds.normHeight * 100}%`,
+                          border: '1.5px dashed rgba(59, 130, 246, 0.75)',
+                          bgcolor: 'rgba(59, 130, 246, 0.06)',
+                          pointerEvents: 'none',
+                          borderRadius: 0.5,
+                          zIndex: 8,
+                          transition: 'all 0.08s ease',
+                        }}
+                      />
+                    )}
+
+                    {/* Interactive Selection Bounding Box Overlay */}
+                    {selectedBounds && (
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          left: `${selectedBounds.normX * 100}%`,
+                          top: `${selectedBounds.normY * 100}%`,
+                          width: `${selectedBounds.normWidth * 100}%`,
+                          height: `${selectedBounds.normHeight * 100}%`,
+                          border: '2px dashed #2563eb',
+                          bgcolor: 'rgba(37, 99, 235, 0.08)',
+                          pointerEvents: 'none',
+                          borderRadius: 0.5,
+                          zIndex: 10,
+                        }}
+                      >
+                        {/* 4 Corner handles */}
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: -4,
+                            left: -4,
+                            width: 8,
+                            height: 8,
+                            bgcolor: '#2563eb',
+                            border: '1px solid #ffffff',
+                            borderRadius: '50%',
+                          }}
+                        />
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: -4,
+                            right: -4,
+                            width: 8,
+                            height: 8,
+                            bgcolor: '#2563eb',
+                            border: '1px solid #ffffff',
+                            borderRadius: '50%',
+                          }}
+                        />
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            bottom: -4,
+                            left: -4,
+                            width: 8,
+                            height: 8,
+                            bgcolor: '#2563eb',
+                            border: '1px solid #ffffff',
+                            borderRadius: '50%',
+                          }}
+                        />
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            bottom: -4,
+                            right: -4,
+                            width: 8,
+                            height: 8,
+                            bgcolor: '#2563eb',
+                            border: '1px solid #ffffff',
+                            borderRadius: '50%',
+                          }}
+                        />
+
+                        {/* Floating Element Tag & Quick Delete Button */}
+                        <Box
+                          onPointerDown={(e) => e.stopPropagation()}
+                          sx={{
+                            position: 'absolute',
+                            top: -28,
+                            left: 0,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 0.5,
+                            bgcolor: 'rgba(15, 23, 42, 0.92)',
+                            color: '#FFFFFF',
+                            px: 1,
+                            py: 0.25,
+                            borderRadius: 1,
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            whiteSpace: 'nowrap',
+                            boxShadow: 2,
+                            pointerEvents: 'auto',
+                          }}
+                        >
+                          <span>{selectedElement?.name || '선택된 자막'}</span>
+                          {selectedElement?.isDeletable !== false && (
+                            <IconButton
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (config.selectedElementId) {
+                                  handleDeleteElement(config.selectedElementId);
+                                }
+                              }}
+                              sx={{
+                                p: 0.25,
+                                color: '#f87171',
+                                '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.2)' },
+                              }}
+                            >
+                              <DeleteRoundedIcon sx={{ fontSize: 13 }} />
+                            </IconButton>
+                          )}
+                        </Box>
+                      </Box>
+                    )}
+                  </Box>
                 ) : null
               ) : (
                 /* Split Comparison */
@@ -432,7 +923,7 @@ export function PhotoNewsCaptionView() {
             {/* Controls Sidebar (Internal Scroll) */}
             <Box
               sx={{
-                width: { xs: '100%', md: 420 },
+                width: { xs: '100%', md: 430 },
                 height: '100%',
                 bgcolor: 'background.paper',
                 borderLeft: '1px solid',
@@ -449,10 +940,10 @@ export function PhotoNewsCaptionView() {
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Box>
                   <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
-                    자막 커스터마이징
+                    자막 & 요소 편집
                   </Typography>
                   <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                    실시간 렌더링 & 스타일 정밀 제어
+                    드래그하여 위치 이동, 개별 굵기 및 테두리 제어
                   </Typography>
                 </Box>
                 <Tooltip title="설정 초기화">
@@ -462,7 +953,402 @@ export function PhotoNewsCaptionView() {
                 </Tooltip>
               </Box>
 
-              {/* 1. Quick Meme Presets */}
+              {/* 1. Layers & Quick Add Bar */}
+              <Card variant="outlined" sx={{ p: 1.5, borderRadius: 2 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    mb: 1.25,
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <LayersRoundedIcon color="primary" sx={{ fontSize: 20 }} />
+                    <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+                      자막 레이어 목록
+                    </Typography>
+                  </Box>
+                  <Button
+                    size="small"
+                    variant="contained"
+                    startIcon={<AddRoundedIcon />}
+                    onClick={handleAddNewCaption}
+                    sx={{ fontWeight: 800, fontSize: '11px', py: 0.25 }}
+                  >
+                    새 자막 추가
+                  </Button>
+                </Box>
+
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+                  {config.elements.map((el) => {
+                    const isSelected = config.selectedElementId === el.id;
+                    return (
+                      <Box
+                        key={el.id}
+                        onClick={() => setConfig((p) => ({ ...p, selectedElementId: el.id }))}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          px: 1.25,
+                          py: 0.75,
+                          borderRadius: 1,
+                          border: '1px solid',
+                          borderColor: isSelected ? 'primary.main' : 'divider',
+                          bgcolor: isSelected ? 'action.selected' : 'background.neutral',
+                          cursor: 'pointer',
+                          opacity: el.visible ? 1 : 0.45,
+                          transition: 'all 0.15s ease',
+                          '&:hover': { borderColor: 'primary.light' },
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              fontWeight: 800,
+                              color: isSelected ? 'primary.main' : 'text.primary',
+                              minWidth: 70,
+                            }}
+                          >
+                            {el.name}
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: 'text.secondary',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {el.text.replace(/\n/g, ' ')}
+                          </Typography>
+                        </Box>
+
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
+                          <Tooltip title={el.visible ? '숨기기' : '표시하기'}>
+                            <IconButton
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleUpdateElement(el.id, { visible: !el.visible });
+                              }}
+                              sx={{ p: 0.25 }}
+                            >
+                              {el.visible ? (
+                                <VisibilityRoundedIcon sx={{ fontSize: 16 }} />
+                              ) : (
+                                <VisibilityOffRoundedIcon sx={{ fontSize: 16 }} />
+                              )}
+                            </IconButton>
+                          </Tooltip>
+
+                          {el.isDeletable !== false && (
+                            <Tooltip title="삭제">
+                              <IconButton
+                                size="small"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteElement(el.id);
+                                }}
+                                sx={{ p: 0.25, color: 'error.main' }}
+                              >
+                                <DeleteRoundedIcon sx={{ fontSize: 16 }} />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                        </Box>
+                      </Box>
+                    );
+                  })}
+                </Box>
+
+                {/* Restore Title Badge button if deleted */}
+                {(!titleBadgeElement || !titleBadgeElement.visible) && (
+                  <Button
+                    size="small"
+                    variant="text"
+                    color="secondary"
+                    fullWidth
+                    startIcon={<TvRoundedIcon />}
+                    onClick={handleRestoreTitleBadge}
+                    sx={{ mt: 1, fontWeight: 700, fontSize: '11px' }}
+                  >
+                    + 상단 방송국 로고 / 'KBS 인간극장' 로고 복원하기
+                  </Button>
+                )}
+              </Card>
+
+              {/* 2. Focused / Selected Element Controls */}
+              {selectedElement ? (
+                <Card
+                  variant="outlined"
+                  sx={{
+                    p: 2,
+                    borderRadius: 2,
+                    borderColor: 'primary.main',
+                    bgcolor: 'action.hover',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      mb: 1.5,
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <BorderColorRoundedIcon color="primary" sx={{ fontSize: 20 }} />
+                      <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+                        {selectedElement.name} 정밀 설정
+                      </Typography>
+                    </Box>
+                    {selectedElement.isDeletable !== false && (
+                      <Button
+                        size="small"
+                        color="error"
+                        variant="text"
+                        startIcon={<DeleteRoundedIcon />}
+                        onClick={() => handleDeleteElement(selectedElement.id)}
+                        sx={{ fontSize: '11px', fontWeight: 700 }}
+                      >
+                        삭제
+                      </Button>
+                    )}
+                  </Box>
+
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.75 }}>
+                    {/* Text Input (Multi-line) */}
+                    <TextField
+                      label="자막 문구 (줄바꿈 Enter 지원)"
+                      multiline
+                      minRows={1}
+                      maxRows={3}
+                      size="small"
+                      fullWidth
+                      value={selectedElement.text}
+                      onChange={(e) =>
+                        handleUpdateElement(selectedElement.id, { text: e.target.value })
+                      }
+                    />
+
+                    {/* Font Weight Toggle */}
+                    <Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+                        <FormatBoldRoundedIcon sx={{ fontSize: 16 }} />
+                        <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                          글자 굵기 (Weight)
+                        </Typography>
+                      </Box>
+                      <ToggleButtonGroup
+                        value={selectedElement.fontWeight}
+                        exclusive
+                        size="small"
+                        fullWidth
+                        onChange={(_, v) =>
+                          v &&
+                          handleUpdateElement(selectedElement.id, {
+                            fontWeight: v as CaptionFontWeight,
+                          })
+                        }
+                      >
+                        <ToggleButton
+                          value="normal"
+                          sx={{ py: 0.5, fontSize: '11.5px', fontWeight: 500 }}
+                        >
+                          보통 (Normal)
+                        </ToggleButton>
+                        <ToggleButton
+                          value="bold"
+                          sx={{ py: 0.5, fontSize: '11.5px', fontWeight: 700 }}
+                        >
+                          볼드 (Bold)
+                        </ToggleButton>
+                        <ToggleButton
+                          value="900"
+                          sx={{ py: 0.5, fontSize: '11.5px', fontWeight: 900 }}
+                        >
+                          블랙 (Black)
+                        </ToggleButton>
+                      </ToggleButtonGroup>
+                    </Box>
+
+                    {/* Outline / Stroke Width Slider */}
+                    <Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                          검은색 테두리(외곽선) 두께
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          sx={{ fontWeight: 700, color: 'primary.main' }}
+                        >
+                          {selectedElement.outlineWidth.toFixed(1)}px
+                        </Typography>
+                      </Box>
+                      <Slider
+                        size="small"
+                        min={0}
+                        max={12}
+                        step={0.2}
+                        value={selectedElement.outlineWidth}
+                        onChange={(_, v) =>
+                          handleUpdateElement(selectedElement.id, { outlineWidth: v as number })
+                        }
+                      />
+                      <Typography
+                        variant="caption"
+                        sx={{ fontSize: '10px', color: 'text.secondary' }}
+                      >
+                        * 첨부 사진 인간극장 최적값: 2.4px ~ 3.2px (깔끔하고 또렷한 외곽선)
+                      </Typography>
+                    </Box>
+
+                    {/* Font Size Slider */}
+                    <Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                          글자 크기 (Font Size)
+                        </Typography>
+                        <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                          {selectedElement.fontSize}px
+                        </Typography>
+                      </Box>
+                      <Slider
+                        size="small"
+                        min={16}
+                        max={72}
+                        step={1}
+                        value={selectedElement.fontSize}
+                        onChange={(_, v) =>
+                          handleUpdateElement(selectedElement.id, { fontSize: v as number })
+                        }
+                      />
+                    </Box>
+
+                    {/* Font Family Selection */}
+                    <FormControl size="small" fullWidth>
+                      <InputLabel>서체 선택</InputLabel>
+                      <Select
+                        value={selectedElement.fontFamily}
+                        label="서체 선택"
+                        onChange={(e) =>
+                          handleUpdateElement(selectedElement.id, {
+                            fontFamily: e.target.value as FontFamilyChoice,
+                          })
+                        }
+                      >
+                        <MenuItem value="myeongjo">명조 / 바탕체 (KBS 인간극장 오리지널)</MenuItem>
+                        <MenuItem value="gothic">고딕 / 산세리프 (9시 뉴스 & 현대 방송)</MenuItem>
+                        <MenuItem value="retro">복고 / 굴림·돋움 (레트로 방송 & 밈)</MenuItem>
+                        <MenuItem value="impact">임팩트 볼드 (CNN & 글로벌 속보)</MenuItem>
+                      </Select>
+                    </FormControl>
+
+                    {/* Alignment & Colors */}
+                    <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
+                      {/* Alignment */}
+                      <Box sx={{ flex: 1 }}>
+                        <Typography
+                          variant="caption"
+                          sx={{ fontWeight: 700, display: 'block', mb: 0.5 }}
+                        >
+                          정렬
+                        </Typography>
+                        <ToggleButtonGroup
+                          value={selectedElement.align}
+                          exclusive
+                          size="small"
+                          fullWidth
+                          onChange={(_, v) =>
+                            v && handleUpdateElement(selectedElement.id, { align: v })
+                          }
+                        >
+                          <ToggleButton value="left" sx={{ py: 0.25, fontSize: '11px' }}>
+                            좌측
+                          </ToggleButton>
+                          <ToggleButton value="center" sx={{ py: 0.25, fontSize: '11px' }}>
+                            가운데
+                          </ToggleButton>
+                          <ToggleButton value="right" sx={{ py: 0.25, fontSize: '11px' }}>
+                            우측
+                          </ToggleButton>
+                        </ToggleButtonGroup>
+                      </Box>
+
+                      {/* Text Color */}
+                      <Box>
+                        <Typography
+                          variant="caption"
+                          sx={{ fontWeight: 700, display: 'block', mb: 0.5 }}
+                        >
+                          글자색
+                        </Typography>
+                        <input
+                          type="color"
+                          value={selectedElement.textColor}
+                          onChange={(e) =>
+                            handleUpdateElement(selectedElement.id, { textColor: e.target.value })
+                          }
+                          style={{
+                            width: 36,
+                            height: 32,
+                            borderRadius: 4,
+                            border: 'none',
+                            cursor: 'pointer',
+                          }}
+                        />
+                      </Box>
+
+                      {/* Outline Color */}
+                      <Box>
+                        <Typography
+                          variant="caption"
+                          sx={{ fontWeight: 700, display: 'block', mb: 0.5 }}
+                        >
+                          테두리색
+                        </Typography>
+                        <input
+                          type="color"
+                          value={selectedElement.outlineColor}
+                          onChange={(e) =>
+                            handleUpdateElement(selectedElement.id, {
+                              outlineColor: e.target.value,
+                            })
+                          }
+                          style={{
+                            width: 36,
+                            height: 32,
+                            borderRadius: 4,
+                            border: 'none',
+                            cursor: 'pointer',
+                          }}
+                        />
+                      </Box>
+                    </Box>
+                  </Box>
+                </Card>
+              ) : (
+                <Card
+                  variant="outlined"
+                  sx={{
+                    p: 2,
+                    borderRadius: 2,
+                    textAlign: 'center',
+                    bgcolor: 'background.neutral',
+                  }}
+                >
+                  <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                    💡 캔버스에서 자막 또는 'KBS 인간극장' 로고를 클릭하면 드래그하여 이동하고
+                    굵기/테두리를 수정할 수 있습니다.
+                  </Typography>
+                </Card>
+              )}
+
+              {/* 3. Quick Meme Quotes Presets */}
               <Card variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
                   <AutoAwesomeRoundedIcon color="warning" sx={{ fontSize: 20 }} />
@@ -488,7 +1374,7 @@ export function PhotoNewsCaptionView() {
                 </Box>
               </Card>
 
-              {/* 2. Broadcast Caption Style Presets Grid */}
+              {/* 4. Broadcast Style Presets Grid */}
               <Box>
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1.5 }}>
                   방송 / 다큐 자막 스타일 (9종)
@@ -549,169 +1435,10 @@ export function PhotoNewsCaptionView() {
                 </Box>
               </Box>
 
-              {/* 3. Text Content Inputs */}
-              <Card variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-                  <FormatQuoteRoundedIcon color="primary" sx={{ fontSize: 20 }} />
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
-                    자막 문구 입력
-                  </Typography>
-                </Box>
-
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                  <TextField
-                    label="메인 대사 / 뉴스 헤드라인"
-                    placeholder='예: "계란이 다 떨어졌다"'
-                    size="small"
-                    fullWidth
-                    value={config.headline}
-                    onChange={(e) => setConfig((p) => ({ ...p, headline: e.target.value }))}
-                  />
-
-                  <TextField
-                    label="인물 정보 / 기자 소속"
-                    placeholder="예: 시능지(23) / 자취생 또는 홍길동 기자 / 사회부"
-                    size="small"
-                    fullWidth
-                    value={config.subText}
-                    onChange={(e) => setConfig((p) => ({ ...p, subText: e.target.value }))}
-                  />
-
-                  <Box sx={{ display: 'flex', gap: 1 }}>
-                    <TextField
-                      label="뱃지 / 카테고리"
-                      placeholder="예: [단독], [속보], 인간극장"
-                      size="small"
-                      fullWidth
-                      value={config.badgeText}
-                      onChange={(e) => setConfig((p) => ({ ...p, badgeText: e.target.value }))}
-                    />
-                    <TextField
-                      label="위치 / 시간 / LIVE"
-                      placeholder="예: ● LIVE 서울"
-                      size="small"
-                      fullWidth
-                      value={config.locationText}
-                      onChange={(e) => setConfig((p) => ({ ...p, locationText: e.target.value }))}
-                    />
-                  </Box>
-                </Box>
-              </Card>
-
-              {/* 4. Typography & Layout Controls */}
-              <Card variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-                  <FormatColorTextRoundedIcon color="secondary" sx={{ fontSize: 20 }} />
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
-                    서체 및 레이아웃 제어
-                  </Typography>
-                </Box>
-
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <FormControl size="small" fullWidth>
-                    <InputLabel>서체 선택 (Font Family)</InputLabel>
-                    <Select
-                      value={config.fontFamily}
-                      label="서체 선택 (Font Family)"
-                      onChange={(e) =>
-                        setConfig((p) => ({ ...p, fontFamily: e.target.value as FontFamilyChoice }))
-                      }
-                    >
-                      <MenuItem value="myeongjo">명조 / 바탕체 (KBS 인간극장 오리지널)</MenuItem>
-                      <MenuItem value="gothic">고딕 / 산세리프 (9시 뉴스 & 현대 방송)</MenuItem>
-                      <MenuItem value="retro">복고 / 굴림·돋움 (레트로 방송 & 밈)</MenuItem>
-                      <MenuItem value="impact">임팩트 볼드 (CNN & 글로벌 속보)</MenuItem>
-                    </Select>
-                  </FormControl>
-
-                  {/* Font Scale Slider */}
-                  <Box>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                      <Typography variant="caption" sx={{ fontWeight: 700 }}>
-                        자막 크기 배율
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                        {Math.round(config.fontSizeScale * 100)}%
-                      </Typography>
-                    </Box>
-                    <Slider
-                      size="small"
-                      min={0.6}
-                      max={1.6}
-                      step={0.05}
-                      value={config.fontSizeScale}
-                      onChange={(_, v) => setConfig((p) => ({ ...p, fontSizeScale: v as number }))}
-                    />
-                  </Box>
-
-                  {/* Outline Width Slider */}
-                  <Box>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                      <Typography variant="caption" sx={{ fontWeight: 700 }}>
-                        외곽선(Stroke) 두께
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                        {config.outlineWidth}px
-                      </Typography>
-                    </Box>
-                    <Slider
-                      size="small"
-                      min={0}
-                      max={16}
-                      step={1}
-                      value={config.outlineWidth}
-                      onChange={(_, v) => setConfig((p) => ({ ...p, outlineWidth: v as number }))}
-                    />
-                  </Box>
-
-                  {/* Bottom Offset Slider */}
-                  <Box>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                      <Typography variant="caption" sx={{ fontWeight: 700 }}>
-                        하단 여백 위치 (Y Offset)
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                        {config.bottomOffset}%
-                      </Typography>
-                    </Box>
-                    <Slider
-                      size="small"
-                      min={0}
-                      max={35}
-                      step={1}
-                      value={config.bottomOffset}
-                      onChange={(_, v) => setConfig((p) => ({ ...p, bottomOffset: v as number }))}
-                    />
-                  </Box>
-
-                  {/* Text Alignment */}
-                  <Box
-                    sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-                  >
-                    <Typography variant="caption" sx={{ fontWeight: 700 }}>
-                      텍스트 정렬
-                    </Typography>
-                    <ToggleButtonGroup
-                      value={config.textAlign}
-                      exclusive
-                      size="small"
-                      onChange={(_, v) => v && setConfig((p) => ({ ...p, textAlign: v }))}
-                    >
-                      <ToggleButton value="center" sx={{ px: 2, py: 0.25, fontSize: '12px' }}>
-                        가운데 정렬
-                      </ToggleButton>
-                      <ToggleButton value="left" sx={{ px: 2, py: 0.25, fontSize: '12px' }}>
-                        좌측 정렬
-                      </ToggleButton>
-                    </ToggleButtonGroup>
-                  </Box>
-                </Box>
-              </Card>
-
-              {/* 5. Broadcast Cinematic Effects & Watermarks */}
+              {/* 5. Broadcast Cinematic Effects & Letterbox */}
               <Card variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1 }}>
-                  방송 연출 효과 & 레터박스
+                  화면 연출 & 레터박스
                 </Typography>
 
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -763,151 +1490,10 @@ export function PhotoNewsCaptionView() {
                     }
                     label={
                       <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        🌗 하단 다크 비네팅 그라데이션 (가독성 향상)
+                        🌗 하단 다크 비네팅 그라데이션
                       </Typography>
                     }
                   />
-
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        size="small"
-                        checked={config.showStationLogo}
-                        onChange={(e) =>
-                          setConfig((p) => ({ ...p, showStationLogo: e.target.checked }))
-                        }
-                      />
-                    }
-                    label={
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        📺 방송국 로고 / 인간극장 타이틀 워터마크
-                      </Typography>
-                    }
-                  />
-
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        size="small"
-                        checked={config.showLiveBadge}
-                        onChange={(e) =>
-                          setConfig((p) => ({ ...p, showLiveBadge: e.target.checked }))
-                        }
-                      />
-                    }
-                    label={
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        🔴 LIVE / 시간 인디케이터 위젯
-                      </Typography>
-                    }
-                  />
-                </Box>
-              </Card>
-
-              {/* 6. Color Customization */}
-              <Card variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1.5 }}>
-                  색상 커스터마이징
-                </Typography>
-
-                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 1.5 }}>
-                  <Box>
-                    <Typography
-                      variant="caption"
-                      sx={{ fontWeight: 700, display: 'block', mb: 0.5 }}
-                    >
-                      글자 색상
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <input
-                        type="color"
-                        value={config.textColor}
-                        onChange={(e) => setConfig((p) => ({ ...p, textColor: e.target.value }))}
-                        style={{
-                          width: 36,
-                          height: 32,
-                          borderRadius: 4,
-                          border: 'none',
-                          cursor: 'pointer',
-                        }}
-                      />
-                      <Typography variant="caption">{config.textColor}</Typography>
-                    </Box>
-                  </Box>
-
-                  <Box>
-                    <Typography
-                      variant="caption"
-                      sx={{ fontWeight: 700, display: 'block', mb: 0.5 }}
-                    >
-                      외곽선 색상
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <input
-                        type="color"
-                        value={config.outlineColor}
-                        onChange={(e) => setConfig((p) => ({ ...p, outlineColor: e.target.value }))}
-                        style={{
-                          width: 36,
-                          height: 32,
-                          borderRadius: 4,
-                          border: 'none',
-                          cursor: 'pointer',
-                        }}
-                      />
-                      <Typography variant="caption">{config.outlineColor}</Typography>
-                    </Box>
-                  </Box>
-
-                  <Box>
-                    <Typography
-                      variant="caption"
-                      sx={{ fontWeight: 700, display: 'block', mb: 0.5 }}
-                    >
-                      포인트 뱃지 색상
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <input
-                        type="color"
-                        value={config.accentColor}
-                        onChange={(e) => setConfig((p) => ({ ...p, accentColor: e.target.value }))}
-                        style={{
-                          width: 36,
-                          height: 32,
-                          borderRadius: 4,
-                          border: 'none',
-                          cursor: 'pointer',
-                        }}
-                      />
-                      <Typography variant="caption">{config.accentColor}</Typography>
-                    </Box>
-                  </Box>
-
-                  <Box>
-                    <Typography
-                      variant="caption"
-                      sx={{ fontWeight: 700, display: 'block', mb: 0.5 }}
-                    >
-                      배너 주 색상
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <input
-                        type="color"
-                        value={config.bannerColor.startsWith('#') ? config.bannerColor : '#1e3a8a'}
-                        onChange={(e) => setConfig((p) => ({ ...p, bannerColor: e.target.value }))}
-                        style={{
-                          width: 36,
-                          height: 32,
-                          borderRadius: 4,
-                          border: 'none',
-                          cursor: 'pointer',
-                        }}
-                      />
-                      <Typography variant="caption">
-                        {config.bannerColor.startsWith('#') ? config.bannerColor : '기본값'}
-                      </Typography>
-                    </Box>
-                  </Box>
                 </Box>
               </Card>
             </Box>

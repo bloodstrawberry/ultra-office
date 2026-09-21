@@ -20,10 +20,10 @@ import {
   isPortalBlock,
   getBaseBlockId,
   type BlockId,
-} from "../object/constants";
-import { CellType, Position, copyGrid } from "./types";
+} from '../object/constants';
+import { CellType, Position, copyGrid } from './types';
 
-export type Direction = "up" | "down" | "left" | "right";
+export type Direction = 'up' | 'down' | 'left' | 'right';
 
 export interface DestroyedBlock {
   x: number;
@@ -75,14 +75,11 @@ export function findPairedPortal(
   grid: CellType[][],
   portalId: CellType,
   currentY: number,
-  currentX: number,
+  currentX: number
 ): Position | null {
   for (let y = 0; y < grid.length; y++) {
     for (let x = 0; x < grid[y].length; x++) {
-      if (
-        getBaseBlockId(grid[y][x]) === portalId &&
-        (y !== currentY || x !== currentX)
-      ) {
+      if (getBaseBlockId(grid[y][x]) === portalId && (y !== currentY || x !== currentX)) {
         return { x, y };
       }
     }
@@ -96,18 +93,13 @@ export function findPairedPortal(
 export function slideOrbox(
   initialGrid: CellType[][],
   startPos: Position,
-  dir: Direction,
+  dir: Direction
 ): SlideResult {
   const grid = copyGrid(initialGrid);
   const height = grid.length;
   const width = grid[0]?.length || 0;
 
-  if (
-    startPos.y >= 0 &&
-    startPos.y < height &&
-    startPos.x >= 0 &&
-    startPos.x < width
-  ) {
+  if (startPos.y >= 0 && startPos.y < height && startPos.x >= 0 && startPos.x < width) {
     if (getBaseBlockId(grid[startPos.y][startPos.x]) === BLOCK_STRAWBERRY) {
       grid[startPos.y][startPos.x] = BLOCK_EMPTY;
     }
@@ -115,10 +107,10 @@ export function slideOrbox(
 
   let dx = 0;
   let dy = 0;
-  if (dir === "up") dy = -1;
-  else if (dir === "down") dy = 1;
-  else if (dir === "left") dx = -1;
-  else if (dir === "right") dx = 1;
+  if (dir === 'up') dy = -1;
+  else if (dir === 'down') dy = 1;
+  else if (dir === 'left') dx = -1;
+  else if (dir === 'right') dx = 1;
 
   let currentX = startPos.x;
   let currentY = startPos.y;

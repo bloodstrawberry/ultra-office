@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import React, { useEffect, useRef, useState } from "react";
-import { LevelData } from "../game/types";
+import React, { useEffect, useRef, useState } from 'react';
+import { LevelData } from '../game/types';
 import BlockRenderer, {
   BLOCK_NONE,
   BLOCK_EMPTY,
   SoilTileDark,
   SoilTileLight,
   STAGE_GRID_GAP_REM,
-} from "../object";
+} from '../object';
 
 export interface StagePreviewModalProps {
   isOpen: boolean;
@@ -22,7 +22,7 @@ export interface StagePreviewModalProps {
   hasNext?: boolean;
 }
 
-function LeftArrowIcon({ className = "w-6 h-6" }: { className?: string }) {
+function LeftArrowIcon({ className = 'w-6 h-6' }: { className?: string }) {
   return (
     <svg
       className={className}
@@ -38,7 +38,7 @@ function LeftArrowIcon({ className = "w-6 h-6" }: { className?: string }) {
   );
 }
 
-function RightArrowIcon({ className = "w-6 h-6" }: { className?: string }) {
+function RightArrowIcon({ className = 'w-6 h-6' }: { className?: string }) {
   return (
     <svg
       className={className}
@@ -74,16 +74,16 @@ export default function StagePreviewModal({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isOpen) return;
-      if (e.key === "Escape") {
+      if (e.key === 'Escape') {
         onClose();
-      } else if (e.key === "ArrowLeft" && hasPrev && onPrevStage) {
+      } else if (e.key === 'ArrowLeft' && hasPrev && onPrevStage) {
         onPrevStage();
-      } else if (e.key === "ArrowRight" && hasNext && onNextStage) {
+      } else if (e.key === 'ArrowRight' && hasNext && onNextStage) {
         onNextStage();
       }
     };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose, hasPrev, hasNext, onPrevStage, onNextStage]);
 
   useEffect(() => {
@@ -147,11 +147,11 @@ export default function StagePreviewModal({
             disabled={!hasPrev}
             className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center transition-all border-2 shrink-0 ${
               hasPrev
-                ? "bg-gradient-to-b from-sky-400 via-blue-500 to-indigo-600 border-blue-700 text-white shadow-md shadow-blue-500/30 hover:scale-110 active:scale-90 hover:brightness-110 cursor-pointer"
-                : "bg-slate-100 border-slate-200 text-slate-300 opacity-30 cursor-not-allowed shadow-none"
+                ? 'bg-gradient-to-b from-sky-400 via-blue-500 to-indigo-600 border-blue-700 text-white shadow-md shadow-blue-500/30 hover:scale-110 active:scale-90 hover:brightness-110 cursor-pointer'
+                : 'bg-slate-100 border-slate-200 text-slate-300 opacity-30 cursor-not-allowed shadow-none'
             }`}
             aria-label="이전 배송지"
-            title={hasPrev ? "이전 배송지 보기" : "첫 번째 배송지입니다"}
+            title={hasPrev ? '이전 배송지 보기' : '첫 번째 배송지입니다'}
           >
             <LeftArrowIcon className="w-5 h-5 sm:w-6 sm:h-6 stroke-[3.5]" />
           </button>
@@ -166,8 +166,8 @@ export default function StagePreviewModal({
               style={{
                 width: `${boardWidth}px`,
                 height: `${boardHeight}px`,
-                maxWidth: "100%",
-                maxHeight: "100%",
+                maxWidth: '100%',
+                maxHeight: '100%',
               }}
             >
               {/* Road Background Layer */}
@@ -209,8 +209,7 @@ export default function StagePreviewModal({
                         grid[y]?.[x + 1] === BLOCK_NONE ||
                         grid[y]?.[x + 1] === undefined;
 
-                      const TileComponent =
-                        (x + y) % 2 === 0 ? SoilTileDark : SoilTileLight;
+                      const TileComponent = (x + y) % 2 === 0 ? SoilTileDark : SoilTileLight;
 
                       return (
                         <div
@@ -225,7 +224,7 @@ export default function StagePreviewModal({
                           />
                         </div>
                       );
-                    }),
+                    })
                   )}
                 </div>
               </div>
@@ -251,7 +250,7 @@ export default function StagePreviewModal({
                         )}
                       </div>
                     );
-                  }),
+                  })
                 )}
               </div>
             </div>
@@ -264,11 +263,11 @@ export default function StagePreviewModal({
             disabled={!hasNext}
             className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center transition-all border-2 shrink-0 ${
               hasNext
-                ? "bg-gradient-to-b from-sky-400 via-blue-500 to-indigo-600 border-blue-700 text-white shadow-md shadow-blue-500/30 hover:scale-110 active:scale-90 hover:brightness-110 cursor-pointer"
-                : "bg-slate-100 border-slate-200 text-slate-300 opacity-30 cursor-not-allowed shadow-none"
+                ? 'bg-gradient-to-b from-sky-400 via-blue-500 to-indigo-600 border-blue-700 text-white shadow-md shadow-blue-500/30 hover:scale-110 active:scale-90 hover:brightness-110 cursor-pointer'
+                : 'bg-slate-100 border-slate-200 text-slate-300 opacity-30 cursor-not-allowed shadow-none'
             }`}
             aria-label="다음 배송지"
-            title={hasNext ? "다음 배송지 보기" : "다음 배송지가 잠겨있습니다"}
+            title={hasNext ? '다음 배송지 보기' : '다음 배송지가 잠겨있습니다'}
           >
             <RightArrowIcon className="w-5 h-5 sm:w-6 sm:h-6 stroke-[3.5]" />
           </button>

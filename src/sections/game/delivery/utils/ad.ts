@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   getLocalSync,
@@ -7,7 +7,7 @@ import {
   isAdPendingSync,
   setAdPendingSync,
   clearAdPendingSync,
-} from "./local-storage";
+} from './local-storage';
 
 export { isAdPendingSync, setAdPendingSync, clearAdPendingSync };
 
@@ -37,7 +37,7 @@ export const AD_TRIGGER_COUNT = 10;
 
 /** 광고 시청 후 쿨다운 시간 (1분 = 60초) */
 const AD_COOLDOWN_MS = 60 * 1000;
-const STORAGE_KEY = "last_ad_shown_timestamp";
+const STORAGE_KEY = 'last_ad_shown_timestamp';
 
 let memoryLastAdShownTimestamp = 0;
 
@@ -46,7 +46,7 @@ let memoryLastAdShownTimestamp = 0;
  */
 export function isAdOnCooldown(): boolean {
   let lastTime = memoryLastAdShownTimestamp;
-  if (!lastTime && typeof window !== "undefined") {
+  if (!lastTime && typeof window !== 'undefined') {
     try {
       const storedLocal = getLocalSync(STORAGE_KEY);
       lastTime = storedLocal ? parseInt(storedLocal, 10) || 0 : 0;
@@ -64,7 +64,7 @@ export function isAdOnCooldown(): boolean {
 export function recordAdShown(): void {
   const now = Date.now();
   memoryLastAdShownTimestamp = now;
-  if (typeof window !== "undefined") {
+  if (typeof window !== 'undefined') {
     try {
       setLocalSync(STORAGE_KEY, String(now));
       setItem(STORAGE_KEY, String(now)).catch(() => {});

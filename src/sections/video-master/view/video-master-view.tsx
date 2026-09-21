@@ -1,7 +1,12 @@
 'use client';
 
 import type { SampleVideoItem } from '../data/video-samples';
-import type { VideoStudioClipItem, VideoStudioTextItem, VideoStudioExportSettings } from '../types';
+import type {
+  VideoStudioClipItem,
+  VideoStudioTextItem,
+  VideoStudioAudioItem,
+  VideoStudioExportSettings,
+} from '../types';
 
 import { toast } from 'sonner';
 import React, { useRef, useState, useEffect, useCallback } from 'react';
@@ -21,6 +26,7 @@ import InputLabel from '@mui/material/InputLabel';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import FormControl from '@mui/material/FormControl';
+import MicRoundedIcon from '@mui/icons-material/MicRounded';
 import LinearProgress from '@mui/material/LinearProgress';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import UndoRoundedIcon from '@mui/icons-material/UndoRounded';
@@ -36,6 +42,7 @@ import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import VolumeOffRoundedIcon from '@mui/icons-material/VolumeOffRounded';
 import ContentCutRoundedIcon from '@mui/icons-material/ContentCutRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
+import AudiotrackRoundedIcon from '@mui/icons-material/AudiotrackRounded';
 import MovieFilterRoundedIcon from '@mui/icons-material/MovieFilterRounded';
 import RotateRightRoundedIcon from '@mui/icons-material/RotateRightRounded';
 import MovieCreationRoundedIcon from '@mui/icons-material/MovieCreationRounded';
@@ -45,6 +52,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import { FILTER_PRESETS } from '../utils/video-processor';
 import { SttExtractPanel } from '../components/stt-extract-panel';
+import { VoiceRecordPanel } from '../components/voice-record-panel';
 import { ImageExtractPanel } from '../components/image-extract-panel';
 import { AudioExtractPanel } from '../components/audio-extract-panel';
 import { VideoUploadWorkspace } from '../components/video-upload-workspace';
@@ -63,13 +71,14 @@ import {
 type InspectorTabKey =
   | 'clip'
   | 'text'
+  | 'voice-record'
   | 'image-extract'
   | 'stt-extract'
   | 'audio-extract'
   | 'export';
 
 export function VideoMasterView() {
-  // ─── Multi-Track Clips & Text Items ───
+  // ─── Multi-Track Clips, Text & Audio Items ───
   const [clips, setClips] = useState<VideoStudioClipItem[]>([]);
   const [selectedClipId, setSelectedClipId] = useState<string | null>(null);
 
@@ -90,9 +99,16 @@ export function VideoMasterView() {
   ]);
   const [selectedTextId, setSelectedTextId] = useState<string | null>('text-1');
 
+  const [audioClips, setAudioClips] = useState<VideoStudioAudioItem[]>([]);
+  const [selectedAudioId, setSelectedAudioId] = useState<string | null>(null);
+
   // ─── History Stack for Undo / Redo (Ctrl+Z / Ctrl+Y) ───
   const [history, setHistory] = useState<
-    { clips: VideoStudioClipItem[]; textClips: VideoStudioTextItem[] }[]
+    {
+      clips: VideoStudioClipItem[];
+      textClips: VideoStudioTextItem[];
+      audioClips: VideoStudioAudioItem[];
+    }[]
   >([
     {
       clips: [],
@@ -111,26 +127,33 @@ export function VideoMasterView() {
           yPercent: 85,
         },
       ],
+      audioClips: [],
     },
   ]);
   const [historyIndex, setHistoryIndex] = useState<number>(0);
 
   const pushHistory = useCallback(
-    (nextClips: VideoStudioClipItem[], nextTextClips: VideoStudioTextItem[]) => {
+    (
+      nextClips: VideoStudioClipItem[],
+      nextTextClips: VideoStudioTextItem[],
+      nextAudioClips: VideoStudioAudioItem[] = audioClips
+    ) => {
       setClips(nextClips);
       setTextClips(nextTextClips);
+      setAudioClips(nextAudioClips);
       setHistory((prev) => {
         const next = prev.slice(0, historyIndex + 1);
         next.push({
           clips: nextClips.map((c) => ({ ...c })),
           textClips: nextTextClips.map((t) => ({ ...t })),
+          audioClips: nextAudioClips.map((a) => ({ ...a })),
         });
         if (next.length > 30) next.shift();
         return next;
       });
       setHistoryIndex((prev) => Math.min(prev + 1, 29));
     },
-    [historyIndex]
+    [historyIndex, audioClips]
   );
 
   const handleUndo = useCallback(() => {
@@ -140,6 +163,7 @@ export function VideoMasterView() {
     if (snapshot) {
       setClips(snapshot.clips);
       setTextClips(snapshot.textClips);
+      setAudioClips(snapshot.audioClips || []);
       setHistoryIndex(targetIdx);
       if (selectedClipId && !snapshot.clips.some((c) => c.id === selectedClipId)) {
         setSelectedClipId(snapshot.clips[0]?.id || null);
@@ -147,9 +171,12 @@ export function VideoMasterView() {
       if (selectedTextId && !snapshot.textClips.some((t) => t.id === selectedTextId)) {
         setSelectedTextId(snapshot.textClips[0]?.id || null);
       }
+      if (selectedAudioId && !snapshot.audioClips?.some((a) => a.id === selectedAudioId)) {
+        setSelectedAudioId(snapshot.audioClips?.[0]?.id || null);
+      }
       toast.info('작업이 취소되었습니다. (실행 취소)');
     }
-  }, [historyIndex, history, selectedClipId, selectedTextId]);
+  }, [historyIndex, history, selectedClipId, selectedTextId, selectedAudioId]);
 
   const handleRedo = useCallback(() => {
     if (historyIndex >= history.length - 1) return;
@@ -158,6 +185,7 @@ export function VideoMasterView() {
     if (snapshot) {
       setClips(snapshot.clips);
       setTextClips(snapshot.textClips);
+      setAudioClips(snapshot.audioClips || []);
       setHistoryIndex(targetIdx);
       if (selectedClipId && !snapshot.clips.some((c) => c.id === selectedClipId)) {
         setSelectedClipId(snapshot.clips[0]?.id || null);
@@ -165,9 +193,12 @@ export function VideoMasterView() {
       if (selectedTextId && !snapshot.textClips.some((t) => t.id === selectedTextId)) {
         setSelectedTextId(snapshot.textClips[0]?.id || null);
       }
+      if (selectedAudioId && !snapshot.audioClips?.some((a) => a.id === selectedAudioId)) {
+        setSelectedAudioId(snapshot.audioClips?.[0]?.id || null);
+      }
       toast.info('작업이 다시 실행되었습니다. (다시 실행)');
     }
-  }, [historyIndex, history, selectedClipId, selectedTextId]);
+  }, [historyIndex, history, selectedClipId, selectedTextId, selectedAudioId]);
 
   // ─── Timeline & Playhead State ───
   const [currentPlayheadTime, setCurrentPlayheadTime] = useState<number>(0);
@@ -224,10 +255,12 @@ export function VideoMasterView() {
   const isScrubbingRef = useRef<boolean>(false);
   const animationFrameRef = useRef<number | null>(null);
   const lastPlayTimestampRef = useRef<number | null>(null);
+  const audioElementsRef = useRef<Map<string, HTMLAudioElement>>(new Map());
 
   const totalDuration = calculateTotalTimelineDuration(clips);
   const selectedClip = clips.find((c) => c.id === selectedClipId) || clips[0] || null;
   const selectedText = textClips.find((t) => t.id === selectedTextId) || textClips[0] || null;
+  const selectedAudio = audioClips.find((a) => a.id === selectedAudioId) || audioClips[0] || null;
 
   // ─── 1. Load Files & Append Clips ───
   const handleAddFiles = useCallback(
@@ -354,6 +387,92 @@ export function VideoMasterView() {
       }
     };
   }, [isPlaying, totalDuration, updateCanvasFrame, currentPlayheadTime]);
+
+  // ─── 2-1. Audio Playback Sync ───
+  useEffect(() => {
+    const audioMap = audioElementsRef.current;
+
+    audioClips.forEach((aClip) => {
+      let audio = audioMap.get(aClip.id);
+      if (!audio) {
+        audio = new Audio(aClip.src);
+        audio.preload = 'auto';
+        audioMap.set(aClip.id, audio);
+      }
+      audio.muted = isMuted || aClip.mute;
+      audio.volume = Math.max(0, Math.min(1, aClip.volume * globalVolume));
+    });
+
+    // Cleanup deleted audio elements
+    audioMap.forEach((audio, id) => {
+      if (!audioClips.some((c) => c.id === id)) {
+        audio.pause();
+        audioMap.delete(id);
+      }
+    });
+
+    if (isPlaying) {
+      audioClips.forEach((aClip) => {
+        const audio = audioMap.get(aClip.id);
+        if (!audio) return;
+        const clipEnd = aClip.startTime + aClip.duration;
+        if (currentPlayheadTime >= aClip.startTime && currentPlayheadTime < clipEnd) {
+          const expectedOffset = currentPlayheadTime - aClip.startTime;
+          if (Math.abs(audio.currentTime - expectedOffset) > 0.15) {
+            audio.currentTime = expectedOffset;
+          }
+          if (audio.paused) {
+            audio.play().catch(() => {});
+          }
+        } else {
+          if (!audio.paused) {
+            audio.pause();
+          }
+        }
+      });
+    } else {
+      audioMap.forEach((audio, id) => {
+        if (!audio.paused) {
+          audio.pause();
+        }
+        const clip = audioClips.find((c) => c.id === id);
+        if (clip) {
+          const offset = Math.max(0, Math.min(clip.duration, currentPlayheadTime - clip.startTime));
+          audio.currentTime = offset;
+        }
+      });
+    }
+  }, [isPlaying, currentPlayheadTime, audioClips, isMuted, globalVolume]);
+
+  const handleAddAudioClip = useCallback(
+    (newClip: VideoStudioAudioItem) => {
+      const next = [...audioClips, newClip];
+      pushHistory(clips, textClips, next);
+      setSelectedAudioId(newClip.id);
+      setInspectorTab('voice-record');
+    },
+    [audioClips, clips, textClips, pushHistory]
+  );
+
+  const handleDeleteAudioClip = useCallback(
+    (id: string) => {
+      const next = audioClips.filter((c) => c.id !== id);
+      pushHistory(clips, textClips, next);
+      if (selectedAudioId === id) {
+        setSelectedAudioId(null);
+      }
+      toast.success('오디오 클립이 삭제되었습니다.');
+    },
+    [audioClips, clips, textClips, selectedAudioId, pushHistory]
+  );
+
+  const handleToggleAudioClipMute = useCallback(
+    (id: string) => {
+      const next = audioClips.map((c) => (c.id === id ? { ...c, mute: !c.mute } : c));
+      pushHistory(clips, textClips, next);
+    },
+    [audioClips, clips, textClips, pushHistory]
+  );
 
   // ─── 3. Timeline Split & Trimming ───
   const handleSplitClipAtPlayhead = () => {
@@ -556,7 +675,7 @@ export function VideoMasterView() {
           setExportPhase(`GIF 프레임 생성 중... (${p}%)`);
         });
       } else {
-        blob = await exportStudioVideo(clips, textClips, exportSettings, (p, phase) => {
+        blob = await exportStudioVideo(clips, textClips, exportSettings, audioClips, (p, phase) => {
           setExportProgress(p);
           setExportPhase(phase);
         });
@@ -583,9 +702,10 @@ export function VideoMasterView() {
   };
 
   const handleResetProject = () => {
-    pushHistory([], []);
+    pushHistory([], [], []);
     setSelectedClipId(null);
     setSelectedTextId(null);
+    setSelectedAudioId(null);
     setCurrentPlayheadTime(0);
     setIsPlaying(false);
     setExportedVideoUrl(null);
@@ -841,6 +961,7 @@ export function VideoMasterView() {
               >
                 <Tab value="clip" label="클립 속성" />
                 <Tab value="text" label="자막 편집" />
+                <Tab value="voice-record" label="음성 녹음" />
                 <Tab value="image-extract" label="이미지 추출" />
                 <Tab value="stt-extract" label="STT 추출" />
                 <Tab value="audio-extract" label="오디오/MP3 추출" />
@@ -1118,6 +1239,16 @@ export function VideoMasterView() {
                   </Box>
                 )}
 
+                {/* ── Tab 2-1: Voice / Audio Recording ── */}
+                {inspectorTab === 'voice-record' && (
+                  <VoiceRecordPanel
+                    currentPlayheadTime={currentPlayheadTime}
+                    onAddAudioClip={handleAddAudioClip}
+                    onStartSyncPlayback={() => setIsPlaying(true)}
+                    onStopSyncPlayback={() => setIsPlaying(false)}
+                  />
+                )}
+
                 {/* ── Tab 3: Image Extract ── */}
                 {inspectorTab === 'image-extract' && (
                   <ImageExtractPanel
@@ -1238,7 +1369,7 @@ export function VideoMasterView() {
           {/* ─── Bottom: Multi-Track Timeline Workspace (GIF Studio Style) ─── */}
           <Card
             sx={{
-              height: 220,
+              height: 250,
               flexShrink: 0,
               borderRadius: 2,
               display: 'flex',
@@ -1546,6 +1677,117 @@ export function VideoMasterView() {
                         <Typography noWrap variant="caption" sx={{ fontWeight: 700 }}>
                           {text.text}
                         </Typography>
+                      </Box>
+                    );
+                  })}
+                </Box>
+              </Box>
+
+              {/* A1 Audio / Voice Track */}
+              <Box sx={{ display: 'flex', alignItems: 'center', minHeight: 44 }}>
+                <Typography
+                  variant="caption"
+                  sx={{ width: 70, flexShrink: 0, fontWeight: 800, color: 'success.light' }}
+                >
+                  A1 오디오
+                </Typography>
+
+                <Box
+                  sx={{
+                    position: 'relative',
+                    height: 38,
+                    width: Math.max(800, totalDuration * 50 * timelineZoom),
+                  }}
+                >
+                  {audioClips.map((audio) => {
+                    const isSelected = audio.id === selectedAudioId;
+                    const leftPos = audio.startTime * 50 * timelineZoom;
+                    const audioWidth = Math.max(60, audio.duration * 50 * timelineZoom);
+
+                    return (
+                      <Box
+                        key={audio.id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedAudioId(audio.id);
+                          setInspectorTab('voice-record');
+                        }}
+                        sx={{
+                          position: 'absolute',
+                          left: leftPos,
+                          width: audioWidth,
+                          height: 34,
+                          top: 2,
+                          borderRadius: 1,
+                          bgcolor: isSelected ? 'success.dark' : '#065f46',
+                          border: isSelected
+                            ? '2px solid #34d399'
+                            : '1px solid rgba(52, 211, 153, 0.4)',
+                          color: '#ffffff',
+                          px: 1,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: 0.5,
+                          cursor: 'pointer',
+                          overflow: 'hidden',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                          transition: 'all 0.15s',
+                          '&:hover': { bgcolor: isSelected ? 'success.dark' : '#047857' },
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 0.5,
+                            minWidth: 0,
+                            flex: 1,
+                          }}
+                        >
+                          <MicRoundedIcon sx={{ fontSize: 14, color: '#6ee7b7' }} />
+                          <Typography
+                            noWrap
+                            variant="caption"
+                            sx={{ fontWeight: 700, fontSize: '0.75rem' }}
+                          >
+                            {audio.name}
+                          </Typography>
+                        </Box>
+
+                        <Box
+                          sx={{ display: 'flex', alignItems: 'center', gap: 0.3, flexShrink: 0 }}
+                        >
+                          <Tooltip title={audio.mute ? '음소거 해제' : '음소거'}>
+                            <IconButton
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleToggleAudioClipMute(audio.id);
+                              }}
+                              sx={{ p: 0.2, color: audio.mute ? '#f87171' : '#fff' }}
+                            >
+                              {audio.mute ? (
+                                <VolumeOffRoundedIcon sx={{ fontSize: 13 }} />
+                              ) : (
+                                <VolumeUpRoundedIcon sx={{ fontSize: 13 }} />
+                              )}
+                            </IconButton>
+                          </Tooltip>
+
+                          <Tooltip title="오디오 클립 삭제">
+                            <IconButton
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteAudioClip(audio.id);
+                              }}
+                              sx={{ p: 0.2, color: '#fca5a5' }}
+                            >
+                              <DeleteRoundedIcon sx={{ fontSize: 13 }} />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
                       </Box>
                     );
                   })}

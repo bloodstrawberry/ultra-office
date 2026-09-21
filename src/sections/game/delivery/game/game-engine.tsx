@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   BLOCK_EMPTY,
   BLOCK_WALL,
@@ -9,7 +9,7 @@ import {
   BLOCK_NONE,
   getBaseBlockId,
   type BlockId,
-} from "../object/constants";
+} from '../object/constants';
 import {
   type CellType,
   type Position,
@@ -18,21 +18,16 @@ import {
   BUILTIN_LEVELS,
   realMap,
   copyGrid,
-} from "./types";
-import { playEngineSound } from "./sound";
-import {
-  slideOrbox,
-  findPlayerSpawn,
-  type Direction,
-  type DestroyedBlock,
-} from "./physics";
-import { useEditorEngine } from "./editor-logic";
-import { useGameUndo, type UndoSnapshot } from "./use-game-undo";
-import { DisappearingEffectItem } from "./disappear-burst";
-import { IceBreakEffectItem } from "./ice-break-burst";
+} from './types';
+import { playEngineSound } from './sound';
+import { slideOrbox, findPlayerSpawn, type Direction, type DestroyedBlock } from './physics';
+import { useEditorEngine } from './editor-logic';
+import { useGameUndo, type UndoSnapshot } from './use-game-undo';
+import { DisappearingEffectItem } from './disappear-burst';
+import { IceBreakEffectItem } from './ice-break-burst';
 
-export type { CellType, Position, LevelData, Bullet } from "./types";
-export { BUILTIN_LEVELS } from "./types";
+export type { CellType, Position, LevelData, Bullet } from './types';
+export { BUILTIN_LEVELS } from './types';
 
 export interface MoveInfo {
   path: Position[];
@@ -43,9 +38,9 @@ export interface MoveInfo {
 export const useGameEngine = (
   initialLevelIndex = 0,
   isEditorMode = false,
-  isEditorPage = false,
+  isEditorPage = false
 ) => {
-  const [editorMapType, setEditorMapType] = useState<"real" | "test">("real");
+  const [editorMapType, setEditorMapType] = useState<'real' | 'test'>('real');
   const [levelIndex, setLevelIndex] = useState<number>(initialLevelIndex);
 
   const {
@@ -89,9 +84,7 @@ export const useGameEngine = (
   const [cursor, setCursor] = useState<Position>(() => {
     if (isEditorMode) {
       const firstLvl = realMap[0];
-      return firstLvl
-        ? findPlayerSpawn(firstLvl.grid as CellType[][])
-        : { x: 1, y: 1 };
+      return firstLvl ? findPlayerSpawn(firstLvl.grid as CellType[][]) : { x: 1, y: 1 };
     }
     const currentLevel = BUILTIN_LEVELS[initialLevelIndex] || BUILTIN_LEVELS[0];
     return findPlayerSpawn(currentLevel.grid);
@@ -104,36 +97,28 @@ export const useGameEngine = (
   const [grabbed, setGrabbed] = useState<boolean>(false);
   const [isCursorVisible, setIsCursorVisible] = useState<boolean>(true);
   const [hasMovedFirstBlock, setHasMovedFirstBlock] = useState<boolean>(false);
-  const [flashingBlocks, setFlashingBlocks] = useState<
-    Record<string, CellType | boolean>
-  >({});
+  const [flashingBlocks, setFlashingBlocks] = useState<Record<string, CellType | boolean>>({});
   const [bullets, setBullets] = useState<Bullet[]>([]);
   const [firedOnce, setFiredOnce] = useState<Record<string, boolean>>({});
   const firedOnceRef = useRef<Record<string, boolean>>({});
 
-  const [disappearingEffects, setDisappearingEffects] = useState<
-    DisappearingEffectItem[]
-  >([]);
-  const [iceBreakEffects, setIceBreakEffects] = useState<IceBreakEffectItem[]>(
-    [],
-  );
+  const [disappearingEffects, setDisappearingEffects] = useState<DisappearingEffectItem[]>([]);
+  const [iceBreakEffects, setIceBreakEffects] = useState<IceBreakEffectItem[]>([]);
   const [lastMoveInfo, setLastMoveInfo] = useState<MoveInfo | null>(null);
   const [isSliding, setIsSliding] = useState<boolean>(false);
 
   const blockCountsRef = useRef<Record<string, number>>({});
   const setBlockCounts = useCallback(
     (
-      counts:
-        | Record<string, number>
-        | ((prev: Record<string, number>) => Record<string, number>),
+      counts: Record<string, number> | ((prev: Record<string, number>) => Record<string, number>)
     ) => {
-      if (typeof counts === "function") {
+      if (typeof counts === 'function') {
         blockCountsRef.current = counts(blockCountsRef.current);
       } else {
         blockCountsRef.current = counts;
       }
     },
-    [],
+    []
   );
 
   const updateBlockCounts = useCallback((_board: CellType[][]) => {
@@ -187,7 +172,7 @@ export const useGameEngine = (
       setIsSliding(false);
       clearUndoHistory();
     },
-    [clearUndoHistory],
+    [clearUndoHistory]
   );
 
   // Reset current level
@@ -242,7 +227,7 @@ export const useGameEngine = (
       }, 180);
 
       // Play slide sound
-      playEngineSound("select", muted);
+      playEngineSound('select', muted);
 
       // Update grid & player position
       setGrid(result.grid);
@@ -250,7 +235,7 @@ export const useGameEngine = (
 
       // Trigger effects for destroyed blocks
       if (result.destroyedBlocks.length > 0) {
-        playEngineSound("break", muted);
+        playEngineSound('break', muted);
         const newEffects = result.destroyedBlocks.map((b) => ({
           id: `${Date.now()}-${b.x}-${b.y}-${Math.random()}`,
           x: b.x,
@@ -260,26 +245,26 @@ export const useGameEngine = (
         setDisappearingEffects((prev) => [...prev, ...newEffects]);
         setTimeout(() => {
           setDisappearingEffects((prev) =>
-            prev.filter((e) => !newEffects.some((ne) => ne.id === e.id)),
+            prev.filter((e) => !newEffects.some((ne) => ne.id === e.id))
           );
         }, 500);
       }
 
       // Trigger sound for collected items
       if (result.collectedItems.length > 0) {
-        playEngineSound("coin", muted);
+        playEngineSound('coin', muted);
       }
 
       // Handle outcome
       if (result.isCleared) {
         setTimeout(() => {
-          playEngineSound("match", muted);
+          playEngineSound('match', muted);
           setIsLevelCleared(true);
           setIsProcessing(false);
         }, 200);
       } else if (result.isOutOfBounds) {
         setTimeout(() => {
-          playEngineSound("fall", muted);
+          playEngineSound('fall', muted);
           setIsGameOver(true);
           setIsProcessing(false);
         }, 200);
@@ -289,30 +274,22 @@ export const useGameEngine = (
         }, 120);
       }
     },
-    [
-      grid,
-      cursor,
-      isGameOver,
-      isLevelCleared,
-      isProcessing,
-      muted,
-      pushSnapshot,
-    ],
+    [grid, cursor, isGameOver, isLevelCleared, isProcessing, muted, pushSnapshot]
   );
 
   // Compatibility moveBlock function (mapping number dir to Direction)
   const moveBlock = useCallback(
     (dir: number | Direction) => {
-      if (typeof dir === "string") {
+      if (typeof dir === 'string') {
         moveOrbox(dir);
         return;
       }
-      if (dir === -1) moveOrbox("left");
-      else if (dir === 1) moveOrbox("right");
-      else if (dir === -2) moveOrbox("up");
-      else if (dir === 2) moveOrbox("down");
+      if (dir === -1) moveOrbox('left');
+      else if (dir === 1) moveOrbox('right');
+      else if (dir === -2) moveOrbox('up');
+      else if (dir === 2) moveOrbox('down');
     },
-    [moveOrbox],
+    [moveOrbox]
   );
 
   // Undo move
@@ -328,7 +305,7 @@ export const useGameEngine = (
     setIsProcessing(false);
     setLastMoveInfo(null);
     setIsSliding(false);
-    playEngineSound("select", muted);
+    playEngineSound('select', muted);
 
     if (remainingUndos > 0) {
       setRemainingUndos((prev) => Math.max(0, prev - 1));
@@ -355,7 +332,7 @@ export const useGameEngine = (
     setHasMovedFirstBlock,
     setGrabbed,
     setFiredOnce,
-    firedOnceRef,
+    firedOnceRef
   );
 
   return {

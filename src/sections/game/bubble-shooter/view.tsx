@@ -115,7 +115,12 @@ function createSceneAssets(): SceneAssets {
   };
 }
 
-function drawSprite(ctx: CanvasRenderingContext2D, element: HTMLCanvasElement, x: number, y: number) {
+function drawSprite(
+  ctx: CanvasRenderingContext2D,
+  element: HTMLCanvasElement,
+  x: number,
+  y: number
+) {
   ctx.drawImage(element, x - element.width / 2, y - element.height / 2);
 }
 
@@ -165,7 +170,13 @@ function updateGuide(game: Game, angle: number, assets: SceneAssets) {
   assets.guidePoints = points;
 }
 
-function render(ctx: CanvasRenderingContext2D, game: Game, angle: number, shot: Shot | null, assets: SceneAssets) {
+function render(
+  ctx: CanvasRenderingContext2D,
+  game: Game,
+  angle: number,
+  shot: Shot | null,
+  assets: SceneAssets
+) {
   updateBoard(game, assets);
   ctx.drawImage(assets.background, 0, 0);
   ctx.drawImage(assets.board, 0, 0);
@@ -286,7 +297,10 @@ export function BubbleShooterView() {
           }
         }
       }
-      if (gameRef.current && (shotRef.current || gameRef.current !== lastDrawnGame || angleRef.current !== lastAngle)) {
+      if (
+        gameRef.current &&
+        (shotRef.current || gameRef.current !== lastDrawnGame || angleRef.current !== lastAngle)
+      ) {
         render(ctx, gameRef.current, angleRef.current, shotRef.current, assets);
         lastDrawnGame = gameRef.current;
         lastAngle = angleRef.current;

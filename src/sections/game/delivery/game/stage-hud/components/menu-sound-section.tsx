@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React from "react";
-import TossBigBannerAd from "../../../toss/toss-big-banner-ad";
-import { MenuSoundSectionProps } from "../types";
+import React from 'react';
+import TossBigBannerAd from '../../../toss/toss-big-banner-ad';
+import { MenuSoundSectionProps } from '../types';
 
 export function MenuSoundSection({
   bgmMuted,
@@ -23,12 +23,8 @@ export function MenuSoundSection({
       <div className="flex flex-col gap-1.5 p-2.5 bg-amber-100/70 rounded-2xl border border-amber-300/80 shadow-xs">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-lg sm:text-xl">
-              {bgmMuted || bgmVolume === 0 ? "🔇" : "🎵"}
-            </span>
-            <span className="font-black text-sm sm:text-base text-amber-950">
-              배경음 (BGM)
-            </span>
+            <span className="text-lg sm:text-xl">{bgmMuted || bgmVolume === 0 ? '🔇' : '🎵'}</span>
+            <span className="font-black text-sm sm:text-base text-amber-950">배경음 (BGM)</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs font-black text-amber-900/80 w-8 text-right">
@@ -39,11 +35,11 @@ export function MenuSoundSection({
               onClick={handleToggleBgm}
               className={`px-2.5 py-1 rounded-xl font-black text-[11px] transition-all cursor-pointer shadow-xs active:scale-95 ${
                 bgmMuted
-                  ? "bg-amber-200 text-amber-800 border border-amber-300 hover:bg-amber-300"
-                  : "bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20"
+                  ? 'bg-amber-200 text-amber-800 border border-amber-300 hover:bg-amber-300'
+                  : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20'
               }`}
             >
-              {bgmMuted ? "OFF" : "ON"}
+              {bgmMuted ? 'OFF' : 'ON'}
             </button>
           </div>
         </div>
@@ -71,22 +67,18 @@ export function MenuSoundSection({
           className="flex items-center justify-between p-2 sm:p-2.5 bg-amber-100/70 hover:bg-amber-200/80 active:scale-[0.99] rounded-2xl border border-amber-300/80 shadow-xs cursor-pointer transition-all"
         >
           <div className="flex items-center gap-1.5 min-w-0">
-            <span className="text-base sm:text-lg shrink-0">
-              {sfxMuted ? "🔇" : "🔔"}
-            </span>
-            <span className="font-black text-sm sm:text-base text-amber-950 truncate">
-              효과음
-            </span>
+            <span className="text-base sm:text-lg shrink-0">{sfxMuted ? '🔇' : '🔔'}</span>
+            <span className="font-black text-sm sm:text-base text-amber-950 truncate">효과음</span>
           </div>
           <button
             type="button"
             className={`px-2 py-1 rounded-xl font-black text-[10px] sm:text-[11px] transition-all shadow-xs pointer-events-none shrink-0 ${
               sfxMuted
-                ? "bg-amber-200 text-amber-800 border border-amber-300"
-                : "bg-emerald-500 text-white shadow-emerald-500/20"
+                ? 'bg-amber-200 text-amber-800 border border-amber-300'
+                : 'bg-emerald-500 text-white shadow-emerald-500/20'
             }`}
           >
-            {sfxMuted ? "OFF" : "ON"}
+            {sfxMuted ? 'OFF' : 'ON'}
           </button>
         </div>
 
@@ -118,11 +110,11 @@ export function MenuSoundSection({
             type="button"
             className={`px-2 py-1 rounded-xl font-black text-[10px] sm:text-[11px] transition-all shadow-xs pointer-events-none shrink-0 ${
               !touchMoveEnabled
-                ? "bg-amber-200 text-amber-900 border border-amber-400/80"
-                : "bg-emerald-500 text-white shadow-emerald-500/20"
+                ? 'bg-amber-200 text-amber-900 border border-amber-400/80'
+                : 'bg-emerald-500 text-white shadow-emerald-500/20'
             }`}
           >
-            {!touchMoveEnabled ? "OFF" : "ON"}
+            {!touchMoveEnabled ? 'OFF' : 'ON'}
           </button>
         </div>
       </div>

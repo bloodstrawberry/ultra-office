@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { useEffect, useRef } from "react";
-import { getAssetPath } from "../utils/asset";
+import { useEffect, useRef } from 'react';
+import { getAssetPath } from '../utils/asset';
 import {
   isBgmMuted,
   getBgmVolume,
   BGM_CHANGE_EVENT,
   BGM_VOLUME_CHANGE_EVENT,
   suspendAudioContext,
-} from "../utils/sound";
+} from '../utils/sound';
 
 export default function BgmPlayer() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -24,8 +24,8 @@ export default function BgmPlayer() {
     audio.volume = Math.max(0, Math.min(1, getBgmVolume() * BGM_VOLUME_SCALE));
 
     const isAppVisible = () => {
-      if (typeof document === "undefined") return true;
-      return !document.hidden && document.visibilityState === "visible";
+      if (typeof document === 'undefined') return true;
+      return !document.hidden && document.visibilityState === 'visible';
     };
 
     const updateAudioState = () => {
@@ -33,14 +33,11 @@ export default function BgmPlayer() {
       if (muted || !isAppVisible()) {
         audio.pause();
       } else {
-        audio.volume = Math.max(
-          0,
-          Math.min(1, getBgmVolume() * BGM_VOLUME_SCALE),
-        );
+        audio.volume = Math.max(0, Math.min(1, getBgmVolume() * BGM_VOLUME_SCALE));
         const playPromise = audio.play();
         if (playPromise !== undefined) {
           playPromise.catch((err) => {
-            console.log("BGM playback deferred until user interaction:", err);
+            console.log('BGM playback deferred until user interaction:', err);
           });
         }
       }
@@ -55,10 +52,7 @@ export default function BgmPlayer() {
       if (muted || !isAppVisible()) {
         audio.pause();
       } else {
-        audio.volume = Math.max(
-          0,
-          Math.min(1, getBgmVolume() * BGM_VOLUME_SCALE),
-        );
+        audio.volume = Math.max(0, Math.min(1, getBgmVolume() * BGM_VOLUME_SCALE));
         audio.play().catch(() => {});
       }
     };
@@ -90,7 +84,7 @@ export default function BgmPlayer() {
     };
 
     const handleVisibilityChange = () => {
-      if (document.hidden || document.visibilityState === "hidden") {
+      if (document.hidden || document.visibilityState === 'hidden') {
         handlePauseBgm();
       } else {
         handleResumeBgm();
@@ -99,39 +93,39 @@ export default function BgmPlayer() {
 
     window.addEventListener(BGM_CHANGE_EVENT, handleBgmChange);
     window.addEventListener(BGM_VOLUME_CHANGE_EVENT, handleVolumeChange);
-    window.addEventListener("pointerdown", handleUserGesture, {
+    window.addEventListener('pointerdown', handleUserGesture, {
       capture: true,
     });
-    window.addEventListener("keydown", handleUserGesture, { capture: true });
+    window.addEventListener('keydown', handleUserGesture, { capture: true });
 
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener("blur", handlePauseBgm);
-    window.addEventListener("pagehide", handlePauseBgm);
-    window.addEventListener("focus", handleResumeBgm);
-    window.addEventListener("pageshow", handleResumeBgm);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('blur', handlePauseBgm);
+    window.addEventListener('pagehide', handlePauseBgm);
+    window.addEventListener('focus', handleResumeBgm);
+    window.addEventListener('pageshow', handleResumeBgm);
 
     return () => {
       window.removeEventListener(BGM_CHANGE_EVENT, handleBgmChange);
       window.removeEventListener(BGM_VOLUME_CHANGE_EVENT, handleVolumeChange);
-      window.removeEventListener("pointerdown", handleUserGesture, {
+      window.removeEventListener('pointerdown', handleUserGesture, {
         capture: true,
       });
-      window.removeEventListener("keydown", handleUserGesture, {
+      window.removeEventListener('keydown', handleUserGesture, {
         capture: true,
       });
 
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("blur", handlePauseBgm);
-      window.removeEventListener("pagehide", handlePauseBgm);
-      window.removeEventListener("focus", handleResumeBgm);
-      window.removeEventListener("pageshow", handleResumeBgm);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('blur', handlePauseBgm);
+      window.removeEventListener('pagehide', handlePauseBgm);
+      window.removeEventListener('focus', handleResumeBgm);
+      window.removeEventListener('pageshow', handleResumeBgm);
     };
   }, []);
 
   return (
     <audio
       ref={audioRef}
-      src={getAssetPath("/delivery/sounds/bgm.mp3")}
+      src={getAssetPath('/delivery/sounds/bgm.mp3')}
       loop
       preload="auto"
       className="hidden"

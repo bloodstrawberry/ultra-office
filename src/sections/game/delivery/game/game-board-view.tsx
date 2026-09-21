@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   BLOCK_EMPTY,
   BLOCK_NONE,
@@ -8,27 +8,18 @@ import {
   BLOCK_AUTO_WALL_V,
   getBlockProperties,
   isFrozenBlock,
-} from "../object";
-import {
-  CellType,
-  Position,
-  Bullet as BulletType,
-  BUILTIN_LEVELS,
-} from "./types";
-import GameStageHud from "./game-stage-hud";
-import { DisappearingEffectItem } from "./disappear-burst";
-import { IceBreakEffectItem } from "./ice-break-burst";
-import { EditorColControls, EditorRowControls } from "./editor-grid-controls";
-import GameBoardGrid from "./game-board-grid";
-import {
-  GameAllClearModal,
-  GameClearModal,
-  GameOverModal,
-} from "./game-result-modals";
-import GameTutorial from "./game-tutorial";
-import { isAdPendingSync } from "../utils/local-storage";
-import { MoveInfo } from "./game-engine";
-export { DEFAULT_CONTROL_MARGIN_BOTTOM } from "./puzzle-controls";
+} from '../object';
+import { CellType, Position, Bullet as BulletType, BUILTIN_LEVELS } from './types';
+import GameStageHud from './game-stage-hud';
+import { DisappearingEffectItem } from './disappear-burst';
+import { IceBreakEffectItem } from './ice-break-burst';
+import { EditorColControls, EditorRowControls } from './editor-grid-controls';
+import GameBoardGrid from './game-board-grid';
+import { GameAllClearModal, GameClearModal, GameOverModal } from './game-result-modals';
+import GameTutorial from './game-tutorial';
+import { isAdPendingSync } from '../utils/local-storage';
+import { MoveInfo } from './game-engine';
+export { DEFAULT_CONTROL_MARGIN_BOTTOM } from './puzzle-controls';
 
 export interface GameBoardViewProps {
   grid: CellType[][];
@@ -53,16 +44,8 @@ export interface GameBoardViewProps {
   resetLevel: () => void;
   setCursor: (cursor: Position) => void;
   playSound: (
-    type:
-      | "coin"
-      | "select"
-      | "start"
-      | "error"
-      | "match"
-      | "fall"
-      | "shoot"
-      | "break",
-    muted: boolean,
+    type: 'coin' | 'select' | 'start' | 'error' | 'match' | 'fall' | 'shoot' | 'break',
+    muted: boolean
   ) => void;
   handleMouseDown: (e: React.MouseEvent, x: number, y: number) => void;
   handleMouseEnter: (x: number, y: number) => void;
@@ -87,9 +70,9 @@ export interface GameBoardViewProps {
   editorAddLevel?: () => void;
   editorDeleteLevel?: () => void;
   togglePlayTest?: () => void;
-  editorMapType?: "real" | "test";
-  setEditorMapType?: (type: "real" | "test") => void;
-  changeMapType?: (type: "real" | "test") => void;
+  editorMapType?: 'real' | 'test';
+  setEditorMapType?: (type: 'real' | 'test') => void;
+  changeMapType?: (type: 'real' | 'test') => void;
   onBackToStageSelect?: () => void;
   onClearAllBlocks?: () => void;
   onStageClearAd?: (stage?: number) => void;
@@ -102,7 +85,7 @@ export interface GameBoardViewProps {
   onOpenRecordModal?: () => void;
   isHintAttention?: boolean;
   hasWatchedHintAd?: boolean;
-  onSwipeMove?: (direction: "up" | "down" | "left" | "right") => void;
+  onSwipeMove?: (direction: 'up' | 'down' | 'left' | 'right') => void;
 }
 
 export default function GameBoardView({
@@ -172,8 +155,7 @@ export default function GameBoardView({
   const [hoveredCol, setHoveredCol] = useState<number | null>(null);
   const [finalRating, setFinalRating] = useState<number>(5);
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
-  const [showTouchGuideModal, setShowTouchGuideModal] =
-    useState<boolean>(false);
+  const [showTouchGuideModal, setShowTouchGuideModal] = useState<boolean>(false);
   const [tutorialStep, setTutorialStep] = useState<number>(1);
 
   // ── 게임 보드 뷰(game-board-view) 진입 시 미완료 전면 광고가 있다면 재노출 ──
@@ -192,9 +174,7 @@ export default function GameBoardView({
     handleCellClick(x, y);
   };
 
-  const [disappearingEffects, setDisappearingEffects] = useState<
-    DisappearingEffectItem[]
-  >([]);
+  const [disappearingEffects, setDisappearingEffects] = useState<DisappearingEffectItem[]>([]);
   const prevGridRef = useRef<CellType[][] | null>(null);
 
   // Track cell block removals to trigger disappearing burst effects
@@ -267,9 +247,9 @@ export default function GameBoardView({
 
       // Track flashing blocks (portals) to prevent them and blocks above them from triggering disappear effects
       Object.entries(flashingBlocks).forEach(([key, val]) => {
-        if (typeof val === "number") {
+        if (typeof val === 'number') {
           excludedKeys.add(key);
-          const [py, px] = key.split(",");
+          const [py, px] = key.split(',');
           excludedKeys.add(`${parseInt(py, 10) - 1},${px}`);
         }
       });
@@ -283,11 +263,7 @@ export default function GameBoardView({
           const currCell = grid[y]?.[x];
 
           // Detect ice-breaking: frozen → non-frozen (unfrozen or destroyed)
-          if (
-            prevCell !== undefined &&
-            isFrozenBlock(prevCell) &&
-            !isFrozenBlock(currCell ?? 0)
-          ) {
+          if (prevCell !== undefined && isFrozenBlock(prevCell) && !isFrozenBlock(currCell ?? 0)) {
             newIceEffects.push({
               id: `ice-${y}-${x}-${now}-${Math.random()}`,
               x,
@@ -331,10 +307,7 @@ export default function GameBoardView({
           setDisappearingEffects((prev) => {
             const filtered = prev.filter(
               (e) =>
-                !newEffects.some(
-                  (ne) =>
-                    ne.x === e.x && ne.y === e.y && now - e.timestamp < 250,
-                ),
+                !newEffects.some((ne) => ne.x === e.x && ne.y === e.y && now - e.timestamp < 250)
             );
             return [...filtered, ...newEffects];
           });
@@ -352,12 +325,12 @@ export default function GameBoardView({
   // Track flashing matching blocks to trigger immediate disappear effect
   useEffect(() => {
     const keys = Object.entries(flashingBlocks)
-      .filter(([_, val]) => typeof val !== "number")
+      .filter(([_, val]) => typeof val !== 'number')
       .map(([key]) => key);
     if (keys.length > 0) {
       const now = Date.now();
       const flashEffects: DisappearingEffectItem[] = keys.map((key) => {
-        const [yStr, xStr] = key.split(",");
+        const [yStr, xStr] = key.split(',');
         return {
           id: `flash-${key}-${now}`,
           x: parseInt(xStr, 10),
@@ -369,9 +342,7 @@ export default function GameBoardView({
         setDisappearingEffects((prev) => {
           const filtered = prev.filter(
             (e) =>
-              !flashEffects.some(
-                (fe) => fe.x === e.x && fe.y === e.y && now - e.timestamp < 300,
-              ),
+              !flashEffects.some((fe) => fe.x === e.x && fe.y === e.y && now - e.timestamp < 300)
           );
           return [...filtered, ...flashEffects];
         });
@@ -384,16 +355,12 @@ export default function GameBoardView({
     if (disappearingEffects.length === 0) return;
     const timer = setTimeout(() => {
       const now = Date.now();
-      setDisappearingEffects((prev) =>
-        prev.filter((e) => now - e.timestamp < 650),
-      );
+      setDisappearingEffects((prev) => prev.filter((e) => now - e.timestamp < 650));
     }, 100);
     return () => clearTimeout(timer);
   }, [disappearingEffects]);
   // ── Ice Break Effects ──
-  const [iceBreakEffects, setIceBreakEffects] = useState<IceBreakEffectItem[]>(
-    [],
-  );
+  const [iceBreakEffects, setIceBreakEffects] = useState<IceBreakEffectItem[]>([]);
 
   // Clean up completed ice break effects
   useEffect(() => {
@@ -425,17 +392,10 @@ export default function GameBoardView({
 
   // Calculate max cell size dynamically based on row count so board stays compact and never clips
   const baseMaxCellSize = activeEditor ? 44 : 50;
-  const maxCellSize = Math.max(
-    18,
-    Math.min(baseMaxCellSize, Math.floor(400 / rows)),
-  );
+  const maxCellSize = Math.max(18, Math.min(baseMaxCellSize, Math.floor(400 / rows)));
   const maxBoardPixelWidth = cols * maxCellSize;
 
-  const heightSubtract = activeEditor
-    ? 320
-    : !isEditor && hasActiveHints
-      ? 280
-      : 250;
+  const heightSubtract = activeEditor ? 320 : !isEditor && hasActiveHints ? 280 : 250;
   const stageMaxWidth = `min(calc(100vw - 16px), calc((100dvh - ${heightSubtract}px) * ${ratio}), ${maxBoardPixelWidth}px)`;
 
   return (
@@ -498,7 +458,7 @@ export default function GameBoardView({
       {/* Seamless Game Stage Grid Container */}
       <div
         className={`relative p-0 sm:p-0.5 flex flex-col items-center justify-center w-full z-10 min-h-0 my-auto ${
-          !isEditor && hasActiveHints ? "pt-6 sm:pt-8" : ""
+          !isEditor && hasActiveHints ? 'pt-6 sm:pt-8' : ''
         }`}
       >
         {/* Top: Column delete/add/copy/paste buttons (Editor only) */}
@@ -564,9 +524,7 @@ export default function GameBoardView({
       </div>
 
       {/* Success Notification Overlay (Cleared All Levels) */}
-      {isLevelCleared &&
-      !isEditor &&
-      levelIndex + 1 >= BUILTIN_LEVELS.length ? (
+      {isLevelCleared && !isEditor && levelIndex + 1 >= BUILTIN_LEVELS.length ? (
         <GameAllClearModal
           finalRating={finalRating}
           setFinalRating={setFinalRating}

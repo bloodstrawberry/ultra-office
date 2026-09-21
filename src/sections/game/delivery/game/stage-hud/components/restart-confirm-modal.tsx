@@ -1,23 +1,15 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import { createPortal } from "react-dom";
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 export interface RestartConfirmModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
   playSound?: (
-    type:
-      | "coin"
-      | "select"
-      | "start"
-      | "error"
-      | "match"
-      | "fall"
-      | "shoot"
-      | "break",
-    muted: boolean,
+    type: 'coin' | 'select' | 'start' | 'error' | 'match' | 'fall' | 'shoot' | 'break',
+    muted: boolean
   ) => void;
   muted?: boolean;
 }
@@ -68,7 +60,7 @@ export function RestartConfirmModal({
           <button
             type="button"
             onClick={() => {
-              playSound?.("select", muted);
+              playSound?.('select', muted);
               onClose();
             }}
             className="w-full py-3 px-4 bg-amber-100 hover:bg-amber-200 active:scale-[0.98] text-amber-950 font-black text-sm rounded-2xl border border-amber-300 transition-all cursor-pointer shadow-xs"
@@ -79,7 +71,7 @@ export function RestartConfirmModal({
           <button
             type="button"
             onClick={() => {
-              playSound?.("select", muted);
+              playSound?.('select', muted);
               onConfirm();
             }}
             className="w-full py-3 px-4 bg-gradient-to-r from-amber-600 via-amber-700 to-amber-800 hover:brightness-110 active:scale-[0.98] text-white font-black text-sm rounded-2xl border border-amber-900 transition-all cursor-pointer shadow-md shadow-amber-900/20"
@@ -89,6 +81,6 @@ export function RestartConfirmModal({
         </div>
       </div>
     </div>,
-    document.body,
+    document.body
   );
 }

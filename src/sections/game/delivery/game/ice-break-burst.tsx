@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import React from "react";
+import React from 'react';
 
 export interface IceBreakEffectItem {
   id: string;
@@ -31,13 +31,13 @@ export function IceBreakBurst() {
           style={{
             backgroundColor:
               i % 4 === 0
-                ? "#38bdf8" // Ice Cyan
+                ? '#38bdf8' // Ice Cyan
                 : i % 4 === 1
-                  ? "#e0f2fe" // Frost White
+                  ? '#e0f2fe' // Frost White
                   : i % 4 === 2
-                    ? "#7dd3fc" // Sky Ice Blue
-                    : "#0284c7", // Deep Crystal Blue
-            boxShadow: "0 0 8px currentColor",
+                    ? '#7dd3fc' // Sky Ice Blue
+                    : '#0284c7', // Deep Crystal Blue
+            boxShadow: '0 0 8px currentColor',
           }}
         />
       ))}

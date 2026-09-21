@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React from "react";
-import { useAssetLoader } from "./components/asset-loader-context";
-import { getAssetPath } from "./utils/asset";
+import React from 'react';
+import { useAssetLoader } from './components/asset-loader-context';
+import { getAssetPath } from './utils/asset';
 
 // ==========================================
 // 버튼 스타일 설정 변수 (자유롭게 조절 가능)
@@ -12,10 +12,10 @@ import { getAssetPath } from "./utils/asset";
 export const DEFAULT_BUTTON_GAP_PX = 0;
 
 /** 게임 시작 버튼 글자 크기 (Tailwind 클래스 또는 원하는 크기) */
-export const DEFAULT_START_FONT_SIZE = "text-3xl sm:text-3xl";
+export const DEFAULT_START_FONT_SIZE = 'text-3xl sm:text-3xl';
 
 /** 일반 버튼(에디터, 규칙, 설정) 글자 크기 (Tailwind 클래스 또는 원하는 크기) */
-export const DEFAULT_OTHER_FONT_SIZE = "text-3xl sm:text-3xl";
+export const DEFAULT_OTHER_FONT_SIZE = 'text-3xl sm:text-3xl';
 
 interface HomeButtonsProps {
   onNavigate: (path: string) => void;
@@ -39,8 +39,8 @@ export default function HomeButtons({
 }: HomeButtonsProps) {
   const { isLoaderFinished } = useAssetLoader();
   const isLocal =
-    process.env.NEXT_PUBLIC_APP_ENV?.toUpperCase() === "LOCAL" ||
-    process.env.NODE_ENV === "development";
+    process.env.NEXT_PUBLIC_APP_ENV?.toUpperCase() === 'LOCAL' ||
+    process.env.NODE_ENV === 'development';
 
   const getButtonStyle = (delayMs: number, bgImagePath: string) => {
     const baseStyle = {
@@ -50,8 +50,8 @@ export default function HomeButtons({
       return {
         ...baseStyle,
         opacity: 0,
-        transform: "scale(0)",
-        pointerEvents: "none" as const,
+        transform: 'scale(0)',
+        pointerEvents: 'none' as const,
       };
     }
     return {
@@ -61,7 +61,7 @@ export default function HomeButtons({
   };
 
   const getButtonClass = () => {
-    return isLoaderFinished ? "animate-button-pop" : "opacity-0";
+    return isLoaderFinished ? 'animate-button-pop' : 'opacity-0';
   };
 
   const startDelay = 250;
@@ -70,15 +70,12 @@ export default function HomeButtons({
   const settingDelay = isLocal ? 610 : 490;
 
   return (
-    <div
-      className="w-full flex flex-col px-2 mt-1 mb-auto"
-      style={{ gap: `${gapPx}px` }}
-    >
+    <div className="w-full flex flex-col px-2 mt-1 mb-auto" style={{ gap: `${gapPx}px` }}>
       {/* 게임 시작 Button */}
       <button
         type="button"
-        onClick={() => onNavigate("/game/delivery/play")}
-        style={getButtonStyle(startDelay, "/delivery/images/button-start.png")}
+        onClick={() => onNavigate('/game/delivery/play')}
+        style={getButtonStyle(startDelay, '/delivery/images/button-start.png')}
         className={`w-full aspect-[280/80] bg-contain bg-center bg-no-repeat hover:brightness-110 active:scale-[0.97] text-white font-black flex items-center justify-center gap-3 transition-all cursor-pointer group pb-1.5 ${getButtonClass()}`}
       >
         <span
@@ -92,8 +89,8 @@ export default function HomeButtons({
       {isLocal && (
         <button
           type="button"
-          onClick={() => onNavigate("/game/delivery/editor")}
-          style={getButtonStyle(editorDelay, "/delivery/images/button-editor.png")}
+          onClick={() => onNavigate('/game/delivery/editor')}
+          style={getButtonStyle(editorDelay, '/delivery/images/button-editor.png')}
           className={`w-full aspect-[280/80] bg-contain bg-center bg-no-repeat hover:brightness-110 active:scale-[0.97] text-white font-bold flex items-center justify-center gap-3 transition-all cursor-pointer group pb-1.5 ${getButtonClass()}`}
         >
           <span
@@ -108,7 +105,7 @@ export default function HomeButtons({
       <button
         type="button"
         onClick={onOpenRules}
-        style={getButtonStyle(ruleDelay, "/delivery/images/button-rule.png")}
+        style={getButtonStyle(ruleDelay, '/delivery/images/button-rule.png')}
         className={`w-full aspect-[280/80] bg-contain bg-center bg-no-repeat hover:brightness-110 active:scale-[0.97] text-slate-100 font-bold flex items-center justify-center gap-3 transition-all cursor-pointer group pb-1.5 ${getButtonClass()}`}
       >
         <span
@@ -122,7 +119,7 @@ export default function HomeButtons({
       <button
         type="button"
         onClick={onOpenSettings}
-        style={getButtonStyle(settingDelay, "/delivery/images/button-setting.png")}
+        style={getButtonStyle(settingDelay, '/delivery/images/button-setting.png')}
         className={`w-full aspect-[280/80] bg-contain bg-center bg-no-repeat hover:brightness-110 active:scale-[0.97] text-slate-100 font-bold flex items-center justify-center gap-3 transition-all cursor-pointer group pb-1.5 ${getButtonClass()}`}
       >
         <span

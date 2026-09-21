@@ -16,7 +16,11 @@ import { AssetLoaderProvider } from '../components/asset-loader-context';
 
 export function DeliveryView({ mode = 'home' }: { mode?: 'home' | 'game' | 'editor' }) {
   return (
-    <DashboardContent maxWidth={false} disablePadding sx={{ flex: '1 1 auto', height: '100%', minHeight: 0 }}>
+    <DashboardContent
+      maxWidth={false}
+      disablePadding
+      sx={{ flex: '1 1 auto', height: '100%', minHeight: 0 }}
+    >
       <Box
         className="delivery-root"
         sx={{

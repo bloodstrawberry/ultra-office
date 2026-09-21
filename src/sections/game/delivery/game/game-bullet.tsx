@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import { Bullet as BulletType } from "./types";
+import React, { useState, useEffect } from 'react';
+import { Bullet as BulletType } from './types';
 
 export interface BulletProps {
   bullet: BulletType;
@@ -30,15 +30,12 @@ export function Bullet({ bullet, W, H }: BulletProps) {
       style={{
         left: `${currentLeft}%`,
         top: `${top}%`,
-        transition: "left 300ms linear",
-        width: "24px",
-        height: "12px",
+        transition: 'left 300ms linear',
+        width: '24px',
+        height: '12px',
       }}
     >
-      <svg
-        className={`w-full h-full ${bullet.dir === -1 ? "rotate-180" : ""}`}
-        viewBox="0 0 24 12"
-      >
+      <svg className={`w-full h-full ${bullet.dir === -1 ? 'rotate-180' : ''}`} viewBox="0 0 24 12">
         <defs>
           <linearGradient id="bulletGrad" x1="0" y1="0" x2="1" y2="0">
             <stop offset="0%" stopColor="rgba(251, 191, 36, 0)" />

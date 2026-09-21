@@ -1,6 +1,6 @@
 declare const require: (path: string) => unknown;
 
-import { BlockId, getBlockProperties } from "../object/constants";
+import { BlockId, getBlockProperties } from '../object/constants';
 
 // ── Raw JSON shape ──
 interface RawLevelData {
@@ -43,20 +43,18 @@ export const SHOOTER_INTERVAL = 1000;
 
 // ── Level data ──
 const realMap: RawLevelData[] =
-  typeof window !== "undefined"
-    ? !window.location.pathname.includes("/editor") ||
-      process.env.NEXT_PUBLIC_APP_ENV === "LOCAL"
-      ? (require("../level/real-map.json") as RawLevelData[])
+  typeof window !== 'undefined'
+    ? !window.location.pathname.includes('/editor') || process.env.NEXT_PUBLIC_APP_ENV === 'LOCAL'
+      ? (require('../level/real-map.json') as RawLevelData[])
       : []
-    : (require("../level/real-map.json") as RawLevelData[]);
+    : (require('../level/real-map.json') as RawLevelData[]);
 
 const testMap: RawLevelData[] =
-  typeof window !== "undefined"
-    ? !window.location.pathname.includes("/editor") ||
-      process.env.NEXT_PUBLIC_APP_ENV === "LOCAL"
-      ? (require("../level/test-map.json") as RawLevelData[])
+  typeof window !== 'undefined'
+    ? !window.location.pathname.includes('/editor') || process.env.NEXT_PUBLIC_APP_ENV === 'LOCAL'
+      ? (require('../level/test-map.json') as RawLevelData[])
       : []
-    : (require("../level/test-map.json") as RawLevelData[]);
+    : (require('../level/test-map.json') as RawLevelData[]);
 
 export { realMap, testMap };
 
@@ -67,9 +65,7 @@ export const copyGrid = (src: CellType[][]): CellType[][] => {
   return src.map((row) => [...row]);
 };
 
-export const copy3DGrid = (
-  src?: CellType[][][],
-): CellType[][][] | undefined => {
+export const copy3DGrid = (src?: CellType[][][]): CellType[][][] | undefined => {
   if (!src) return undefined;
   return src.map((grid) => copyGrid(grid));
 };
