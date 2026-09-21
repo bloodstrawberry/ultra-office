@@ -1,6 +1,8 @@
 declare const require: (path: string) => unknown;
 
-import { BlockId, getBlockProperties } from '../object/constants';
+import type { BlockId} from '../object/constants';
+
+import { getBlockProperties } from '../object/constants';
 
 // ── Raw JSON shape ──
 interface RawLevelData {
@@ -61,9 +63,7 @@ export { realMap, testMap };
 export const BUILTIN_LEVELS: LevelData[] = realMap as LevelData[];
 
 // ── Utility functions ──
-export const copyGrid = (src: CellType[][]): CellType[][] => {
-  return src.map((row) => [...row]);
-};
+export const copyGrid = (src: CellType[][]): CellType[][] => src.map((row) => [...row]);
 
 export const copy3DGrid = (src?: CellType[][][]): CellType[][][] | undefined => {
   if (!src) return undefined;

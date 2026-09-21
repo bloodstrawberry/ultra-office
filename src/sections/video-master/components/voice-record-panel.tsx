@@ -20,8 +20,8 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import RadioGroup from '@mui/material/RadioGroup';
 import LinearProgress from '@mui/material/LinearProgress';
-import StopRoundedIcon from '@mui/icons-material/StopRounded';
 import MicRoundedIcon from '@mui/icons-material/MicRounded';
+import StopRoundedIcon from '@mui/icons-material/StopRounded';
 import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
 import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
 import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded';
@@ -33,8 +33,8 @@ import QueueMusicRoundedIcon from '@mui/icons-material/QueueMusicRounded';
 import FiberManualRecordRoundedIcon from '@mui/icons-material/FiberManualRecordRounded';
 
 import {
-  AudioRecorderManager,
   createAudioAnalyser,
+  AudioRecorderManager,
   convertBlobToAudioFormat,
 } from '../utils/voice-recorder-processor';
 

@@ -1,14 +1,15 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import React, { useState, useEffect } from 'react';
+
+import { isTouchMoveEnabled, toggleTouchMoveEnabled } from '../utils/touch-move';
 import BlockRenderer, {
   BLOCK_WALL,
-  BLOCK_STRAWBERRY,
   SoilTileDark,
   SoilTileLight,
+  BLOCK_STRAWBERRY,
 } from '../object';
-import { isTouchMoveEnabled, toggleTouchMoveEnabled } from '../utils/touch-move';
 
 export interface TouchMoveGuideModalProps {
   onClose: () => void;

@@ -6,9 +6,9 @@ import type { CellType, Position, Bullet as BulletType } from './types';
 
 import React, { useRef, useMemo, useState, useEffect } from 'react';
 
+import { BUILTIN_LEVELS } from './types';
 import GameStageHud from './game-stage-hud';
 import GameBoardGrid from './game-board-grid';
-import { BUILTIN_LEVELS } from './types';
 import { isAdPendingSync } from '../utils/local-storage';
 import { EditorColControls, EditorRowControls } from './editor-grid-controls';
 import { GameOverModal, GameClearModal, GameAllClearModal } from './game-result-modals';

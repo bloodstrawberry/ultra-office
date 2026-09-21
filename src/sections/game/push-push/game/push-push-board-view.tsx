@@ -3,16 +3,16 @@
 import React, { useRef, useState, useEffect } from 'react';
 
 import {
+  CELL_BOX,
   CELL_VOID,
   CELL_WALL,
   CELL_FLOOR,
   CELL_TARGET,
-  CELL_BOX,
-  CELL_BOX_ON_TARGET,
   CELL_PLAYER,
-  CELL_PLAYER_ON_TARGET,
   type GameState,
   type Direction,
+  CELL_BOX_ON_TARGET,
+  CELL_PLAYER_ON_TARGET,
 } from './push-push-types';
 
 interface PushPushBoardViewProps {

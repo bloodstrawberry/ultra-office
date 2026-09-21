@@ -1,8 +1,9 @@
 'use client';
 
 import React from 'react';
-import { useAssetLoader } from './components/asset-loader-context';
+
 import { getAssetPath } from './utils/asset';
+import { useAssetLoader } from './components/asset-loader-context';
 
 // ==========================================
 // 버튼 스타일 설정 변수 (자유롭게 조절 가능)
@@ -60,9 +61,7 @@ export default function HomeButtons({
     };
   };
 
-  const getButtonClass = () => {
-    return isLoaderFinished ? 'animate-button-pop' : 'opacity-0';
-  };
+  const getButtonClass = () => isLoaderFinished ? 'animate-button-pop' : 'opacity-0';
 
   const startDelay = 250;
   const editorDelay = 370;

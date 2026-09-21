@@ -1,8 +1,9 @@
 'use client';
 
+import type { GameState, ParsedLevel } from './push-push-types';
+
 import React from 'react';
 
-import type { GameState, ParsedLevel } from './push-push-types';
 import SoundToggleButton from '../components/sound-toggle-button';
 
 interface PushPushHudProps {

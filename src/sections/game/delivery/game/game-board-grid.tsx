@@ -1,23 +1,26 @@
 'use client';
 
+import type { MoveInfo } from './game-engine';
+import type { IceBreakEffectItem } from './ice-break-burst';
+import type { DisappearingEffectItem } from './disappear-burst';
+import type { CellType, Position, Bullet as BulletType } from './types';
+
 import React, { useRef, useMemo } from 'react';
+
+import Bullet from './game-bullet';
+import Strawberry from '../object/strawberry';
+import IceBreakBurst from './ice-break-burst';
+import DisappearBurst from './disappear-burst';
 import BlockRenderer, {
   BLOCK_NONE,
   BLOCK_EMPTY,
-  BLOCK_STRAWBERRY,
-  STAGE_BLOCK_SIZE_PERCENT,
-  STAGE_GRID_GAP_REM,
   SoilTileDark,
   SoilTileLight,
   isPortalBlock,
   isWormholeBlock,
+  STAGE_GRID_GAP_REM,
+  STAGE_BLOCK_SIZE_PERCENT,
 } from '../object';
-import { CellType, Position, Bullet as BulletType } from './types';
-import { MoveInfo } from './game-engine';
-import Bullet from './game-bullet';
-import DisappearBurst, { DisappearingEffectItem } from './disappear-burst';
-import IceBreakBurst, { IceBreakEffectItem } from './ice-break-burst';
-import Strawberry from '../object/strawberry';
 
 export interface GameBoardGridProps {
   grid: CellType[][];

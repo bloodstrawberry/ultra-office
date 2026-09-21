@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { SOIL_TILE_BORDER_WIDTH } from './constants';
 
 export interface SoilTileProps {

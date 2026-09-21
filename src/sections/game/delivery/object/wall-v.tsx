@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { OBJECT_SCALES } from './constants';
 
 // 개별 크기 조절 변수 (1.0 = 100%, 1.2 = 120% 등)

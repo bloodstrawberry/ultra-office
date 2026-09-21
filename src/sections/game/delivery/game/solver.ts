@@ -1,6 +1,9 @@
+import type { Direction } from './physics';
+import type { CellType, Position} from './types';
+
+import { copyGrid } from './types';
+import { slideOrbox, findPlayerSpawn } from './physics';
 import { BLOCK_PORTAL_1, getBaseBlockId } from '../object/constants';
-import { CellType, Position, copyGrid } from './types';
-import { slideOrbox, findPlayerSpawn, Direction } from './physics';
 
 export interface DFSSolveResult {
   solvable: boolean;

@@ -3,6 +3,7 @@
 import { createPortal } from 'react-dom';
 import React, { useState, useEffect } from 'react';
 
+import { removeLocalSync } from '../utils/local-storage';
 import {
   isBgmMuted,
   isSfxMuted,
@@ -14,7 +15,6 @@ import {
   SFX_CHANGE_EVENT,
   BGM_VOLUME_CHANGE_EVENT,
 } from '../utils/sound';
-import { removeLocalSync } from '../utils/local-storage';
 
 interface SettingsModalProps {
   isOpen: boolean;

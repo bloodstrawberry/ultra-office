@@ -1,20 +1,21 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import React, { useState, useEffect } from 'react';
+
 import TossBigBannerAd from '../toss/toss-big-banner-ad';
-import { getItem, setItem, setLocalSync, clear } from '../utils/local-storage';
+import { clear, getItem, setItem, setLocalSync } from '../utils/local-storage';
 import {
   isBgmMuted,
+  isSfxMuted,
   setBgmMuted,
-  toggleBgmMuted,
   getBgmVolume,
   setBgmVolume,
-  isSfxMuted,
+  toggleBgmMuted,
   toggleSfxMuted,
   BGM_CHANGE_EVENT,
-  BGM_VOLUME_CHANGE_EVENT,
   SFX_CHANGE_EVENT,
+  BGM_VOLUME_CHANGE_EVENT,
 } from '../utils/sound';
 
 interface SettingsModalProps {

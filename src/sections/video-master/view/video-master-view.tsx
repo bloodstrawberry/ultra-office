@@ -26,8 +26,8 @@ import InputLabel from '@mui/material/InputLabel';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import FormControl from '@mui/material/FormControl';
-import MicRoundedIcon from '@mui/icons-material/MicRounded';
 import LinearProgress from '@mui/material/LinearProgress';
+import MicRoundedIcon from '@mui/icons-material/MicRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import UndoRoundedIcon from '@mui/icons-material/UndoRounded';
 import RedoRoundedIcon from '@mui/icons-material/RedoRounded';
@@ -42,11 +42,13 @@ import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import VolumeOffRoundedIcon from '@mui/icons-material/VolumeOffRounded';
 import ContentCutRoundedIcon from '@mui/icons-material/ContentCutRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
-import AudiotrackRoundedIcon from '@mui/icons-material/AudiotrackRounded';
 import MovieFilterRoundedIcon from '@mui/icons-material/MovieFilterRounded';
 import RotateRightRoundedIcon from '@mui/icons-material/RotateRightRounded';
 import MovieCreationRoundedIcon from '@mui/icons-material/MovieCreationRounded';
 import FlipCameraAndroidRoundedIcon from '@mui/icons-material/FlipCameraAndroidRounded';
+
+import { paths } from 'src/routes/paths';
+import { RouterLink } from 'src/routes/components';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
@@ -1165,6 +1167,36 @@ export function VideoMasterView() {
                         onClick={handleAddTextClip}
                       >
                         새 자막 추가
+                      </Button>
+                    </Box>
+
+                    {/* Subtitle Remover Link */}
+                    <Box
+                      sx={{
+                        p: 1.5,
+                        borderRadius: 1.5,
+                        bgcolor: 'rgba(0, 167, 111, 0.08)',
+                        border: '1px dashed',
+                        borderColor: 'primary.main',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
+                    >
+                      <Typography
+                        variant="caption"
+                        sx={{ color: 'text.secondary', fontWeight: 600 }}
+                      >
+                        동영상에 이미 박힌 자막을 지우고 싶으신가요?
+                      </Typography>
+                      <Button
+                        component={RouterLink}
+                        href={paths.videoMaster.subtitleRemover}
+                        size="small"
+                        color="primary"
+                        sx={{ fontSize: 11, fontWeight: 700, p: 0.5 }}
+                      >
+                        자막 지우개 ➜
                       </Button>
                     </Box>
 

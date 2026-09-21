@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { OBJECT_SCALES } from './constants';
 
 const SCALE = OBJECT_SCALES.straw ?? 1.2;

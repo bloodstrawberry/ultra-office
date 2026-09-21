@@ -1,7 +1,8 @@
 'use client';
 
+import type { WoodSignBoardProps } from '../types';
+
 import React from 'react';
-import { WoodSignBoardProps } from '../types';
 
 export function WoodSignBoard({ label, value, onClick, className = '' }: WoodSignBoardProps) {
   const isClickable = !!onClick;

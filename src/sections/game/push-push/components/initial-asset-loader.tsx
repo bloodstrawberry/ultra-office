@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 
 import { getAssetPath } from '../utils/asset';
 import { useAssetLoader } from './asset-loader-context';

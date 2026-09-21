@@ -38,10 +38,10 @@ import { AlkkagiTab } from '../components/games/alkkagi/AlkkagiTab';
 import { DataStructuresTab } from '../components/tabs/DataStructuresTab';
 import { BadukSolverTab } from '../components/games/baduk/BadukSolverTab';
 import { ChessSolverTab } from '../components/games/chess/ChessSolverTab';
+import { SolitaireTab } from '../components/games/solitaire/SolitaireTab';
 import { JanggiSolverTab } from '../components/games/janggi/JanggiSolverTab';
 import { GomokuSolverTab } from '../components/games/gomoku/GomokuSolverTab';
 import { OthelloSolverTab } from '../components/games/othello/OthelloSolverTab';
-import { SolitaireTab } from '../components/games/solitaire/SolitaireTab';
 
 // ----------------------------------------------------------------------
 

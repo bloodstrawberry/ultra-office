@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useAssetLoader } from './asset-loader-context';
+
 import { getAssetPath } from '../utils/asset';
+import { useAssetLoader } from './asset-loader-context';
 
 const ASSETS_TO_PRELOAD: string[] = [
   getAssetPath('/delivery/images/background.png'),

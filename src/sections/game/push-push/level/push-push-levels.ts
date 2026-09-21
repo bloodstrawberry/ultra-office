@@ -1,13 +1,13 @@
 import {
-  CELL_VOID,
-  CELL_FLOOR,
-  CELL_WALL,
-  CELL_TARGET,
   CELL_BOX,
-  CELL_BOX_ON_TARGET,
+  CELL_VOID,
+  CELL_WALL,
+  CELL_FLOOR,
+  CELL_TARGET,
   CELL_PLAYER,
-  CELL_PLAYER_ON_TARGET,
   type ParsedLevel,
+  CELL_BOX_ON_TARGET,
+  CELL_PLAYER_ON_TARGET,
   type PushPushLevelData,
 } from '../game/push-push-types';
 

@@ -1,7 +1,10 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { CellType, Position, copyGrid } from './types';
+import type { CellType, Position} from './types';
+
+import { useRef, useState, useEffect, useCallback } from 'react';
+
+import { copyGrid } from './types';
 
 export interface UndoSnapshot {
   grid: CellType[][];

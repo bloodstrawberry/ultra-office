@@ -1,8 +1,10 @@
 'use client';
 
+import type { MenuSoundSectionProps } from '../types';
+
 import React from 'react';
+
 import TossBigBannerAd from '../../../toss/toss-big-banner-ad';
-import { MenuSoundSectionProps } from '../types';
 
 export function MenuSoundSection({
   bgmMuted,

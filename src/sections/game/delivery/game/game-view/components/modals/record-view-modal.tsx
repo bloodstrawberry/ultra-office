@@ -1,8 +1,10 @@
 'use client';
 
+import type { RecordViewModalProps } from '../../types';
+
 import React from 'react';
+
 import BlockRenderer from '../../../../object';
-import { RecordViewModalProps } from '../../types';
 
 export function RecordViewModal({
   isRecordModalOpen,

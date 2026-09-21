@@ -1,8 +1,10 @@
 'use client';
 
+import type { HintViewModalProps } from '../../types';
+
 import React from 'react';
+
 import BlockRenderer from '../../../../object';
-import { HintViewModalProps } from '../../types';
 
 export function HintViewModal({
   isHintModalOpen,

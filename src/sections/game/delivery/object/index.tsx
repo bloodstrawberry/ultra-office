@@ -1,48 +1,59 @@
 import React from 'react';
-import {
-  BLOCK_NONE,
-  BLOCK_WALL,
-  BLOCK_STRAWBERRY,
-  BLOCK_PINEAPPLE,
-  BLOCK_CHESTNUT,
-  BLOCK_CORN,
-  BLOCK_WATERMELON,
-  BLOCK_SWEET_POTATO,
+
+import Wall from './wall';
+import Corn from './corn';
+import Bomb from './bomb';
+import Spike from './spike';
+import Apple from './apple';
+import Peach from './peach';
+import Grape from './grape';
+import Straw from './straw';
+import WallV from './wall-v';
+import WallH from './wall-h';
+import Portal from './portal';
+import Shooter from './shooter';
+import NumBlock from './num-block';
+import Pineapple from './pineapple';
+import Blueberry from './blueberry';
+import Blackhole from './blackhole';
+import IceCasing from './ice-casing';
+import Strawberry from './strawberry';
+import Watermelon from './watermelon';
+import WallAutoV from './wall-auto-v';
+import WallAutoH from './wall-auto-h';
+import SweetPotato from './sweet-potato';
+import KoreanMelon from './korean-melon';
+import LetterBlock from './letter-block';
+import { BLOCK_NONE, BLOCK_WALL, BLOCK_CORN ,
+  BLOCK_BOMB,
   BLOCK_APPLE,
   BLOCK_PEACH,
-  BLOCK_KOREAN_MELON,
-  BLOCK_BLUEBERRY,
   BLOCK_GRAPE,
-  BLOCK_WALL_V,
-  BLOCK_WALL_H,
-  BLOCK_AUTO_WALL_V,
-  BLOCK_AUTO_WALL_H,
-  BLOCK_BOMB,
-  BLOCK_SHOOTER_L,
-  BLOCK_SHOOTER_R,
-  BLOCK_SHOOTER_L_ONCE,
-  BLOCK_SHOOTER_R_ONCE,
-  BLOCK_SPIKE_U,
-  BLOCK_SPIKE_D,
-  BLOCK_SPIKE_L,
-  BLOCK_SPIKE_R,
   BLOCK_NUM_1,
   BLOCK_NUM_2,
   BLOCK_NUM_3,
   BLOCK_NUM_4,
   BLOCK_NUM_5,
+  BLOCK_WALL_V,
+  BLOCK_WALL_H,
+  isFrozenBlock,
+  BLOCK_SPIKE_U,
+  BLOCK_SPIKE_D,
+  BLOCK_SPIKE_L,
+  BLOCK_SPIKE_R,
   isBlockActive,
-  BLOCK_LETTER_A,
-  BLOCK_LETTER_B,
-  BLOCK_LETTER_C,
-  BLOCK_LETTER_D,
-  BLOCK_LETTER_E,
-  isLetterBlockActive,
   BLOCK_STRAW_1,
   BLOCK_STRAW_2,
   BLOCK_STRAW_3,
   BLOCK_STRAW_4,
   BLOCK_STRAW_5,
+  getBaseBlockId,
+  BLOCK_CHESTNUT,
+  BLOCK_LETTER_A,
+  BLOCK_LETTER_B,
+  BLOCK_LETTER_C,
+  BLOCK_LETTER_D,
+  BLOCK_LETTER_E,
   BLOCK_PORTAL_1,
   BLOCK_PORTAL_2,
   BLOCK_PORTAL_3,
@@ -50,6 +61,14 @@ import {
   BLOCK_PORTAL_5,
   BLOCK_PORTAL_6,
   BLOCK_PORTAL_7,
+  BLOCK_PINEAPPLE,
+  BLOCK_BLUEBERRY,
+  BLOCK_SHOOTER_L,
+  BLOCK_SHOOTER_R,
+  BLOCK_STRAWBERRY,
+  BLOCK_WATERMELON,
+  BLOCK_AUTO_WALL_V,
+  BLOCK_AUTO_WALL_H,
   BLOCK_BLACKHOLE_1,
   BLOCK_BLACKHOLE_2,
   BLOCK_BLACKHOLE_3,
@@ -57,73 +76,44 @@ import {
   BLOCK_BLACKHOLE_5,
   BLOCK_BLACKHOLE_6,
   BLOCK_BLACKHOLE_7,
-  BLOCK_WORMHOLE_1,
-  BLOCK_WORMHOLE_2,
-  BLOCK_WORMHOLE_3,
-  BLOCK_WORMHOLE_4,
-  BLOCK_WORMHOLE_5,
-  BLOCK_WORMHOLE_6,
-  BLOCK_WORMHOLE_7,
+  BLOCK_SWEET_POTATO,
+  BLOCK_KOREAN_MELON,
+  isLetterBlockActive,
+  BLOCK_SHOOTER_L_ONCE,
+  BLOCK_SHOOTER_R_ONCE,
+  getStrawberryDirection,
 } from './constants';
-import Wall from './wall';
-import Spike from './spike';
-import Strawberry from './strawberry';
-import Pineapple from './pineapple';
-import Chestnut from './chestnut';
-import Corn from './corn';
-import Watermelon from './watermelon';
-import SweetPotato from './sweet-potato';
-import Apple from './apple';
-import Peach from './peach';
-import KoreanMelon from './korean-melon';
-import Blueberry from './blueberry';
-import Grape from './grape';
-import WallV from './wall-v';
-import WallH from './wall-h';
-import WallAutoV from './wall-auto-v';
-import WallAutoH from './wall-auto-h';
-import Bomb from './bomb';
-import Shooter from './shooter';
-import NumBlock from './num-block';
-import LetterBlock from './letter-block';
-import Straw from './straw';
-import Wormhole from './wormhole';
-import Portal from './portal';
-import Blackhole from './blackhole';
 
-import IceCasing from './ice-casing';
-import { isFrozenBlock, getBaseBlockId, getStrawberryDirection } from './constants';
-
-export { default as IceCasing } from './ice-casing';
+export * from './preload';
+export * from './constants';
 export { default as Wall } from './wall';
-export { default as Strawberry } from './strawberry';
-export { default as Pineapple } from './pineapple';
-export { default as Chestnut } from './chestnut';
 export { default as Corn } from './corn';
-export { default as Watermelon } from './watermelon';
-export { default as SweetPotato } from './sweet-potato';
+export { default as Bomb } from './bomb';
 export { default as Apple } from './apple';
 export { default as Peach } from './peach';
-export { default as KoreanMelon } from './korean-melon';
-export { default as Blueberry } from './blueberry';
 export { default as Grape } from './grape';
+export { default as Spike } from './spike';
+export { default as Straw } from './straw';
 export { default as WallV } from './wall-v';
 export { default as WallH } from './wall-h';
+export { default as Portal } from './portal';
+export { default as Shooter } from './shooter';
+export { default as Chestnut } from './chestnut';
+export { default as Wormhole } from './wormhole';
+export { default as NumBlock } from './num-block';
+export { default as Pineapple } from './pineapple';
+export { default as Blueberry } from './blueberry';
+export { default as Blackhole } from './blackhole';
+export { default as IceCasing } from './ice-casing';
+export { default as Strawberry } from './strawberry';
+export { default as Watermelon } from './watermelon';
 export { default as WallAutoV } from './wall-auto-v';
 export { default as WallAutoH } from './wall-auto-h';
-export { default as Bomb } from './bomb';
-export { default as Shooter } from './shooter';
-export { default as Spike } from './spike';
-export { default as NumBlock } from './num-block';
+export { default as SweetPotato } from './sweet-potato';
+export { default as KoreanMelon } from './korean-melon';
 export { default as LetterBlock } from './letter-block';
-export { default as Straw } from './straw';
-export { default as Wormhole } from './wormhole';
-export { default as Portal } from './portal';
-export { default as Blackhole } from './blackhole';
 export { default as SoilTileDark } from './soil-tile-dark';
 export { default as SoilTileLight } from './soil-tile-light';
-export * from './constants';
-export * from './preload';
 
 interface BlockRendererProps {
   id: number;

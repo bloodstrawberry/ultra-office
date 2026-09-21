@@ -1,7 +1,9 @@
 'use client';
 
+import type { CellType } from './types';
+
 import React, { useState } from 'react';
-import { CellType } from './types';
+
 import { BLOCK_EMPTY, STAGE_GRID_GAP_REM } from '../object';
 
 export interface EditorColControlsProps {

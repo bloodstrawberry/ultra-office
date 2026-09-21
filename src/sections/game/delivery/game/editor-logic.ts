@@ -1,18 +1,20 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import {
-  BLOCK_EMPTY,
-  BLOCK_WALL,
-  isFrozenBlock,
-  getBaseBlockId,
-  canBeFrozen,
-  getFrozenBlockId,
-} from '../object/constants';
+import type { CellType, LevelData} from './types';
 
-import { CellType, LevelData, copyGrid, realMap, testMap } from './types';
+import { useState, useCallback } from 'react';
+
 import { playEngineSound } from './sound';
 import { findPlayerSpawn } from './physics';
+import { realMap, testMap, copyGrid } from './types';
+import {
+  BLOCK_WALL,
+  BLOCK_EMPTY,
+  canBeFrozen,
+  isFrozenBlock,
+  getBaseBlockId,
+  getFrozenBlockId,
+} from '../object/constants';
 
 /** Custom hook for all level-editor state and actions. */
 export const useEditorEngine = (

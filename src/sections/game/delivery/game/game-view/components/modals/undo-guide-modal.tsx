@@ -1,7 +1,8 @@
 'use client';
 
+import type { UndoGuideModalProps } from '../../types';
+
 import React from 'react';
-import { UndoGuideModalProps } from '../../types';
 
 export function UndoGuideModal({
   showUndoGuideModal,

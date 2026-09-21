@@ -1,11 +1,12 @@
 'use client';
 
+import type { PushPushLevelData } from './push-push-types';
+
 import React, { useState, useEffect } from 'react';
 
-import type { PushPushLevelData, Direction } from './push-push-types';
 import { usePushPushEngine } from './push-push-engine';
-import { PushPushBoardView } from './push-push-board-view';
 import { PushPushControls } from './push-push-controls';
+import { PushPushBoardView } from './push-push-board-view';
 import { getLocalSync, setLocalSync } from '../utils/local-storage';
 
 export type EditorPaletteItem =

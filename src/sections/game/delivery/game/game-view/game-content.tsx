@@ -1,51 +1,49 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import type { CellType} from '../game-engine';
+import type { GameContentProps } from './types';
+
 import { useRouter } from 'next/navigation';
-import { useGameEngine, CellType, BUILTIN_LEVELS } from '../game-engine';
-import { findInitialCursor } from '../types';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
+
+import { copyGrid  } from '../types';
+import { findPlayerSpawn } from '../physics';
+import { useToast } from './hooks/use-toast';
 import GameStageView from '../game-stage-view';
 import GameBoardView from '../game-board-view';
 import PuzzleControls from '../puzzle-controls';
-import { useEditorHotkeys, ALL_PAINT_TOOLS } from '../hot-key';
+import { playEngineSound as playSound } from '../sound';
+import TossRewardAdModal from '../../toss/toss-reward-ad';
+import { EditorPalette } from './components/editor-palette';
+import { formatLevelsJSON } from './utils/format-levels-json';
+import { ALL_PAINT_TOOLS, useEditorHotkeys } from '../hot-key';
+import { solveOrboxBFS, type DFSSolveResult } from '../solver';
+import { useGameEngine, BUILTIN_LEVELS } from '../game-engine';
+import { HintViewModal } from './components/modals/hint-view-modal';
+import { ToastNotification } from './components/toast-notification';
+import { UndoGuideModal } from './components/modals/undo-guide-modal';
+import { AutoSolveModal } from './components/modals/auto-solve-modal';
+import { RecordViewModal } from './components/modals/record-view-modal';
+import { CheaterDetectModal } from './components/modals/cheater-detect-modal';
+import { isTouchMoveEnabled, TOUCH_MOVE_CHANGE_EVENT } from '../../utils/touch-move';
+import { JsonExportImportModal } from './components/modals/json-export-import-modal';
 import {
   getItem,
   setItem,
-  getWatchedHintStages,
   setWatchedHintStage,
+  getWatchedHintStages,
 } from '../../utils/local-storage';
-import TossRewardAdModal from '../../toss/toss-reward-ad';
-import { isTouchMoveEnabled, TOUCH_MOVE_CHANGE_EVENT } from '../../utils/touch-move';
 import {
-  BLOCK_EMPTY,
   BLOCK_WALL,
+  BLOCK_EMPTY,
   BLOCK_STRAWBERRY,
   PUZZLE_BLOCK_TYPES,
-  BLOCK_WALL_V,
-  BLOCK_AUTO_WALL_V,
   getBlockProperties,
   getStrawberryBlockId,
   getStrawberryDirection,
 } from '../../object';
-import { findPlayerSpawn } from '../physics';
-import { playEngineSound as playSound } from '../sound';
-import { useToast } from './hooks/use-toast';
-import { formatLevelsJSON } from './utils/format-levels-json';
-import { UndoGuideModal } from './components/modals/undo-guide-modal';
-import { CheaterDetectModal } from './components/modals/cheater-detect-modal';
-import { JsonExportImportModal } from './components/modals/json-export-import-modal';
-import { HintViewModal } from './components/modals/hint-view-modal';
-import { RecordViewModal } from './components/modals/record-view-modal';
-import { AutoSolveModal } from './components/modals/auto-solve-modal';
-import { solveOrboxBFS, type DFSSolveResult } from '../solver';
-import { copyGrid } from '../types';
-import { EditorPalette } from './components/editor-palette';
-import { ToastNotification } from './components/toast-notification';
-import { GameContentProps } from './types';
 
-const getInitialStageIndex = (): number => {
-  return 0;
-};
+const getInitialStageIndex = (): number => 0;
 
 export function GameContent({
   isEditor = false,
@@ -743,7 +741,7 @@ export function GameContent({
 
   useEditorHotkeys({
     active: isEditor,
-    playTestMode: playTestMode,
+    playTestMode,
     handlers: {
       onTogglePlayTest: togglePlayTest,
       onAddHint: () => {
@@ -1045,7 +1043,7 @@ export function GameContent({
                   onChanceClick={remainingUndos > 0 ? undoPlay : handleChanceClick}
                   remainingUndos={remainingUndos}
                   historySize={historySize}
-                  showChanceButton={true}
+                  showChanceButton
                 />
               </div>
             </div>

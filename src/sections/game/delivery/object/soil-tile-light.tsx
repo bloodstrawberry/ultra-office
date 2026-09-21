@@ -1,6 +1,8 @@
+import type { SoilTileProps } from './soil-tile-dark';
+
 import React from 'react';
+
 import { SOIL_TILE_BORDER_WIDTH } from './constants';
-import { SoilTileProps } from './soil-tile-dark';
 
 export default function SoilTileLight({
   borderTop = false,

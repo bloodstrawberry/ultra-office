@@ -1,27 +1,28 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useRef, useEffect } from 'react';
+
 import {
   BLOCK_NONE,
   BLOCK_WALL,
-  PUZZLE_BLOCK_TYPES,
   BLOCK_BOMB,
   BLOCK_WALL_V,
   BLOCK_WALL_H,
-  BLOCK_AUTO_WALL_V,
-  BLOCK_AUTO_WALL_H,
-  BLOCK_SHOOTER_L,
-  BLOCK_SHOOTER_R,
-  BLOCK_SHOOTER_L_ONCE,
-  BLOCK_SHOOTER_R_ONCE,
+  type BlockId,
   BLOCK_SPIKE_U,
   BLOCK_SPIKE_D,
   BLOCK_SPIKE_L,
   BLOCK_SPIKE_R,
+  BLOCK_SHOOTER_L,
+  BLOCK_SHOOTER_R,
+  BLOCK_AUTO_WALL_V,
+  BLOCK_AUTO_WALL_H,
   STRAW_BLOCK_TYPES,
+  PUZZLE_BLOCK_TYPES,
   PORTAL_BLOCK_TYPES,
+  BLOCK_SHOOTER_L_ONCE,
+  BLOCK_SHOOTER_R_ONCE,
   BLACKHOLE_BLOCK_TYPES,
-  type BlockId,
 } from '../object';
 
 export type CellType = BlockId;

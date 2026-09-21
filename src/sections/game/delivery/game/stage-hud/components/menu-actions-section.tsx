@@ -1,7 +1,8 @@
 'use client';
 
+import type { MenuActionsSectionProps } from '../types';
+
 import React from 'react';
-import { MenuActionsSectionProps } from '../types';
 
 export function MenuActionsSection({
   isEditor,

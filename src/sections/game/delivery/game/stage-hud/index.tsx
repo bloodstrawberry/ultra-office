@@ -1,14 +1,16 @@
 'use client';
 
+import type { GameStageHudProps } from './types';
+
 import React from 'react';
+
 import TouchMoveGuideModal from '../touch-move-guide-modal';
-import { GameStageHudProps } from './types';
 import { WoodSignBoard } from './components/wood-sign-board';
-import { EditorStageControls } from './components/editor-stage-controls';
 import { GameMenuModal } from './components/game-menu-modal';
-import { StageSelectConfirmModal } from './components/stage-select-confirm-modal';
-import { RestartConfirmModal } from './components/restart-confirm-modal';
 import { useHudMenuState } from './hooks/use-hud-menu-state';
+import { EditorStageControls } from './components/editor-stage-controls';
+import { RestartConfirmModal } from './components/restart-confirm-modal';
+import { StageSelectConfirmModal } from './components/stage-select-confirm-modal';
 
 export default function GameStageHud({
   levelIndex,

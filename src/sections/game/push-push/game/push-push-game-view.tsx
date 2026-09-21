@@ -6,7 +6,7 @@ import { PushPushHud } from './push-push-hud';
 import { usePushPushEngine } from './push-push-engine';
 import { PushPushControls } from './push-push-controls';
 import { PushPushBoardView } from './push-push-board-view';
-import { StageClearModal, StageSelectModal, HintModal } from './push-push-modals';
+import { HintModal, StageClearModal, StageSelectModal } from './push-push-modals';
 
 export interface PushPushGameViewProps {
   initialLevelIndex?: number;

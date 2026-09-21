@@ -24,6 +24,10 @@ const CYBERPUNK_AI_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/
 
 const OCEAN_WAVE_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180"><defs><linearGradient id="g4" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%230284c7"/><stop offset="100%" stop-color="%2310b981"/></linearGradient></defs><rect width="320" height="180" fill="%23041322"/><rect width="320" height="180" fill="url(%23g4)" opacity="0.4"/><path d="M0,120 Q80,70 160,110 T320,100 L320,180 L0,180 Z" fill="%230ea5e9" opacity="0.5"/><text x="160" y="70" fill="%23e0f2fe" font-family="sans-serif" font-size="12" font-weight="bold" text-anchor="middle">OCEAN WAVE 4K</text></svg>`;
 
+const BROADCAST_SUBTITLE_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180"><defs><linearGradient id="g5" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%231e293b"/><stop offset="100%" stop-color="%230f172a"/></linearGradient></defs><rect width="320" height="180" fill="url(%23g5)"/><circle cx="80" cy="70" r="30" fill="%2338bdf8" opacity="0.4"/><rect x="30" y="130" width="260" height="34" rx="4" fill="%23000000" opacity="0.75"/><rect x="34" y="134" width="45" height="26" rx="3" fill="%23ef4444"/><text x="56" y="151" fill="%23ffffff" font-family="sans-serif" font-size="10" font-weight="bold" text-anchor="middle">LIVE</text><text x="175" y="152" fill="%23ffffff" font-family="sans-serif" font-size="11" font-weight="bold" text-anchor="middle">[속보] 도심 한가운데 레이저 쇼 개막</text></svg>`;
+
+const CINEMA_SUBTITLE_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180"><defs><linearGradient id="g6" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%23180e29"/><stop offset="100%" stop-color="%2305050d"/></linearGradient></defs><rect width="320" height="180" fill="url(%23g6)"/><path d="M40,110 L160,50 L280,110 Z" fill="%23a855f7" opacity="0.3"/><text x="160" y="155" fill="%23fef08a" font-family="sans-serif" font-size="12" font-weight="bold" text-anchor="middle">“우리가 찾던 그 진실이 바로 여기에 있어.”</text></svg>`;
+
 // ----------------------------------------------------------------------
 // Procedural Video Generators
 // ----------------------------------------------------------------------
@@ -421,6 +425,224 @@ export async function createOceanWaveVideo(durationSec = 6): Promise<File> {
   });
 }
 
+/**
+ * 5. Broadcast Lower-Third Subtitle Video (뉴스 방송 하단 자막)
+ */
+export async function createBroadcastSubtitleVideo(durationSec = 6): Promise<File> {
+  const canvas = document.createElement('canvas');
+  canvas.width = 640;
+  canvas.height = 360;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas 2D unavailable');
+
+  const stream = canvas.captureStream(30);
+  const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+  const chunks: Blob[] = [];
+
+  recorder.ondataavailable = (e) => {
+    if (e.data.size > 0) chunks.push(e.data);
+  };
+
+  const startTime = Date.now();
+  const totalMs = durationSec * 1000;
+
+  return new Promise((resolve) => {
+    recorder.onstop = () => {
+      const blob = new Blob(chunks, { type: 'video/webm' });
+      const file = new File([blob], 'broadcast_subtitle_sample.webm', { type: 'video/webm' });
+      resolve(file);
+    };
+
+    recorder.start(100);
+
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const t = elapsed / 1000;
+
+      if (elapsed >= totalMs) {
+        clearInterval(interval);
+        recorder.stop();
+        return;
+      }
+
+      // 1. Dynamic background: City skyline night scene with moving lights
+      const bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      bgGrad.addColorStop(0, '#0f172a');
+      bgGrad.addColorStop(0.6, '#1e293b');
+      bgGrad.addColorStop(1, '#334155');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Moving atmospheric light orbs
+      const orbX = 180 + Math.sin(t * 1.5) * 120;
+      const orbY = 120 + Math.cos(t * 1.2) * 40;
+      const radGrad = ctx.createRadialGradient(orbX, orbY, 10, orbX, orbY, 140);
+      radGrad.addColorStop(0, 'rgba(56, 189, 248, 0.4)');
+      radGrad.addColorStop(1, 'rgba(56, 189, 248, 0)');
+      ctx.fillStyle = radGrad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Building silhouettes
+      ctx.fillStyle = '#090d16';
+      for (let i = 0; i < 9; i += 1) {
+        const bX = i * 75 - 15;
+        const bW = 60;
+        const bH = 100 + ((i * 37) % 90);
+        ctx.fillRect(bX, canvas.height - bH, bW, bH);
+
+        // Windows
+        ctx.fillStyle = (i + Math.floor(t * 2)) % 3 === 0 ? '#fde047' : '#64748b';
+        ctx.fillRect(bX + 15, canvas.height - bH + 20, 10, 15);
+        ctx.fillRect(bX + 35, canvas.height - bH + 20, 10, 15);
+        ctx.fillStyle = '#090d16';
+      }
+
+      // 2. Burned-in Hardcoded Subtitles (Time-Varying: 0~3s at Bottom, 3~6s at Top!)
+      if (t < 3.0) {
+        // [0.0s ~ 3.0s] 하단 자막 배너
+        const subY = 285;
+        const subH = 46;
+
+        // Dark translucent banner bar
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+        ctx.fillRect(30, subY, canvas.width - 60, subH);
+
+        // Red 'LIVE' badge
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.roundRect(36, subY + 7, 56, 32, 4);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 13px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('LIVE', 64, subY + 28);
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = 'bold 15px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('[속보] 도심 한가운데 화려한 레이저 페스티벌 개막', 104, subY + 29);
+      } else {
+        // [3.0s ~ 6.0s] 상단 헤드라인 자막 배너 (시간대별 위치 변경!)
+        const topY = 24;
+        const topH = 42;
+
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+        ctx.fillRect(40, topY, canvas.width - 80, topH);
+
+        ctx.fillStyle = '#3b82f6';
+        ctx.beginPath();
+        ctx.roundRect(46, topY + 6, 76, 30, 4);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('HOT ISSUE', 84, topY + 25);
+
+        ctx.fillStyle = '#fde047';
+        ctx.font = 'bold 14px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('[화제] 오늘 밤 시민 인터뷰 및 도심 축제 현장 중계', 132, topY + 26);
+      }
+    }, 1000 / 30);
+  });
+}
+
+/**
+ * 6. Cinema Style Hardcoded Subtitle Video (영화 시네마틱 한글 자막)
+ */
+export async function createCinemaSubtitleVideo(durationSec = 6): Promise<File> {
+  const canvas = document.createElement('canvas');
+  canvas.width = 640;
+  canvas.height = 360;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas 2D unavailable');
+
+  const stream = canvas.captureStream(30);
+  const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+  const chunks: Blob[] = [];
+
+  recorder.ondataavailable = (e) => {
+    if (e.data.size > 0) chunks.push(e.data);
+  };
+
+  const startTime = Date.now();
+  const totalMs = durationSec * 1000;
+
+  return new Promise((resolve) => {
+    recorder.onstop = () => {
+      const blob = new Blob(chunks, { type: 'video/webm' });
+      const file = new File([blob], 'cinema_subtitle_sample.webm', { type: 'video/webm' });
+      resolve(file);
+    };
+
+    recorder.start(100);
+
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const t = elapsed / 1000;
+
+      if (elapsed >= totalMs) {
+        clearInterval(interval);
+        recorder.stop();
+        return;
+      }
+
+      // Cinematic moody gradient
+      const bgGrad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      bgGrad.addColorStop(0, '#1c1917');
+      bgGrad.addColorStop(0.5, '#292524');
+      bgGrad.addColorStop(1, '#0c0a09');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Floating dust particles & lens flare
+      for (let i = 0; i < 15; i += 1) {
+        const px = (i * 47 + t * 25) % canvas.width;
+        const py = 60 + Math.sin(t * 2 + i) * 80 + ((i * 15) % 150);
+        ctx.fillStyle = 'rgba(251, 191, 36, 0.35)';
+        ctx.beginPath();
+        ctx.arc(px, py, 2 + (i % 3), 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Ambient warm spotlight
+      const spotGrad = ctx.createRadialGradient(
+        canvas.width / 2,
+        140,
+        20,
+        canvas.width / 2,
+        140,
+        200
+      );
+      spotGrad.addColorStop(0, 'rgba(245, 158, 11, 0.25)');
+      spotGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = spotGrad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Movie Subtitle (Yellow with dark outline at bottom center)
+      const cinemaCaption =
+        t < 3.2
+          ? '“우리가 오랫동안 찾던 그 진실이 바로 여기에 있어.”'
+          : '“이제 더 이상 뒤돌아보지 않고 앞으로 나아가야 해.”';
+
+      const textY = 308;
+      ctx.font = 'bold 17px Pretendard, -apple-system, sans-serif';
+      ctx.textAlign = 'center';
+
+      // Text stroke (black border)
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = '#000000';
+      ctx.strokeText(cinemaCaption, canvas.width / 2, textY);
+
+      // Yellow/White fill
+      ctx.fillStyle = '#fef08a';
+      ctx.fillText(cinemaCaption, canvas.width / 2, textY);
+    }, 1000 / 30);
+  });
+}
+
 // ----------------------------------------------------------------------
 // Default Sample Video Presets
 // ----------------------------------------------------------------------
@@ -457,5 +679,35 @@ export const DEFAULT_VIDEO_SAMPLES: SampleVideoItem[] = [
     duration: '00:06',
     thumbnailSvg: OCEAN_WAVE_SVG,
     generate: () => createOceanWaveVideo(6),
+  },
+];
+
+export const SUBTITLE_REMOVER_VIDEO_SAMPLES: SampleVideoItem[] = [
+  {
+    id: 'broadcast-subtitle',
+    label: '📺 뉴스 방송 가변 자막',
+    subLabel: '0~3초 하단 자막 ➔ 3~6초 상단 자막 위치 변경 6초',
+    duration: '00:06',
+    tag: '위치 가변 자막 (상/하단)',
+    thumbnailSvg: BROADCAST_SUBTITLE_SVG,
+    generate: () => createBroadcastSubtitleVideo(6),
+  },
+  {
+    id: 'cinema-subtitle',
+    label: '🎬 영화 시네마틱 자막',
+    subLabel: '중앙 하단 옐로우 텍스트 자막 6초',
+    duration: '00:06',
+    tag: '영화 대사 자막',
+    thumbnailSvg: CINEMA_SUBTITLE_SVG,
+    generate: () => createCinemaSubtitleVideo(6),
+  },
+  {
+    id: 'timecode-hud',
+    label: '🎞️ 타임코드 시네마틱',
+    subLabel: '중앙 타임코드 각인 8초',
+    duration: '00:08',
+    tag: '중앙 텍스트',
+    thumbnailSvg: TIMECODE_HUD_SVG,
+    generate: () => createTimecodeCinematicVideo(8),
   },
 ];

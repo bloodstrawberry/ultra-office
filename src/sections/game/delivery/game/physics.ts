@@ -1,27 +1,21 @@
+import type { CellType, Position} from './types';
+
+import { copyGrid } from './types';
 import {
-  BLOCK_EMPTY,
   BLOCK_NONE,
-  BLOCK_WALL,
-  BLOCK_STRAWBERRY,
-  BLOCK_WATERMELON,
-  BLOCK_SWEET_POTATO,
   BLOCK_BOMB,
-  BLOCK_PORTAL_1,
-  BLOCK_PORTAL_2,
-  BLOCK_PORTAL_3,
-  BLOCK_PORTAL_4,
-  BLOCK_PORTAL_5,
-  BLOCK_PORTAL_6,
-  BLOCK_PORTAL_7,
+  BLOCK_EMPTY,
   BLOCK_APPLE,
-  BLOCK_BLUEBERRY,
   BLOCK_GRAPE,
   BLOCK_PEACH,
   isPortalBlock,
+  BLOCK_PORTAL_1,
   getBaseBlockId,
-  type BlockId,
+  BLOCK_BLUEBERRY,
+  BLOCK_STRAWBERRY,
+  BLOCK_WATERMELON,
+  BLOCK_SWEET_POTATO,
 } from '../object/constants';
-import { CellType, Position, copyGrid } from './types';
 
 export type Direction = 'up' | 'down' | 'left' | 'right';
 

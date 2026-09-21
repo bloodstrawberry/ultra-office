@@ -39,8 +39,8 @@ export * from './photo-weathering-view';
 
 export * from './photo-ai-watermark-view';
 export * from './photo-color-picker-view';
-export * from './photo-watermark-remove-view';
 export * from './photo-news-caption-view';
+export * from './photo-watermark-remove-view';
 
 export { PhotoHubView as PhotoView } from './photo-view';
 export { GifView as PhotoGifView } from './photo-gif-view';

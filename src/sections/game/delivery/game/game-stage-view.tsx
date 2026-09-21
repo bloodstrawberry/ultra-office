@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { requestReview } from '../utils/platform';
-import { getItem, getLocalSync } from '../utils/local-storage';
+import React, { useRef, useState, useEffect } from 'react';
+
 import { BUILTIN_LEVELS } from './types';
+import { requestReview } from '../utils/platform';
 import SettingsModal from '../components/settings-modal';
+import { getItem, getLocalSync } from '../utils/local-storage';
 import StagePreviewModal from '../components/stage-preview-modal';
 
 export interface GameStageViewProps {

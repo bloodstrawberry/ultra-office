@@ -2,8 +2,9 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { requestReview } from '../utils/platform';
+
 import { BUILTIN_LEVELS } from './types';
+import { requestReview } from '../utils/platform';
 
 interface SoundPlayFn {
   (

@@ -1,5 +1,5 @@
-import React from 'react';
-import { CellType } from '../types';
+import type React from 'react';
+import type { CellType } from '../types';
 
 export interface WoodSignBoardProps {
   label: string;

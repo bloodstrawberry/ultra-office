@@ -1,24 +1,27 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import type React from 'react';
+
 import { useRouter } from 'next/navigation';
-import {
-  isBgmMuted,
-  setBgmMuted,
-  toggleBgmMuted,
-  getBgmVolume,
-  setBgmVolume,
-  isSfxMuted,
-  toggleSfxMuted,
-  BGM_CHANGE_EVENT,
-  BGM_VOLUME_CHANGE_EVENT,
-  SFX_CHANGE_EVENT,
-} from '../../../utils/sound';
+import { useRef, useState, useEffect } from 'react';
+
 import {
   isTouchMoveEnabled,
   toggleTouchMoveEnabled,
   TOUCH_MOVE_CHANGE_EVENT,
 } from '../../../utils/touch-move';
+import {
+  isBgmMuted,
+  isSfxMuted,
+  setBgmMuted,
+  getBgmVolume,
+  setBgmVolume,
+  toggleBgmMuted,
+  toggleSfxMuted,
+  BGM_CHANGE_EVENT,
+  SFX_CHANGE_EVENT,
+  BGM_VOLUME_CHANGE_EVENT,
+} from '../../../utils/sound';
 
 interface UseHudMenuStateOptions {
   externalMenuOpen?: boolean;

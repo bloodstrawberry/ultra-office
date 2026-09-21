@@ -1,13 +1,14 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useRef, useEffect } from 'react';
+
 import { getAssetPath } from '../utils/asset';
 import {
   isBgmMuted,
   getBgmVolume,
   BGM_CHANGE_EVENT,
-  BGM_VOLUME_CHANGE_EVENT,
   suspendAudioContext,
+  BGM_VOLUME_CHANGE_EVENT,
 } from '../utils/sound';
 
 export default function BgmPlayer() {

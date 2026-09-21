@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
-import { LevelData } from '../game/types';
+import type { LevelData } from '../game/types';
+
+import React, { useRef, useState, useEffect } from 'react';
+
 import BlockRenderer, {
   BLOCK_NONE,
   BLOCK_EMPTY,
@@ -239,8 +241,7 @@ export default function StagePreviewModal({
                 }}
               >
                 {grid.map((row, y) =>
-                  row.map((cell, x) => {
-                    return (
+                  row.map((cell, x) => (
                       <div
                         key={`preview-cell-${y}-${x}`}
                         className="w-full h-full relative flex items-center justify-center overflow-visible p-[8%]"
@@ -249,8 +250,7 @@ export default function StagePreviewModal({
                           <BlockRenderer id={cell} x={x} y={y} grid={grid} />
                         )}
                       </div>
-                    );
-                  })
+                    ))
                 )}
               </div>
             </div>

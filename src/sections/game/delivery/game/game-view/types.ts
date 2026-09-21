@@ -1,5 +1,5 @@
-import React from 'react';
-import { CellType } from '../game-engine';
+import type React from 'react';
+import type { CellType } from '../game-engine';
 
 export interface GameViewProps {
   isEditor?: boolean;

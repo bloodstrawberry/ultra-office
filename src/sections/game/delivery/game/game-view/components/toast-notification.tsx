@@ -1,7 +1,8 @@
 'use client';
 
+import type { ToastNotificationProps } from '../types';
+
 import React from 'react';
-import { ToastNotificationProps } from '../types';
 
 export function ToastNotification({ toastText }: ToastNotificationProps) {
   if (!toastText) return null;

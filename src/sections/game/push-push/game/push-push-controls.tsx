@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useEffect } from 'react';
-
 import type { Direction } from './push-push-types';
+
+import React, { useEffect } from 'react';
 
 interface PushPushControlsProps {
   onMove: (dir: Direction) => void;

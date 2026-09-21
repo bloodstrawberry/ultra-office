@@ -1,24 +1,28 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import type { MoveInfo } from './game-engine';
+import type { IceBreakEffectItem } from './ice-break-burst';
+import type { DisappearingEffectItem } from './disappear-burst';
+import type { CellType, Position, Bullet as BulletType} from './types';
+
+import React, { useRef, useMemo, useState, useEffect } from 'react';
+
+import { BUILTIN_LEVELS } from './types';
+import GameTutorial from './game-tutorial';
+import GameStageHud from './game-stage-hud';
+import GameBoardGrid from './game-board-grid';
+import { isAdPendingSync } from '../utils/local-storage';
+import { EditorColControls, EditorRowControls } from './editor-grid-controls';
+import { GameOverModal, GameClearModal, GameAllClearModal } from './game-result-modals';
 import {
-  BLOCK_EMPTY,
   BLOCK_NONE,
+  BLOCK_EMPTY,
+  isFrozenBlock,
   BLOCK_AUTO_WALL_H,
   BLOCK_AUTO_WALL_V,
   getBlockProperties,
-  isFrozenBlock,
 } from '../object';
-import { CellType, Position, Bullet as BulletType, BUILTIN_LEVELS } from './types';
-import GameStageHud from './game-stage-hud';
-import { DisappearingEffectItem } from './disappear-burst';
-import { IceBreakEffectItem } from './ice-break-burst';
-import { EditorColControls, EditorRowControls } from './editor-grid-controls';
-import GameBoardGrid from './game-board-grid';
-import { GameAllClearModal, GameClearModal, GameOverModal } from './game-result-modals';
-import GameTutorial from './game-tutorial';
-import { isAdPendingSync } from '../utils/local-storage';
-import { MoveInfo } from './game-engine';
+
 export { DEFAULT_CONTROL_MARGIN_BOTTOM } from './puzzle-controls';
 
 export interface GameBoardViewProps {

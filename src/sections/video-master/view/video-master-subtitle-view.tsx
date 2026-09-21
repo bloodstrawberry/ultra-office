@@ -55,6 +55,9 @@ import ImportExportRoundedIcon from '@mui/icons-material/ImportExportRounded';
 import VideoLibraryRoundedIcon from '@mui/icons-material/VideoLibraryRounded';
 import CleaningServicesRoundedIcon from '@mui/icons-material/CleaningServicesRounded';
 
+import { paths } from 'src/routes/paths';
+import { RouterLink } from 'src/routes/components';
+
 import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
 
 import { DashboardContent } from 'src/layouts/dashboard';
@@ -1141,6 +1144,59 @@ export function VideoMasterSubtitleView() {
               </Typography>
             </Box>
           </Box>
+
+          {/* Quick Nav Banner: Subtitle Remover */}
+          <Card
+            sx={{
+              p: 2,
+              borderRadius: 2,
+              bgcolor: 'rgba(0, 167, 111, 0.08)',
+              border: '1px dashed',
+              borderColor: 'primary.main',
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              alignItems: { xs: 'flex-start', sm: 'center' },
+              justifyContent: 'space-between',
+              gap: 1.5,
+              flexShrink: 0,
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <Box
+                sx={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 1.5,
+                  bgcolor: 'primary.main',
+                  color: 'primary.contrastText',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <CleaningServicesRoundedIcon sx={{ fontSize: 22 }} />
+              </Box>
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+                  동영상에 각인된 자막을 지우고 싶으신가요?
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                  AI 스마트 인페인팅으로 동영상에 박힌 자막을 흔적 없이 자연스럽게 지워보세요.
+                </Typography>
+              </Box>
+            </Box>
+            <Button
+              component={RouterLink}
+              href={paths.videoMaster.subtitleRemover}
+              variant="contained"
+              color="primary"
+              size="small"
+              sx={{ fontWeight: 700, flexShrink: 0 }}
+            >
+              자막 지우개 바로가기 ➜
+            </Button>
+          </Card>
 
           {/* 1. Subtitle Samples Section - Pinned to Top (다른 업로드 UI 참고) */}
           <Card sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 2, flexShrink: 0 }}>

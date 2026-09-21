@@ -1,7 +1,8 @@
 'use client';
 
+import type { Bullet as BulletType } from './types';
+
 import React, { useState, useEffect } from 'react';
-import { Bullet as BulletType } from './types';
 
 export interface BulletProps {
   bullet: BulletType;

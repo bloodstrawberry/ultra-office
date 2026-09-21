@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
-
-import type { PushPushLevelData, ParsedLevel } from './push-push-types';
 import type { StageRecord } from './push-push-engine';
+import type { ParsedLevel, PushPushLevelData } from './push-push-types';
+
+import { createPortal } from 'react-dom';
+import React, { useState, useEffect } from 'react';
 
 function renderModal(content: React.ReactNode) {
   return createPortal(<div className="push-push-root">{content}</div>, document.body);

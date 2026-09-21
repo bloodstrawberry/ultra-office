@@ -1,7 +1,8 @@
 'use client';
 
+import type { CheaterDetectModalProps } from '../../types';
+
 import React from 'react';
-import { CheaterDetectModalProps } from '../../types';
 
 export function CheaterDetectModal({ cheaterPopupOpen, onConfirm }: CheaterDetectModalProps) {
   if (!cheaterPopupOpen) return null;

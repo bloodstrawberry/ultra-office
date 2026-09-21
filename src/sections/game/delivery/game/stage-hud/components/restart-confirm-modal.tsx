@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import React, { useState, useEffect } from 'react';
 
 export interface RestartConfirmModalProps {
   isOpen: boolean;

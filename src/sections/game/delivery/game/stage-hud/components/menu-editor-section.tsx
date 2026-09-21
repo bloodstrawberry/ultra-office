@@ -1,7 +1,8 @@
 'use client';
 
+import type { MenuEditorSectionProps } from '../types';
+
 import React from 'react';
-import { MenuEditorSectionProps } from '../types';
 
 export function MenuEditorSection({
   editorMapType,

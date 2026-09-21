@@ -1,7 +1,8 @@
 'use client';
 
+import type { Position } from './types';
+
 import React, { useState, useEffect } from 'react';
-import { Position } from './types';
 
 export type TutorialStep = 1 | 2 | 3 | 4;
 

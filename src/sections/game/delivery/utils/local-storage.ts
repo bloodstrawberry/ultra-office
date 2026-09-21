@@ -187,13 +187,9 @@ export const incrementAdEventCountSync = (): number => {
 };
 
 /** 하위 호환성을 위한 기존 헬퍼 */
-export const incrementRetryCountSync = (): number => {
-  return incrementAdEventCountSync();
-};
+export const incrementRetryCountSync = (): number => incrementAdEventCountSync();
 
-export const incrementStageClearCountSync = (): number => {
-  return incrementAdEventCountSync();
-};
+export const incrementStageClearCountSync = (): number => incrementAdEventCountSync();
 
 /**
  * 전면형 광고 시청 완료 시 이벤트 카운트를 초기화
@@ -208,9 +204,7 @@ export const resetAdCountsSync = (): void => {
  */
 const GAME_AD_PENDING_KEY = 'interstitial_ad_pending';
 
-export const isAdPendingSync = (): boolean => {
-  return getLocalSync(GAME_AD_PENDING_KEY) === 'true';
-};
+export const isAdPendingSync = (): boolean => getLocalSync(GAME_AD_PENDING_KEY) === 'true';
 
 export const setAdPendingSync = (pending: boolean): void => {
   const val = pending ? 'true' : 'false';
@@ -284,13 +278,9 @@ export const getTodayDateString = (): string => {
 };
 
 /** 마지막으로 NEW_ADS를 가져온 날짜 읽기 */
-export const getLastAdFetchDate = async (): Promise<string | null> => {
-  return await getItem(NEW_ADS_LAST_FETCH_DATE_KEY);
-};
+export const getLastAdFetchDate = async (): Promise<string | null> => await getItem(NEW_ADS_LAST_FETCH_DATE_KEY);
 
-export const getLastAdFetchDateSync = (): string | null => {
-  return getLocalSync(NEW_ADS_LAST_FETCH_DATE_KEY);
-};
+export const getLastAdFetchDateSync = (): string | null => getLocalSync(NEW_ADS_LAST_FETCH_DATE_KEY);
 
 /** 마지막으로 NEW_ADS를 가져온 날짜 저장 */
 export const setLastAdFetchDate = async (dateStr: string): Promise<void> => {
@@ -321,22 +311,16 @@ export const clearAdRelatedStorage = async (): Promise<void> => {
   await removeItem(NEW_ADS_CACHED_LIST_KEY);
 };
 
-export const getSavedAdLogo = async (id: string): Promise<string | null> => {
-  return await getItem(`${NEW_AD_LOGO_PREFIX}${id}`);
-};
+export const getSavedAdLogo = async (id: string): Promise<string | null> => await getItem(`${NEW_AD_LOGO_PREFIX}${id}`);
 
-export const getSavedAdLogoSync = (id: string): string | null => {
-  return getLocalSync(`${NEW_AD_LOGO_PREFIX}${id}`);
-};
+export const getSavedAdLogoSync = (id: string): string | null => getLocalSync(`${NEW_AD_LOGO_PREFIX}${id}`);
 
 export const setSavedAdLogo = async (id: string, logoData: string): Promise<void> => {
   setLocalSync(`${NEW_AD_LOGO_PREFIX}${id}`, logoData);
   await setItem(`${NEW_AD_LOGO_PREFIX}${id}`, logoData);
 };
 
-export const getSavedNewAds = async (): Promise<CachedNewAdData[] | null> => {
-  return await getStorageJSON<CachedNewAdData[]>(NEW_ADS_CACHED_LIST_KEY);
-};
+export const getSavedNewAds = async (): Promise<CachedNewAdData[] | null> => await getStorageJSON<CachedNewAdData[]>(NEW_ADS_CACHED_LIST_KEY);
 
 export const getSavedNewAdsSync = (): CachedNewAdData[] | null => {
   const raw = getLocalSync(NEW_ADS_CACHED_LIST_KEY);

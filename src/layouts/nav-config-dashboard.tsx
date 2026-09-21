@@ -34,6 +34,7 @@ import CalculateRoundedIcon from '@mui/icons-material/CalculateRounded';
 import TranslateRoundedIcon from '@mui/icons-material/TranslateRounded';
 import TextFieldsRoundedIcon from '@mui/icons-material/TextFieldsRounded';
 import WorkspacesRoundedIcon from '@mui/icons-material/WorkspacesRounded';
+import PsychologyRoundedIcon from '@mui/icons-material/PsychologyRounded';
 import AccountTreeRoundedIcon from '@mui/icons-material/AccountTreeRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import PhotoFilterRoundedIcon from '@mui/icons-material/PhotoFilterRounded';
@@ -59,6 +60,7 @@ import { paths } from 'src/routes/paths';
 // ----------------------------------------------------------------------
 
 const ICONS = {
+  ml: <PsychologyRoundedIcon fontSize="small" />,
   hub: <DashboardCustomizeRoundedIcon fontSize="small" />,
   folder: <FolderRoundedIcon fontSize="small" />,
   search: <SearchRoundedIcon fontSize="small" />,
@@ -231,7 +233,12 @@ export const navData: NavSectionProps['data'] = [
           { title: 'MP4 → MP3 변환', path: paths.videoMaster.mp4ToMp3 },
           { title: '동영상 일괄 변환기', path: paths.videoMaster.batch },
           { title: '동영상 AI 워터마크 각인', path: paths.videoMaster.aiWatermark },
-          { title: '음성 녹음', path: paths.videoMaster.voiceRecord, info: newFeatureBadge },
+          { title: '음성 녹음', path: paths.videoMaster.voiceRecord },
+          {
+            title: '동영상 자막 지우개',
+            path: paths.videoMaster.subtitleRemover,
+            info: newFeatureBadge,
+          },
         ],
       },
       {
@@ -262,6 +269,27 @@ export const navData: NavSectionProps['data'] = [
           { title: '파일 변환기', path: paths.fileConvert },
           { title: '개발자 툴킷', path: paths.devTools },
           { title: 'Public API', path: paths.publicApi },
+        ],
+      },
+      {
+        title: '머신러닝',
+        path: paths.ml.root,
+        icon: ICONS.ml,
+        info: newFeatureBadge,
+        children: [
+          { title: '머신러닝 허브 (전체)', path: paths.ml.root },
+          { title: '선형 모델 (Linear)', path: paths.ml.linear },
+          { title: '릿지 회귀 (Ridge)', path: paths.ml.ridge },
+          { title: '라쏘 회귀 (Lasso)', path: paths.ml.lasso },
+          { title: '로지스틱 회귀 (Logistic)', path: paths.ml.logistic },
+          { title: 'K-최근접 이웃 (KNN)', path: paths.ml.knn },
+          { title: '의사결정나무 (Decision Tree)', path: paths.ml.decisionTree },
+          { title: 'K-평균 군집화 (K-Means)', path: paths.ml.kmeans },
+          { title: '계층적 군집화 (Hierarchical)', path: paths.ml.hierarchical },
+          { title: 'DBSCAN 밀도 군집화', path: paths.ml.dbscan },
+          { title: '주성분 분석 (PCA)', path: paths.ml.pca },
+          { title: '신경망 (MLP Playground)', path: paths.ml.neuralNet },
+          { title: '라이브러리 벤치마크 (Sandbox)', path: paths.ml.sandbox },
         ],
       },
       {

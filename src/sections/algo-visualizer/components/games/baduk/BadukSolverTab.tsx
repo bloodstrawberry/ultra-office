@@ -36,8 +36,8 @@ import NavigateBeforeRoundedIcon from '@mui/icons-material/NavigateBeforeRounded
 import { BadukBoard } from './BadukBoard';
 import { BADUK_PUZZLE_LIST } from '../../../lib/games/baduk/puzzles';
 import { GameAlgorithmInspector } from '../common/GameAlgorithmInspector';
-import { playMove, createEmptyBoard, formatBadukCoord } from '../../../lib/games/baduk/engine';
 import { playBadukStoneSound, playPuzzleSolvedSound } from '../../../lib/games/gameSounds';
+import { playMove, createEmptyBoard, formatBadukCoord } from '../../../lib/games/baduk/engine';
 import {
   findBestBadukAIMove,
   analyzeBadukPosition,

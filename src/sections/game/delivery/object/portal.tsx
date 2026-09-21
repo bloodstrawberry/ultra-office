@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { OBJECT_SCALES } from './constants';
 
 export interface PortalProps {

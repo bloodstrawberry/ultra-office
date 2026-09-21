@@ -1,4 +1,4 @@
-import { CellType } from '../../game-engine';
+import type { CellType } from '../../game-engine';
 
 export interface EditorLevelItem {
   name: string;

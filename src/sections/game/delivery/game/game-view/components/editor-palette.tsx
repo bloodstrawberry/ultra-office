@@ -1,30 +1,31 @@
 'use client';
 
+import type { CellType } from '../../game-engine';
+import type { EditorPaletteProps } from '../types';
+
 import React from 'react';
-import { CellType } from '../../game-engine';
+
 import BlockRenderer, {
   BLOCK_NONE,
   BLOCK_WALL,
+  BLOCK_BOMB,
   BLOCK_WALL_V,
   BLOCK_WALL_H,
-  BLOCK_AUTO_WALL_V,
-  BLOCK_AUTO_WALL_H,
-  PUZZLE_BLOCK_TYPES,
-  BLOCK_BOMB,
-  BLOCK_SHOOTER_L,
-  BLOCK_SHOOTER_R,
-  BLOCK_SHOOTER_L_ONCE,
-  BLOCK_SHOOTER_R_ONCE,
   BLOCK_SPIKE_U,
   BLOCK_SPIKE_D,
   BLOCK_SPIKE_L,
   BLOCK_SPIKE_R,
+  BLOCK_SHOOTER_L,
+  BLOCK_SHOOTER_R,
+  BLOCK_AUTO_WALL_V,
+  BLOCK_AUTO_WALL_H,
   STRAW_BLOCK_TYPES,
+  PUZZLE_BLOCK_TYPES,
   PORTAL_BLOCK_TYPES,
-  WORMHOLE_BLOCK_TYPES,
+  BLOCK_SHOOTER_L_ONCE,
+  BLOCK_SHOOTER_R_ONCE,
   BLACKHOLE_BLOCK_TYPES,
 } from '../../../object';
-import { EditorPaletteProps } from '../types';
 
 export function EditorPalette({
   activeEditor,

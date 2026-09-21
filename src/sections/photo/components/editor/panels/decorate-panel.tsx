@@ -2,6 +2,7 @@
 
 import type { EditorLayer, DecorateAdjustments } from '../editor-types';
 
+import Link from 'next/link';
 import React, { useState } from 'react';
 
 import Box from '@mui/material/Box';
@@ -15,6 +16,7 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import ToggleButton from '@mui/material/ToggleButton';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import TvRoundedIcon from '@mui/icons-material/LiveTvRounded';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import TitleRoundedIcon from '@mui/icons-material/TitleRounded';
 import CreateRoundedIcon from '@mui/icons-material/CreateRounded';
@@ -23,9 +25,6 @@ import CropSquareRoundedIcon from '@mui/icons-material/CropSquareRounded';
 import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import EmojiEmotionsRoundedIcon from '@mui/icons-material/EmojiEmotionsRounded';
-
-import Link from 'next/link';
-import TvRoundedIcon from '@mui/icons-material/LiveTvRounded';
 
 import { paths } from 'src/routes/paths';
 

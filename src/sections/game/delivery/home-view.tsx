@@ -2,13 +2,14 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+
 import ShareButton from './share-button';
+import HomeButtons from './home-buttons';
+import { isSfxMuted } from './utils/sound';
+import { playEngineSound } from './game/sound';
 import { setLocalSync } from './utils/local-storage';
 import { resolveDynamicPath } from './object/constants';
-import HomeButtons from './home-buttons';
 import SettingsModal from './components/settings-modal';
-import { playEngineSound } from './game/sound';
-import { isSfxMuted } from './utils/sound';
 import { useAssetLoader } from './components/asset-loader-context';
 
 export default function HomeView() {

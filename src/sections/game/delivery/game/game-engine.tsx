@@ -1,33 +1,30 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import type { IceBreakEffectItem } from './ice-break-burst';
+import type { DisappearingEffectItem } from './disappear-burst';
+
+import { useRef, useState, useEffect, useCallback } from 'react';
+
+import { playEngineSound } from './sound';
+import { useGameUndo } from './use-game-undo';
+import { useEditorEngine } from './editor-logic';
+import { slideOrbox, type Direction, findPlayerSpawn } from './physics';
 import {
   BLOCK_EMPTY,
-  BLOCK_WALL,
-  BLOCK_STRAWBERRY,
-  BLOCK_PORTAL_1,
-  BLOCK_NONE,
   getBaseBlockId,
-  type BlockId,
+  BLOCK_STRAWBERRY,
 } from '../object/constants';
 import {
-  type CellType,
-  type Position,
-  type LevelData,
-  type Bullet,
-  BUILTIN_LEVELS,
   realMap,
   copyGrid,
+  type Bullet,
+  type CellType,
+  type Position,
+  BUILTIN_LEVELS,
 } from './types';
-import { playEngineSound } from './sound';
-import { slideOrbox, findPlayerSpawn, type Direction, type DestroyedBlock } from './physics';
-import { useEditorEngine } from './editor-logic';
-import { useGameUndo, type UndoSnapshot } from './use-game-undo';
-import { DisappearingEffectItem } from './disappear-burst';
-import { IceBreakEffectItem } from './ice-break-burst';
 
-export type { CellType, Position, LevelData, Bullet } from './types';
 export { BUILTIN_LEVELS } from './types';
+export type { Bullet, CellType, Position, LevelData } from './types';
 
 export interface MoveInfo {
   path: Position[];
@@ -121,9 +118,7 @@ export const useGameEngine = (
     []
   );
 
-  const updateBlockCounts = useCallback((_board: CellType[][]) => {
-    return {};
-  }, []);
+  const updateBlockCounts = useCallback((_board: CellType[][]) => ({}), []);
 
   const stateRef = useRef<{
     grid: CellType[][];

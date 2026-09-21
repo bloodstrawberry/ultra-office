@@ -19,8 +19,8 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import RadioGroup from '@mui/material/RadioGroup';
 import LinearProgress from '@mui/material/LinearProgress';
-import StopRoundedIcon from '@mui/icons-material/StopRounded';
 import MicRoundedIcon from '@mui/icons-material/MicRounded';
+import StopRoundedIcon from '@mui/icons-material/StopRounded';
 import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
@@ -34,11 +34,12 @@ import FiberManualRecordRoundedIcon from '@mui/icons-material/FiberManualRecordR
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
+
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import {
-  AudioRecorderManager,
   createAudioAnalyser,
+  AudioRecorderManager,
   convertBlobToAudioFormat,
 } from '../utils/voice-recorder-processor';
 

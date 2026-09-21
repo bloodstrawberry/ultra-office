@@ -1,8 +1,11 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { TouchColor, getShuffledTouchColors } from '../utils/colors';
+import type { TouchColor} from '../utils/colors';
+
+import { useRef, useState, useEffect, useCallback } from 'react';
+
 import { playCuteTouchSound } from '../utils/sound';
+import { getShuffledTouchColors } from '../utils/colors';
 
 export interface TouchPoint {
   id: number;

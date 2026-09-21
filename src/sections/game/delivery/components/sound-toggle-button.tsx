@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+
 import { isSfxMuted, toggleSfxMuted, SFX_CHANGE_EVENT } from '../utils/sound';
 
 interface SoundToggleButtonProps {

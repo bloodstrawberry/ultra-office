@@ -1,7 +1,8 @@
 'use client';
 
+import type { DFSSolveResult } from '../../../solver';
+
 import React, { useState } from 'react';
-import { DFSSolveResult } from '../../../solver';
 
 export interface AutoSolveModalProps {
   isOpen: boolean;

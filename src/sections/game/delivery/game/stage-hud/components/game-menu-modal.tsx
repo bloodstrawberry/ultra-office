@@ -1,11 +1,13 @@
 'use client';
 
+import type { GameMenuModalProps } from '../types';
+
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { GameMenuModalProps } from '../types';
+
 import { MenuSoundSection } from './menu-sound-section';
-import { MenuActionsSection } from './menu-actions-section';
 import { MenuEditorSection } from './menu-editor-section';
+import { MenuActionsSection } from './menu-actions-section';
 
 export function GameMenuModal({
   isMenuOpen,

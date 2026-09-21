@@ -2,24 +2,24 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-import {
-  CELL_FLOOR,
-  CELL_WALL,
-  CELL_TARGET,
-  CELL_BOX,
-  CELL_BOX_ON_TARGET,
-  CELL_PLAYER,
-  CELL_PLAYER_ON_TARGET,
-  CELL_VOID,
-  type Direction,
-  type GameState,
-  type UndoSnapshot,
-  type ParsedLevel,
-  type PushPushLevelData,
-} from './push-push-types';
 import { playSound } from './push-push-sound';
 import { getLocalSync, setLocalSync } from '../utils/local-storage';
-import { PUSH_PUSH_LEVELS, parseLevel } from '../level/push-push-levels';
+import { parseLevel, PUSH_PUSH_LEVELS } from '../level/push-push-levels';
+import {
+  CELL_BOX,
+  CELL_WALL,
+  CELL_VOID,
+  CELL_FLOOR,
+  CELL_TARGET,
+  CELL_PLAYER,
+  type Direction,
+  type GameState,
+  type ParsedLevel,
+  type UndoSnapshot,
+  CELL_BOX_ON_TARGET,
+  CELL_PLAYER_ON_TARGET,
+  type PushPushLevelData,
+} from './push-push-types';
 
 const DIR_OFFSETS: Record<Direction, { x: number; y: number }> = {
   up: { x: 0, y: -1 },

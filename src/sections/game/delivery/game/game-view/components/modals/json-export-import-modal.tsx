@@ -1,7 +1,8 @@
 'use client';
 
+import type { JsonExportImportModalProps } from '../../types';
+
 import React from 'react';
-import { JsonExportImportModalProps } from '../../types';
 
 export function JsonExportImportModal({
   exportModalContent,

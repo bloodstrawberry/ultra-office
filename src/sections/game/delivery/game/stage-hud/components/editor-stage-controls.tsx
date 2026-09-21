@@ -1,7 +1,8 @@
 'use client';
 
+import type { EditorStageControlsProps } from '../types';
+
 import React from 'react';
-import { EditorStageControlsProps } from '../types';
 
 export function EditorStageControls({
   editorActiveIndex,

@@ -1,6 +1,6 @@
 'use client';
 
-import type { CaptionElement, NewsCaptionConfig, FontFamilyChoice } from './news-caption-presets';
+import type { FontFamilyChoice, NewsCaptionConfig } from './news-caption-presets';
 
 // ----------------------------------------------------------------------
 // Types for Hit-Testing & Selection
