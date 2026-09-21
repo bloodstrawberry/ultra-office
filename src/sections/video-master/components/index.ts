@@ -13,3 +13,4 @@ export * from './text-watermark-panel';
 export * from './transform-crop-panel';
 export * from './video-upload-workspace';
 export * from './subtitle-translate-dialog';
+export * from './subtitle-remover-timeline-track';
