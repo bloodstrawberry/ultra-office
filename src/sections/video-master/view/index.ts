@@ -7,3 +7,4 @@ export * from './video-master-mp4-to-mp3-view';
 export * from './video-master-ai-watermark-view';
 export * from './video-master-voice-record-view';
 export * from './video-master-subtitle-remover-view';
+export * from './video-master-bg-remove-view';

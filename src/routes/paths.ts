@@ -132,6 +132,7 @@ export const paths = {
     aiWatermark: '/video-master/ai-watermark',
     voiceRecord: '/video-master/voice-record',
     subtitleRemover: '/video-master/subtitle-remover',
+    bgRemove: '/video-master/bg-remove',
   },
   gigaViewer: '/giga-viewer',
   privacySanitizer: '/privacy-sanitizer',

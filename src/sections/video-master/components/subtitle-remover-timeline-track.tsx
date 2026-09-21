@@ -14,9 +14,7 @@ import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import ContentCutRoundedIcon from '@mui/icons-material/ContentCutRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import LayersRoundedIcon from '@mui/icons-material/LayersRounded';
-import ZoomInRoundedIcon from '@mui/icons-material/ZoomInRounded';
-import ZoomOutRoundedIcon from '@mui/icons-material/ZoomOutRounded';
-import { SubtitleBoundingBox } from '../types';
+import { type SubtitleBoundingBox } from '../utils/video-subtitle-remover-processor';
 
 export interface SubtitleRemoverTimelineTrackProps {
   boxes: SubtitleBoundingBox[];

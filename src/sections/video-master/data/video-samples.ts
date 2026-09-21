@@ -28,6 +28,10 @@ const BROADCAST_SUBTITLE_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w
 
 const CINEMA_SUBTITLE_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180"><defs><linearGradient id="g6" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%23180e29"/><stop offset="100%" stop-color="%2305050d"/></linearGradient></defs><rect width="320" height="180" fill="url(%23g6)"/><path d="M40,110 L160,50 L280,110 Z" fill="%23a855f7" opacity="0.3"/><text x="160" y="155" fill="%23fef08a" font-family="sans-serif" font-size="12" font-weight="bold" text-anchor="middle">“우리가 찾던 그 진실이 바로 여기에 있어.”</text></svg>`;
 
+const PERSON_DANCE_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180"><defs><linearGradient id="bgD" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%23ff007f"/><stop offset="100%" stop-color="%237928ca"/></linearGradient></defs><rect width="320" height="180" fill="%2311052C"/><circle cx="160" cy="90" r="70" fill="url(%23bgD)" opacity="0.4"/><circle cx="160" cy="52" r="16" fill="%23ffd166"/><path d="M142,76 Q160,70 178,76 L174,120 L146,120 Z" fill="%2306d6a0"/><line x1="142" y1="80" x2="120" y2="105" stroke="%23ffd166" stroke-width="6" stroke-linecap="round"/><line x1="178" y1="80" x2="200" y2="65" stroke="%23ffd166" stroke-width="6" stroke-linecap="round"/><line x1="152" y1="120" x2="145" y2="155" stroke="%23118ab2" stroke-width="7" stroke-linecap="round"/><line x1="168" y1="120" x2="180" y2="155" stroke="%23118ab2" stroke-width="7" stroke-linecap="round"/><text x="160" y="172" fill="%23ffffff" font-family="sans-serif" font-size="11" font-weight="bold" text-anchor="middle">💃 댄스 &amp; 모션 AI 분리</text></svg>`;
+
+const PERSON_VLOG_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180"><defs><linearGradient id="bgV" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%231e3a8a"/><stop offset="100%" stop-color="%230f172a"/></linearGradient></defs><rect width="320" height="180" fill="url(%23bgV)"/><rect x="30" y="30" width="260" height="120" rx="10" fill="%231e293b" opacity="0.6"/><circle cx="160" cy="65" r="22" fill="%23f97316"/><path d="M130,125 C130,95 190,95 190,125 Z" fill="%233b82f6"/><rect x="156" y="105" width="8" height="25" rx="3" fill="%2364748b"/><circle cx="160" cy="102" r="6" fill="%23e2e8f0"/><text x="160" y="165" fill="%2338bdf8" font-family="sans-serif" font-size="11" font-weight="bold" text-anchor="middle">🎙️ 크리에이터 브이로그 배경교체</text></svg>`;
+
 // ----------------------------------------------------------------------
 // Procedural Video Generators
 // ----------------------------------------------------------------------
@@ -707,6 +711,308 @@ export const SUBTITLE_REMOVER_VIDEO_SAMPLES: SampleVideoItem[] = [
     subLabel: '중앙 타임코드 각인 8초',
     duration: '00:08',
     tag: '중앙 텍스트',
+    thumbnailSvg: TIMECODE_HUD_SVG,
+    generate: () => createTimecodeCinematicVideo(8),
+  },
+];
+
+/**
+ * Procedural Video: Person Dance & Motion (For AI Background Removal Test)
+ */
+export async function createPersonDanceVideo(durationSec = 6): Promise<File> {
+  const canvas = document.createElement('canvas');
+  canvas.width = 640;
+  canvas.height = 360;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas 2D unavailable');
+
+  const stream = canvas.captureStream(30);
+  const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+  const chunks: Blob[] = [];
+
+  recorder.ondataavailable = (e) => {
+    if (e.data.size > 0) chunks.push(e.data);
+  };
+
+  const startTime = Date.now();
+  const totalMs = durationSec * 1000;
+
+  return new Promise((resolve) => {
+    recorder.onstop = () => {
+      const blob = new Blob(chunks, { type: 'video/webm' });
+      const file = new File([blob], 'person_dance_sample.webm', { type: 'video/webm' });
+      resolve(file);
+    };
+
+    recorder.start(100);
+
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const t = elapsed / 1000;
+
+      if (elapsed >= totalMs) {
+        clearInterval(interval);
+        recorder.stop();
+        return;
+      }
+
+      // 1. Dynamic Background: Colorful Studio with moving light rays
+      const bgGrad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      bgGrad.addColorStop(0, '#1a0826');
+      bgGrad.addColorStop(0.5, '#2e1065');
+      bgGrad.addColorStop(1, '#0f172a');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Light beams
+      for (let i = 0; i < 4; i += 1) {
+        const beamX = 160 + i * 110 + Math.sin(t * 2 + i) * 40;
+        const bGrad = ctx.createRadialGradient(beamX, 60, 10, beamX, 200, 180);
+        bGrad.addColorStop(0, 'rgba(236, 72, 153, 0.25)');
+        bGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = bGrad;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
+      // Studio floor grid
+      ctx.strokeStyle = 'rgba(147, 51, 234, 0.3)';
+      ctx.lineWidth = 1;
+      for (let y = 260; y < 360; y += 20) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+
+      // 2. Animated Dancing Figure (Clear human silhouette & skin/clothing)
+      const cx = 320 + Math.sin(t * 3) * 60;
+      const cy = 200 + Math.abs(Math.sin(t * 6)) * -25;
+      const armAngle = Math.sin(t * 5) * 0.8;
+      const legAngle = Math.cos(t * 5) * 0.6;
+
+      // Head
+      ctx.fillStyle = '#ffdfba'; // Skin tone
+      ctx.beginPath();
+      ctx.arc(cx, cy - 80, 26, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Hair
+      ctx.fillStyle = '#1e1b4b';
+      ctx.beginPath();
+      ctx.arc(cx, cy - 86, 28, Math.PI, 0, false);
+      ctx.fill();
+
+      // Neck
+      ctx.fillStyle = '#f0c8a0';
+      ctx.fillRect(cx - 7, cy - 56, 14, 16);
+
+      // Torso (Vivid Top)
+      ctx.fillStyle = '#06d6a0'; // Emerald sports top
+      ctx.beginPath();
+      ctx.roundRect(cx - 28, cy - 40, 56, 72, 12);
+      ctx.fill();
+
+      // Left Arm
+      ctx.save();
+      ctx.translate(cx - 28, cy - 32);
+      ctx.rotate(-0.4 + armAngle);
+      ctx.fillStyle = '#ffdfba';
+      ctx.fillRect(-8, 0, 16, 50);
+      ctx.beginPath();
+      ctx.arc(0, 52, 9, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // Right Arm
+      ctx.save();
+      ctx.translate(cx + 28, cy - 32);
+      ctx.rotate(0.4 - armAngle);
+      ctx.fillStyle = '#ffdfba';
+      ctx.fillRect(-8, 0, 16, 50);
+      ctx.beginPath();
+      ctx.arc(0, 52, 9, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // Pelvis & Pants
+      ctx.fillStyle = '#118ab2'; // Blue pants
+      ctx.fillRect(cx - 24, cy + 32, 48, 24);
+
+      // Left Leg
+      ctx.save();
+      ctx.translate(cx - 14, cy + 56);
+      ctx.rotate(legAngle);
+      ctx.fillStyle = '#118ab2';
+      ctx.fillRect(-9, 0, 18, 64);
+      // Shoes
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(-10, 64, 24, 12);
+      ctx.restore();
+
+      // Right Leg
+      ctx.save();
+      ctx.translate(cx + 14, cy + 56);
+      ctx.rotate(-legAngle);
+      ctx.fillStyle = '#118ab2';
+      ctx.fillRect(-9, 0, 18, 64);
+      // Shoes
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(-10, 64, 24, 12);
+      ctx.restore();
+    }, 1000 / 30);
+  });
+}
+
+/**
+ * Procedural Video: Creator Vlog & Speech (Portrait Upper Body & Studio Background)
+ */
+export async function createPersonVlogVideo(durationSec = 6): Promise<File> {
+  const canvas = document.createElement('canvas');
+  canvas.width = 640;
+  canvas.height = 360;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas 2D unavailable');
+
+  const stream = canvas.captureStream(30);
+  const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+  const chunks: Blob[] = [];
+
+  recorder.ondataavailable = (e) => {
+    if (e.data.size > 0) chunks.push(e.data);
+  };
+
+  const startTime = Date.now();
+  const totalMs = durationSec * 1000;
+
+  return new Promise((resolve) => {
+    recorder.onstop = () => {
+      const blob = new Blob(chunks, { type: 'video/webm' });
+      const file = new File([blob], 'creator_vlog_sample.webm', { type: 'video/webm' });
+      resolve(file);
+    };
+
+    recorder.start(100);
+
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const t = elapsed / 1000;
+
+      if (elapsed >= totalMs) {
+        clearInterval(interval);
+        recorder.stop();
+        return;
+      }
+
+      // 1. Studio Room Background (Bookshelf, Wall Frames, Ambient Lamp)
+      const wallGrad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      wallGrad.addColorStop(0, '#1e293b');
+      wallGrad.addColorStop(1, '#0f172a');
+      ctx.fillStyle = wallGrad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Bookshelf on left
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(30, 40, 120, 240);
+      for (let r = 0; r < 4; r += 1) {
+        ctx.fillStyle = '#475569';
+        ctx.fillRect(35, 60 + r * 55, 110, 8);
+        // Colorful books
+        for (let b = 0; b < 5; b += 1) {
+          const colors = ['#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'];
+          ctx.fillStyle = colors[(b + r) % colors.length];
+          ctx.fillRect(40 + b * 20, 26 + r * 55, 14, 34);
+        }
+      }
+
+      // Warm ambient wall light on right
+      const lightPulse = 0.5 + Math.sin(t * 2) * 0.1;
+      const lampGrad = ctx.createRadialGradient(530, 100, 15, 530, 100, 140);
+      lampGrad.addColorStop(0, `rgba(251, 191, 36, ${lightPulse})`);
+      lampGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = lampGrad;
+      ctx.fillRect(400, 0, 240, 240);
+
+      // 2. Creator Upper Body (Natural head gestures & mouth motion)
+      const cx = 330 + Math.sin(t * 1.5) * 10;
+      const cy = 180 + Math.cos(t * 2) * 4;
+
+      // Shoulders & Chest
+      ctx.fillStyle = '#2563eb'; // Blue hoodie
+      ctx.beginPath();
+      ctx.ellipse(cx, cy + 130, 110, 80, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Inner T-shirt collar
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(cx, cy + 55, 28, 0, Math.PI, false);
+      ctx.fill();
+
+      // Neck
+      ctx.fillStyle = '#f6d8be';
+      ctx.fillRect(cx - 16, cy + 20, 32, 40);
+
+      // Head
+      ctx.fillStyle = '#fed7aa';
+      ctx.beginPath();
+      ctx.ellipse(cx, cy - 20, 48, 56, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Hair
+      ctx.fillStyle = '#18181b';
+      ctx.beginPath();
+      ctx.arc(cx, cy - 35, 52, Math.PI * 0.85, Math.PI * 2.15);
+      ctx.fill();
+
+      // Eyes
+      ctx.fillStyle = '#0f172a';
+      const eyeBlink = Math.sin(t * 4) > 0.95 ? 1 : 4;
+      ctx.fillRect(cx - 20, cy - 22, 10, eyeBlink);
+      ctx.fillRect(cx + 10, cy - 22, 10, eyeBlink);
+
+      // Mouth (speaking animation)
+      const mouthHeight = 3 + Math.abs(Math.sin(t * 8)) * 8;
+      ctx.fillStyle = '#e11d48';
+      ctx.beginPath();
+      ctx.ellipse(cx, cy + 12, 9, mouthHeight, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Studio Condenser Microphone in foreground
+      ctx.fillStyle = '#64748b';
+      ctx.fillRect(cx - 6, cy + 90, 12, 50);
+      ctx.fillStyle = '#334155';
+      ctx.beginPath();
+      ctx.arc(cx, cy + 85, 15, 0, Math.PI * 2);
+      ctx.fill();
+    }, 1000 / 30);
+  });
+}
+
+export const BG_REMOVE_VIDEO_SAMPLES: SampleVideoItem[] = [
+  {
+    id: 'person-dance',
+    label: '💃 댄스 & 모션 AI 분리',
+    subLabel: '역동적인 인물 모션 및 화려한 조명 배경 6초',
+    duration: '00:06',
+    tag: '동적 인물 분리',
+    thumbnailSvg: PERSON_DANCE_SVG,
+    generate: () => createPersonDanceVideo(6),
+  },
+  {
+    id: 'person-vlog',
+    label: '🎙️ 크리에이터 브이로그',
+    subLabel: '인물 상반신 포트레이트 & 스튜디오 배경 교체 6초',
+    duration: '00:06',
+    tag: '포트레이트 배경교체',
+    thumbnailSvg: PERSON_VLOG_SVG,
+    generate: () => createPersonVlogVideo(6),
+  },
+  {
+    id: 'timecode-hud',
+    label: '🎞️ 타임코드 시네마틱',
+    subLabel: 'HUD 정밀 시간 측정 8초',
+    duration: '00:08',
+    tag: '시네마틱 모션',
     thumbnailSvg: TIMECODE_HUD_SVG,
     generate: () => createTimecodeCinematicVideo(8),
   },

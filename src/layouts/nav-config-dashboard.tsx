@@ -239,6 +239,11 @@ export const navData: NavSectionProps['data'] = [
             path: paths.videoMaster.subtitleRemover,
             info: newFeatureBadge,
           },
+          {
+            title: '동영상 배경 제거',
+            path: paths.videoMaster.bgRemove,
+            info: newFeatureBadge,
+          },
         ],
       },
       {
