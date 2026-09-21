@@ -169,5 +169,6 @@ export const paths = {
     padding: `/photo/padding`,
     ogImage: `/photo/og-image`,
     svg: `/photo/svg`,
+    newsCaption: `/photo/news-caption`,
   },
 };

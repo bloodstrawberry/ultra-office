@@ -185,6 +185,7 @@ export const navData: NavSectionProps['data'] = [
         icon: ICONS.photo,
         children: [
           { title: '갤럭시 & 아이폰 사진 편집', path: paths.photo.editor, info: newFeatureBadge },
+          { title: '뉴스 자막 스튜디오', path: paths.photo.newsCaption, info: newFeatureBadge },
           { title: '로고 만들기', path: paths.photo.logo, info: appsInTossBadge },
           { title: '배경색 변경', path: paths.photo.color, info: appsInTossBadge },
           { title: '세로 스크린샷', path: paths.photo.sero, info: appsInTossBadge },

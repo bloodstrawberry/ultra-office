@@ -24,6 +24,11 @@ import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import EmojiEmotionsRoundedIcon from '@mui/icons-material/EmojiEmotionsRounded';
 
+import Link from 'next/link';
+import TvRoundedIcon from '@mui/icons-material/LiveTvRounded';
+
+import { paths } from 'src/routes/paths';
+
 import { FRAME_PRESETS, STICKER_PRESETS } from '../editor-presets';
 
 // ----------------------------------------------------------------------
@@ -116,6 +121,103 @@ export function DecoratePanel({ values, onChange, onReset }: DecoratePanelProps)
     });
   };
 
+  const handleAddHumanTheaterCaption = (sub: string, quote: string) => {
+    const timestamp = Date.now();
+    const subLayer: EditorLayer = {
+      id: `caption-sub-${timestamp}`,
+      type: 'text',
+      name: `인간극장 인물: ${sub}`,
+      visible: true,
+      locked: false,
+      opacity: 100,
+      blendMode: 'normal',
+      x: 0.5,
+      y: 0.82,
+      width: 0.5,
+      height: 0.08,
+      rotation: 0,
+      text: {
+        content: sub,
+        fontSize: 26,
+        fontFamily: '"Nanum Myeongjo", "Batang", serif',
+        fontWeight: 'bold',
+        color: '#FFFFFF',
+        outlineColor: '#000000',
+        outlineWidth: 5,
+        shadow: true,
+        align: 'center',
+      },
+    };
+
+    const quoteLayer: EditorLayer = {
+      id: `caption-quote-${timestamp + 1}`,
+      type: 'text',
+      name: `인간극장 대사: ${quote}`,
+      visible: true,
+      locked: false,
+      opacity: 100,
+      blendMode: 'normal',
+      x: 0.5,
+      y: 0.9,
+      width: 0.6,
+      height: 0.1,
+      rotation: 0,
+      text: {
+        content: quote,
+        fontSize: 34,
+        fontFamily: '"Nanum Myeongjo", "Batang", serif',
+        fontWeight: 'bold',
+        color: '#FFFFFF',
+        outlineColor: '#000000',
+        outlineWidth: 6,
+        shadow: true,
+        align: 'center',
+      },
+    };
+
+    onChange({
+      ...values,
+      layers: [...values.layers, subLayer, quoteLayer],
+      selectedLayerId: quoteLayer.id,
+    });
+  };
+
+  const handleAddNewsTickerCaption = (headline: string, reporter: string) => {
+    const timestamp = Date.now();
+    const newsLayer: EditorLayer = {
+      id: `caption-news-${timestamp}`,
+      type: 'text',
+      name: `뉴스 헤드라인: ${headline.slice(0, 10)}`,
+      visible: true,
+      locked: false,
+      opacity: 100,
+      blendMode: 'normal',
+      x: 0.5,
+      y: 0.91,
+      width: 0.8,
+      height: 0.1,
+      rotation: 0,
+      text: {
+        content: headline,
+        fontSize: 28,
+        fontFamily: 'sans-serif',
+        fontWeight: 'bold',
+        color: '#FFFFFF',
+        backgroundColor: 'rgba(15, 23, 42, 0.85)',
+        outlineColor: '#000000',
+        outlineWidth: 2,
+        shadow: true,
+        align: 'center',
+      },
+    };
+
+    onChange({
+      ...values,
+      layers: [...values.layers, newsLayer],
+      selectedLayerId: newsLayer.id,
+    });
+  };
+
   const handleDeleteLayer = (id: string) => {
     onChange({
       ...values,
@@ -193,6 +295,64 @@ export function DecoratePanel({ values, onChange, onReset }: DecoratePanelProps)
         >
           사진 위에 텍스트 추가
         </Button>
+      </Card>
+
+      {/* 1-2. 뉴스 & 인간극장 자막 프리셋 */}
+      <Card variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+        <Box
+          sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <TvRoundedIcon color="primary" />
+            <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+              뉴스 & 인간극장 자막 프리셋
+            </Typography>
+          </Box>
+          <Button
+            component={Link}
+            href={paths.photo.newsCaption}
+            size="small"
+            variant="text"
+            sx={{ fontSize: '11px', fontWeight: 700 }}
+          >
+            전용 스튜디오 →
+          </Button>
+        </Box>
+
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Button
+            variant="outlined"
+            size="small"
+            color="secondary"
+            onClick={() =>
+              handleAddHumanTheaterCaption('시능지(23) / 자취생', '"계란이 다 떨어졌다"')
+            }
+            sx={{ justifyContent: 'flex-start', textAlign: 'left', fontWeight: 700 }}
+          >
+            📺 인간극장: 시능지(23) / &quot;계란이 다 떨어졌다&quot;
+          </Button>
+          <Button
+            variant="outlined"
+            size="small"
+            color="primary"
+            onClick={() =>
+              handleAddHumanTheaterCaption('김철수(34) / 직장인', '"월급은 통장을 스쳐갈 뿐..."')
+            }
+            sx={{ justifyContent: 'flex-start', textAlign: 'left', fontWeight: 700 }}
+          >
+            💸 인간극장: 직장인 / &quot;월급은 통장을 스쳐갈 뿐...&quot;
+          </Button>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() =>
+              handleAddNewsTickerCaption('[속보] 긴급 상황 발생... 전문가들 "침착해야"', 'KBS')
+            }
+            sx={{ justifyContent: 'flex-start', textAlign: 'left', fontWeight: 700 }}
+          >
+            🚨 9시 뉴스 속보: [속보] 긴급 상황 발생...
+          </Button>
+        </Box>
       </Card>
 
       {/* 2. 스티커 및 뱃지 스탬프 */}

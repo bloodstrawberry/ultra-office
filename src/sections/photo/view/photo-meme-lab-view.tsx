@@ -8,12 +8,14 @@ import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
 import Slider from '@mui/material/Slider';
+import Switch from '@mui/material/Switch';
 import Select from '@mui/material/Select';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
 import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
 import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
@@ -27,17 +29,17 @@ import CompareArrowsRoundedIcon from '@mui/icons-material/CompareArrowsRounded';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import {
+  downloadDataUrl,
+  shareToKakaoTalk,
+  renderGenericSplitComparisonImage,
+} from '../utils/image-processor';
+import {
   type SplitMode,
   PhotoUploadWorkspace,
   PhotoCompareViewport,
   type SplitOrientation,
   type ComparePreviewMode,
 } from '../components';
-import {
-  downloadDataUrl,
-  shareToKakaoTalk,
-  renderGenericSplitComparisonImage,
-} from '../utils/image-processor';
 import {
   MEME_EFFECTS,
   MEME_SAMPLES,
@@ -74,7 +76,15 @@ export function MemeLabView() {
     'vertical'
   );
 
-  const [emojiDensity, setEmojiDensity] = useState<number>(36);
+  // 7. Play Button (Fake Video Prank)
+  const [playButtonStyle, setPlayButtonStyle] = useState<
+    'youtube' | 'glass_circle' | 'minimal_white' | 'pure_triangle'
+  >('youtube');
+  const [playButtonSize, setPlayButtonSize] = useState<number>(85);
+  const [playButtonOpacity, setPlayButtonOpacity] = useState<number>(0.9);
+  const [playButtonDim, setPlayButtonDim] = useState<number>(0.15);
+  const [showFakeProgress, setShowFakeProgress] = useState<boolean>(true);
+  const [fakeTimestamp, setFakeTimestamp] = useState<string>('0:15');
 
   const [spinningShape, setSpinningShape] = useState<'cube' | 'cylinder' | 'flat'>('cube');
   const [spinningSpeed, setSpinningSpeed] = useState<number>(3);
@@ -302,7 +312,12 @@ export function MemeLabView() {
       radialBlurPasses,
       pixelSortThreshold,
       pixelSortDirection,
-      emojiDensity,
+      playButtonStyle,
+      playButtonSize,
+      playButtonOpacity,
+      playButtonDim,
+      showFakeProgress,
+      fakeTimestamp,
       spinningShape,
       spinningSpeed,
       spinningAngleDeg: spinningAngleRef.current,
@@ -328,7 +343,12 @@ export function MemeLabView() {
     radialBlurPasses,
     pixelSortThreshold,
     pixelSortDirection,
-    emojiDensity,
+    playButtonStyle,
+    playButtonSize,
+    playButtonOpacity,
+    playButtonDim,
+    showFakeProgress,
+    fakeTimestamp,
     spinningShape,
     spinningSpeed,
     tiltShiftPosition,
@@ -342,12 +362,16 @@ export function MemeLabView() {
     let isMounted = true;
     if (!imageSrc) {
       setResultDataUrl('');
-      return;
+      return () => {
+        isMounted = false;
+      };
     }
 
     if (activeEffect === 'spinning_3d') {
       setIsProcessing(false);
-      return;
+      return () => {
+        isMounted = false;
+      };
     }
 
     setIsProcessing(true);
@@ -441,7 +465,12 @@ export function MemeLabView() {
         radialBlurPasses,
         pixelSortThreshold,
         pixelSortDirection,
-        emojiDensity,
+        playButtonStyle,
+        playButtonSize,
+        playButtonOpacity,
+        playButtonDim,
+        showFakeProgress,
+        fakeTimestamp,
         spinningShape,
         spinningSpeed,
         spinningAngleDeg: spinningAngleRef.current,
@@ -462,22 +491,6 @@ export function MemeLabView() {
       toast.error('GIF 생성 중 오류가 발생했습니다.');
     } finally {
       setIsGeneratingGif(false);
-    }
-  };
-
-  // Copy Clipboard
-  const handleCopyClipboard = async () => {
-    let targetDataUrl = resultDataUrl;
-    if (activeEffect === 'spinning_3d' && spinningCanvasRef.current) {
-      targetDataUrl = spinningCanvasRef.current.toDataURL('image/png');
-    }
-    if (!targetDataUrl) return;
-    try {
-      const blob = await (await fetch(targetDataUrl)).blob();
-      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-      toast.success('밈 이미지가 클립보드에 복사되었습니다!');
-    } catch {
-      toast.error('클립보드 복사를 지원하지 않는 브라우저입니다.');
     }
   };
 
@@ -832,7 +845,9 @@ export function MemeLabView() {
                           isDraggingTiltShiftRef.current = false;
                           try {
                             (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-                          } catch {}
+                          } catch {
+                            // ignore
+                          }
                         }
                       }}
                       sx={{
@@ -1279,7 +1294,7 @@ export function MemeLabView() {
                             label={`눈 #${i + 1}`}
                             size="small"
                             onDelete={() =>
-                              setLaserPoints((prev) => prev.filter((_, idx) => idx !== i))
+                              setLaserPoints((prev) => prev.filter((pt, idx) => idx !== i))
                             }
                             sx={{ height: 22, fontSize: '0.7rem' }}
                           />
@@ -1401,30 +1416,157 @@ export function MemeLabView() {
                   </Box>
                 )}
 
-                {/* 7. Emoji Mosaic Controls */}
-                {activeEffect === 'emoji_mosaic' && (
-                  <Box>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        이모지 타일 밀도 (가로 개수)
-                      </Typography>
-                      <Typography variant="caption" sx={{ fontWeight: 700 }}>
-                        {emojiDensity}개
+                {/* 7. Play Button (Fake Video Prank) Controls */}
+                {activeEffect === 'play_button' && (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {/* Prank Tip Banner */}
+                    <Box
+                      sx={{
+                        p: 1.25,
+                        borderRadius: 1.5,
+                        bgcolor: 'action.hover',
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                      }}
+                    >
+                      <Typography sx={{ fontSize: '1.2rem', flexShrink: 0 }}>🎣</Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: 'text.secondary', lineHeight: 1.35, fontSize: '0.725rem' }}
+                      >
+                        사진 한가운데 재생 버튼과 진행바를 합성하여 SNS나 메신저에서 누구나 무심코
+                        터치하게 만드는 <strong>동영상 낚시 짤방</strong>을 생성합니다.
                       </Typography>
                     </Box>
-                    <Slider
-                      value={emojiDensity}
-                      min={15}
-                      max={60}
-                      step={2}
-                      onChange={(_, val) => setEmojiDensity(val as number)}
+
+                    {/* Button Style Selector */}
+                    <FormControl fullWidth size="small">
+                      <InputLabel id="play-button-style-label">재생 버튼 스타일</InputLabel>
+                      <Select
+                        labelId="play-button-style-label"
+                        value={playButtonStyle}
+                        label="재생 버튼 스타일"
+                        onChange={(e) =>
+                          setPlayButtonStyle(
+                            e.target.value as
+                              | 'youtube'
+                              | 'glass_circle'
+                              | 'minimal_white'
+                              | 'pure_triangle'
+                          )
+                        }
+                      >
+                        <MenuItem value="youtube">🟥 유튜브 레드 (YouTube)</MenuItem>
+                        <MenuItem value="glass_circle">
+                          🔘 인스타/틱톡 다크 글래스 (Instagram/TikTok)
+                        </MenuItem>
+                        <MenuItem value="minimal_white">⚪ 미니멀 화이트 (Minimal White)</MenuItem>
+                        <MenuItem value="pure_triangle">
+                          ▶️ 퓨어 트라이앵글 (Pure Triangle)
+                        </MenuItem>
+                      </Select>
+                    </FormControl>
+
+                    {/* Button Size Slider */}
+                    <Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          재생 버튼 크기
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          sx={{ fontWeight: 700, color: 'primary.main' }}
+                        >
+                          {playButtonSize}px
+                        </Typography>
+                      </Box>
+                      <Slider
+                        value={playButtonSize}
+                        min={40}
+                        max={180}
+                        step={5}
+                        size="small"
+                        onChange={(_, val) => setPlayButtonSize(val as number)}
+                      />
+                    </Box>
+
+                    {/* Button Opacity Slider */}
+                    <Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          버튼 불투명도 (Opacity)
+                        </Typography>
+                        <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                          {Math.round(playButtonOpacity * 100)}%
+                        </Typography>
+                      </Box>
+                      <Slider
+                        value={playButtonOpacity}
+                        min={0.3}
+                        max={1.0}
+                        step={0.05}
+                        size="small"
+                        onChange={(_, val) => setPlayButtonOpacity(val as number)}
+                      />
+                    </Box>
+
+                    {/* Background Dim Slider */}
+                    <Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          일시정지 배경 어둡게 (Dim)
+                        </Typography>
+                        <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                          {Math.round(playButtonDim * 100)}%
+                        </Typography>
+                      </Box>
+                      <Slider
+                        value={playButtonDim}
+                        min={0}
+                        max={0.5}
+                        step={0.05}
+                        size="small"
+                        onChange={(_, val) => setPlayButtonDim(val as number)}
+                      />
+                    </Box>
+
+                    {/* Fake Progress Bar Switch */}
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={showFakeProgress}
+                          onChange={(e) => setShowFakeProgress(e.target.checked)}
+                          size="small"
+                        />
+                      }
+                      label={
+                        <Typography variant="body2" sx={{ fontSize: '0.8rem', fontWeight: 600 }}>
+                          가짜 하단 재생바 표시 (유튜브 붉은 진행선)
+                        </Typography>
+                      }
                     />
-                    <Typography
-                      variant="caption"
-                      sx={{ color: 'text.secondary', display: 'block', mt: 1 }}
-                    >
-                      😂, 💀, 🔥, 💩, 🤡, 🗿 등 14종의 대표 이모지로 사진이 구성됩니다.
-                    </Typography>
+
+                    {/* Fake Timestamp Badge Selector */}
+                    <FormControl fullWidth size="small">
+                      <InputLabel id="fake-timestamp-label">가짜 재생시간 (타임스탬프)</InputLabel>
+                      <Select
+                        labelId="fake-timestamp-label"
+                        value={fakeTimestamp}
+                        label="가짜 재생시간 (타임스탬프)"
+                        onChange={(e) => setFakeTimestamp(e.target.value)}
+                      >
+                        <MenuItem value="none">표시 안 함 (None)</MenuItem>
+                        <MenuItem value="0:15">0:15 (숏폼 릴스)</MenuItem>
+                        <MenuItem value="0:34">0:34 (스토리 짤)</MenuItem>
+                        <MenuItem value="0:45">0:45 (일반 영상)</MenuItem>
+                        <MenuItem value="1:05">1:05 (1분 영상)</MenuItem>
+                        <MenuItem value="2:48">2:48 (유튜브 롱폼)</MenuItem>
+                        <MenuItem value="LIVE">🔴 LIVE (실시간 방송)</MenuItem>
+                      </Select>
+                    </FormControl>
                   </Box>
                 )}
 

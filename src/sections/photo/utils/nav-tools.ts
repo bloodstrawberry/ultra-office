@@ -107,6 +107,11 @@ export const TOOL_METADATA_MAP: Record<
   },
 
   // 사진 편집 스튜디오
+  [paths.photo.newsCaption]: {
+    description: 'KBS 인간극장 명조체 다큐 인터뷰 자막부터 9시 뉴스, 긴급 속보 배너까지 1초 방송 자막 합성',
+    tag: 'NEW',
+    badgeColor: 'primary',
+  },
   [paths.photo.bgRemove]: {
     description: 'WebGPU 기반 1초 만에 인물, 헤어라인, 제품 배경 100% 로컬 분리',
     tag: 'AI 추천',

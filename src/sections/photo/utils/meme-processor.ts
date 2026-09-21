@@ -7,7 +7,7 @@ export type MemeEffectType =
   | 'uncanny'
   | 'radial_blur'
   | 'pixel_sort'
-  | 'emoji_mosaic'
+  | 'play_button'
   | 'spinning_3d'
   | 'tilt_shift'
   | 'ps1_demake';
@@ -43,8 +43,13 @@ export interface MemeLabConfig {
   pixelSortThreshold: number; // 20 to 220
   pixelSortDirection: 'vertical' | 'horizontal';
 
-  // 7. Emoji Mosaic
-  emojiDensity: number; // 15 to 60 (grid tiles across width)
+  // 7. Play Button (Fake Video Prank)
+  playButtonStyle: 'youtube' | 'glass_circle' | 'minimal_white' | 'pure_triangle';
+  playButtonSize: number; // 40 to 200
+  playButtonOpacity: number; // 0.3 to 1.0
+  playButtonDim: number; // 0 to 0.5 (dim background when paused)
+  showFakeProgress: boolean; // whether to show bottom video progress bar
+  fakeTimestamp: string; // e.g. '0:15', '0:45', '1:23', 'none'
 
   // 8. Spinning 3D
   spinningShape: 'cube' | 'cylinder' | 'flat';
@@ -121,12 +126,12 @@ export const MEME_EFFECTS: MemeEffectMeta[] = [
     badgeBg: '#06b6d4',
   },
   {
-    id: 'emoji_mosaic',
-    name: '이모지 모자이크',
-    subtitle: 'Emoji Tile Mosaic',
-    desc: '사진의 모든 픽셀을 😂, 💀, 🔥, 💩 등 이모지로 재구성',
-    icon: '😂',
-    badgeBg: '#8b5cf6',
+    id: 'play_button',
+    name: '재생 버튼 추가',
+    subtitle: 'Fake Video Play Prank',
+    desc: '사진 한가운데 동영상 재생 버튼을 합성하여 감쪽같이 낚시하는 짤방 생성',
+    icon: '▶️',
+    badgeBg: '#ef4444',
   },
   {
     id: 'spinning_3d',
@@ -587,79 +592,212 @@ export function renderPixelSortingEffect(
 }
 
 /**
- * 7. Emoji Mosaic Generator
+ * 7. Play Button (Fake Video Prank) Generator
  */
-const EMOJI_PALETTE = [
-  { char: '💀', r: 230, g: 230, b: 230 },
-  { char: '🖤', r: 30, g: 30, b: 30 },
-  { char: '😂', r: 255, g: 204, b: 0 },
-  { char: '🔥', r: 255, g: 100, b: 0 },
-  { char: '❤️', r: 230, g: 30, b: 30 },
-  { char: '💙', r: 30, g: 120, b: 255 },
-  { char: '💚', r: 50, g: 200, b: 50 },
-  { char: '💩', r: 139, g: 69, b: 19 },
-  { char: '🗿', r: 140, g: 140, b: 150 },
-  { char: '🤡', r: 240, g: 160, b: 170 },
-  { char: '🌸', r: 255, g: 182, b: 193 },
-  { char: '☕', r: 110, g: 60, b: 30 },
-  { char: '🌊', r: 0, g: 180, b: 230 },
-  { char: '✨', r: 255, g: 230, b: 100 },
-];
-
-export function renderEmojiMosaicEffect(
+export function renderPlayButtonEffect(
   ctx: CanvasRenderingContext2D,
   img: HTMLImageElement,
   w: number,
   h: number,
-  density: number
+  config: {
+    style: 'youtube' | 'glass_circle' | 'minimal_white' | 'pure_triangle';
+    size: number;
+    opacity: number;
+    dim: number;
+    showFakeProgress: boolean;
+    fakeTimestamp: string;
+  }
 ) {
-  const tileSize = Math.max(8, Math.round(w / density));
-  const cols = Math.floor(w / tileSize);
-  const rows = Math.floor(h / tileSize);
-
   ctx.canvas.width = w;
   ctx.canvas.height = h;
 
-  // Background dark base
-  ctx.fillStyle = '#111827';
-  ctx.fillRect(0, 0, w, h);
+  // 1. Draw base photo
+  ctx.drawImage(img, 0, 0, w, h);
 
-  // Measure average color on downscaled canvas
-  const sampleCanvas = document.createElement('canvas');
-  sampleCanvas.width = cols;
-  sampleCanvas.height = rows;
-  const sampleCtx = sampleCanvas.getContext('2d');
-  if (!sampleCtx) return;
-  sampleCtx.drawImage(img, 0, 0, cols, rows);
-  const sData = sampleCtx.getImageData(0, 0, cols, rows).data;
+  // 2. Video pause dim overlay
+  if (config.dim > 0) {
+    ctx.save();
+    ctx.fillStyle = `rgba(0, 0, 0, ${Math.min(0.6, config.dim)})`;
+    ctx.fillRect(0, 0, w, h);
+    ctx.restore();
+  }
 
-  ctx.font = `${tileSize * 0.9}px sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
+  // Helper to draw rounded rectangle
+  const drawRoundedRect = (rx: number, ry: number, rw: number, rh: number, radius: number) => {
+    const r = Math.min(radius, rw / 2, rh / 2);
+    ctx.beginPath();
+    ctx.moveTo(rx + r, ry);
+    ctx.lineTo(rx + rw - r, ry);
+    ctx.quadraticCurveTo(rx + rw, ry, rx + rw, ry + r);
+    ctx.lineTo(rx + rw, ry + rh - r);
+    ctx.quadraticCurveTo(rx + rw, ry + rh, rx + rw - r, ry + rh);
+    ctx.lineTo(rx + r, ry + rh);
+    ctx.quadraticCurveTo(rx, ry + rh, rx, ry + rh - r);
+    ctx.lineTo(rx, ry + r);
+    ctx.quadraticCurveTo(rx, ry, rx + r, ry);
+    ctx.closePath();
+  };
 
-  for (let r = 0; r < rows; r += 1) {
-    for (let c = 0; c < cols; c += 1) {
-      const idx = (r * cols + c) * 4;
-      const sr = sData[idx];
-      const sg = sData[idx + 1];
-      const sb = sData[idx + 2];
+  // Helper to draw play triangle with optical visual center correction
+  const drawPlayTriangle = (centerX: number, centerY: number, triSize: number, color: string) => {
+    ctx.save();
+    ctx.fillStyle = color;
+    // Optical adjustment: shift right so centroid looks centered to human eye
+    const shiftX = triSize * 0.1;
+    const halfH = (triSize * Math.sqrt(3)) / 3;
+    const leftX = centerX - triSize * 0.38 + shiftX;
+    const rightX = centerX + triSize * 0.48 + shiftX;
+    const topY = centerY - halfH;
+    const bottomY = centerY + halfH;
 
-      // Find closest emoji by Euclidean RGB distance
-      let bestEmoji = EMOJI_PALETTE[0].char;
-      let minDistance = Infinity;
+    ctx.beginPath();
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = Math.max(2, triSize * 0.08);
+    ctx.strokeStyle = color;
+    ctx.moveTo(leftX, topY);
+    ctx.lineTo(rightX, centerY);
+    ctx.lineTo(leftX, bottomY);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.fill();
+    ctx.restore();
+  };
 
-      for (const em of EMOJI_PALETTE) {
-        const dist = (sr - em.r) ** 2 + (sg - em.g) ** 2 + (sb - em.b) ** 2;
-        if (dist < minDistance) {
-          minDistance = dist;
-          bestEmoji = em.char;
-        }
-      }
+  // 3. Play Button at exact center
+  ctx.save();
+  ctx.globalAlpha = Math.max(0.1, Math.min(1.0, config.opacity));
 
-      const posX = c * tileSize + tileSize / 2;
-      const posY = r * tileSize + tileSize / 2;
-      ctx.fillText(bestEmoji, posX, posY);
-    }
+  const cx = w / 2;
+  const cy = h / 2;
+  const btnSize = Math.max(30, config.size);
+
+  if (config.style === 'youtube') {
+    // YouTube Red Pill / Rounded Rectangle
+    const rectW = btnSize * 1.45;
+    const rectH = btnSize;
+    const cornerR = btnSize * 0.28;
+
+    ctx.save();
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.55)';
+    ctx.shadowBlur = Math.round(btnSize * 0.25);
+    ctx.shadowOffsetY = Math.round(btnSize * 0.08);
+    ctx.fillStyle = '#FF0000';
+    drawRoundedRect(cx - rectW / 2, cy - rectH / 2, rectW, rectH, cornerR);
+    ctx.fill();
+    ctx.restore();
+
+    drawPlayTriangle(cx, cy, btnSize * 0.46, '#FFFFFF');
+  } else if (config.style === 'glass_circle') {
+    // Instagram / TikTok style dark glassmorphism
+    ctx.save();
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.65)';
+    ctx.shadowBlur = Math.round(btnSize * 0.3);
+    ctx.shadowOffsetY = Math.round(btnSize * 0.08);
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, btnSize / 2, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(15, 15, 20, 0.72)';
+    ctx.fill();
+
+    ctx.lineWidth = Math.max(2, btnSize * 0.04);
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+    ctx.stroke();
+    ctx.restore();
+
+    drawPlayTriangle(cx, cy, btnSize * 0.44, '#FFFFFF');
+  } else if (config.style === 'minimal_white') {
+    // Modern minimal white circle
+    ctx.save();
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+    ctx.shadowBlur = Math.round(btnSize * 0.25);
+    ctx.shadowOffsetY = Math.round(btnSize * 0.06);
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, btnSize / 2, 0, Math.PI * 2);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fill();
+    ctx.restore();
+
+    drawPlayTriangle(cx, cy, btnSize * 0.44, '#18181B');
+  } else if (config.style === 'pure_triangle') {
+    // Floating pure white play triangle
+    ctx.save();
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+    ctx.shadowBlur = Math.round(btnSize * 0.28);
+    ctx.shadowOffsetY = Math.round(btnSize * 0.06);
+    drawPlayTriangle(cx, cy, btnSize * 0.82, '#FFFFFF');
+    ctx.restore();
+  }
+
+  ctx.restore(); // Restore globalAlpha
+
+  // 4. Fake Video Progress Bar (YouTube/SNS Prank)
+  if (config.showFakeProgress) {
+    ctx.save();
+    const barH = Math.max(3, Math.round(h * 0.007));
+    const barY = h - barH - Math.max(8, Math.round(h * 0.015));
+    const marginX = Math.max(12, Math.round(w * 0.03));
+    const barW = w - marginX * 2;
+
+    // Track background
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+    drawRoundedRect(marginX, barY, barW, barH, barH / 2);
+    ctx.fill();
+
+    // Buffer track
+    const bufferW = barW * 0.38;
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+    drawRoundedRect(marginX, barY, bufferW, barH, barH / 2);
+    ctx.fill();
+
+    // Played red track
+    const playedW = barW * 0.14;
+    ctx.fillStyle = '#FF0000';
+    drawRoundedRect(marginX, barY, playedW, barH, barH / 2);
+    ctx.fill();
+
+    // Scrubber head
+    const scrubberR = Math.max(4, barH * 1.5);
+    ctx.beginPath();
+    ctx.arc(marginX + playedW, barY + barH / 2, scrubberR, 0, Math.PI * 2);
+    ctx.fillStyle = '#FF0000';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+    ctx.shadowBlur = 4;
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // 5. Fake Timestamp Badge
+  if (config.fakeTimestamp && config.fakeTimestamp !== 'none') {
+    ctx.save();
+    const badgeText = config.fakeTimestamp;
+    const fontSize = Math.max(11, Math.round(Math.min(w, h) * 0.03));
+    ctx.font = `700 ${fontSize}px sans-serif`;
+
+    const textMetrics = ctx.measureText(badgeText);
+    const padX = fontSize * 0.6;
+    const padY = fontSize * 0.35;
+    const badgeW = textMetrics.width + padX * 2;
+    const badgeH = fontSize + padY * 2;
+
+    const marginX = Math.max(10, Math.round(w * 0.025));
+    const progressOffset = config.showFakeProgress ? Math.max(14, Math.round(h * 0.028)) : 0;
+    const badgeX = w - marginX - badgeW;
+    const badgeY = h - marginX - badgeH - progressOffset;
+
+    // Background pill
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    ctx.shadowBlur = 6;
+    drawRoundedRect(badgeX, badgeY, badgeW, badgeH, 4);
+    ctx.fill();
+
+    // Timestamp text
+    ctx.fillStyle = '#FFFFFF';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(badgeText, badgeX + badgeW / 2, badgeY + badgeH / 2 + 1);
+    ctx.restore();
   }
 }
 
@@ -997,8 +1135,15 @@ export async function renderMemePhoto(imageSrc: string, config: MemeLabConfig): 
       );
       break;
 
-    case 'emoji_mosaic':
-      renderEmojiMosaicEffect(ctx, origImg, targetW, targetH, config.emojiDensity);
+    case 'play_button':
+      renderPlayButtonEffect(ctx, origImg, targetW, targetH, {
+        style: config.playButtonStyle,
+        size: config.playButtonSize,
+        opacity: config.playButtonOpacity,
+        dim: config.playButtonDim,
+        showFakeProgress: config.showFakeProgress,
+        fakeTimestamp: config.fakeTimestamp,
+      });
       break;
 
     case 'spinning_3d':
