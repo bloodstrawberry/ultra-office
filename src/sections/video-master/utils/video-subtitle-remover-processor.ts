@@ -816,101 +816,119 @@ export function applySubtitleRemovalToCanvas(
 
     if (pw <= 4 || ph <= 4) continue;
 
+    // Height strictly remains original as requested:
+    const finalPy = py;
+    const finalPh = ph;
     let finalPx = px;
-    let finalPy = py;
     let finalPw = pw;
-    let finalPh = ph;
 
-    // Dynamic Bounds Detection (해당 자막의 정확한 상하좌우 크기까지만 타이트하게 지우기)
+    // Dynamic Width Detection (자막 글자가 위치한 가로 너비만 정확히 추출, 상하 높이는 원본 유지)
     try {
       const imgData = ctx.getImageData(px, py, pw, ph);
       const data = imgData.data;
-      
+
       const step = 2;
       const numCols = Math.ceil(pw / step);
-      const numRows = Math.ceil(ph / step);
       const colEnergies = new Float32Array(numCols);
-      const rowEnergies = new Float32Array(numRows);
-      let totalEdges = 0;
 
-      for (let y = 0; y < ph; y += step) {
-        for (let x = 0; x < pw - step; x += step) {
+      for (let c = 0; c < numCols; c++) {
+        const x = c * step;
+        if (x >= pw - step) continue;
+
+        let colMinLum = 255;
+        let colMaxLum = 0;
+        let colEdges = 0;
+
+        for (let y = 0; y < ph; y += step) {
           const idx1 = (y * pw + x) * 4;
           const idx2 = (y * pw + (x + step)) * 4;
+
           const lum1 = 0.299 * data[idx1] + 0.587 * data[idx1 + 1] + 0.114 * data[idx1 + 2];
           const lum2 = 0.299 * data[idx2] + 0.587 * data[idx2 + 1] + 0.114 * data[idx2 + 2];
 
-          // 경계선(Edge) 검출 임계값을 45로 높여 배경 노이즈(옷 질감 등)보다 뚜렷한 글자만 잡도록 강화
-          if (Math.abs(lum1 - lum2) > 45) {
-            colEnergies[Math.floor(x / step)]++;
-            rowEnergies[Math.floor(y / step)]++;
-            totalEdges++;
+          if (lum1 < colMinLum) colMinLum = lum1;
+          if (lum1 > colMaxLum) colMaxLum = lum1;
+
+          if (Math.abs(lum1 - lum2) > 48) {
+            colEdges++;
           }
+        }
+
+        // 텍스트가 있는 세로 슬라이스는 배경과 글자 간 명도 대비(Contrast)가 뚜렷함 (> 45)
+        // 니트/옷감 등의 균일한 배경 텍스처는 컬럼 내 명도 차이가 작아 필터링됨
+        const colContrast = colMaxLum - colMinLum;
+        if (colContrast >= 45 && colEdges >= 2) {
+          colEnergies[c] = colEdges * (colContrast / 45);
+        } else {
+          colEnergies[c] = 0;
         }
       }
 
-      if (totalEdges >= 10) {
-        // --- 가로(X) 너비 타이트하게 줄이기 ---
-        const smoothCol = new Float32Array(numCols);
-        const winX = Math.max(2, Math.floor((pw * 0.03) / step)); 
-        let maxCol = 0;
-        for (let i = 0; i < numCols; i++) {
-          let sum = 0, count = 0;
-          for (let d = -winX; d <= winX; d++) {
-            if (i + d >= 0 && i + d < numCols) { sum += colEnergies[i + d]; count++; }
-          }
-          smoothCol[i] = sum / count;
-          if (smoothCol[i] > maxCol) maxCol = smoothCol[i];
-        }
+      // 가로 방향 이동 평균으로 단어 간격 및 글자 획 스무딩
+      const smoothCol = new Float32Array(numCols);
+      const winX = Math.max(3, Math.floor((pw * 0.025) / step));
+      let maxCol = 0;
+      let peakCol = -1;
 
-        const threshX = Math.max(0.5, maxCol * 0.25);
-        let minX = pw, maxX = 0;
-        for (let i = 0; i < numCols; i++) {
-          if (smoothCol[i] >= threshX) {
-            const x = i * step;
-            if (x < minX) minX = x;
-            if (x > maxX) maxX = x;
+      for (let i = 0; i < numCols; i++) {
+        let sum = 0;
+        let count = 0;
+        for (let d = -winX; d <= winX; d++) {
+          if (i + d >= 0 && i + d < numCols) {
+            sum += colEnergies[i + d];
+            count++;
           }
         }
-
-        // --- 세로(Y) 높이 타이트하게 줄이기 ---
-        const smoothRow = new Float32Array(numRows);
-        const winY = Math.max(1, Math.floor((ph * 0.05) / step)); 
-        let maxRow = 0;
-        for (let i = 0; i < numRows; i++) {
-          let sum = 0, count = 0;
-          for (let d = -winY; d <= winY; d++) {
-            if (i + d >= 0 && i + d < numRows) { sum += rowEnergies[i + d]; count++; }
-          }
-          smoothRow[i] = sum / count;
-          if (smoothRow[i] > maxRow) maxRow = smoothRow[i];
-        }
-
-        const threshY = Math.max(0.5, maxRow * 0.25);
-        let minY = ph, maxY = 0;
-        for (let i = 0; i < numRows; i++) {
-          if (smoothRow[i] >= threshY) {
-            const y = i * step;
-            if (y < minY) minY = y;
-            if (y > maxY) maxY = y;
-          }
-        }
-
-        if (maxX > minX && maxY > minY) {
-          const padX = pad + 12; // 좌우 넉넉한 여백
-          const padY = pad + 6;  // 상하 약간의 여백
-          
-          finalPx = Math.max(px, px + minX - padX);
-          const rightEdge = Math.min(px + pw, px + maxX + padX);
-          finalPw = Math.max(4, rightEdge - finalPx);
-
-          finalPy = Math.max(py, py + minY - padY);
-          const bottomEdge = Math.min(py + ph, py + maxY + padY);
-          finalPh = Math.max(4, bottomEdge - finalPy);
+        smoothCol[i] = sum / count;
+        if (smoothCol[i] > maxCol) {
+          maxCol = smoothCol[i];
+          peakCol = i;
         }
       }
+
+      // 프레임 내 자막이 없거나 에너지가 미미한 경우 불필요한 블러 방지
+      if (maxCol < 2.0 || peakCol === -1) {
+        continue;
+      }
+
+      // 최대 밀집도(자막) 피크로부터 좌/우로 확장하여 단어 간 띄어쓰기를 포함한 자막 전체 너비 확정
+      const textThresh = Math.max(1.2, maxCol * 0.22);
+      const maxGapCols = Math.max(12, Math.round((pw * 0.07) / step)); // 글자/단어 사이 띄어쓰기 허용 폭
+
+      let leftCol = peakCol;
+      let gap = 0;
+      for (let c = peakCol; c >= 0; c--) {
+        if (smoothCol[c] >= textThresh) {
+          leftCol = c;
+          gap = 0;
+        } else {
+          gap++;
+          if (gap > maxGapCols) break;
+        }
+      }
+
+      let rightCol = peakCol;
+      gap = 0;
+      for (let c = peakCol; c < numCols; c++) {
+        if (smoothCol[c] >= textThresh) {
+          rightCol = c;
+          gap = 0;
+        } else {
+          gap++;
+          if (gap > maxGapCols) break;
+        }
+      }
+
+      // 검출된 자막 좌우 경계에 자연스러운 여백 추가
+      const padX = Math.max(10, Math.round(width * 0.015));
+      const detectedMinX = leftCol * step;
+      const detectedMaxX = (rightCol + 1) * step;
+
+      finalPx = Math.max(px, px + detectedMinX - padX);
+      const rightEdge = Math.min(px + pw, px + detectedMaxX + padX);
+      finalPw = Math.max(8, rightEdge - finalPx);
     } catch {
-      // 에러 시 기존 전체 박스 사용
+      // 추출 오류 시 기본 설정 박스 영역 유지
     }
 
     const mode = box.mode || options.defaultMode || 'hybrid';
