@@ -1,7 +1,7 @@
 'use client';
 
 import { toast } from 'sonner';
-import React, { useRef, useMemo, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useMemo, useState, useEffect, useReducer, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -50,12 +50,17 @@ import { SUBTITLE_REMOVER_VIDEO_SAMPLES } from '../data/video-samples';
 import { VideoUploadWorkspace } from '../components/video-upload-workspace';
 import { SubtitleRemoverTimelineTrack } from '../components/subtitle-remover-timeline-track';
 import {
+  createSubtitleEditHistory,
+  subtitleEditHistoryReducer,
+} from '../utils/subtitle-remover-history';
+import {
   isPointInBox,
   type InpaintMode,
   isBoxOverlapping,
   getSubtitleBoxHit,
   type SubtitlePreset,
   adjustBoxTimeMargin,
+  isSubtitleBoxVisible,
   getPresetSubtitleBox,
   type SubtitleBoxHitType,
   type VideoExportSettings,
@@ -111,10 +116,29 @@ export function VideoMasterSubtitleRemoverView() {
   const [playbackRate, setPlaybackRate] = useState<number>(1);
 
   // Subtitle Boxes State
-  const [boxes, setBoxes] = useState<SubtitleBoundingBox[]>([
-    getPresetSubtitleBox('bottom-center', '1'),
-  ]);
-  const [activeBoxId, setActiveBoxId] = useState<string | null>('box-1');
+  const [editHistory, dispatchEdit] = useReducer(subtitleEditHistoryReducer, undefined, () => {
+    const box = getPresetSubtitleBox('bottom-center', '1');
+    return createSubtitleEditHistory({ boxes: [box], activeBoxId: box.id });
+  });
+  const { boxes, activeBoxId } = editHistory.present;
+  const setBoxes = useCallback((value: React.SetStateAction<SubtitleBoundingBox[]>) => {
+    dispatchEdit({ type: 'boxes', value });
+  }, []);
+  const setActiveBoxId = useCallback((id: string | null) => {
+    dispatchEdit({ type: 'select', id });
+  }, []);
+  const beginEditGesture = useCallback(() => dispatchEdit({ type: 'begin' }), []);
+  useEffect(() => {
+    const endGesture = () => dispatchEdit({ type: 'end' });
+    window.addEventListener('pointerup', endGesture);
+    window.addEventListener('pointercancel', endGesture);
+    window.addEventListener('blur', endGesture);
+    return () => {
+      window.removeEventListener('pointerup', endGesture);
+      window.removeEventListener('pointercancel', endGesture);
+      window.removeEventListener('blur', endGesture);
+    };
+  }, []);
 
   // Removal & Inpaint Settings
   const [inpaintMode, setInpaintMode] = useState<InpaintMode>('hybrid');
@@ -225,8 +249,7 @@ export function VideoMasterSubtitleRemoverView() {
 
     // Auto fit initial subtitle box
     const defaultBox = getPresetSubtitleBox('bottom-center', '1');
-    setBoxes([defaultBox]);
-    setActiveBoxId(defaultBox.id);
+    dispatchEdit({ type: 'reset', snapshot: { boxes: [defaultBox], activeBoxId: defaultBox.id } });
 
     // Render first frame immediately
     requestAnimationFrame(() => {
@@ -332,15 +355,6 @@ export function VideoMasterSubtitleRemoverView() {
     }
   };
 
-  const handleSeek = (_: Event, value: number | number[]) => {
-    const video = videoRef.current;
-    if (!video) return;
-    const nextTime = Number(value);
-    video.currentTime = nextTime;
-    setCurrentTime(nextTime);
-    renderCurrentFrame();
-  };
-
   const handleVolumeChange = (_: Event, value: number | number[]) => {
     const val = Number(value);
     setVolume(val);
@@ -426,12 +440,10 @@ export function VideoMasterSubtitleRemoverView() {
           }
         }, 150);
       } else {
-        toast.info('자막 텍스트가 뚜렷하지 않아 기본 하단 자막 영역을 적용합니다.');
-        setBoxes([getPresetSubtitleBox('bottom-center', '1')]);
+        toast.info('탐지된 자막이 없습니다. 필요한 위치에 지우개를 직접 추가해 주세요.');
       }
     } catch {
-      toast.error('자막 자동 감지 중 오류가 발생했습니다. 기본 프리셋을 적용합니다.');
-      setBoxes([getPresetSubtitleBox('bottom-center', '1')]);
+      toast.error('자막 자동 감지 중 오류가 발생했습니다. 다시 시도해 주세요.');
     } finally {
       setIsDetecting(false);
       renderCurrentFrame();
@@ -472,19 +484,14 @@ export function VideoMasterSubtitleRemoverView() {
 
   // Timeline Action Handlers
   const handleUpdateBoxTime = (id: string, startTime: number, endTime: number) => {
-    setBoxes((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, startTime, endTime } : b))
-    );
+    setBoxes((prev) => prev.map((b) => (b.id === id ? { ...b, startTime, endTime } : b)));
     renderCurrentFrame();
   };
 
   const handleAddBoxAtCurrentTime = () => {
     const newId = `box-${Date.now()}`;
     const startT = Number(currentTime.toFixed(2));
-    const endT = Math.min(
-      duration || startT + 2.5,
-      Number((startT + 2.5).toFixed(2))
-    );
+    const endT = Math.min(duration || startT + 2.5, Number((startT + 2.5).toFixed(2)));
 
     const newBox: SubtitleBoundingBox = {
       id: newId,
@@ -536,13 +543,9 @@ export function VideoMasterSubtitleRemoverView() {
       label: `${target.label} (파트 2)`,
     };
 
-    setBoxes((prev) =>
-      prev.flatMap((b) => (b.id === id ? [firstBox, secondBox] : [b]))
-    );
+    setBoxes((prev) => prev.flatMap((b) => (b.id === id ? [firstBox, secondBox] : [b])));
     setActiveBoxId(secondBox.id);
-    toast.success(
-      `${splitT.toFixed(1)}초 위치에서 자막 클립이 2개로 분할되었습니다.`
-    );
+    toast.success(`${splitT.toFixed(1)}초 위치에서 자막 클립이 2개로 분할되었습니다.`);
     renderCurrentFrame();
   };
 
@@ -556,10 +559,19 @@ export function VideoMasterSubtitleRemoverView() {
   };
 
   const handleSelectBoxFromTimeline = (id: string) => {
+    videoRef.current?.pause();
+    setIsPlaying(false);
+    setShowBoxOutline(true);
     setActiveBoxId(id);
     const target = boxes.find((b) => b.id === id);
     if (target && target.startTime !== undefined && videoRef.current) {
-      const s = Math.max(0, target.startTime);
+      const s = Math.max(
+        0,
+        Math.min(
+          duration,
+          target.startTime + Math.min(0.05, (target.endTime - target.startTime) / 2)
+        )
+      );
       videoRef.current.currentTime = s;
       setCurrentTime(s);
     }
@@ -601,17 +613,16 @@ export function VideoMasterSubtitleRemoverView() {
   useEffect(() => {
     const box = boxes.find((b) => b.id === activeBoxId);
     if (box) {
-      if (box.mode) setInpaintMode(box.mode);
-      if (box.sampleDirection) setSampleDirection(box.sampleDirection);
-      if (box.feather !== undefined) setFeather(box.feather);
-      if (box.padding !== undefined) setPadding(box.padding);
-      if (box.grainStrength !== undefined) setGrainStrength(box.grainStrength);
-      if (box.brightnessOffset !== undefined) setBrightnessOffset(box.brightnessOffset);
-      if (box.blendStrength !== undefined) setBlendStrength(box.blendStrength);
-      if (box.blurRadius !== undefined) setBlurRadius(box.blurRadius);
+      setInpaintMode(box.mode);
+      setSampleDirection(box.sampleDirection ?? 'vertical');
+      setFeather(box.feather);
+      setPadding(box.padding);
+      setGrainStrength(box.grainStrength ?? 0);
+      setBrightnessOffset(box.brightnessOffset ?? 0);
+      setBlendStrength(box.blendStrength ?? 1);
+      setBlurRadius(box.blurRadius ?? 16);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeBoxId]);
+  }, [activeBoxId, boxes]);
 
   // Find all boxes that geometrically overlap with the active box
   const overlappingBoxes = useMemo(() => {
@@ -633,14 +644,44 @@ export function VideoMasterSubtitleRemoverView() {
     renderCurrentFrame();
   };
 
-  // Keyboard shortcut: Delete or Backspace to immediately delete active subtitle box
+  const restoreEdit = (type: 'undo' | 'redo') => {
+    if (isDetecting || isExporting || editHistory.gesture) return;
+    videoRef.current?.pause();
+    setIsPlaying(false);
+    const snapshot = type === 'undo' ? editHistory.past.at(-1) : editHistory.future[0];
+    if (!snapshot) return;
+    dispatchEdit({ type });
+    setShowBoxOutline(true);
+    const selected = snapshot.boxes.find((box) => box.id === snapshot.activeBoxId);
+    if (
+      selected &&
+      videoRef.current &&
+      !isSubtitleBoxVisible(selected, videoRef.current.currentTime)
+    ) {
+      const time = Math.min(duration, Math.max(0, selected.startTime));
+      videoRef.current.currentTime = time;
+      setCurrentTime(time);
+    }
+  };
+
+  // Keep native undo in text fields; range controls use editor history.
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
       if (
         target &&
-        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+        ((target.tagName === 'INPUT' && (target as HTMLInputElement).type !== 'range') ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable)
       ) {
+        return;
+      }
+
+      if (e.defaultPrevented || e.isComposing || !videoUrl || isDetecting || isExporting) return;
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 'z') {
+        e.preventDefault();
+        restoreEdit(e.shiftKey ? 'redo' : 'undo');
         return;
       }
 
@@ -653,11 +694,28 @@ export function VideoMasterSubtitleRemoverView() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeBox, boxes]);
+  }, [activeBox, boxes, editHistory, isDetecting, isExporting, videoUrl, duration]);
 
   const updateActiveBox = (updates: Partial<SubtitleBoundingBox>) => {
     if (!activeBox) return;
-    setBoxes((prev) => prev.map((b) => (b.id === activeBox.id ? { ...b, ...updates } : b)));
+    setBoxes((prev) =>
+      prev.map((b) => {
+        if (b.id !== activeBox.id) return b;
+        const next = { ...b, ...updates };
+        next.x = Math.max(0, Math.min(0.999, next.x));
+        next.y = Math.max(0, Math.min(0.999, next.y));
+        next.width = Math.max(0.001, Math.min(1 - next.x, next.width));
+        next.height = Math.max(0.001, Math.min(1 - next.y, next.height));
+        if (
+          updates.x !== undefined ||
+          updates.width !== undefined ||
+          updates.y !== undefined ||
+          updates.height !== undefined
+        )
+          next.autoFitWidth = false;
+        return next;
+      })
+    );
   };
 
   // Adjust active box time margin (extend/trim start and end times)
@@ -717,7 +775,7 @@ export function VideoMasterSubtitleRemoverView() {
   // --------------------------------------------------------------------
   // Interactive Canvas Mouse Drag & Resize Handlers
   // --------------------------------------------------------------------
-  const getCanvasEventCoords = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const getCanvasEventCoords = (e: React.PointerEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
     const rect = canvas.getBoundingClientRect();
@@ -729,14 +787,23 @@ export function VideoMasterSubtitleRemoverView() {
     };
   };
 
-  const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const handleCanvasMouseDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
-    if (!canvas || boxes.length === 0) return;
+    if (!canvas || boxes.length === 0 || !showBoxOutline || isDetecting) return;
 
+    const visibleBoxes = boxes.filter((b) =>
+      isSubtitleBoxVisible(b, videoRef.current?.currentTime ?? currentTime)
+    );
     const { x, y } = getCanvasEventCoords(e);
 
+    if (e.button !== 0) return;
+    e.preventDefault();
+    canvas.setPointerCapture(e.pointerId);
+    videoRef.current?.pause();
+    setIsPlaying(false);
+
     // 1. Direct click on [✕ 삭제] badge button of ANY box
-    for (const box of boxes) {
+    for (const box of [...visibleBoxes].reverse()) {
       const hit = getSubtitleBoxHit(box, canvas.width, canvas.height, x, y);
       if (hit === 'delete') {
         handleDeleteBoxById(box.id);
@@ -745,7 +812,7 @@ export function VideoMasterSubtitleRemoverView() {
     }
 
     // 2. Active box corner/edge resize handle click
-    if (activeBox) {
+    if (activeBox && visibleBoxes.some((b) => b.id === activeBox.id)) {
       const activeHit = getSubtitleBoxHit(activeBox, canvas.width, canvas.height, x, y);
       if (activeHit && activeHit !== 'delete' && activeHit !== 'move' && activeHit !== 'body') {
         isInteractingRef.current = true;
@@ -757,7 +824,7 @@ export function VideoMasterSubtitleRemoverView() {
     }
 
     // 3. Click-to-select subtitle box across all boxes on canvas
-    const hitBoxes = boxes.filter((b) => isPointInBox(x, y, b, canvas.width, canvas.height));
+    const hitBoxes = visibleBoxes.filter((b) => isPointInBox(x, y, b, canvas.width, canvas.height));
     if (hitBoxes.length > 0) {
       // If current activeBox is already in hitBoxes and multiple boxes overlap, cycle to next
       let targetBox = hitBoxes[0];
@@ -786,16 +853,19 @@ export function VideoMasterSubtitleRemoverView() {
     }
   };
 
-  const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const handleCanvasMouseMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
-    if (!canvas || boxes.length === 0) return;
+    if (!canvas || boxes.length === 0 || !showBoxOutline || isDetecting) return;
 
+    const visibleBoxes = boxes.filter((b) =>
+      isSubtitleBoxVisible(b, videoRef.current?.currentTime ?? currentTime)
+    );
     const { x, y } = getCanvasEventCoords(e);
 
     // Update cursor based on hover handle when not interacting
     if (!isInteractingRef.current) {
       // Check if hovering over any delete button
-      const isOverDeleteBtn = boxes.some(
+      const isOverDeleteBtn = visibleBoxes.some(
         (b) => getSubtitleBoxHit(b, canvas.width, canvas.height, x, y) === 'delete'
       );
       if (isOverDeleteBtn) {
@@ -804,7 +874,7 @@ export function VideoMasterSubtitleRemoverView() {
       }
 
       // Check active box resize handles
-      if (activeBox) {
+      if (activeBox && visibleBoxes.some((b) => b.id === activeBox.id)) {
         const hit = getSubtitleBoxHit(activeBox, canvas.width, canvas.height, x, y);
         if (hit === 'move' || hit === 'body') {
           canvas.style.cursor = 'move';
@@ -829,7 +899,9 @@ export function VideoMasterSubtitleRemoverView() {
       }
 
       // Check if hovering over any other subtitle box (clickable to select)
-      const isOverAnyBox = boxes.some((b) => isPointInBox(x, y, b, canvas.width, canvas.height));
+      const isOverAnyBox = visibleBoxes.some((b) =>
+        isPointInBox(x, y, b, canvas.width, canvas.height)
+      );
       if (isOverAnyBox) {
         canvas.style.cursor = 'pointer';
         return;
@@ -859,24 +931,26 @@ export function VideoMasterSubtitleRemoverView() {
     } else {
       // Resizing
       if (handle.includes('w')) {
-        const potentialW = startBox.width - dx;
-        if (potentialW >= 0.05) {
-          nextX = startBox.x + dx;
+        const left = Math.max(0, Math.min(startBox.x + startBox.width - 0.005, startBox.x + dx));
+        const potentialW = startBox.x + startBox.width - left;
+        if (potentialW >= 0.005) {
+          nextX = left;
           nextW = potentialW;
         }
       }
       if (handle.includes('e')) {
-        nextW = Math.max(0.05, Math.min(1 - nextX, startBox.width + dx));
+        nextW = Math.max(0.005, Math.min(1 - nextX, startBox.width + dx));
       }
       if (handle.includes('n')) {
-        const potentialH = startBox.height - dy;
-        if (potentialH >= 0.03) {
-          nextY = startBox.y + dy;
+        const top = Math.max(0, Math.min(startBox.y + startBox.height - 0.005, startBox.y + dy));
+        const potentialH = startBox.y + startBox.height - top;
+        if (potentialH >= 0.005) {
+          nextY = top;
           nextH = potentialH;
         }
       }
       if (handle.includes('s')) {
-        nextH = Math.max(0.03, Math.min(1 - nextY, startBox.height + dy));
+        nextH = Math.max(0.005, Math.min(1 - nextY, startBox.height + dy));
       }
     }
 
@@ -1047,6 +1121,7 @@ export function VideoMasterSubtitleRemoverView() {
   // --------------------------------------------------------------------
   return (
     <DashboardContent
+      onPointerDownCapture={beginEditGesture}
       maxWidth={false}
       sx={{
         height: '100vh',
@@ -1063,6 +1138,8 @@ export function VideoMasterSubtitleRemoverView() {
         playsInline
         crossOrigin="anonymous"
         onLoadedMetadata={handleVideoMetadataLoaded}
+        onSeeked={renderCurrentFrame}
+        onLoadedData={renderCurrentFrame}
         onTimeUpdate={() => {
           if (videoRef.current) setCurrentTime(videoRef.current.currentTime);
         }}
@@ -1121,6 +1198,24 @@ export function VideoMasterSubtitleRemoverView() {
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+          <Button
+            size="small"
+            variant="outlined"
+            disabled={!editHistory.past.length || isDetecting || isExporting}
+            onClick={() => restoreEdit('undo')}
+            title="Ctrl+Z / ⌘Z"
+          >
+            실행 취소
+          </Button>
+          <Button
+            size="small"
+            variant="outlined"
+            disabled={!editHistory.future.length || isDetecting || isExporting}
+            onClick={() => restoreEdit('redo')}
+            title="Ctrl+Shift+Z / ⌘⇧Z"
+          >
+            다시 실행
+          </Button>
           <Button
             variant="outlined"
             size="small"
@@ -1215,11 +1310,13 @@ export function VideoMasterSubtitleRemoverView() {
           >
             <canvas
               ref={canvasRef}
-              onMouseDown={handleCanvasMouseDown}
-              onMouseMove={handleCanvasMouseMove}
-              onMouseUp={handleCanvasMouseUp}
-              onMouseLeave={handleCanvasMouseUp}
+              onPointerDown={handleCanvasMouseDown}
+              onPointerMove={handleCanvasMouseMove}
+              onPointerUp={handleCanvasMouseUp}
+              onPointerCancel={handleCanvasMouseUp}
+              onLostPointerCapture={handleCanvasMouseUp}
               style={{
+                touchAction: 'none',
                 maxWidth: '100%',
                 maxHeight: '100%',
                 objectFit: 'contain',
@@ -2387,6 +2484,19 @@ export function VideoMasterSubtitleRemoverView() {
               />
             </Box>
 
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={activeBox?.autoFitWidth ?? false}
+                  disabled={!activeBox}
+                  onChange={(_, checked) => updateActiveBox({ autoFitWidth: checked })}
+                />
+              }
+              label="글자 너비 자동 맞춤"
+            />
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+              영역의 좌우 핸들을 끌어 너비를 조정하세요. 직접 조정하면 자동 맞춤이 꺼집니다.
+            </Typography>
             {/* Region Padding Slider */}
             <Box sx={{ mb: 2 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
@@ -2572,8 +2682,8 @@ export function VideoMasterSubtitleRemoverView() {
                     size="small"
                     value={activeBox.x}
                     min={0}
-                    max={0.9}
-                    step={0.01}
+                    max={1 - activeBox.width}
+                    step={0.001}
                     onChange={(_, v) => updateActiveBox({ x: Number(v) })}
                   />
                 </Box>
@@ -2585,8 +2695,8 @@ export function VideoMasterSubtitleRemoverView() {
                     size="small"
                     value={activeBox.y}
                     min={0}
-                    max={0.9}
-                    step={0.01}
+                    max={1 - activeBox.height}
+                    step={0.001}
                     onChange={(_, v) => updateActiveBox({ y: Number(v) })}
                   />
                 </Box>
@@ -2597,9 +2707,9 @@ export function VideoMasterSubtitleRemoverView() {
                   <Slider
                     size="small"
                     value={activeBox.width}
-                    min={0.1}
-                    max={1}
-                    step={0.01}
+                    min={0.001}
+                    max={1 - activeBox.x}
+                    step={0.001}
                     onChange={(_, v) => updateActiveBox({ width: Number(v) })}
                   />
                 </Box>
@@ -2610,9 +2720,9 @@ export function VideoMasterSubtitleRemoverView() {
                   <Slider
                     size="small"
                     value={activeBox.height}
-                    min={0.04}
-                    max={0.5}
-                    step={0.01}
+                    min={0.001}
+                    max={1 - activeBox.y}
+                    step={0.001}
                     onChange={(_, v) => updateActiveBox({ height: Number(v) })}
                   />
                 </Box>

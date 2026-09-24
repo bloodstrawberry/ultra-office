@@ -60,6 +60,7 @@ export function SqldPracticeView() {
     handleSaveData,
     handleExportJson,
     handleResetToDefault,
+    handleRetry,
   } = useSqldPractice();
 
   // Anchors and refs for auto-scrolling to top on question change
@@ -145,7 +146,7 @@ export function SqldPracticeView() {
           variant="contained"
           color="primary"
           startIcon={<RefreshRoundedIcon />}
-          onClick={() => window.location.reload()}
+          onClick={handleRetry}
           sx={{ fontWeight: 700, mt: 1 }}
         >
           새로고침

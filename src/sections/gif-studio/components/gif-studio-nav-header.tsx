@@ -8,13 +8,14 @@ import GifRoundedIcon from '@mui/icons-material/GifRounded';
 import SpeedRoundedIcon from '@mui/icons-material/SpeedRounded';
 import CallSplitRoundedIcon from '@mui/icons-material/CallSplitRounded';
 import ColorLensRoundedIcon from '@mui/icons-material/ColorLensRounded';
+import AspectRatioRoundedIcon from '@mui/icons-material/AspectRatioRounded';
 import VideoLibraryRoundedIcon from '@mui/icons-material/VideoLibraryRounded';
 
 import { paths } from 'src/routes/paths';
 
 // ----------------------------------------------------------------------
 
-export type GifStudioTabType = 'create' | 'video' | 'split' | 'bg' | 'speed';
+export type GifStudioTabType = 'create' | 'video' | 'resize' | 'split' | 'bg' | 'speed';
 
 export const GIF_STUDIO_TABS: {
   value: GifStudioTabType;
@@ -42,8 +43,17 @@ export const GIF_STUDIO_TABS: {
     path: paths.gifStudio.video,
   },
   {
+    value: 'resize',
+    label: '3. 크기 조절',
+    title: 'GIF 크기 조절 (해상도 리사이즈)',
+    description:
+      '업로드한 GIF의 가로/세로 해상도를 비율 유지 또는 맞춤 크기로 자유롭게 확대·축소하고 리사이징합니다.',
+    icon: <AspectRatioRoundedIcon sx={{ fontSize: 24 }} />,
+    path: paths.gifStudio.resize,
+  },
+  {
     value: 'split',
-    label: '3. 프레임 분할',
+    label: '4. 프레임 분할',
     title: 'GIF 프레임 분할 · 추출',
     description:
       'GIF 애니메이션의 모든 프레임을 개별 PNG 이미지로 추출하고 일괄 다운로드(ZIP)합니다.',
@@ -52,7 +62,7 @@ export const GIF_STUDIO_TABS: {
   },
   {
     value: 'bg',
-    label: '4. 배경색/투명화',
+    label: '5. 배경색/투명화',
     title: 'GIF 배경색 변경 · 투명화',
     description: 'GIF의 특정 배경색을 다른 색으로 변경하거나 투명화(크로마키 제거) 처리합니다.',
     icon: <ColorLensRoundedIcon sx={{ fontSize: 24 }} />,
@@ -60,7 +70,7 @@ export const GIF_STUDIO_TABS: {
   },
   {
     value: 'speed',
-    label: '5. 속도/역재생',
+    label: '6. 속도/역재생',
     title: 'GIF 속도 조절 & 역재생',
     description:
       'GIF 재생 속도를 빠르게/느리게 조절하거나 거꾸로 재생(역재생/부메랑)하도록 편집합니다.',

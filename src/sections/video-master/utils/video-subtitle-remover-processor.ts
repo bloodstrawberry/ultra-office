@@ -27,6 +27,7 @@ export interface SubtitleBoundingBox {
   grainStrength?: number; // 필름 그레인 질감 (0 ~ 20)
   brightnessOffset?: number; // 명도 톤 미세 보정 (-40 ~ +40)
   blendStrength?: number; // 제거 합성 강도 (0.1 ~ 1.0)
+  autoFitWidth?: boolean; // Opt in to per-frame width detection; manual geometry stays authoritative.
   blurRadius?: number; // 블러 반경 (4 ~ 40)
 }
 
@@ -91,6 +92,17 @@ export function isBoxOverlapping(b1: SubtitleBoundingBox, b2: SubtitleBoundingBo
   return xOverlap / minW >= 0.35 && yOverlap / minH >= 0.35;
 }
 
+function getSubtitleBadgeGeometry(box: SubtitleBoundingBox, width: number, height: number) {
+  const top = Math.round(box.y * height);
+  const bottom = top + Math.round(box.height * height);
+  return {
+    x: Math.max(0, Math.min(Math.round(box.x * width), width - 238)),
+    y: Math.max(0, top > 26 ? top - 24 : Math.min(height - 24, bottom + 6)),
+    width: 180,
+    height: 22,
+  };
+}
+
 /**
  * Check if a mouse coordinate hits within a box boundary or its header badge
  */
@@ -106,8 +118,9 @@ export function isPointInBox(
   const pw = box.width * canvasW;
   const ph = box.height * canvasH;
 
-  const badgeY = py > 26 ? py - 24 : py + ph + 6;
-  const badgeH = 24;
+  const badge = getSubtitleBadgeGeometry(box, canvasW, canvasH);
+  const badgeY = badge.y;
+  const badgeH = badge.height;
 
   // Inside box body
   if (mouseX >= px && mouseX <= px + pw && mouseY >= py && mouseY <= py + ph) {
@@ -116,8 +129,8 @@ export function isPointInBox(
 
   // Inside badge area
   if (
-    mouseX >= px &&
-    mouseX <= px + Math.max(pw, 220) &&
+    mouseX >= badge.x &&
+    mouseX <= badge.x + badge.width &&
     mouseY >= badgeY &&
     mouseY <= badgeY + badgeH
   ) {
@@ -389,8 +402,8 @@ export function detectSubtitleBoxesFromCanvas(
         }
 
         // Add 5% horizontal margin & vertical breathing room
-        const marginX = Math.round(width * 0.04);
-        const marginY = Math.max(6, Math.round(height * 0.015));
+        const marginX = Math.max(2, Math.round(width * 0.003));
+        const marginY = Math.max(2, Math.round(height * 0.003));
 
         const boxX = Math.max(0, overallMinX - marginX);
         const boxY = Math.max(0, band.startY + bestSpanStart - marginY);
@@ -557,7 +570,7 @@ export async function detectTimeVaryingSubtitlesAcrossVideo(
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  if (!ctx) return [getPresetSubtitleBox('bottom-center', '1')];
+  if (!ctx) return [];
 
   const originalTime = videoElement.currentTime;
 
@@ -567,7 +580,7 @@ export async function detectTimeVaryingSubtitlesAcrossVideo(
   for (let t = 0.2; t < duration; t += interval) {
     timestamps.push(Number(t.toFixed(2)));
   }
-  if (timestamps.length === 0) timestamps.push(0.5);
+  if (timestamps.length === 0) timestamps.push(0);
 
   interface SampleDetection {
     time: number;
@@ -610,14 +623,19 @@ export async function detectTimeVaryingSubtitlesAcrossVideo(
   // If no subtitles detected anywhere, fallback to standard bottom box
   const validSamples = samples.filter((s) => s.box !== null);
   if (validSamples.length === 0) {
-    return [getPresetSubtitleBox('bottom-center', '1')];
+    return [];
   }
 
   // Helper to check if two boxes are in the same location (e.g. both bottom, or both top)
   const isSimilarBox = (b1: SubtitleBoundingBox, b2: SubtitleBoundingBox): boolean => {
     const dy = Math.abs(b1.y - b2.y);
     const dx = Math.abs(b1.x - b2.x);
-    return dy < 0.15 && dx < 0.2;
+    return (
+      dy < 0.025 &&
+      dx < 0.025 &&
+      Math.abs(b1.width - b2.width) < 0.04 &&
+      Math.abs(b1.height - b2.height) < 0.025
+    );
   };
 
   const segments: SubtitleBoundingBox[] = [];
@@ -672,7 +690,7 @@ export async function detectTimeVaryingSubtitlesAcrossVideo(
     );
   }
 
-  return segments.length > 0 ? segments : [getPresetSubtitleBox('bottom-center', '1')];
+  return segments;
 }
 
 function consolidateGroupToSegment(
@@ -803,7 +821,7 @@ export function applySubtitleRemovalToCanvas(
     (b) =>
       b.enabled &&
       options.currentTime >= (b.startTime ?? 0) &&
-      options.currentTime <= (b.endTime ?? 99999)
+      options.currentTime < (b.endTime ?? 99999)
   );
 
   // 2. Perform inpainting for each active subtitle bounding box
@@ -811,8 +829,8 @@ export function applySubtitleRemovalToCanvas(
     const pad = box.padding || 0;
     const px = Math.max(0, Math.round(box.x * width) - pad);
     const py = Math.max(0, Math.round(box.y * height) - pad);
-    const pw = Math.min(width - px, Math.round(box.width * width) + pad * 2);
-    const ph = Math.min(height - py, Math.round(box.height * height) + pad * 2);
+    const pw = Math.min(width - px, Math.round((box.x + box.width) * width) + pad - px);
+    const ph = Math.min(height - py, Math.round((box.y + box.height) * height) + pad - py);
 
     if (pw <= 4 || ph <= 4) continue;
 
@@ -823,113 +841,114 @@ export function applySubtitleRemovalToCanvas(
     let finalPw = pw;
 
     // Dynamic Width Detection (자막 글자가 위치한 가로 너비만 정확히 추출, 상하 높이는 원본 유지)
-    try {
-      const imgData = ctx.getImageData(px, py, pw, ph);
-      const data = imgData.data;
+    if (box.autoFitWidth)
+      try {
+        const imgData = ctx.getImageData(px, py, pw, ph);
+        const data = imgData.data;
 
-      const step = 2;
-      const numCols = Math.ceil(pw / step);
-      const colEnergies = new Float32Array(numCols);
+        const step = 2;
+        const numCols = Math.ceil(pw / step);
+        const colEnergies = new Float32Array(numCols);
 
-      for (let c = 0; c < numCols; c++) {
-        const x = c * step;
-        if (x >= pw - step) continue;
+        for (let c = 0; c < numCols; c++) {
+          const x = c * step;
+          if (x >= pw - step) continue;
 
-        let colMinLum = 255;
-        let colMaxLum = 0;
-        let colEdges = 0;
+          let colMinLum = 255;
+          let colMaxLum = 0;
+          let colEdges = 0;
 
-        for (let y = 0; y < ph; y += step) {
-          const idx1 = (y * pw + x) * 4;
-          const idx2 = (y * pw + (x + step)) * 4;
+          for (let y = 0; y < ph; y += step) {
+            const idx1 = (y * pw + x) * 4;
+            const idx2 = (y * pw + (x + step)) * 4;
 
-          const lum1 = 0.299 * data[idx1] + 0.587 * data[idx1 + 1] + 0.114 * data[idx1 + 2];
-          const lum2 = 0.299 * data[idx2] + 0.587 * data[idx2 + 1] + 0.114 * data[idx2 + 2];
+            const lum1 = 0.299 * data[idx1] + 0.587 * data[idx1 + 1] + 0.114 * data[idx1 + 2];
+            const lum2 = 0.299 * data[idx2] + 0.587 * data[idx2 + 1] + 0.114 * data[idx2 + 2];
 
-          if (lum1 < colMinLum) colMinLum = lum1;
-          if (lum1 > colMaxLum) colMaxLum = lum1;
+            if (lum1 < colMinLum) colMinLum = lum1;
+            if (lum1 > colMaxLum) colMaxLum = lum1;
 
-          if (Math.abs(lum1 - lum2) > 48) {
-            colEdges++;
+            if (Math.abs(lum1 - lum2) > 48) {
+              colEdges++;
+            }
+          }
+
+          // 텍스트가 있는 세로 슬라이스는 배경과 글자 간 명도 대비(Contrast)가 뚜렷함 (> 45)
+          // 니트/옷감 등의 균일한 배경 텍스처는 컬럼 내 명도 차이가 작아 필터링됨
+          const colContrast = colMaxLum - colMinLum;
+          if (colContrast >= 45 && colEdges >= 2) {
+            colEnergies[c] = colEdges * (colContrast / 45);
+          } else {
+            colEnergies[c] = 0;
           }
         }
 
-        // 텍스트가 있는 세로 슬라이스는 배경과 글자 간 명도 대비(Contrast)가 뚜렷함 (> 45)
-        // 니트/옷감 등의 균일한 배경 텍스처는 컬럼 내 명도 차이가 작아 필터링됨
-        const colContrast = colMaxLum - colMinLum;
-        if (colContrast >= 45 && colEdges >= 2) {
-          colEnergies[c] = colEdges * (colContrast / 45);
-        } else {
-          colEnergies[c] = 0;
-        }
-      }
+        // 가로 방향 이동 평균으로 단어 간격 및 글자 획 스무딩
+        const smoothCol = new Float32Array(numCols);
+        const winX = Math.max(3, Math.floor((pw * 0.025) / step));
+        let maxCol = 0;
+        let peakCol = -1;
 
-      // 가로 방향 이동 평균으로 단어 간격 및 글자 획 스무딩
-      const smoothCol = new Float32Array(numCols);
-      const winX = Math.max(3, Math.floor((pw * 0.025) / step));
-      let maxCol = 0;
-      let peakCol = -1;
-
-      for (let i = 0; i < numCols; i++) {
-        let sum = 0;
-        let count = 0;
-        for (let d = -winX; d <= winX; d++) {
-          if (i + d >= 0 && i + d < numCols) {
-            sum += colEnergies[i + d];
-            count++;
+        for (let i = 0; i < numCols; i++) {
+          let sum = 0;
+          let count = 0;
+          for (let d = -winX; d <= winX; d++) {
+            if (i + d >= 0 && i + d < numCols) {
+              sum += colEnergies[i + d];
+              count++;
+            }
+          }
+          smoothCol[i] = sum / count;
+          if (smoothCol[i] > maxCol) {
+            maxCol = smoothCol[i];
+            peakCol = i;
           }
         }
-        smoothCol[i] = sum / count;
-        if (smoothCol[i] > maxCol) {
-          maxCol = smoothCol[i];
-          peakCol = i;
+
+        // 프레임 내 자막이 없거나 에너지가 미미한 경우 불필요한 블러 방지
+        if (maxCol < 2.0 || peakCol === -1) {
+          continue;
         }
-      }
 
-      // 프레임 내 자막이 없거나 에너지가 미미한 경우 불필요한 블러 방지
-      if (maxCol < 2.0 || peakCol === -1) {
-        continue;
-      }
+        // 최대 밀집도(자막) 피크로부터 좌/우로 확장하여 단어 간 띄어쓰기를 포함한 자막 전체 너비 확정
+        const textThresh = Math.max(1.2, maxCol * 0.22);
+        const maxGapCols = Math.max(12, Math.round((pw * 0.07) / step)); // 글자/단어 사이 띄어쓰기 허용 폭
 
-      // 최대 밀집도(자막) 피크로부터 좌/우로 확장하여 단어 간 띄어쓰기를 포함한 자막 전체 너비 확정
-      const textThresh = Math.max(1.2, maxCol * 0.22);
-      const maxGapCols = Math.max(12, Math.round((pw * 0.07) / step)); // 글자/단어 사이 띄어쓰기 허용 폭
-
-      let leftCol = peakCol;
-      let gap = 0;
-      for (let c = peakCol; c >= 0; c--) {
-        if (smoothCol[c] >= textThresh) {
-          leftCol = c;
-          gap = 0;
-        } else {
-          gap++;
-          if (gap > maxGapCols) break;
+        let leftCol = peakCol;
+        let gap = 0;
+        for (let c = peakCol; c >= 0; c--) {
+          if (smoothCol[c] >= textThresh) {
+            leftCol = c;
+            gap = 0;
+          } else {
+            gap++;
+            if (gap > maxGapCols) break;
+          }
         }
-      }
 
-      let rightCol = peakCol;
-      gap = 0;
-      for (let c = peakCol; c < numCols; c++) {
-        if (smoothCol[c] >= textThresh) {
-          rightCol = c;
-          gap = 0;
-        } else {
-          gap++;
-          if (gap > maxGapCols) break;
+        let rightCol = peakCol;
+        gap = 0;
+        for (let c = peakCol; c < numCols; c++) {
+          if (smoothCol[c] >= textThresh) {
+            rightCol = c;
+            gap = 0;
+          } else {
+            gap++;
+            if (gap > maxGapCols) break;
+          }
         }
+
+        // 검출된 자막 좌우 경계에 자연스러운 여백 추가
+        const padX = Math.max(10, Math.round(width * 0.015));
+        const detectedMinX = leftCol * step;
+        const detectedMaxX = (rightCol + 1) * step;
+
+        finalPx = Math.max(px, px + detectedMinX - padX);
+        const rightEdge = Math.min(px + pw, px + detectedMaxX + padX);
+        finalPw = Math.max(8, rightEdge - finalPx);
+      } catch {
+        // 추출 오류 시 기본 설정 박스 영역 유지
       }
-
-      // 검출된 자막 좌우 경계에 자연스러운 여백 추가
-      const padX = Math.max(10, Math.round(width * 0.015));
-      const detectedMinX = leftCol * step;
-      const detectedMaxX = (rightCol + 1) * step;
-
-      finalPx = Math.max(px, px + detectedMinX - padX);
-      const rightEdge = Math.min(px + pw, px + detectedMaxX + padX);
-      finalPw = Math.max(8, rightEdge - finalPx);
-    } catch {
-      // 추출 오류 시 기본 설정 박스 영역 유지
-    }
 
     const mode = box.mode || options.defaultMode || 'hybrid';
 
@@ -990,6 +1009,11 @@ export function applySubtitleRemovalToCanvas(
  * Samples context textures from top, bottom, or sides, interpolates smoothly,
  * applies realistic film grain, tone adjustment, and feather-blends borders.
  */
+export function isSubtitleBoxVisible(box: SubtitleBoundingBox, time: number): boolean {
+  return box.enabled && time >= (box.startTime ?? 0) && time < (box.endTime ?? Infinity);
+}
+
+/** Interpolate clean boundary pixels without stretching a strip of background texture. */
 function applyHybridVerticalDiffusion(
   ctx: CanvasRenderingContext2D,
   canvasW: number,
@@ -1000,130 +1024,46 @@ function applyHybridVerticalDiffusion(
   h: number,
   box: SubtitleBoundingBox
 ): void {
-  const dir = box.sampleDirection || 'vertical';
-  const feather = Math.max(2, Math.min(36, box.feather || 14));
-
-  const offCanvas = document.createElement('canvas');
-  offCanvas.width = w;
-  offCanvas.height = h;
-  const offCtx = offCanvas.getContext('2d');
-  if (!offCtx) return;
-
-  if (dir === 'horizontal') {
-    // Left & Right context sampling
-    const sampleW = Math.max(8, Math.min(48, Math.round(w * 0.15)));
-    const leftX = Math.max(0, x - sampleW);
-    const leftW = Math.max(1, x - leftX);
-    const rightX = Math.min(canvasW, x + w);
-    const rightW = Math.max(1, Math.min(canvasW - rightX, sampleW));
-
-    // 1. Draw left context stretched across
-    offCtx.save();
-    offCtx.drawImage(ctx.canvas, leftX, y, leftW, h, 0, 0, w, h);
-
-    // 2. Draw right context blended with horizontal linear gradient
-    const rightCanvas = document.createElement('canvas');
-    rightCanvas.width = w;
-    rightCanvas.height = h;
-    const rCtx = rightCanvas.getContext('2d');
-    if (rCtx && rightW > 0) {
-      rCtx.drawImage(ctx.canvas, rightX, y, rightW, h, 0, 0, w, h);
-      rCtx.globalCompositeOperation = 'destination-in';
-      const grad = rCtx.createLinearGradient(0, 0, w, 0);
-      grad.addColorStop(0, 'rgba(0, 0, 0, 0)');
-      grad.addColorStop(0.3, 'rgba(0, 0, 0, 0.2)');
-      grad.addColorStop(0.7, 'rgba(0, 0, 0, 0.8)');
-      grad.addColorStop(1, 'rgba(0, 0, 0, 1)');
-      rCtx.fillStyle = grad;
-      rCtx.fillRect(0, 0, w, h);
-
-      offCtx.drawImage(rightCanvas, 0, 0);
-    }
-  } else if (dir === 'top-only') {
-    // Only sample top context and stretch down (ideal for bottom subtitles near screen edge)
-    const sampleH = Math.max(8, Math.min(40, Math.round(h * 0.4)));
-    const topY = Math.max(0, y - sampleH);
-    const topH = Math.max(1, y - topY);
-    offCtx.save();
-    offCtx.drawImage(ctx.canvas, x, topY, w, topH, 0, 0, w, h);
-  } else if (dir === 'bottom-only') {
-    // Only sample bottom context and stretch up (ideal for top headlines)
-    const sampleH = Math.max(8, Math.min(40, Math.round(h * 0.4)));
-    const bottomY = Math.min(canvasH, y + h);
-    const bottomH = Math.max(1, Math.min(canvasH - bottomY, sampleH));
-    offCtx.save();
-    offCtx.drawImage(ctx.canvas, x, bottomY, w, bottomH, 0, 0, w, h);
-  } else {
-    // Default 'vertical': Dual top and bottom context blending
-    const sampleH = Math.max(8, Math.min(32, Math.round(h * 0.35)));
-    const topY = Math.max(0, y - sampleH);
-    const topH = Math.max(1, y - topY);
-
-    const bottomY = Math.min(canvasH, y + h);
-    const bottomH = Math.max(1, Math.min(canvasH - bottomY, sampleH));
-
-    offCtx.save();
-    offCtx.drawImage(ctx.canvas, x, topY, w, topH, 0, 0, w, h);
-
-    const bottomCanvas = document.createElement('canvas');
-    bottomCanvas.width = w;
-    bottomCanvas.height = h;
-    const bCtx = bottomCanvas.getContext('2d');
-    if (bCtx && bottomH > 0) {
-      bCtx.drawImage(ctx.canvas, x, bottomY, w, bottomH, 0, 0, w, h);
-      bCtx.globalCompositeOperation = 'destination-in';
-      const grad = bCtx.createLinearGradient(0, 0, 0, h);
-      grad.addColorStop(0, 'rgba(0, 0, 0, 0)');
-      grad.addColorStop(0.3, 'rgba(0, 0, 0, 0.2)');
-      grad.addColorStop(0.7, 'rgba(0, 0, 0, 0.8)');
-      grad.addColorStop(1, 'rgba(0, 0, 0, 1)');
-      bCtx.fillStyle = grad;
-      bCtx.fillRect(0, 0, w, h);
-
-      offCtx.drawImage(bottomCanvas, 0, 0);
-    }
-  }
-
-  // 3. Film Grain & Brightness Tone Adjustment
-  const grain = box.grainStrength ?? 4;
-  const bOffset = box.brightnessOffset ?? 0;
-  if (grain > 0 || bOffset !== 0) {
-    try {
-      const patchData = offCtx.getImageData(0, 0, w, h);
-      const data = patchData.data;
-      for (let i = 0; i < data.length; i += 4) {
-        const noise = grain > 0 ? Math.trunc((Math.random() - 0.5) * grain) : 0;
-        data[i] = Math.min(255, Math.max(0, data[i] + bOffset + noise));
-        data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + bOffset + noise));
-        data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + bOffset + noise));
+  const horizontal = box.sampleDirection === 'horizontal';
+  const beforeAvailable = horizontal ? x > 0 : y > 0;
+  const afterAvailable = horizontal ? x + w < canvasW : y + h < canvasH;
+  // At a frame edge, use the available opposite boundary.
+  if (!beforeAvailable && !afterAvailable) return;
+  const before = horizontal
+    ? ctx.getImageData(Math.max(0, x - 1), y, 1, h).data
+    : ctx.getImageData(x, Math.max(0, y - 1), w, 1).data;
+  const after = horizontal
+    ? ctx.getImageData(Math.min(canvasW - 1, x + w), y, 1, h).data
+    : ctx.getImageData(x, Math.min(canvasH - 1, y + h), w, 1).data;
+  const patch = ctx.getImageData(x, y, w, h);
+  const feather = Math.min(box.feather ?? 14, box.padding ?? 0, w / 2, h / 2);
+  const strength = box.blendStrength ?? 1;
+  for (let row = 0; row < h; row += 1) {
+    for (let col = 0; col < w; col += 1) {
+      const index = (row * w + col) * 4;
+      const sample = (horizontal ? row : col) * 4;
+      let mix = horizontal ? (col + 1) / (w + 1) : (row + 1) / (h + 1);
+      if (box.sampleDirection === 'top-only') mix = 0;
+      if (box.sampleDirection === 'bottom-only') mix = 1;
+      if (!beforeAvailable) mix = 1;
+      if (!afterAvailable) mix = 0;
+      const distance = Math.min(col + 1, row + 1, w - col, h - row);
+      const edge = feather > 0 ? Math.min(1, distance / feather) : 1;
+      const alpha = edge * edge * (3 - 2 * edge) * strength;
+      // Stable spatial grain avoids random flicker when scrubbing or exporting.
+      const noise =
+        ((((x + col) * 73 + (y + row) * 193) % 101) / 100 - 0.5) * (box.grainStrength ?? 0);
+      for (let channel = 0; channel < 3; channel += 1) {
+        const fill =
+          before[sample + channel] * (1 - mix) +
+          after[sample + channel] * mix +
+          (box.brightnessOffset ?? 0) +
+          noise;
+        patch.data[index + channel] = patch.data[index + channel] * (1 - alpha) + fill * alpha;
       }
-      offCtx.putImageData(patchData, 0, 0);
-    } catch {
-      // Canvas read fallback
     }
   }
-
-  // 4. Soft Feather Mask across all 4 edges
-  offCtx.globalCompositeOperation = 'destination-in';
-  const maskCanvas = document.createElement('canvas');
-  maskCanvas.width = w;
-  maskCanvas.height = h;
-  const mCtx = maskCanvas.getContext('2d');
-  if (mCtx) {
-    mCtx.fillStyle = '#ffffff';
-    mCtx.fillRect(feather, feather, Math.max(1, w - feather * 2), Math.max(1, h - feather * 2));
-    mCtx.filter = `blur(${feather / 2}px)`;
-    mCtx.drawImage(maskCanvas, 0, 0);
-    offCtx.drawImage(maskCanvas, 0, 0);
-  }
-
-  offCtx.restore();
-
-  // 5. Composite back to main canvas with custom blend strength
-  ctx.save();
-  ctx.globalAlpha = Math.max(0.1, Math.min(1.0, box.blendStrength ?? 1.0));
-  ctx.drawImage(offCanvas, x, y);
-  ctx.restore();
+  ctx.putImageData(patch, x, y);
 }
 
 /**
@@ -1308,7 +1248,7 @@ function drawSubtitleOutlines(
   ctx.save();
 
   for (const box of boxes) {
-    if (!box.enabled) continue;
+    if (!isSubtitleBoxVisible(box, options.currentTime)) continue;
 
     const isActive = box.id === activeBoxId;
     const px = Math.round(box.x * width);
@@ -1337,22 +1277,23 @@ function drawSubtitleOutlines(
         ? ` [${formatSec(box.startTime)}~${formatSec(box.endTime)}]`
         : '';
     const badgeText = `✨ 자막${timeStr}`;
-    const textW = ctx.measureText(badgeText).width + 16;
-    const badgeY = py > 26 ? py - 24 : py + ph + 6;
-    const badgeH = 22;
+    const badge = getSubtitleBadgeGeometry(box, width, height);
+    const textW = badge.width;
+    const badgeY = badge.y;
+    const badgeH = badge.height;
 
     // Draw main label pill
     ctx.fillStyle = isActive ? '#00A76F' : 'rgba(30, 41, 59, 0.88)';
     ctx.beginPath();
-    ctx.roundRect(px, badgeY, textW, badgeH, 4);
+    ctx.roundRect(badge.x, badgeY, textW, badgeH, 4);
     ctx.fill();
 
     ctx.fillStyle = '#ffffff';
-    ctx.fillText(badgeText, px + 8, badgeY + 15);
+    ctx.fillText(badgeText, badge.x + 8, badgeY + 15, textW - 16);
 
     // Draw direct [✕ 삭제] pill button on the badge
     const delBtnW = 54;
-    const delBtnX = px + textW + 4;
+    const delBtnX = badge.x + textW + 4;
     ctx.fillStyle = '#ff5630';
     ctx.beginPath();
     ctx.roundRect(delBtnX, badgeY, delBtnW, badgeH, 4);
@@ -1409,21 +1350,13 @@ export function getSubtitleBoxHit(
   const pw = box.width * canvasW;
   const ph = box.height * canvasH;
 
-  const badgeY = py > 26 ? py - 24 : py + ph + 6;
-  const badgeH = 24;
-
-  const formatSec = (s: number) => {
-    const m = Math.floor(s / 60);
-    const sec = Math.floor(s % 60);
-    return `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
-  };
-  const timeStr =
-    box.startTime !== undefined && box.endTime !== undefined
-      ? ` [${formatSec(box.startTime)}~${formatSec(box.endTime)}]`
-      : '';
-  const estTextW = Math.max(120, (box.label || `자막${timeStr}`).length * 7.5 + 40);
+  const badge = getSubtitleBadgeGeometry(box, canvasW, canvasH);
+  const badgeY = badge.y;
+  const badgeH = badge.height;
+  const estTextW = badge.width;
   const delBtnW = 54;
-  const delBtnX = px + estTextW + 4;
+  const badgeX = badge.x;
+  const delBtnX = badgeX + estTextW + 4;
 
   // Check if click was inside the '✕ 삭제' button
   if (
@@ -1455,7 +1388,12 @@ export function getSubtitleBoxHit(
   }
 
   // Inside badge body
-  if (mouseX >= px && mouseX <= px + estTextW && mouseY >= badgeY && mouseY <= badgeY + badgeH) {
+  if (
+    mouseX >= badgeX &&
+    mouseX <= badgeX + estTextW &&
+    mouseY >= badgeY &&
+    mouseY <= badgeY + badgeH
+  ) {
     return 'move';
   }
 
@@ -1484,7 +1422,7 @@ export function exportSubtitleRemovedVideo(
     video.muted = exportSettings.muteAudio;
     video.playsInline = true;
 
-    // To prevent Chromium from aggressively throttling or freezing the video track 
+    // To prevent Chromium from aggressively throttling or freezing the video track
     // of an off-screen/hidden video element (which causes captureStream to freeze midway),
     // we must mount it to the DOM and keep it barely visible.
     video.style.position = 'fixed';

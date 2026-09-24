@@ -1,19 +1,21 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import React, { useRef, useMemo, useState, useEffect, useCallback } from 'react';
+
 import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
+import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
 import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
-import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
-import ContentCutRoundedIcon from '@mui/icons-material/ContentCutRounded';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import LayersRoundedIcon from '@mui/icons-material/LayersRounded';
+import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
+import ContentCutRoundedIcon from '@mui/icons-material/ContentCutRounded';
+
 import { type SubtitleBoundingBox } from '../utils/video-subtitle-remover-processor';
 
 export interface SubtitleRemoverTimelineTrackProps {
@@ -33,6 +35,7 @@ export interface SubtitleRemoverTimelineTrackProps {
 
 interface DragState {
   type: 'move' | 'resize-left' | 'resize-right' | 'playhead';
+  pointerId: number;
   boxId?: string;
   startX: number;
   initStartTime: number;
@@ -61,6 +64,7 @@ export function SubtitleRemoverTimelineTrack({
 
   const [zoomLevel, setZoomLevel] = useState<number>(1);
   const [dragState, setDragState] = useState<DragState | null>(null);
+  const dragRef = useRef<DragState | null>(null);
   const [hoveredTime, setHoveredTime] = useState<number | null>(null);
 
   const safeDuration = Math.max(0.1, duration || 10);
@@ -124,30 +128,62 @@ export function SubtitleRemoverTimelineTrack({
   );
 
   // ----------------------------------------------------------------------
-  // Drag handling via window pointer listeners
+  // Capture on the stable track element so fast releases cannot outrun a React effect.
   // ----------------------------------------------------------------------
+  const finishDrag = useCallback(() => {
+    const pointerId = dragRef.current?.pointerId;
+    dragRef.current = null;
+    setDragState(null);
+    const track = trackContentRef.current;
+    if (pointerId !== undefined && track?.hasPointerCapture(pointerId)) {
+      track.releasePointerCapture(pointerId);
+    }
+  }, []);
+
+  const beginDrag = (event: React.PointerEvent, next: Omit<DragState, 'pointerId'>) => {
+    finishDrag();
+    trackContentRef.current?.setPointerCapture(event.pointerId);
+    const drag = { ...next, pointerId: event.pointerId };
+    dragRef.current = drag;
+    setDragState(drag);
+  };
+
+  const handlePointerEnd = (event: React.PointerEvent) => {
+    if (event.pointerId === dragRef.current?.pointerId) finishDrag();
+  };
+
+  useEffect(() => {
+    window.addEventListener('blur', finishDrag);
+    return () => window.removeEventListener('blur', finishDrag);
+  }, [finishDrag]);
+
   const handlePointerDownClip = (
     e: React.PointerEvent,
     box: SubtitleBoundingBox,
     type: 'move' | 'resize-left' | 'resize-right'
   ) => {
+    if (e.button !== 0 || !e.isPrimary) return;
+    e.preventDefault();
     e.stopPropagation();
     onSelectBox(box.id);
 
-    setDragState({
+    beginDrag(e, {
       type,
       boxId: box.id,
       startX: e.clientX,
       initStartTime: box.startTime || 0,
-      initEndTime: box.endTime ?? safeDuration,
+      initEndTime: Math.min(safeDuration, box.endTime ?? safeDuration),
     });
   };
 
   const handlePointerDownTrack = (e: React.PointerEvent) => {
+    if (e.button !== 0 || !e.isPrimary) return;
+    e.preventDefault();
+    e.stopPropagation();
     const time = clientXToTime(e.clientX);
     onSeek(time);
 
-    setDragState({
+    beginDrag(e, {
       type: 'playhead',
       startX: e.clientX,
       initStartTime: time,
@@ -155,75 +191,56 @@ export function SubtitleRemoverTimelineTrack({
     });
   };
 
-  useEffect(() => {
-    if (!dragState) return;
+  const handlePointerMove = (e: React.PointerEvent) => {
+    const drag = dragRef.current;
+    if (!drag || e.pointerId !== drag.pointerId) return;
+    // Recover if the browser missed the release while the pointer was outside the window.
+    if (e.buttons !== 1) {
+      finishDrag();
+      return;
+    }
+    if (!trackContentRef.current) return;
+    const rect = trackContentRef.current.getBoundingClientRect();
+    const deltaPixels = e.clientX - drag.startX;
+    const deltaTime = (deltaPixels / rect.width) * safeDuration;
 
-    const handlePointerMove = (e: PointerEvent) => {
-      if (!trackContentRef.current) return;
-      const rect = trackContentRef.current.getBoundingClientRect();
-      const deltaPixels = e.clientX - dragState.startX;
-      const deltaTime = (deltaPixels / rect.width) * safeDuration;
+    if (drag.type === 'playhead') {
+      const time = clientXToTime(e.clientX);
+      onSeek(time);
+      return;
+    }
 
-      if (dragState.type === 'playhead') {
-        const time = clientXToTime(e.clientX);
-        onSeek(time);
-        return;
+    if (!drag.boxId) return;
+
+    if (drag.type === 'move') {
+      const clipDuration = drag.initEndTime - drag.initStartTime;
+      let newStart = drag.initStartTime + deltaTime;
+      let newEnd = drag.initEndTime + deltaTime;
+
+      if (newStart < 0) {
+        newStart = 0;
+        newEnd = clipDuration;
+      } else if (newEnd > safeDuration) {
+        newEnd = safeDuration;
+        newStart = safeDuration - clipDuration;
       }
 
-      if (!dragState.boxId) return;
+      onUpdateBoxTime(drag.boxId, Number(newStart.toFixed(2)), Number(newEnd.toFixed(2)));
+      onSeek(newStart + Math.min(0.05, clipDuration / 2));
+    } else if (drag.type === 'resize-left') {
+      let newStart = drag.initStartTime + deltaTime;
+      // Minimum clip length: 0.15s
+      newStart = Math.max(0, Math.min(drag.initEndTime - 0.15, newStart));
+      onUpdateBoxTime(drag.boxId, Number(newStart.toFixed(2)), Number(drag.initEndTime.toFixed(2)));
+    } else if (drag.type === 'resize-right') {
+      let newEnd = drag.initEndTime + deltaTime;
+      // Minimum clip length: 0.15s
+      newEnd = Math.max(drag.initStartTime + 0.15, Math.min(safeDuration, newEnd));
+      onUpdateBoxTime(drag.boxId, Number(drag.initStartTime.toFixed(2)), Number(newEnd.toFixed(2)));
+    }
+  };
 
-      if (dragState.type === 'move') {
-        const clipDuration = dragState.initEndTime - dragState.initStartTime;
-        let newStart = dragState.initStartTime + deltaTime;
-        let newEnd = dragState.initEndTime + deltaTime;
-
-        if (newStart < 0) {
-          newStart = 0;
-          newEnd = clipDuration;
-        } else if (newEnd > safeDuration) {
-          newEnd = safeDuration;
-          newStart = safeDuration - clipDuration;
-        }
-
-        onUpdateBoxTime(
-          dragState.boxId,
-          Number(newStart.toFixed(2)),
-          Number(newEnd.toFixed(2))
-        );
-      } else if (dragState.type === 'resize-left') {
-        let newStart = dragState.initStartTime + deltaTime;
-        // Minimum clip length: 0.15s
-        newStart = Math.max(0, Math.min(dragState.initEndTime - 0.15, newStart));
-        onUpdateBoxTime(
-          dragState.boxId,
-          Number(newStart.toFixed(2)),
-          Number(dragState.initEndTime.toFixed(2))
-        );
-      } else if (dragState.type === 'resize-right') {
-        let newEnd = dragState.initEndTime + deltaTime;
-        // Minimum clip length: 0.15s
-        newEnd = Math.max(dragState.initStartTime + 0.15, Math.min(safeDuration, newEnd));
-        onUpdateBoxTime(
-          dragState.boxId,
-          Number(dragState.initStartTime.toFixed(2)),
-          Number(newEnd.toFixed(2))
-        );
-      }
-    };
-
-    const handlePointerUp = () => {
-      setDragState(null);
-    };
-
-    window.addEventListener('pointermove', handlePointerMove);
-    window.addEventListener('pointerup', handlePointerUp);
-
-    return () => {
-      window.removeEventListener('pointermove', handlePointerMove);
-      window.removeEventListener('pointerup', handlePointerUp);
-    };
-  }, [dragState, clientXToTime, onSeek, onUpdateBoxTime, safeDuration]);
-
+  // ----------------------------------------------------------------------
   // Generate ticks for time ruler
   const rulerTicks = useMemo(() => {
     // Select tick interval based on zoom and duration
@@ -245,9 +262,10 @@ export function SubtitleRemoverTimelineTrack({
     return ticks;
   }, [safeDuration, zoomLevel]);
 
-  const activeBox = useMemo(() => {
-    return boxes.find((b) => b.id === activeBoxId) || null;
-  }, [boxes, activeBoxId]);
+  const activeBox = useMemo(
+    () => boxes.find((b) => b.id === activeBoxId) || null,
+    [boxes, activeBoxId]
+  );
 
   const canSplit = useMemo(() => {
     if (!activeBox) return false;
@@ -443,8 +461,12 @@ export function SubtitleRemoverTimelineTrack({
         <Box
           ref={trackContentRef}
           onPointerDown={handlePointerDownTrack}
+          onPointerUp={handlePointerEnd}
+          onPointerCancel={handlePointerEnd}
+          onLostPointerCapture={handlePointerEnd}
           onPointerMove={(e) => {
-            if (!dragState) {
+            handlePointerMove(e);
+            if (!dragRef.current) {
               setHoveredTime(clientXToTime(e.clientX));
             }
           }}
@@ -453,6 +475,7 @@ export function SubtitleRemoverTimelineTrack({
             position: 'relative',
             width: `${100 * zoomLevel}%`,
             minWidth: '100%',
+            touchAction: 'none',
             height: totalTrackHeight,
             boxSizing: 'border-box',
           }}
@@ -560,7 +583,6 @@ export function SubtitleRemoverTimelineTrack({
                       key={box.id}
                       onClick={(evt) => {
                         evt.stopPropagation();
-                        onSelectBox(box.id);
                       }}
                       sx={{
                         position: 'absolute',
@@ -589,6 +611,27 @@ export function SubtitleRemoverTimelineTrack({
                       }}
                       onPointerDown={(evt) => handlePointerDownClip(evt, box, 'move')}
                     >
+                      {onDeleteBox && isSelected && (
+                        <IconButton
+                          size="small"
+                          aria-label="자막 오탐 삭제"
+                          onPointerDown={(event) => event.stopPropagation()}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onDeleteBox(box.id);
+                          }}
+                          sx={{
+                            position: 'absolute',
+                            right: 12,
+                            top: 0,
+                            zIndex: 16,
+                            color: 'white',
+                            bgcolor: 'error.dark',
+                          }}
+                        >
+                          <DeleteRoundedIcon sx={{ fontSize: 16 }} />
+                        </IconButton>
+                      )}
                       {/* Left Trim Handle (StartTime Adjustment) */}
                       <Box
                         onPointerDown={(evt) => handlePointerDownClip(evt, box, 'resize-left')}
@@ -624,7 +667,9 @@ export function SubtitleRemoverTimelineTrack({
                         }}
                       >
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, minWidth: 0 }}>
-                          <LayersRoundedIcon sx={{ fontSize: 13, color: '#ffffff', flexShrink: 0 }} />
+                          <LayersRoundedIcon
+                            sx={{ fontSize: 13, color: '#ffffff', flexShrink: 0 }}
+                          />
                           <Typography
                             variant="caption"
                             sx={{
@@ -736,15 +781,7 @@ export function SubtitleRemoverTimelineTrack({
           >
             {/* Draggable Playhead Scrubber Head */}
             <Box
-              onPointerDown={(evt) => {
-                evt.stopPropagation();
-                setDragState({
-                  type: 'playhead',
-                  startX: evt.clientX,
-                  initStartTime: currentTime,
-                  initEndTime: currentTime,
-                });
-              }}
+              onPointerDown={handlePointerDownTrack}
               sx={{
                 position: 'absolute',
                 top: 0,

@@ -11,7 +11,84 @@ import type {
 import { toast } from 'sonner';
 import { useMemo, useState, useEffect, useCallback } from 'react';
 
+import { CONFIG } from 'src/global-config';
+
 import { createEmptyProblem } from './types';
+
+// ----------------------------------------------------------------------
+
+/**
+ * Loads problem.json robustly across all deployment environments (Local, GitHub Pages with basePath, etc.)
+ */
+async function fetchSqldProblemData(): Promise<SqldProblemData> {
+  const candidateUrls: string[] = [];
+
+  // 1. Configured base path / assetsDir from global config or process.env
+  const configBase = (CONFIG.assetsDir || process.env.NEXT_PUBLIC_BASE_PATH || '')
+    .trim()
+    .replace(/\/$/, '');
+  if (configBase) {
+    candidateUrls.push(`${configBase}/sqld/problem.json`);
+  }
+
+  // 2. Browser runtime location detection for GitHub Pages subpath hosting
+  if (typeof window !== 'undefined') {
+    const { pathname, origin } = window.location;
+
+    // A. Detect prefix preceding '/sql' (e.g. '/ultra-office/sql/sqld/' -> '/ultra-office')
+    const sqlIdx = pathname.indexOf('/sql');
+    if (sqlIdx > 0) {
+      const detectedPrefix = pathname.substring(0, sqlIdx).replace(/\/$/, '');
+      if (detectedPrefix) {
+        candidateUrls.push(`${detectedPrefix}/sqld/problem.json`);
+        candidateUrls.push(`${origin}${detectedPrefix}/sqld/problem.json`);
+      }
+    }
+
+    // B. Detect first pathname segment if it looks like a repository name (e.g. /ultra-office/...)
+    const segments = pathname.split('/').filter(Boolean);
+    if (segments.length > 0 && segments[0] !== 'sql' && segments[0] !== 'public') {
+      candidateUrls.push(`/${segments[0]}/sqld/problem.json`);
+      candidateUrls.push(`${origin}/${segments[0]}/sqld/problem.json`);
+    }
+
+    if (configBase) {
+      candidateUrls.push(`${origin}${configBase}/sqld/problem.json`);
+    }
+  }
+
+  // 3. Fallback standard and relative paths
+  candidateUrls.push('/sqld/problem.json');
+  candidateUrls.push('./sqld/problem.json');
+  candidateUrls.push('sqld/problem.json');
+  candidateUrls.push('../../sqld/problem.json');
+
+  const uniqueUrls = Array.from(new Set(candidateUrls.filter(Boolean)));
+
+  let lastError: Error | null = null;
+  for (const url of uniqueUrls) {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        continue;
+      }
+      const text = await response.text();
+      const trimmed = text.trim();
+      // Ensure the response is valid JSON and not an HTML 404/fallback page
+      if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) {
+        continue;
+      }
+      const json: SqldProblemData = JSON.parse(trimmed);
+      if (json && Array.isArray(json.tree) && json.tree.length > 0 && json.scripts) {
+        return json;
+      }
+    } catch (err: unknown) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+    }
+  }
+
+  throw lastError || new Error('SQLD 기출문제 데이터(problem.json)를 불러오는 데 실패했습니다.');
+}
 
 // ----------------------------------------------------------------------
 
@@ -39,65 +116,55 @@ export function useSqldPractice() {
   const [hasLoadedStorage, setHasLoadedStorage] = useState<boolean>(false);
 
   // 1. Load problem.json (prioritize custom edited data from localStorage if available)
-  useEffect(() => {
-    let isCancelled = false;
+  const loadProblemData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-    const loadProblemData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Check if user has saved custom edited data in localStorage
-        const customDataStr = localStorage.getItem(STORAGE_KEY_CUSTOM_DATA);
-        if (customDataStr) {
-          try {
-            const parsedCustom = JSON.parse(customDataStr);
-            if (parsedCustom && parsedCustom.tree && parsedCustom.scripts) {
-              if (!isCancelled) {
-                setData(parsedCustom);
-                if (parsedCustom.tree.length > 0) {
-                  setSelectedRoundId((prev) => prev || parsedCustom.tree[0].id);
-                }
-                setLoading(false);
-                return;
-              }
-            }
-          } catch {
-            // Ignore parse error and fallback to network fetch
+      // Check if user has saved custom edited data in localStorage
+      const customDataStr = localStorage.getItem(STORAGE_KEY_CUSTOM_DATA);
+      if (customDataStr) {
+        try {
+          const parsedCustom = JSON.parse(customDataStr);
+          if (
+            parsedCustom &&
+            Array.isArray(parsedCustom.tree) &&
+            parsedCustom.tree.length > 0 &&
+            parsedCustom.scripts
+          ) {
+            setData(parsedCustom);
+            setSelectedRoundId((prev) => {
+              if (prev && parsedCustom.scripts[prev]) return prev;
+              return parsedCustom.tree[0].id;
+            });
+            setLoading(false);
+            return;
           }
-        }
-
-        const response = await fetch('/sqld/problem.json');
-        if (!response.ok) {
-          throw new Error(`문제 데이터를 불러오는 데 실패했습니다 (HTTP ${response.status})`);
-        }
-
-        const json: SqldProblemData = await response.json();
-        if (!isCancelled) {
-          setData(json);
-          // Set initial round if not set
-          if (json.tree && json.tree.length > 0) {
-            setSelectedRoundId((prev) => prev || json.tree[0].id);
-          }
-        }
-      } catch (err: unknown) {
-        if (!isCancelled) {
-          const errMsg = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.';
-          setError(errMsg);
-        }
-      } finally {
-        if (!isCancelled) {
-          setLoading(false);
+        } catch {
+          // Ignore parse error and fallback to network fetch
         }
       }
-    };
 
-    loadProblemData();
-
-    return () => {
-      isCancelled = true;
-    };
+      const json = await fetchSqldProblemData();
+      setData(json);
+      // Set initial round if not set or invalid
+      if (json.tree && json.tree.length > 0) {
+        setSelectedRoundId((prev) => {
+          if (prev && json.scripts?.[prev]) return prev;
+          return json.tree[0].id;
+        });
+      }
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.';
+      setError(errMsg);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    loadProblemData();
+  }, [loadProblemData]);
 
   // 2. Hydration-safe load from localStorage
   useEffect(() => {
@@ -139,6 +206,15 @@ export function useSqldPractice() {
       // Ignore storage write error
     }
   }, [hasLoadedStorage, selectedRoundId, showAllAnswers, userRecords]);
+
+  // Ensure selectedRoundId is valid in data.scripts
+  useEffect(() => {
+    if (data && data.tree && data.tree.length > 0 && data.scripts) {
+      if (!selectedRoundId || !data.scripts[selectedRoundId]) {
+        setSelectedRoundId(data.tree[0].id);
+      }
+    }
+  }, [data, selectedRoundId]);
 
   // Current round problems
   const currentProblems: Problem[] = useMemo(() => {
@@ -554,10 +630,14 @@ export function useSqldPractice() {
   const handleResetToDefault = useCallback(async () => {
     try {
       localStorage.removeItem(STORAGE_KEY_CUSTOM_DATA);
-      const response = await fetch('/sqld/problem.json');
-      if (!response.ok) throw new Error('원본 데이터 로드 실패');
-      const json: SqldProblemData = await response.json();
+      const json = await fetchSqldProblemData();
       setData(json);
+      if (json.tree && json.tree.length > 0) {
+        setSelectedRoundId((prev) => {
+          if (prev && json.scripts?.[prev]) return prev;
+          return json.tree[0].id;
+        });
+      }
       toast.success('원본 problem.json 데이터로 복원되었습니다.');
     } catch {
       toast.error('원본 데이터를 불러오지 못했습니다.');
@@ -708,5 +788,6 @@ export function useSqldPractice() {
     handleSaveData,
     handleExportJson,
     handleResetToDefault,
+    handleRetry: loadProblemData,
   };
 }

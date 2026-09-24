@@ -77,6 +77,24 @@ export interface GifSpeedOptions {
   progressCallback?: (progress: number) => void;
 }
 
+export interface GifCropBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface GifResizeOptions {
+  targetWidth: number;
+  targetHeight: number;
+  cropBox?: GifCropBox;
+  fitMode?: 'stretch' | 'contain' | 'cover';
+  bgColor?: string; // contain 모드일 때 여백 색상 (예: 'transparent', '#ffffff', '#000000')
+  imageSmoothing?: boolean; // false일 경우 Nearest Neighbor(도트 아트/픽셀 아트 보존)
+  sampleInterval?: number; // 1 (고화질) ~ 20 (빠름), 기본값 10
+  progressCallback?: (progress: number) => void;
+}
+
 export interface StudioClipItem {
   id: string;
   type: 'image' | 'gif';
@@ -930,6 +948,142 @@ export async function adjustGifSpeedAndReverse(
         if (obj.error) {
           reject(
             new Error(obj.errorMsg || obj.errorCode || 'GIF 재인코딩 중 오류가 발생했습니다.')
+          );
+        } else {
+          resolve(obj.image);
+        }
+      }
+    );
+  });
+}
+
+/**
+ * Resize GIF dimensions (width & height)
+ */
+export async function resizeGif(
+  input: File | Blob | { frames: GifFrameItem[]; width: number; height: number },
+  options: GifResizeOptions
+): Promise<string> {
+  const {
+    targetWidth,
+    targetHeight,
+    cropBox,
+    fitMode = 'stretch',
+    bgColor = 'transparent',
+    imageSmoothing = true,
+    sampleInterval = 10,
+    progressCallback,
+  } = options;
+
+  let frames: GifFrameItem[];
+  let origW: number;
+  let origH: number;
+
+  if ('frames' in input && Array.isArray(input.frames)) {
+    frames = input.frames;
+    origW = input.width;
+    origH = input.height;
+  } else {
+    const extracted = await extractGifFrames(input as File | Blob);
+    frames = extracted.frames;
+    origW = extracted.width;
+    origH = extracted.height;
+  }
+
+  if (frames.length === 0) {
+    throw new Error('프레임이 존재하지 않습니다.');
+  }
+
+  const finalW = Math.max(4, Math.round(targetWidth));
+  const finalH = Math.max(4, Math.round(targetHeight));
+
+  // Determine source cropping bounds
+  const sx = cropBox ? Math.max(0, Math.min(origW - 1, Math.round(cropBox.x))) : 0;
+  const sy = cropBox ? Math.max(0, Math.min(origH - 1, Math.round(cropBox.y))) : 0;
+  const sw = cropBox ? Math.max(1, Math.min(origW - sx, Math.round(cropBox.width))) : origW;
+  const sh = cropBox ? Math.max(1, Math.min(origH - sy, Math.round(cropBox.height))) : origH;
+
+  const processedImages: string[] = [];
+  const total = frames.length;
+
+  for (let i = 0; i < total; i += 1) {
+    const f = frames[i];
+    const img = await loadImage(f.dataUrl);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = finalW;
+    canvas.height = finalH;
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+      processedImages.push(f.dataUrl);
+      continue;
+    }
+
+    ctx.imageSmoothingEnabled = imageSmoothing;
+    if (imageSmoothing) {
+      ctx.imageSmoothingQuality = 'high';
+    }
+
+    // Handle background color if contain mode or specified
+    if (bgColor && bgColor !== 'transparent') {
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, finalW, finalH);
+    }
+
+    if (fitMode === 'contain') {
+      const scale = Math.min(finalW / sw, finalH / sh);
+      const dw = Math.round(sw * scale);
+      const dh = Math.round(sh * scale);
+      const dx = Math.round((finalW - dw) / 2);
+      const dy = Math.round((finalH - dh) / 2);
+      ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+    } else if (fitMode === 'cover') {
+      const scale = Math.max(finalW / sw, finalH / sh);
+      const dw = Math.round(sw * scale);
+      const dh = Math.round(sh * scale);
+      const dx = Math.round((finalW - dw) / 2);
+      const dy = Math.round((finalH - dh) / 2);
+      ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+    } else {
+      // 'stretch' (or exact fit)
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, finalW, finalH);
+    }
+
+    processedImages.push(canvas.toDataURL('image/png'));
+
+    if (progressCallback) {
+      progressCallback(Math.round(((i + 1) / total) * 40));
+    }
+  }
+
+  // Calculate safe frame interval
+  const totalSeqDurationMs = frames.reduce((acc, f) => acc + (f.delay || 100), 0);
+  const rawFrameIntervalMs = totalSeqDurationMs / frames.length;
+  const centiseconds = Math.max(2, Math.round(rawFrameIntervalMs / 10));
+  const finalIntervalSec = centiseconds / 100;
+
+  return new Promise((resolve, reject) => {
+    gifshot.createGIF(
+      {
+        images: processedImages,
+        gifWidth: finalW,
+        gifHeight: finalH,
+        interval: finalIntervalSec,
+        sampleInterval,
+        numWorkers: 2,
+        progressCallback: (prog: number) => {
+          if (progressCallback) {
+            progressCallback(40 + Math.round(prog * 60));
+          }
+        },
+      },
+      (obj: { error: boolean; errorCode?: string; errorMsg?: string; image: string }) => {
+        if (obj.error) {
+          reject(
+            new Error(
+              obj.errorMsg || obj.errorCode || 'GIF 리사이징 재인코딩 중 오류가 발생했습니다.'
+            )
           );
         } else {
           resolve(obj.image);

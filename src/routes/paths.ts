@@ -151,6 +151,7 @@ export const paths = {
     root: `/gif-studio`,
     create: `/gif-studio/create`,
     video: `/gif-studio/video`,
+    resize: `/gif-studio/resize`,
     split: `/gif-studio/split`,
     bg: `/gif-studio/bg`,
     speed: `/gif-studio/speed`,

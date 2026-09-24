@@ -1,3 +1,5 @@
+import { CONFIG } from 'src/global-config';
+
 // ----------------------------------------------------------------------
 
 export interface GifSampleItem {
@@ -40,11 +42,24 @@ export const GIF_SAMPLE_LIST: GifSampleItem[] = [
   },
 ];
 
+// ----------------------------------------------------------------------
+
+export function getGifAssetUrl(path: string): string {
+  if (!path) return '';
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  const base = (CONFIG.assetsDir || process.env.NEXT_PUBLIC_BASE_PATH || '')
+    .trim()
+    .replace(/\/$/, '');
+  return `${base}${cleanPath}`;
+}
+
 /**
  * public 폴더의 예시 GIF 파일을 Fetch하여 File 객체로 변환합니다.
  */
 export async function fetchSampleGifFile(sample: GifSampleItem): Promise<File> {
-  const response = await fetch(sample.url);
+  const url = getGifAssetUrl(sample.url);
+  const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`샘플 파일을 불러오지 못했습니다: ${sample.label}`);
   }

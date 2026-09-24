@@ -11,7 +11,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import PlaylistAddRoundedIcon from '@mui/icons-material/PlaylistAddRounded';
 
-import { GIF_SAMPLE_LIST, type GifSampleItem } from '../data/gif-samples';
+import { getGifAssetUrl, GIF_SAMPLE_LIST, type GifSampleItem } from '../data/gif-samples';
 
 // ----------------------------------------------------------------------
 
@@ -152,7 +152,7 @@ export function GifSampleSection({
               >
                 <Box
                   component="img"
-                  src={sample.url}
+                  src={getGifAssetUrl(sample.url)}
                   alt={sample.label}
                   sx={{
                     width: '100%',
