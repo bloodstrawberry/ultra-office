@@ -210,7 +210,10 @@ export function SqldPracticeView() {
           <SqldEditorCard
             problem={currentProblem}
             problemIndex={currentIndex}
+            totalProblems={currentProblems.length}
             onUpdateProblem={updateProblem}
+            onDuplicateProblem={handleDuplicateProblem}
+            onRemoveProblem={handleRemoveProblem}
           />
         )}
 

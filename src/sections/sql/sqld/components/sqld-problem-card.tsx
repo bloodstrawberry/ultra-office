@@ -2,10 +2,6 @@
 
 import type { Problem, UserProblemRecord } from '../types';
 
-import remarkGfm from 'remark-gfm';
-import rehypeRaw from 'rehype-raw';
-import ReactMarkdown from 'react-markdown';
-
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
@@ -16,8 +12,11 @@ import Checkbox from '@mui/material/Checkbox';
 import Collapse from '@mui/material/Collapse';
 import Typography from '@mui/material/Typography';
 import CancelIcon from '@mui/icons-material/Cancel';
+import SchemaIcon from '@mui/icons-material/Schema';
 import { alpha, useTheme } from '@mui/material/styles';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import FunctionsIcon from '@mui/icons-material/Functions';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -27,10 +26,14 @@ import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 
-import { SqldErdRenderer } from './sqld-erd-renderer';
+import { KatexMath } from 'src/components/katex';
+import { MermaidDiagram } from 'src/components/mermaid';
+import { ChartRenderer } from 'src/components/chart';
+
 import { SqldSqlPractice } from './sqld-sql-practice';
 import { SqldProblemMemo } from './sqld-problem-memo';
 import { isSqlPracticeProblem } from '../sqld-lab-data';
+import { isRichTextEmpty, RichContentRenderer } from './rich-content-renderer';
 
 // ----------------------------------------------------------------------
 
@@ -73,10 +76,40 @@ export function SqldProblemCard({
   const isRevealed = showAllAnswers || Boolean(record?.isRevealed) || isSubmitted;
   const isCorrect = Boolean(record?.isCorrect);
 
+  const problemFormulas = Array.isArray(problem.formulas)
+    ? problem.formulas.filter((f) => f && f.trim())
+    : problem.formula && problem.formula.trim()
+      ? [problem.formula.trim()]
+      : [];
+
   const problemErds = Array.isArray(problem.erds)
     ? problem.erds.filter((e) => e && e.trim())
     : problem.erd && problem.erd.trim()
       ? [problem.erd.trim()]
+      : [];
+
+  const problemCharts = Array.isArray(problem.charts)
+    ? problem.charts.filter((c) => c && c.trim())
+    : problem.chart && problem.chart.trim()
+      ? [problem.chart.trim()]
+      : [];
+
+  const explanationFormulas = Array.isArray(problem.explanationFormulas)
+    ? problem.explanationFormulas.filter((f) => f && f.trim())
+    : problem.explanationFormula && problem.explanationFormula.trim()
+      ? [problem.explanationFormula.trim()]
+      : [];
+
+  const explanationErds = Array.isArray(problem.explanationErds)
+    ? problem.explanationErds.filter((e) => e && e.trim())
+    : problem.explanationErd && problem.explanationErd.trim()
+      ? [problem.explanationErd.trim()]
+      : [];
+
+  const explanationCharts = Array.isArray(problem.explanationCharts)
+    ? problem.explanationCharts.filter((c) => c && c.trim())
+    : problem.explanationChart && problem.explanationChart.trim()
+      ? [problem.explanationChart.trim()]
       : [];
 
   return (
@@ -139,6 +172,16 @@ export function SqldProblemCard({
                 sx={{ fontWeight: 700, fontSize: 12 }}
               />
             )}
+
+            {problem.disableChoiceShuffle && (
+              <Chip
+                label="선택지 고정"
+                size="small"
+                color="default"
+                variant="soft"
+                sx={{ fontWeight: 600, fontSize: 11, opacity: 0.8 }}
+              />
+            )}
           </Box>
 
           {/* Right: Memo and hashtags */}
@@ -170,94 +213,218 @@ export function SqldProblemCard({
           </Box>
         </Box>
 
-        {/* Question Text (Markdown) */}
-        <Box
-          sx={{
-            fontSize: 16,
-            fontWeight: 700,
-            lineHeight: 1.8,
-            color: 'text.primary',
-            '& p': { m: 0 },
-            '& strong': { fontWeight: 800 },
-          }}
-        >
-          <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
-            {problem.question}
-          </ReactMarkdown>
+        {/* Question Text (Rich Markdown with inline math, ERD, formatting) */}
+        <Box sx={{ width: '100%' }}>
+          <RichContentRenderer
+            content={problem.question}
+            idPrefix={`sqld_question_${problemIndex}`}
+            sx={{
+              '& p': {
+                fontSize: 16,
+                fontWeight: 700,
+                lineHeight: 1.8,
+                whiteSpace: 'pre-wrap',
+                color: 'text.primary',
+              },
+              '& strong': { fontWeight: 800 },
+              '& u': {
+                textDecoration: 'underline',
+                textDecorationThickness: '1.5px',
+                textUnderlineOffset: '3px',
+              },
+            }}
+          />
         </Box>
 
         {/* Description Box (지문 / SQL 코드 / Markdown Table) */}
-        {problem.description && problem.description.trim() && (
+        {!isRichTextEmpty(problem.description) && (
           <Box
             sx={{
               p: 2,
               borderRadius: 1.5,
               bgcolor: (t) => alpha(t.palette.grey[500], 0.04),
               border: (t) => `1px solid ${alpha(t.palette.grey[500], 0.16)}`,
-              '& p': {
-                m: 0,
-                mb: 1.5,
-                fontSize: 14,
-                lineHeight: 1.8,
-                color: 'text.secondary',
-                whiteSpace: 'pre-wrap',
-                '&:last-child': { mb: 0 },
-              },
-              '& strong': { fontWeight: 700 },
-              '& code': {
-                px: 0.8,
-                py: 0.3,
-                borderRadius: 0.6,
-                fontSize: 13,
-                fontFamily: 'monospace',
-                bgcolor: (t) => alpha(t.palette.grey[500], 0.12),
-                color: 'error.main',
-              },
-              '& pre': {
-                p: 1.5,
-                borderRadius: 1,
-                bgcolor: (t) => alpha(t.palette.grey[500], 0.1),
-                overflow: 'auto',
-                '& code': {
-                  bgcolor: 'transparent',
-                  color: 'text.primary',
-                  px: 0,
-                  py: 0,
-                },
-              },
-              '& table': {
-                width: '100%',
-                borderCollapse: 'collapse',
-                my: 1.5,
-                '& th, & td': {
-                  px: 1.5,
-                  py: 1,
-                  fontSize: 13,
-                  border: (t) => `1px solid ${t.vars.palette.divider}`,
-                },
-                '& th': {
-                  fontWeight: 700,
-                  bgcolor: (t) => alpha(t.palette.grey[500], 0.08),
-                },
-              },
             }}
           >
-            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
-              {problem.description}
-            </ReactMarkdown>
+            <RichContentRenderer
+              content={problem.description}
+              idPrefix={`sqld_desc_${problemIndex}`}
+              sx={{
+                '& p': {
+                  m: 0,
+                  mb: 1.5,
+                  fontSize: 14,
+                  lineHeight: 1.8,
+                  color: 'text.secondary',
+                  whiteSpace: 'pre-wrap',
+                  '&:last-child': { mb: 0 },
+                },
+                '& strong': { fontWeight: 700 },
+                '& code': {
+                  px: 0.8,
+                  py: 0.3,
+                  borderRadius: 0.6,
+                  fontSize: 13,
+                  fontFamily: 'monospace',
+                  bgcolor: (t) => alpha(t.palette.grey[500], 0.12),
+                  color: 'error.main',
+                },
+                '& pre': {
+                  p: 1.5,
+                  borderRadius: 1,
+                  bgcolor: (t) => alpha(t.palette.grey[500], 0.1),
+                  overflow: 'auto',
+                  '& code': {
+                    bgcolor: 'transparent',
+                    color: 'text.primary',
+                    px: 0,
+                    py: 0,
+                  },
+                },
+                '& table': {
+                  width: '100%',
+                  borderCollapse: 'collapse',
+                  my: 1.5,
+                  '& th, & td': {
+                    px: 1.5,
+                    py: 1,
+                    fontSize: 13,
+                    border: (t) => `1px solid ${t.vars.palette.divider}`,
+                  },
+                  '& th': {
+                    fontWeight: 700,
+                    bgcolor: (t) => alpha(t.palette.grey[500], 0.08),
+                  },
+                },
+              }}
+            />
+          </Box>
+        )}
+
+        {/* Formulas (KaTeX) */}
+        {problemFormulas.length > 0 && (
+          <Box
+            sx={{
+              p: 2,
+              borderRadius: 1.5,
+              bgcolor: (t) => alpha(t.palette.grey[500], 0.03),
+              border: (t) => `1px solid ${alpha(t.palette.grey[500], 0.12)}`,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 1.5,
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <FunctionsIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
+              <Typography
+                variant="caption"
+                sx={{
+                  fontWeight: 800,
+                  color: 'text.secondary',
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.5,
+                }}
+              >
+                수식
+              </Typography>
+            </Box>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              {problemFormulas.map((fText, fIdx) => (
+                <Box
+                  key={fIdx}
+                  sx={{
+                    p: 1.5,
+                    borderRadius: 1,
+                    bgcolor: 'background.paper',
+                    border: (t) => `1px solid ${alpha(t.palette.grey[500], 0.12)}`,
+                    boxShadow: (t) => t.customShadows?.z1,
+                  }}
+                >
+                  <KatexMath math={fText} />
+                </Box>
+              ))}
+            </Box>
           </Box>
         )}
 
         {/* ERD Diagrams if present in problem */}
         {problemErds.length > 0 && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-            {problemErds.map((erdText, eIdx) => (
-              <SqldErdRenderer
-                key={eIdx}
-                chart={erdText}
-                idPrefix={`sqld_erd_${problemIndex}_${eIdx}`}
-              />
-            ))}
+          <Box
+            sx={{
+              p: 2,
+              borderRadius: 1.5,
+              bgcolor: (t) => alpha(t.palette.info.main, 0.03),
+              border: (t) => `1px solid ${alpha(t.palette.info.main, 0.16)}`,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 1.5,
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <SchemaIcon sx={{ color: 'info.main', fontSize: 20 }} />
+              <Typography
+                variant="caption"
+                sx={{
+                  fontWeight: 800,
+                  color: 'info.main',
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.5,
+                }}
+              >
+                ERD (Entity Relationship Diagram)
+              </Typography>
+            </Box>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+              {problemErds.map((erdText, eIdx) => (
+                <MermaidDiagram
+                  key={eIdx}
+                  chart={erdText}
+                  idPrefix={`sqld_erd_${problemIndex}_${eIdx}`}
+                />
+              ))}
+            </Box>
+          </Box>
+        )}
+
+        {/* Problem Charts if present */}
+        {problemCharts.length > 0 && (
+          <Box
+            sx={{
+              p: 2,
+              borderRadius: 1.5,
+              bgcolor: (t) => alpha(t.palette.success.main, 0.03),
+              border: (t) => `1px solid ${alpha(t.palette.success.main, 0.16)}`,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 1.5,
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <BarChartIcon sx={{ color: 'success.main', fontSize: 20 }} />
+              <Typography
+                variant="caption"
+                sx={{
+                  fontWeight: 800,
+                  color: 'success.main',
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.5,
+                }}
+              >
+                차트 (Plotly / Mermaid)
+              </Typography>
+            </Box>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+              {problemCharts.map((cText, cIdx) => (
+                <ChartRenderer
+                  key={cIdx}
+                  chart={cText}
+                  idPrefix={`sqld_chart_${problemIndex}_${cIdx}`}
+                />
+              ))}
+            </Box>
           </Box>
         )}
 
@@ -267,7 +434,7 @@ export function SqldProblemCard({
 
         <Divider sx={{ borderStyle: 'dashed' }} />
 
-        {/* 4 Choices */}
+        {/* Choices */}
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2 }}>
           {problem.choices.map((choice, cIndex) => {
             const choiceNum = cIndex + 1;
@@ -355,6 +522,7 @@ export function SqldProblemCard({
                     <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, py: 0.2 }}>
                       <Typography
                         variant="body2"
+                        component="span"
                         sx={{
                           fontWeight: isThisSelected || (isRevealed && isThisCorrect) ? 800 : 500,
                           mt: 0.1,
@@ -368,19 +536,13 @@ export function SqldProblemCard({
                           flexGrow: 1,
                           fontSize: 14,
                           fontWeight: isThisSelected || (isRevealed && isThisCorrect) ? 700 : 400,
-                          '& p': { m: 0 },
-                          '& code': {
-                            px: 0.6,
-                            py: 0.2,
-                            borderRadius: 0.5,
-                            bgcolor: (t) => alpha(t.palette.grey[500], 0.12),
-                            fontFamily: 'monospace',
-                          },
                         }}
                       >
-                        <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
-                          {choice}
-                        </ReactMarkdown>
+                        <RichContentRenderer
+                          content={choice}
+                          idPrefix={`sqld_choice_${problemIndex}_${cIndex}`}
+                          inline
+                        />
                       </Box>
                     </Box>
                   }
@@ -393,11 +555,57 @@ export function SqldProblemCard({
                 />
 
                 {/* Extra Choice Description if any */}
-                {problem.choiceDescriptions?.[cIndex] && (
+                {!isRichTextEmpty(problem.choiceDescriptions?.[cIndex]) && (
                   <Box sx={{ pl: 4.5, pt: 0.5, color: 'text.secondary', fontSize: 13 }}>
-                    <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
-                      {problem.choiceDescriptions[cIndex]}
-                    </ReactMarkdown>
+                    <RichContentRenderer
+                      content={problem.choiceDescriptions?.[cIndex] || ''}
+                      idPrefix={`sqld_choice_desc_${problemIndex}_${cIndex}`}
+                    />
+                  </Box>
+                )}
+
+                {/* Extra Choice Formulas if any */}
+                {problem.choiceFormulas?.[cIndex] && problem.choiceFormulas[cIndex].length > 0 && (
+                  <Box sx={{ pl: 4.5, pt: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    {problem.choiceFormulas[cIndex].map((fText, fIdx) => (
+                      <Box
+                        key={fIdx}
+                        sx={{
+                          p: 1.5,
+                          borderRadius: 1,
+                          bgcolor: 'background.paper',
+                          border: (t) => `1px solid ${alpha(t.palette.grey[500], 0.12)}`,
+                        }}
+                      >
+                        <KatexMath math={fText} />
+                      </Box>
+                    ))}
+                  </Box>
+                )}
+
+                {/* Extra Choice ERDs if any */}
+                {problem.choiceErds?.[cIndex] && problem.choiceErds[cIndex].length > 0 && (
+                  <Box sx={{ pl: 4.5, pt: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    {problem.choiceErds[cIndex].map((erdText, erdIdx) => (
+                      <MermaidDiagram
+                        key={erdIdx}
+                        chart={erdText}
+                        idPrefix={`sqld_choice_erd_${problemIndex}_${cIndex}_${erdIdx}`}
+                      />
+                    ))}
+                  </Box>
+                )}
+
+                {/* Extra Choice Charts if any */}
+                {problem.choiceCharts?.[cIndex] && problem.choiceCharts[cIndex].length > 0 && (
+                  <Box sx={{ pl: 4.5, pt: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    {problem.choiceCharts[cIndex].map((chartText, chartIdx) => (
+                      <ChartRenderer
+                        key={chartIdx}
+                        chart={chartText}
+                        idPrefix={`sqld_choice_chart_${problemIndex}_${cIndex}_${chartIdx}`}
+                      />
+                    ))}
                   </Box>
                 )}
               </Box>
@@ -528,7 +736,7 @@ export function SqldProblemCard({
             <Divider sx={{ borderStyle: 'dashed' }} />
 
             {/* Detailed Explanation Markdown */}
-            {problem.explanation && problem.explanation.trim() && (
+            {!isRichTextEmpty(problem.explanation) && (
               <Box
                 sx={{
                   '& h3': {
@@ -564,9 +772,64 @@ export function SqldProblemCard({
                   },
                 }}
               >
-                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
-                  {problem.explanation}
-                </ReactMarkdown>
+                <RichContentRenderer
+                  content={problem.explanation}
+                  idPrefix={`sqld_exp_${problemIndex}`}
+                />
+              </Box>
+            )}
+
+            {/* Explanation Formulas */}
+            {explanationFormulas.length > 0 && (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: 'primary.main' }}>
+                  해설 수식:
+                </Typography>
+                {explanationFormulas.map((fText, fIdx) => (
+                  <Box
+                    key={fIdx}
+                    sx={{
+                      p: 1.5,
+                      borderRadius: 1,
+                      bgcolor: 'background.paper',
+                      border: (t) => `1px solid ${alpha(t.palette.grey[500], 0.12)}`,
+                    }}
+                  >
+                    <KatexMath math={fText} />
+                  </Box>
+                ))}
+              </Box>
+            )}
+
+            {/* Explanation ERDs */}
+            {explanationErds.length > 0 && (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: 'info.main' }}>
+                  해설 ERD:
+                </Typography>
+                {explanationErds.map((erdText, eIdx) => (
+                  <MermaidDiagram
+                    key={eIdx}
+                    chart={erdText}
+                    idPrefix={`sqld_exp_erd_${problemIndex}_${eIdx}`}
+                  />
+                ))}
+              </Box>
+            )}
+
+            {/* Explanation Charts */}
+            {explanationCharts.length > 0 && (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: 'success.main' }}>
+                  해설 차트:
+                </Typography>
+                {explanationCharts.map((cText, cIdx) => (
+                  <ChartRenderer
+                    key={cIdx}
+                    chart={cText}
+                    idPrefix={`sqld_exp_chart_${problemIndex}_${cIdx}`}
+                  />
+                ))}
               </Box>
             )}
 
@@ -579,15 +842,26 @@ export function SqldProblemCard({
                   </Typography>
 
                   {problem.choiceExplanations.map((exp, expIdx) => {
-                    if (!exp || !exp.trim()) return null;
+                    const expDesc = problem.choiceExplanationDescriptions?.[expIdx] || '';
+                    const expFormulasList = problem.choiceExplanationFormulas?.[expIdx] || [];
+                    const expErdsList = problem.choiceExplanationErds?.[expIdx] || [];
+                    const expChartsList = problem.choiceExplanationCharts?.[expIdx] || [];
+
+                    const hasAnyExp =
+                      Boolean(exp && exp.trim()) ||
+                      Boolean(expDesc && expDesc.trim()) ||
+                      expFormulasList.length > 0 ||
+                      expErdsList.length > 0 ||
+                      expChartsList.length > 0;
+
+                    if (!hasAnyExp) return null;
                     const isChoiceAns = correctAnswersList.includes(expIdx + 1);
 
                     return (
                       <Box
                         key={expIdx}
                         sx={{
-                          p: 1.2,
-                          px: 1.5,
+                          p: 1.5,
                           borderRadius: 1.2,
                           bgcolor: isChoiceAns
                             ? alpha(theme.palette.success.main, 0.08)
@@ -598,7 +872,7 @@ export function SqldProblemCard({
                             : alpha(theme.palette.grey[500], 0.12),
                           display: 'flex',
                           alignItems: 'flex-start',
-                          gap: 1,
+                          gap: 1.5,
                         }}
                       >
                         <Chip
@@ -606,19 +880,80 @@ export function SqldProblemCard({
                           label={`${expIdx + 1}번`}
                           color={isChoiceAns ? 'success' : 'default'}
                           variant={isChoiceAns ? 'filled' : 'outlined'}
-                          sx={{ height: 20, fontSize: 11, fontWeight: 800, flexShrink: 0, mt: 0.2 }}
+                          sx={{ height: 22, fontSize: 11, fontWeight: 800, flexShrink: 0, mt: 0.2 }}
                         />
-                        <Box
-                          sx={{
-                            fontSize: 13,
-                            lineHeight: 1.6,
-                            color: isChoiceAns ? 'success.darker' : 'text.secondary',
-                            '& p': { m: 0 },
-                          }}
-                        >
-                          <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
-                            {exp}
-                          </ReactMarkdown>
+
+                        <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                          {/* Choice basic explanation */}
+                          {!isRichTextEmpty(exp) && (
+                            <Box
+                              sx={{
+                                fontSize: 13,
+                                lineHeight: 1.6,
+                                color: isChoiceAns ? 'success.darker' : 'text.secondary',
+                              }}
+                            >
+                              <RichContentRenderer
+                                content={exp}
+                                idPrefix={`sqld_choice_exp_${problemIndex}_${expIdx}`}
+                              />
+                            </Box>
+                          )}
+
+                          {/* Extra Explanation Description */}
+                          {!isRichTextEmpty(expDesc) && (
+                            <Box sx={{ fontSize: 13, color: 'text.secondary' }}>
+                              <RichContentRenderer
+                                content={expDesc}
+                                idPrefix={`sqld_choice_exp_desc_${problemIndex}_${expIdx}`}
+                              />
+                            </Box>
+                          )}
+
+                          {/* Extra Explanation Formulas */}
+                          {expFormulasList.length > 0 && (
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                              {expFormulasList.map((fText, fIdx) => (
+                                <Box
+                                  key={fIdx}
+                                  sx={{
+                                    p: 1.5,
+                                    borderRadius: 1,
+                                    bgcolor: 'background.paper',
+                                    border: (t) => `1px solid ${alpha(t.palette.grey[500], 0.12)}`,
+                                  }}
+                                >
+                                  <KatexMath math={fText} />
+                                </Box>
+                              ))}
+                            </Box>
+                          )}
+
+                          {/* Extra Explanation ERDs */}
+                          {expErdsList.length > 0 && (
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                              {expErdsList.map((erdText, erdIdx) => (
+                                <MermaidDiagram
+                                  key={erdIdx}
+                                  chart={erdText}
+                                  idPrefix={`sqld_choice_exp_erd_${problemIndex}_${expIdx}_${erdIdx}`}
+                                />
+                              ))}
+                            </Box>
+                          )}
+
+                          {/* Extra Explanation Charts */}
+                          {expChartsList.length > 0 && (
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                              {expChartsList.map((chartText, chartIdx) => (
+                                <ChartRenderer
+                                  key={chartIdx}
+                                  chart={chartText}
+                                  idPrefix={`sqld_choice_exp_chart_${problemIndex}_${expIdx}_${chartIdx}`}
+                                />
+                              ))}
+                            </Box>
+                          )}
                         </Box>
                       </Box>
                     );
