@@ -12,12 +12,13 @@ import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import Divider from '@mui/material/Divider';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import NoteAltRoundedIcon from '@mui/icons-material/NoteAltRounded';
+
+import { MarkdownEditor } from 'src/components/markdown-editor';
 
 import { getSqldMemo, saveSqldMemo } from '../sqld-memo-storage';
 
@@ -109,6 +110,8 @@ export function SqldProblemMemo({ problem, problemIndex, problemKey }: SqldProbl
   );
 
   const handleChange = (value: string) => {
+    if (value === latestContent.current) return;
+
     latestContent.current = value;
     dirty.current = true;
     revision.current += 1;
@@ -140,13 +143,36 @@ export function SqldProblemMemo({ problem, problemIndex, problemKey }: SqldProbl
         메모장
       </Button>
 
-      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="lg">
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        fullWidth
+        maxWidth="lg"
+        slotProps={{ paper: { sx: { height: { xs: '100%', md: '85vh' } } } }}
+      >
         <DialogTitle sx={{ fontWeight: 800 }}>
           SQLD {problemIndex + 1}번 · 마크다운 메모장
         </DialogTitle>
-        <DialogContent dividers sx={{ maxHeight: '75vh' }}>
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
-            <Box sx={{ minWidth: 0 }}>
+        <DialogContent
+          dividers
+          sx={{
+            display: { xs: 'block', md: 'flex' },
+            minHeight: 0,
+            overflowY: { xs: 'auto', md: 'hidden' },
+          }}
+        >
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+              gridTemplateRows: { md: 'minmax(0, 1fr)' },
+              gap: 3,
+              flex: 1,
+              minHeight: 0,
+              width: '100%',
+            }}
+          >
+            <Box sx={{ minWidth: 0, minHeight: 0, overflowY: { md: 'auto' } }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 1.5 }}>
                 문제와 선택지
               </Typography>
@@ -186,7 +212,7 @@ export function SqldProblemMemo({ problem, problemIndex, problemKey }: SqldProbl
               </Box>
             </Box>
 
-            <Box sx={{ minWidth: 0 }}>
+            <Box sx={{ minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 1.5 }}>
                 내 공부 메모
               </Typography>
@@ -196,18 +222,17 @@ export function SqldProblemMemo({ problem, problemIndex, problemKey }: SqldProbl
                 </Alert>
               ) : (
                 <>
-                  <TextField
-                    fullWidth
-                    multiline
-                    minRows={10}
-                    maxRows={20}
-                    value={content}
-                    disabled={loading}
-                    onChange={(event) => handleChange(event.target.value)}
-                    placeholder="추가로 공부한 개념, 오답 이유, SQL 예시 등을 마크다운으로 적어 보세요."
-                    aria-label="내 공부 메모 마크다운 편집"
-                    sx={{ '& textarea': { fontFamily: 'monospace', fontSize: 14 } }}
-                  />
+                  {!loading && (
+                    <MarkdownEditor
+                      hideHeader
+                      fillHeight
+                      label="내 공부 메모"
+                      value={content}
+                      onChange={handleChange}
+                      placeholder="추가로 공부한 개념, 오답 이유, SQL 예시 등을 적어 보세요."
+                      minRows={10}
+                    />
+                  )}
                   <Typography
                     variant="caption"
                     sx={{
@@ -226,27 +251,6 @@ export function SqldProblemMemo({ problem, problemIndex, problemKey }: SqldProbl
                             ? '저장에 실패했습니다. 내용을 수정하면 다시 시도합니다.'
                             : '작성 내용은 이 브라우저에 자동 저장됩니다.'}
                   </Typography>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800, mt: 2, mb: 1 }}>
-                    미리보기
-                  </Typography>
-                  <Box
-                    sx={{
-                      ...markdownSx,
-                      minHeight: 100,
-                      p: 2,
-                      border: '1px solid',
-                      borderColor: 'divider',
-                      borderRadius: 1,
-                    }}
-                  >
-                    {content ? (
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
-                    ) : (
-                      <Typography variant="body2" color="text.secondary">
-                        메모를 작성하면 마크다운 미리보기가 표시됩니다.
-                      </Typography>
-                    )}
-                  </Box>
                 </>
               )}
             </Box>

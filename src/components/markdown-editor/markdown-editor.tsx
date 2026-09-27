@@ -5,13 +5,11 @@ import type { Editor } from '@tiptap/react';
 import { Icon } from '@iconify/react';
 import { debounce } from 'es-toolkit';
 import { Markdown } from 'tiptap-markdown';
-import { Link } from '@tiptap/extension-link';
 import { Color } from '@tiptap/extension-color';
 import { StarterKit } from '@tiptap/starter-kit';
 import { TaskList } from '@tiptap/extension-task-list';
 import { TaskItem } from '@tiptap/extension-task-item';
 import { Paragraph } from '@tiptap/extension-paragraph';
-import { Underline } from '@tiptap/extension-underline';
 import { Highlight } from '@tiptap/extension-highlight';
 import { HardBreak } from '@tiptap/extension-hard-break';
 import { TextAlign } from '@tiptap/extension-text-align';
@@ -566,6 +564,7 @@ interface MarkdownEditorProps {
   minRows?: number;
   readOnly?: boolean;
   hideHeader?: boolean;
+  fillHeight?: boolean;
 }
 
 export const MarkdownEditor = memo(function MarkdownEditor({
@@ -576,6 +575,7 @@ export const MarkdownEditor = memo(function MarkdownEditor({
   minRows = 4,
   readOnly = false,
   hideHeader = false,
+  fillHeight = false,
 }: MarkdownEditorProps) {
   const theme = useTheme();
   const [isMounted, setIsMounted] = useState(false);
@@ -624,6 +624,9 @@ export const MarkdownEditor = memo(function MarkdownEditor({
         heading: {
           levels: [1, 2, 3, 4, 5, 6],
         },
+        link: {
+          openOnClick: false,
+        },
       }),
       CustomParagraph,
       CustomHardBreak,
@@ -635,12 +638,8 @@ export const MarkdownEditor = memo(function MarkdownEditor({
         linkify: true,
         breaks: true,
       }),
-      Underline,
       TextAlign.configure({
         types: ['heading', 'paragraph', 'tableCell', 'tableHeader'],
-      }),
-      Link.configure({
-        openOnClick: false,
       }),
       Placeholder.configure({
         placeholder: placeholder || '상세 내용을 입력하세요...',
@@ -734,6 +733,7 @@ export const MarkdownEditor = memo(function MarkdownEditor({
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
+        ...(fillHeight && { flex: 1, minHeight: 0 }),
         bgcolor: 'background.paper',
         '&:focus-within': {
           borderColor: 'primary.main',
@@ -789,7 +789,8 @@ export const MarkdownEditor = memo(function MarkdownEditor({
           flexGrow: 1,
           px: 2,
           py: 1.5,
-          minHeight: `${minRows * 24 + 24}px`,
+          minHeight: fillHeight ? 0 : `${minRows * 24 + 24}px`,
+          ...(fillHeight && { overflowY: 'auto' }),
           cursor: readOnly ? 'default' : 'text',
           outline: 'none',
           '& .tiptap': {
