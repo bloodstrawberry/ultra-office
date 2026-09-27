@@ -589,7 +589,10 @@ export function ChatPreviewCanvas({
             flex: isFullViewport ? 1 : 'none',
           }}
         >
-          <ChatDeviceFrame config={data.config}>
+          <ChatDeviceFrame
+            config={data.config}
+            kakaoRoom={category === 'messenger' && viewMode === 'room' && data.config.themeId === 'kakaotalk'}
+          >
             {/* 메신저 카테고리 & 목록 화면 모드일 때는 대화방 목록 뷰 렌더링 */}
             {category === 'messenger' && viewMode === 'list' ? (
               <ChatRoomListView
@@ -623,7 +626,7 @@ export function ChatPreviewCanvas({
                   sx={{
                     flex: 1,
                     overflowY: 'auto',
-                    py: 1.5,
+                    py: data.config.themeId === 'kakaotalk' ? 0.2 : 1.5,
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: isFullViewport ? 'stretch' : 'center',

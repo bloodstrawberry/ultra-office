@@ -14,9 +14,10 @@ import BatteryChargingFullRoundedIcon from '@mui/icons-material/BatteryChargingF
 interface ChatDeviceFrameProps {
   config: ChatRoomConfig;
   children: React.ReactNode;
+  kakaoRoom?: boolean;
 }
 
-export function ChatDeviceFrame({ config, children }: ChatDeviceFrameProps) {
+export function ChatDeviceFrame({ config, children, kakaoRoom = false }: ChatDeviceFrameProps) {
   const {
     showDeviceFrame,
     deviceType,
@@ -29,6 +30,27 @@ export function ChatDeviceFrame({ config, children }: ChatDeviceFrameProps) {
 
   const customRadius = config.frameBorderRadius;
   const isFullViewport = config.isFullViewport;
+
+  if (kakaoRoom) {
+    return (
+      <Box
+        sx={{
+          width: isFullViewport ? '100%' : config.deviceWidth || 380,
+          maxWidth: '100%',
+          height: isFullViewport ? '100%' : 691,
+          flex: isFullViewport ? 1 : 'none',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          bgcolor: '#BACEE0',
+          border: showDeviceFrame ? '1px solid #AAB7C2' : 'none',
+          boxShadow: isFullViewport || !showDeviceFrame ? 'none' : '0 18px 42px rgba(30, 49, 69, 0.2)',
+        }}
+      >
+        {children}
+      </Box>
+    );
+  }
 
   if (deviceType === 'desktop') {
     const desktopWidth = isFullViewport ? '100%' : config.deviceWidth || 820;

@@ -11,6 +11,7 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
+import PersonOutlineRoundedIcon from '@mui/icons-material/PersonOutlineRounded';
 import DoneAllRoundedIcon from '@mui/icons-material/DoneAllRounded';
 import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded';
 import ThumbUpOutlinedIcon from '@mui/icons-material/ThumbUpOutlined';
@@ -73,6 +74,7 @@ export function ChatMessageItem({
     !nextMessage ||
       nextMessage.senderId !== message.senderId ||
       nextMessage.isSystem ||
+      (isKakao && message.time && !nextMessage?.time) ||
       (nextMessage.time && message.time && nextMessage.time !== message.time)
   );
 
@@ -430,7 +432,7 @@ export function ChatMessageItem({
       return !isConsecutive ? `0 ${radius} ${radius} ${radius}` : radius; // 좌측 상단 뾰족
     }
     if (isKakao) {
-      return '12px';
+      return '2px';
     }
     if (isDanggeun) {
       return isMe ? '14px 14px 4px 14px' : '14px 14px 14px 4px';
@@ -442,7 +444,15 @@ export function ChatMessageItem({
   };
 
   // 연속 메시지에 따른 하단 여백 설정
-  const bottomSpacing = isLast ? (isKakao ? 1.4 : 1.8) : isKakao ? 0.35 : 0.45;
+  const bottomSpacing = isKakao
+    ? isLast
+      ? 2
+      : isMe && shouldShowTime
+        ? 2.1
+        : 0.8
+    : isLast
+      ? 1.8
+      : 0.45;
 
   const bubbleBg = getBubbleBg();
   const bubbleTextColor = getBubbleTextColor();
@@ -453,8 +463,9 @@ export function ChatMessageItem({
         display: 'flex',
         flexDirection: 'column',
         mb: bottomSpacing,
-        px: 1.5,
+        px: isKakao ? (isMe ? 1.4 : 1.8) : 1.5,
         alignItems: isMe ? 'flex-end' : 'flex-start',
+        position: 'relative',
         cursor: 'pointer',
         width: '100%',
         '&:hover': {
@@ -465,15 +476,18 @@ export function ChatMessageItem({
     >
       {/* 상대방 프로필 & 이름 (연속 메시지일 경우 첫 메시지에만 표시) */}
       {!isMe && !isConsecutive && (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.4 }}>
+        <Box sx={{ display: 'flex', alignItems: isKakao ? 'flex-start' : 'center', gap: isKakao ? 1.5 : 1, mb: 0.4, ...(isKakao && { height: 18, pl: 6.5 }) }}>
           {isKakao && !partnerAvatar ? (
             <Avatar
               sx={{
-                width: 36,
-                height: 36,
+                width: isKakao ? 40 : 36,
+                height: isKakao ? 40 : 36,
                 bgcolor: '#72C2E1',
                 color: '#FFFFFF',
-                borderRadius: '16px', // 카카오 squircle 모서리
+                borderRadius: '15px',
+                position: 'absolute',
+                top: 0,
+                left: 14,
               }}
             >
               <PersonRoundedIcon sx={{ fontSize: 24 }} />
@@ -498,9 +512,9 @@ export function ChatMessageItem({
               src={partnerAvatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=user'}
               alt={partnerName}
               sx={{
-                width: 34,
-                height: 34,
-                ...(isKakao && { borderRadius: '16px' }),
+                width: isKakao ? 40 : 34,
+                height: isKakao ? 40 : 34,
+                ...(isKakao && { borderRadius: '15px', position: 'absolute', top: 0, left: 14 }),
               }}
             />
           )}
@@ -508,8 +522,8 @@ export function ChatMessageItem({
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
             <Typography
               sx={{
-                fontSize: 13,
-                fontWeight: 600,
+                fontSize: isKakao ? 12 : 13,
+                fontWeight: isKakao ? 400 : 600,
                 color: isKakao ? '#2E363E' : isKnox ? '#1E293B' : themeMeta.headerText,
                 letterSpacing: -0.2,
               }}
@@ -539,9 +553,9 @@ export function ChatMessageItem({
           display: 'flex',
           flexDirection: isMe ? 'row-reverse' : 'row',
           alignItems: 'flex-end',
-          gap: 0.6,
+          gap: isKakao ? 0.4 : 0.6,
           maxWidth: '85%',
-          pl: !isMe ? (!isConsecutive ? 5.2 : 5.2) : 0, // 아바타 공간만큼 들여쓰기 유지
+          pl: !isMe ? (isKakao ? 6.5 : 5.2) : 0, // 아바타 공간만큼 들여쓰기 유지
           position: 'relative',
         }}
       >
@@ -559,17 +573,17 @@ export function ChatMessageItem({
               bgcolor: bubbleBg,
               background: bubbleBg,
               color: bubbleTextColor,
-              px: !message.text && message.mediaUrl ? 0 : 1.4,
-              py: !message.text && message.mediaUrl ? 0 : 0.85,
+              px: !message.text && message.mediaUrl ? 0 : isKakao ? 1 : 1.4,
+              py: !message.text && message.mediaUrl ? 0 : isKakao ? 0.6 : 0.85,
               borderRadius: getBorderRadius(),
-              boxShadow: isKnox
+              boxShadow: isKakao || isKnox
                 ? 'none'
                 : !message.text && message.mediaUrl
                   ? 'none'
                   : '0 1px 2px rgba(0,0,0,0.1)',
               border:
                 (isKnox || (isGalaxy && !isMe)) && !message.mediaUrl ? '1px solid #E2E8F0' : 'none',
-              fontSize: 13.5,
+              fontSize: isKakao ? 13 : 13.5,
               lineHeight: 1.45,
               wordBreak: 'break-word',
               maxWidth: 280,
@@ -581,7 +595,7 @@ export function ChatMessageItem({
                   '&::before': {
                     content: '""',
                     position: 'absolute',
-                    top: 8,
+                    top: 5,
                     [isMe ? 'right' : 'left']: -6,
                     borderTop: '2px solid transparent',
                     borderBottom: '8px solid transparent',
@@ -637,23 +651,23 @@ export function ChatMessageItem({
               sx={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: 0.6,
-                bgcolor: '#FFFFFF',
+                gap: isKakao ? 0.4 : 0.6,
+                bgcolor: isKakao ? 'transparent' : '#FFFFFF',
                 color: '#111827',
-                border: '1px solid rgba(0,0,0,0.12)',
+                border: isKakao ? 'none' : '1px solid rgba(0,0,0,0.12)',
                 borderRadius: '16px',
-                px: 0.8,
-                py: 0.2,
-                boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+                px: isKakao ? 0 : 0.8,
+                py: isKakao ? 0 : 0.2,
+                boxShadow: isKakao ? 'none' : '0 2px 6px rgba(0,0,0,0.08)',
                 fontSize: 11.5,
                 fontWeight: 600,
                 alignSelf: isMe ? 'flex-end' : 'flex-start',
-                mt: 0.4,
+                mt: isKakao ? 0.6 : 0.4,
                 zIndex: 5,
               }}
             >
               {Object.entries(message.reactions).map(([emoji, count]) => (
-                <Box key={emoji} sx={{ display: 'flex', alignItems: 'center', gap: 0.3 }}>
+                <Box key={emoji} sx={{ display: 'flex', alignItems: 'center', gap: 0.3, ...(isKakao && { height: 22, px: 0.6, borderRadius: '12px', bgcolor: '#FFFFFF' }) }}>
                   <span>{emoji}</span>
                   <Typography sx={{ fontSize: 11, fontWeight: 700, color: '#444444' }}>
                     {count}
@@ -661,7 +675,14 @@ export function ChatMessageItem({
                 </Box>
               ))}
               {isKakao && (
-                <AddReactionRoundedIcon sx={{ fontSize: 14, color: '#999999', ml: 0.2 }} />
+                <Box sx={{ width: 21, height: 21, borderRadius: '50%', bgcolor: '#DCE8F2', display: 'grid', placeItems: 'center' }}>
+                  <AddReactionRoundedIcon sx={{ fontSize: 14, color: '#6E8292' }} />
+                </Box>
+              )}
+              {isKakao && (
+                <Box sx={{ width: 21, height: 21, borderRadius: '50%', bgcolor: '#DCE8F2', display: 'grid', placeItems: 'center' }}>
+                  <PersonOutlineRoundedIcon sx={{ fontSize: 14, color: '#6E8292' }} />
+                </Box>
               )}
             </Box>
           )}
@@ -674,7 +695,7 @@ export function ChatMessageItem({
             flexDirection: 'column',
             alignItems: isMe ? 'flex-end' : 'flex-start',
             flexShrink: 0,
-            mb: 0.2,
+            mb: isKakao && message.reactions && Object.keys(message.reactions).length > 0 ? 3.4 : 0.2,
           }}
         >
           {/* 카카오톡 특유의 노란 숫자 '1' (안읽음 카운트) */}

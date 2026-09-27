@@ -8,11 +8,10 @@ import Box from '@mui/material/Box';
 import InputBase from '@mui/material/InputBase';
 import IconButton from '@mui/material/IconButton';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined';
 import MicRoundedIcon from '@mui/icons-material/MicRounded';
-import TagRoundedIcon from '@mui/icons-material/TagRounded';
 import SendRoundedIcon from '@mui/icons-material/SendRounded';
 import ImageRoundedIcon from '@mui/icons-material/ImageRounded';
-import GraphicEqRoundedIcon from '@mui/icons-material/GraphicEqRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
@@ -38,7 +37,7 @@ export function ChatBottomInputBar({ config, onSendMessage }: ChatBottomInputBar
     setInputText('');
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
@@ -221,116 +220,31 @@ export function ChatBottomInputBar({ config, onSendMessage }: ChatBottomInputBar
     );
   }
 
-  // 2. 카카오톡 전용 하단 입력바 (플로팅 알약 캡슐 & 아래 화살표 버튼)
+  // 카카오톡 PC 채팅창의 흰색 입력 영역과 하단 도구 모음
   if (isKakao) {
     return (
-      <Box sx={{ position: 'relative', width: '100%' }}>
-        {/* 우측 상단 플로팅 아래 화살표 (스크롤 다운 버튼) */}
-        <Box
-          sx={{
-            position: 'absolute',
-            top: -46,
-            right: 14,
-            width: 36,
-            height: 36,
-            borderRadius: '50%',
-            bgcolor: '#FFFFFF',
-            boxShadow: '0 3px 10px rgba(0,0,0,0.15)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            zIndex: 10,
-            '&:hover': { bgcolor: '#F8FAFC' },
-          }}
-        >
-          <KeyboardArrowDownRoundedIcon sx={{ fontSize: 24, color: '#222222' }} />
-        </Box>
-
-        {/* 카카오톡 하단바 영역 */}
-        <Box
-          sx={{
-            px: 1.2,
-            py: 0.8,
-            bgcolor: '#B2C7D9',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 0.8,
-          }}
-        >
-          {/* 좌측 + 첨부 버튼 (안드로이드 카카오톡 원형 테두리) */}
-          <Box
-            sx={{
-              width: 32,
-              height: 32,
-              borderRadius: '50%',
-              bgcolor: 'rgba(255,255,255,0.9)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              flexShrink: 0,
-            }}
-          >
-            <AddRoundedIcon sx={{ fontSize: 20, color: '#333333' }} />
+      <Box sx={{ height: 118, flexShrink: 0, bgcolor: '#FFFFFF', borderTop: '1px solid #DEE2E5', display: 'flex', flexDirection: 'column' }}>
+        <InputBase
+          multiline
+          fullWidth
+          placeholder="메시지 입력"
+          value={inputText}
+          onChange={(e) => setInputText(e.target.value)}
+          onKeyDown={handleKeyDown}
+          sx={{ flex: 1, alignItems: 'flex-start', px: 1.5, pt: 1.1, fontSize: 12, color: '#1D2328', '& textarea::placeholder': { color: '#A3ACB4', opacity: 1 } }}
+        />
+        <Box sx={{ height: 40, display: 'flex', alignItems: 'center', px: 1.2, pb: 0.5, gap: 1.2, color: '#555B60' }}>
+          <AddRoundedIcon sx={{ fontSize: 24, cursor: 'pointer' }} />
+          <SentimentSatisfiedAltRoundedIcon sx={{ fontSize: 20, cursor: 'pointer' }} />
+          <InsertDriveFileOutlinedIcon sx={{ fontSize: 19, cursor: 'pointer' }} />
+          <Box sx={{ flex: 1 }} />
+          <Box sx={{ width: 48, height: '1px', bgcolor: '#C7C7C7', position: 'relative', mr: 0.4, flexShrink: 0 }}>
+            <Box sx={{ width: 10, height: 10, border: '1px solid #C7C7C7', borderRadius: '50%', bgcolor: '#FFFFFF', position: 'absolute', top: -5, right: 0 }} />
           </Box>
-
-          {/* 중앙 흰색 알약 입력창 */}
-          <Box
-            sx={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              bgcolor: '#FFFFFF',
-              borderRadius: 1.5,
-              px: 1.5,
-              py: 0.4,
-              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-            }}
-          >
-            <InputBase
-              fullWidth
-              placeholder="메시지 입력"
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              onKeyDown={handleKeyDown}
-              sx={{
-                color: '#191919',
-                fontSize: 13.5,
-                '& input::placeholder': {
-                  color: '#8E9DA8',
-                  opacity: 1,
-                },
-              }}
-            />
-
-            {/* 입력창 내부 우측 아이콘 3종: 이모티콘, #샵검색, 마이크/웨이브 */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3 }}>
-              <IconButton size="small" sx={{ color: '#555555', p: 0.4 }}>
-                <SentimentSatisfiedAltRoundedIcon sx={{ fontSize: 19 }} />
-              </IconButton>
-              <IconButton size="small" sx={{ color: '#555555', p: 0.4 }}>
-                <TagRoundedIcon sx={{ fontSize: 18 }} />
-              </IconButton>
-              {inputText.trim() ? (
-                <IconButton
-                  size="small"
-                  onClick={handleSend}
-                  sx={{
-                    bgcolor: '#FEE500',
-                    color: '#000000',
-                    '&:hover': { bgcolor: '#FEE500' },
-                    p: 0.5,
-                  }}
-                >
-                  <SendRoundedIcon sx={{ fontSize: 16 }} />
-                </IconButton>
-              ) : (
-                <IconButton size="small" sx={{ color: '#555555', p: 0.4 }}>
-                  <GraphicEqRoundedIcon sx={{ fontSize: 18 }} />
-                </IconButton>
-              )}
-            </Box>
+          <Box onClick={handleSend} sx={{ height: 30, minWidth: 73, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', whiteSpace: 'nowrap', bgcolor: inputText.trim() ? '#FEE500' : '#F6F6F6', color: inputText.trim() ? '#1A1A1A' : '#B9BFC4', borderRadius: '3px', fontSize: 12, cursor: inputText.trim() ? 'pointer' : 'default' }}>
+            전송
+            <Box sx={{ width: '1px', height: 18, flexShrink: 0, bgcolor: '#E7E7E7', ml: 1.3, mr: 0.7 }} />
+            <KeyboardArrowDownRoundedIcon sx={{ fontSize: 15 }} />
           </Box>
         </Box>
       </Box>

@@ -29,6 +29,7 @@ import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 
 import { SqldErdRenderer } from './sqld-erd-renderer';
 import { SqldSqlPractice } from './sqld-sql-practice';
+import { SqldProblemMemo } from './sqld-problem-memo';
 import { isSqlPracticeProblem } from '../sqld-lab-data';
 
 // ----------------------------------------------------------------------
@@ -140,15 +141,22 @@ export function SqldProblemCard({
             )}
           </Box>
 
-          {/* Right: Hashtags */}
+          {/* Right: Memo and hashtags */}
           <Box
             sx={{
               display: 'flex',
               flexWrap: 'wrap',
-              gap: 0.5,
+              alignItems: 'center',
+              gap: 1,
               justifyContent: 'flex-end',
             }}
           >
+            <SqldProblemMemo
+              key={problemKey}
+              problem={problem}
+              problemIndex={problemIndex}
+              problemKey={problemKey}
+            />
             {problem.hashtags.map((tag, tIdx) => (
               <Chip
                 key={tIdx}
