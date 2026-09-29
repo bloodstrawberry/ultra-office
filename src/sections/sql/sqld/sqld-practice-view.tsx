@@ -24,6 +24,7 @@ import { SqldEditorHeader } from './components/sqld-editor-header';
 export function SqldPracticeView() {
   const {
     rounds,
+    totalQuestionCount,
     selectedRoundId,
     currentProblems,
     currentProblem,
@@ -258,6 +259,7 @@ export function SqldPracticeView() {
       {/* 1. Header Toolbar */}
       <SqldHeader
         rounds={rounds}
+        totalQuestionCount={totalQuestionCount}
         selectedRoundId={selectedRoundId}
         onSelectRound={handleSelectRound}
         currentIndex={currentIndex}

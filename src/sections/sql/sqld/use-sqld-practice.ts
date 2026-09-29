@@ -68,7 +68,7 @@ async function fetchSqldProblemData(): Promise<SqldProblemData> {
   let lastError: Error | null = null;
   for (const url of uniqueUrls) {
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, { cache: 'no-store' });
       if (!response.ok) {
         continue;
       }
@@ -97,6 +97,19 @@ const STORAGE_KEY_ROUND = 'sqld_selected_round_v1';
 const STORAGE_KEY_STUDY_MODE = 'sqld_study_mode_v1';
 const STORAGE_KEY_CUSTOM_DATA = 'sqld_custom_problem_data_v1';
 
+function isCurrentCustomData(custom: SqldProblemData, original: SqldProblemData): boolean {
+  return (
+    Array.isArray(custom.tree) &&
+    custom.tree.length === original.tree.length &&
+    custom.tree.every(
+      (round, index) =>
+        round.id === original.tree[index].id &&
+        round.modifiedAt === original.tree[index].modifiedAt &&
+        Array.isArray(custom.scripts?.[round.id]?.problems)
+    )
+  );
+}
+
 export function useSqldPractice() {
   const [data, setData] = useState<SqldProblemData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -115,43 +128,34 @@ export function useSqldPractice() {
   );
   const [hasLoadedStorage, setHasLoadedStorage] = useState<boolean>(false);
 
-  // 1. Load problem.json (prioritize custom edited data from localStorage if available)
+  // 1. Load problem.json and use local edits only when they match its version.
   const loadProblemData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Check if user has saved custom edited data in localStorage
+      const original = await fetchSqldProblemData();
+      let nextData = original;
+
+      // Older full snapshots can hide newly added rounds and corrected questions.
       const customDataStr = localStorage.getItem(STORAGE_KEY_CUSTOM_DATA);
       if (customDataStr) {
         try {
-          const parsedCustom = JSON.parse(customDataStr);
-          if (
-            parsedCustom &&
-            Array.isArray(parsedCustom.tree) &&
-            parsedCustom.tree.length > 0 &&
-            parsedCustom.scripts
-          ) {
-            setData(parsedCustom);
-            setSelectedRoundId((prev) => {
-              if (prev && parsedCustom.scripts[prev]) return prev;
-              return parsedCustom.tree[0].id;
-            });
-            setLoading(false);
-            return;
+          const parsedCustom: SqldProblemData = JSON.parse(customDataStr);
+          if (parsedCustom && isCurrentCustomData(parsedCustom, original)) {
+            nextData = parsedCustom;
           }
         } catch {
-          // Ignore parse error and fallback to network fetch
+          // Ignore malformed local edits and use the current source data.
         }
       }
 
-      const json = await fetchSqldProblemData();
-      setData(json);
+      setData(nextData);
       // Set initial round if not set or invalid
-      if (json.tree && json.tree.length > 0) {
+      if (nextData.tree && nextData.tree.length > 0) {
         setSelectedRoundId((prev) => {
-          if (prev && json.scripts?.[prev]) return prev;
-          return json.tree[0].id;
+          if (prev && nextData.scripts?.[prev]) return prev;
+          return nextData.tree[0].id;
         });
       }
     } catch (err: unknown) {
@@ -752,6 +756,10 @@ export function useSqldPractice() {
 
   return {
     rounds: data?.tree || [],
+    totalQuestionCount: data?.tree.reduce(
+      (total, round) => total + (data.scripts[round.id]?.problems.length || 0),
+      0
+    ) || 0,
     selectedRoundId,
     currentProblems,
     currentProblem,

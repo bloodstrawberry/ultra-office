@@ -25,6 +25,7 @@ import { SqldPagination } from './sqld-pagination';
 
 interface SqldHeaderProps {
   rounds: SqldRound[];
+  totalQuestionCount: number;
   selectedRoundId: string;
   onSelectRound: (roundId: string) => void;
   currentIndex: number;
@@ -46,6 +47,7 @@ interface SqldHeaderProps {
 
 export function SqldHeader({
   rounds,
+  totalQuestionCount,
   selectedRoundId,
   onSelectRound,
   currentIndex,
@@ -92,7 +94,7 @@ export function SqldHeader({
                 fontWeight: 800,
               }}
             >
-              16개 회차 800문항
+              {rounds.length}개 회차 {totalQuestionCount}문항
             </Box>
           </Box>
           <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
