@@ -211,42 +211,38 @@ export function ChatHeaderBar({ config, partner, onBackToList }: ChatHeaderBarPr
             '&:hover': onBackToList ? { bgcolor: 'action.hover' } : undefined,
           }}
         >
-          {themeId === 'kakaotalk' || themeId === 'galaxy' ? (
-            <ArrowBackRoundedIcon
-              sx={{ fontSize: 22, color: themeId === 'kakaotalk' ? '#111111' : '#1E293B' }}
-            />
+          {themeId === 'galaxy' ? (
+            <ArrowBackRoundedIcon sx={{ fontSize: 22, color: '#1E293B' }} />
           ) : (
             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
           )}
         </IconButton>
 
         {/* 아바타 (인스타, 라인, Knox, 텔레그램, iMessage, 갤럭시 등) */}
-        {themeId !== 'kakaotalk' && (
-          <Avatar
-            src={displayAvatar}
-            alt={displayName}
-            sx={{
-              width: 34,
-              height: 34,
-              border: themeId === 'instagram' ? '2px solid #E1306C' : 'none',
-              ...(themeId === 'galaxy' && {
-                bgcolor: '#2C7BFE',
-                color: '#FFFFFF',
-                fontWeight: 700,
-                fontSize: 14,
-              }),
-            }}
-          >
-            {themeId === 'galaxy' && !displayAvatar ? displayName.charAt(0) : undefined}
-          </Avatar>
-        )}
+        <Avatar
+          src={displayAvatar}
+          alt={displayName}
+          sx={{
+            width: 34,
+            height: 34,
+            border: themeId === 'instagram' ? '2px solid #E1306C' : 'none',
+            ...(themeId === 'galaxy' && {
+              bgcolor: '#2C7BFE',
+              color: '#FFFFFF',
+              fontWeight: 700,
+              fontSize: 14,
+            }),
+          }}
+        >
+          {themeId === 'galaxy' && !displayAvatar ? displayName.charAt(0) : undefined}
+        </Avatar>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <Typography
               noWrap
               sx={{
-                fontSize: themeId === 'kakaotalk' ? 16.5 : themeId === 'galaxy' ? 15.5 : 15,
+                fontSize: themeId === 'galaxy' ? 15.5 : 15,
                 fontWeight: 700,
                 color: themeMeta.headerText,
                 letterSpacing: -0.3,
@@ -255,7 +251,7 @@ export function ChatHeaderBar({ config, partner, onBackToList }: ChatHeaderBarPr
               {displayName}
             </Typography>
 
-            {memberCount && memberCount > 2 && themeId !== 'kakaotalk' ? (
+            {memberCount && memberCount > 2 ? (
               <Typography sx={{ fontSize: 12, opacity: 0.6, fontWeight: 500 }}>
                 {memberCount}
               </Typography>
@@ -268,7 +264,7 @@ export function ChatHeaderBar({ config, partner, onBackToList }: ChatHeaderBarPr
             )}
           </Box>
 
-          {partnerStatus && themeId !== 'kakaotalk' && (
+          {partnerStatus && (
             <Typography
               noWrap
               sx={{
@@ -285,17 +281,6 @@ export function ChatHeaderBar({ config, partner, onBackToList }: ChatHeaderBarPr
 
       {/* 우측 아이콘 버튼 그룹 */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-        {themeId === 'kakaotalk' && (
-          <>
-            <IconButton size="small" sx={{ color: '#111111', p: 0.6 }}>
-              <SearchRoundedIcon sx={{ fontSize: 24 }} />
-            </IconButton>
-            <IconButton size="small" sx={{ color: '#111111', p: 0.6 }}>
-              <MenuRoundedIcon sx={{ fontSize: 24 }} />
-            </IconButton>
-          </>
-        )}
-
         {themeId === 'galaxy' && (
           <>
             <IconButton size="small" sx={{ color: '#1E293B', p: 0.6 }}>
