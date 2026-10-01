@@ -45,6 +45,7 @@ export const paths = {
     minesweeper: `/puzzle/minesweeper`,
   },
   morse: '/morse',
+  classicSearch: '/classic-search',
   braille: '/braille',
   natoPhonetic: '/nato-phonetic',
   cipher: '/cipher',

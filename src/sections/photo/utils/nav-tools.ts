@@ -372,6 +372,11 @@ export const TOOL_METADATA_MAP: Record<
   },
 
   // 기타 도구
+  [paths.classicSearch]: {
+    description: '클래식 곡명, 카테고리, 특징으로 검색하고 하이라이트 1~4 수록 위치 확인',
+    tag: '음악 검색',
+    badgeColor: 'primary',
+  },
   [paths.morse]: {
     description: '텍스트 ↔ 모스 부호 실시간 양방향 변환 및 오디오 비프음 재생',
     tag: '통신/신호',
