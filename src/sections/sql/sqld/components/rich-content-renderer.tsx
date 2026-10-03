@@ -1,19 +1,38 @@
 'use client';
 
+import type { Components } from 'react-markdown';
+
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
 import { memo, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
 import { alpha, type Theme, type SxProps } from '@mui/material/styles';
+import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 
 import { KatexMath } from 'src/components/katex';
 import { MermaidDiagram } from 'src/components/mermaid';
 
+import { isSqlQuery, cleanSqlForInput } from '../sqld-lab-data';
+
 export interface RichContentSegment {
   type: 'markdown' | 'inlineMath' | 'displayMath' | 'erd';
   content: string;
+}
+
+function extractNodeText(node: unknown): string {
+  if (typeof node === 'string') return node;
+  if (typeof node === 'number') return String(node);
+  if (!node) return '';
+  if (Array.isArray(node)) return node.map(extractNodeText).join('');
+  if (typeof node === 'object' && node !== null && 'props' in node) {
+    const element = node as { props?: { children?: unknown } };
+    return extractNodeText(element.props?.children);
+  }
+  return '';
 }
 
 export function isRichTextEmpty(text?: string | null): boolean {
@@ -87,6 +106,7 @@ interface RichContentRendererProps {
   idPrefix?: string;
   sx?: SxProps<Theme>;
   inline?: boolean;
+  onSqlClick?: (sql: string) => void;
 }
 
 export const RichContentRenderer = memo(function RichContentRenderer({
@@ -94,8 +114,185 @@ export const RichContentRenderer = memo(function RichContentRenderer({
   idPrefix = 'rich_content',
   sx,
   inline = false,
+  onSqlClick,
 }: RichContentRendererProps) {
   const segments = useMemo(() => parseRichContent(content), [content]);
+
+  const markdownComponents: Components | undefined = useMemo(() => {
+    if (!onSqlClick) return undefined;
+
+    return {
+      code({ className, children, ...props }) {
+        const rawText = extractNodeText(children);
+        const codeString = rawText.replace(/\n$/, '');
+        const isSql = isSqlQuery(codeString);
+
+        if (isSql) {
+          return (
+            <Box
+              component="span"
+              role="button"
+              tabIndex={0}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSqlClick(cleanSqlForInput(codeString));
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onSqlClick(cleanSqlForInput(codeString));
+                }
+              }}
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 0.5,
+                cursor: 'pointer',
+                px: 0.75,
+                py: 0.25,
+                my: 0.2,
+                borderRadius: 0.75,
+                border: (t) => `1px dashed ${t.palette.primary.main}`,
+                bgcolor: (t) => alpha(t.palette.primary.main, 0.08),
+                color: 'primary.main',
+                fontFamily: 'monospace',
+                fontSize: 13,
+                fontWeight: 600,
+                transition: 'all 0.15s ease',
+                '&:hover': {
+                  bgcolor: (t) => alpha(t.palette.primary.main, 0.18),
+                  borderColor: 'primary.dark',
+                  transform: 'scale(1.02)',
+                },
+              }}
+              title="클릭하여 SQL 실습 입력창에 넣기"
+            >
+              <span>{children}</span>
+              <Box
+                component="span"
+                sx={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  fontSize: 10,
+                  bgcolor: 'primary.main',
+                  color: 'primary.contrastText',
+                  px: 0.5,
+                  py: 0.1,
+                  borderRadius: 0.4,
+                  fontWeight: 700,
+                  letterSpacing: 0.3,
+                  lineHeight: 1.2,
+                }}
+              >
+                SQL 입력
+              </Box>
+            </Box>
+          );
+        }
+
+        return (
+          <code className={className} {...props}>
+            {children}
+          </code>
+        );
+      },
+      pre({ children, ...props }) {
+        const rawText = extractNodeText(children).trim();
+        const isSql = isSqlQuery(rawText);
+
+        if (isSql) {
+          return (
+            <Box
+              onClick={(e) => {
+                e.stopPropagation();
+                onSqlClick(cleanSqlForInput(rawText));
+              }}
+              sx={{
+                position: 'relative',
+                cursor: 'pointer',
+                border: (t) => `1.5px solid ${t.palette.primary.main}`,
+                borderRadius: 1.5,
+                overflow: 'hidden',
+                bgcolor: (t) => alpha(t.palette.primary.main, 0.03),
+                my: 1.5,
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  bgcolor: (t) => alpha(t.palette.primary.main, 0.08),
+                  borderColor: 'primary.dark',
+                  boxShadow: (t) => `0 0 0 3px ${alpha(t.palette.primary.main, 0.18)}`,
+                },
+              }}
+              title="클릭하여 오른쪽 SQL 실습 입력창에 넣기"
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  px: 1.5,
+                  py: 0.75,
+                  bgcolor: (t) => alpha(t.palette.primary.main, 0.1),
+                  borderBottom: (t) => `1px solid ${alpha(t.palette.primary.main, 0.16)}`,
+                }}
+              >
+                <Typography
+                  variant="caption"
+                  sx={{ fontWeight: 800, color: 'primary.main', letterSpacing: 0.5 }}
+                >
+                  SQL 쿼리 (클릭 시 자동 입력)
+                </Typography>
+                <Button
+                  size="small"
+                  variant="contained"
+                  color="primary"
+                  startIcon={<PlayArrowRoundedIcon sx={{ fontSize: 16 }} />}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSqlClick(cleanSqlForInput(rawText));
+                  }}
+                  sx={{
+                    py: 0.2,
+                    px: 1,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    height: 24,
+                    minHeight: 24,
+                    boxShadow: 'none',
+                  }}
+                >
+                  입력창에 넣기
+                </Button>
+              </Box>
+
+              <Box
+                component="pre"
+                sx={{
+                  p: 1.5,
+                  m: 0,
+                  bgcolor: 'transparent',
+                  overflow: 'auto',
+                  fontFamily: 'monospace',
+                  fontSize: 13,
+                  lineHeight: 1.6,
+                  color: 'text.primary',
+                  '& code': {
+                    bgcolor: 'transparent',
+                    color: 'inherit',
+                    p: 0,
+                  },
+                }}
+              >
+                {children}
+              </Box>
+            </Box>
+          );
+        }
+
+        return <pre {...props}>{children}</pre>;
+      },
+    };
+  }, [onSqlClick]);
 
   if (isRichTextEmpty(content)) {
     return null;
@@ -242,7 +439,11 @@ export const RichContentRenderer = memo(function RichContentRenderer({
             component={isEffectivelyInline ? 'span' : 'div'}
             sx={{ width: isEffectivelyInline ? 'auto' : '100%' }}
           >
-            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeRaw]}
+              components={markdownComponents}
+            >
               {seg.content}
             </ReactMarkdown>
           </Box>

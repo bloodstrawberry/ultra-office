@@ -11,6 +11,7 @@ import Button from '@mui/material/Button';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import Autocomplete from '@mui/material/Autocomplete';
 import InputAdornment from '@mui/material/InputAdornment';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 
@@ -142,7 +143,7 @@ function ClassicCard({
 
 export function ClassicSearchView({ classics }: { classics: Classic[] }) {
   const [query, setQuery] = useState('');
-  const [categoryQuery, setCategoryQuery] = useState('');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [featureQuery, setFeatureQuery] = useState('');
   const [ostQuery, setOstQuery] = useState('');
   const [memoQuery, setMemoQuery] = useState('');
@@ -150,6 +151,10 @@ export function ClassicSearchView({ classics }: { classics: Classic[] }) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [memos, setMemos] = useState<Record<string, string>>({});
   const [storageError, setStorageError] = useState('');
+  const categoryOptions = useMemo(
+    () => [...new Set(classics.flatMap((classic) => classic.categories))].sort((a, b) => a.localeCompare(b, 'ko')),
+    [classics]
+  );
 
   useEffect(() => {
     try {
@@ -201,7 +206,8 @@ export function ClassicSearchView({ classics }: { classics: Classic[] }) {
             ],
             query
           ) &&
-          matchesTerms(classic.categories, categoryQuery) &&
+          (selectedCategories.length === 0 ||
+            selectedCategories.some((category) => classic.categories.includes(category))) &&
           matchesTerms(classic.features, featureQuery) &&
           matchesTerms(
             classic.ost.map((use) => use.작품),
@@ -209,7 +215,7 @@ export function ClassicSearchView({ classics }: { classics: Classic[] }) {
           ) &&
           matchesTerms([memos[classic.title] ?? ''], memoQuery)
       ),
-    [classics, highlight, query, categoryQuery, featureQuery, ostQuery, memoQuery, memos]
+    [classics, highlight, query, selectedCategories, featureQuery, ostQuery, memoQuery, memos]
   );
 
   return (
@@ -220,13 +226,15 @@ export function ClassicSearchView({ classics }: { classics: Classic[] }) {
         </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
           전체 검색 또는 항목별 검색을 사용하고, 하이라이트 1~4의 수록 위치를 확인하세요. 여러
-          필터를 함께 사용할 수 있습니다. OST에는 사용 근거를 확인한 작품만 표시합니다. 메모는 이
+          필터를 함께 사용할 수 있습니다. 카테고리는 여러 개 선택할 수 있으며, 선택한 카테고리 중
+          하나라도 포함된 곡이 나옵니다. OST에는 사용 근거를 확인한 작품만 표시합니다. 메모는 이
           브라우저에 저장됩니다.
         </Typography>
       </Box>
 
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mb: 1.5 }}>
         <TextField
+          id="classic-search-query"
           fullWidth
           value={query}
           onChange={(event) => {
@@ -246,6 +254,7 @@ export function ClassicSearchView({ classics }: { classics: Classic[] }) {
           }}
         />
         <TextField
+          id="classic-highlight-filter"
           select
           label="하이라이트"
           value={highlight}
@@ -265,16 +274,23 @@ export function ClassicSearchView({ classics }: { classics: Classic[] }) {
       </Stack>
 
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} sx={{ mb: 2.5 }}>
-        <TextField
+        <Autocomplete
+          id="classic-category-filter"
+          multiple
+          disableCloseOnSelect
           fullWidth
-          label="카테고리 내에서 검색"
-          value={categoryQuery}
-          onChange={(event) => {
-            setCategoryQuery(event.target.value);
+          options={categoryOptions}
+          value={selectedCategories}
+          onChange={(_, categories) => {
+            setSelectedCategories(categories);
             setVisibleCount(PAGE_SIZE);
           }}
+          renderInput={(params) => (
+            <TextField {...params} label="카테고리 내에서 검색" placeholder="카테고리 선택" />
+          )}
         />
         <TextField
+          id="classic-feature-query"
           fullWidth
           label="특징 내에서 검색"
           value={featureQuery}
@@ -284,6 +300,7 @@ export function ClassicSearchView({ classics }: { classics: Classic[] }) {
           }}
         />
         <TextField
+          id="classic-ost-query"
           fullWidth
           label="OST 내에서 검색"
           value={ostQuery}
@@ -293,6 +310,7 @@ export function ClassicSearchView({ classics }: { classics: Classic[] }) {
           }}
         />
         <TextField
+          id="classic-memo-query"
           fullWidth
           label="메모 내에서 검색"
           value={memoQuery}

@@ -480,7 +480,7 @@ export function SqldProblemCard({
         )}
 
         {isSqlPracticeProblem(problem) && (
-          <SqldSqlPractice problem={problem} problemKey={problemKey} />
+          <SqldSqlPractice problem={problem} problemKey={problemKey} problemIndex={problemIndex} />
         )}
 
         <Divider sx={{ borderStyle: 'dashed' }} />

@@ -24,7 +24,7 @@ export function quoteUnicodeIdentifiers(query: string): string {
   );
 }
 
-function cleanSql(value: string): string {
+export function cleanSql(value: string): string {
   return value
     .replace(/```(?:sql)?/gi, '')
     .split('\n')
@@ -32,6 +32,34 @@ function cleanSql(value: string): string {
     .filter((line) => !/^\s*--/.test(line))
     .join('\n')
     .trim();
+}
+
+export function cleanSqlForInput(value: string): string {
+  if (!value) return '';
+  let cleaned = value
+    .replace(/```(?:sql)?/gi, '')
+    .replace(/^`+|`+$/g, '')
+    .split('\n')
+    .map((line) => line.replace(/^\s*--\s*[①-⑳\d.()]+\s*/, '').trimEnd())
+    .filter((line) => !/^\s*--/.test(line))
+    .join('\n')
+    .trim();
+
+  // 번호 접두사 제거 (예: ①, 1., (1), [1] 등)
+  cleaned = cleaned.replace(/^[①-⑳\d]+[\s.)\]\-,:]+/u, '').trim();
+  cleaned = cleaned.replace(/^\[(?:SQL|쿼리|보기)?\s*\d*\]\s*/i, '').trim();
+
+  return cleaned;
+}
+
+export function isSqlQuery(text: string): boolean {
+  if (!text) return false;
+  const cleaned = cleanSqlForInput(text);
+  if (!cleaned) return false;
+  if (SQL_START.test(cleaned)) return true;
+  return /\b(SELECT|FROM|WHERE|JOIN|GROUP BY|HAVING|ORDER BY|INSERT INTO|UPDATE|DELETE FROM)\b/i.test(
+    cleaned
+  );
 }
 
 export function getPracticeQueries(problem: Problem): string[] {
