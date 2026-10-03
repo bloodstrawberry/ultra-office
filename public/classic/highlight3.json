@@ -39,10 +39,6 @@
       "빛의 변화",
       "관현악 색채",
       "고요함과 거친 물결의 대비"
-    ],
-    "OST": [
-      "한국 자연 다큐멘터리 해양 씬 BGM",
-      "영화 '바다' (2011)"
     ]
   },
   "드뷔시 전주곡 1권 중 8번 '아마빛 머리의 소녀'(Debussy Prelude Book 1 No. 8 'La fille aux cheveux de lin')": {
@@ -171,7 +167,10 @@
       "따뜻함"
     ],
     "OST": [
-      "영화 《사랑의 은하수 / Somewhere in Time》(1980)"
+      {
+        "작품": "영화 《사랑의 은하수 / Somewhere in Time》(1980)",
+        "근거": "https://www.imdb.com/title/tt0081534/soundtrack/"
+      }
     ]
   },
   "라흐마니노프 프렐류드 Op.3 No.2(Rachmaninoff Prelude, Op.3, No.2 in C# minor)": {
@@ -188,7 +187,14 @@
       "장중한 결말"
     ],
     "OST": [
-      "영화 《샤인 / Shine》(1996)"
+      {
+        "작품": "영화 《샤인 / Shine》(1996)",
+        "근거": "https://www.imdb.com/title/tt0117631/soundtrack/"
+      },
+      {
+        "작품": "영국 드라마 《엔데버 / Endeavour》(2016, 시즌 3 4화 'Coda')",
+        "근거": "https://morseandlewisandendeavour.com/wp-content/uploads/2022/08/Music-from-Endeavour-classical-19th-aug-2022-PDF.pdf"
+      }
     ]
   },
   "로시니 세빌리아의 이발사 중 '나는 이 거리의 만물박사'(Rossini Il Barbiere di Siviglia, 'Largo al factotum')": {
@@ -331,7 +337,10 @@
       "낭만적"
     ],
     "OST": [
-      "영화 《샤인 / Shine》(1996)"
+      {
+        "작품": "영화 《샤인 / Shine》(1996)",
+        "근거": "https://www.imdb.com/title/tt0117631/soundtrack/"
+      }
     ]
   },
   "리스트 헌정 (슈만 원곡)(Schumann-Liszt Widmung, S. 566)": {
@@ -346,6 +355,12 @@
       "사랑의 고백",
       "노래하는 선율",
       "풍성한 화음"
+    ],
+    "OST": [
+      {
+        "작품": "한국 드라마 《브람스를 좋아하세요?》(2020, 16회)",
+        "근거": "https://news.sbs.co.kr/news/endPage.do?news_id=N1006077415"
+      }
     ]
   },
   "리스트 헝가리 광시곡 6번(Liszt Hungarian Rhapsodies No. 6, S. 244)": {
@@ -374,10 +389,6 @@
       "긴 호흡의 선율",
       "조용한 기도",
       "따뜻한 여운"
-    ],
-    "OST": [
-      "한국 영화 '클래식' (2003)",
-      "드라마 '내일도 칸타빌레' (2014)"
     ]
   },
   "마스카니 카발레리아 루스티카나 중 간주곡(Mascagni Cavalleria rusticana, Intermezzo)": {
@@ -394,10 +405,18 @@
       "애수"
     ],
     "OST": [
-      "영화 《분노의 주먹 / Raging Bull》(1980)",
-      "영화 '대부 3' (1990)",
-      "영화 '성난 황소' (1980)",
-      "한국 SK텔레콤 등 다수의 통신사/기업 PR CF"
+      {
+        "작품": "영화 《분노의 주먹 / Raging Bull》(1980)",
+        "근거": "https://www.classicfm.com/discover-music/periods-genres/film-tv/most-iconic-uses-classical-music-soundtrack/"
+      },
+      {
+        "작품": "영화 《대부 3 / The Godfather Part III》(1990)",
+        "근거": "https://www.imdb.com/title/tt0099674/soundtrack/"
+      },
+      {
+        "작품": "미국 드라마 《소프라노스 / The Sopranos》(2007, 시즌 6 20화)",
+        "근거": "https://letraslibres.com/revista-espana/toro-salvaje-secuencia-de-creditos/"
+      }
     ]
   },
   "말러 교향곡 1번 '거인'(Mahler Symphony No. 1 in D major ‘Titan’)": {
@@ -442,7 +461,14 @@
       "거대한 감정"
     ],
     "OST": [
-      "영화 《베니스에서의 죽음 / Death in Venice》(1971)"
+      {
+        "작품": "영화 《베니스에서의 죽음 / Death in Venice》(1971)",
+        "근거": "https://www.youtube.com/watch?v=RfRZT6Vw_wE"
+      },
+      {
+        "작품": "영국 드라마 《엔데버 / Endeavour》(2020, 시즌 7 1화 'Oracle', 아다지에토)",
+        "근거": "https://morseandlewisandendeavour.com/wp-content/uploads/2022/08/Music-from-Endeavour-classical-19th-aug-2022-PDF.pdf"
+      }
     ]
   },
   "멘델스존 바이올린 협주곡 E단조 1악장(Mendelssohn Violin concerto in E minor, Op. 64 1st mvt)": {
@@ -501,7 +527,10 @@
       "오페라"
     ],
     "OST": [
-      "영화 《쇼생크 탈출 / The Shawshank Redemption》(1994)"
+      {
+        "작품": "영화 《쇼생크 탈출 / The Shawshank Redemption》(1994)",
+        "근거": "https://www.youtube.com/watch?v=Bjqmg_7J53s"
+      }
     ]
   },
   "모차르트 피아노 소나타 11번 1악장(Mozart Piano Sonata No. 11, K. 331 1st mvt)": {
@@ -712,6 +741,12 @@
       "몰아치는 단조",
       "폭발적인 결말",
       "숨가쁨"
+    ],
+    "OST": [
+      {
+        "작품": "한국 드라마 《밀회》(2014, 2회)",
+        "근거": "https://tv.jtbc.co.kr/photo/pr10010292/pm10023246/detail/4139"
+      }
     ]
   },
   "브람스 바이올린 협주곡(Brahms Violin Concerto in D major, Op. 77)": {
@@ -726,6 +761,12 @@
       "두터운 관현악",
       "서정과 기교",
       "당당함"
+    ],
+    "OST": [
+      {
+        "작품": "영화 《데어 윌 비 블러드 / There Will Be Blood》(2007)",
+        "근거": "https://www.classicfm.com/discover-music/periods-genres/film-tv/most-iconic-uses-classical-music-soundtrack/"
+      }
     ]
   },
   "브람스 피아노 협주곡 1번(Brahms Piano Concerto No. 1 in D minor, Op. 15)": {
@@ -782,11 +823,6 @@
       "물결 같은 피아노 반주",
       "기품",
       "잔잔함"
-    ],
-    "OST": [
-      "한국 영화 '말아톤' (2005)",
-      "영화 '빌리 엘리어트' (2000)",
-      "한국 정수기 등 순수함 강조 CF"
     ]
   },
   "사티 그노시엔느 1번(Satie Gnossienne No. 1)": {
@@ -887,7 +923,10 @@
       "깊은 애수"
     ],
     "OST": [
-      "영화 《피아니스트 / The Pianist》(2002)"
+      {
+        "작품": "영화 《피아니스트 / The Pianist》(2002)",
+        "근거": "https://www.imdb.com/title/tt0253474/soundtrack/"
+      }
     ]
   },
   "쇼팽 발라드 1번(Chopin Ballade No. 1 in G minor, Op. 23)": {
@@ -904,7 +943,10 @@
       "극적인 대비"
     ],
     "OST": [
-      "영화 《피아니스트 / The Pianist》(2002)"
+      {
+        "작품": "영화 《피아니스트 / The Pianist》(2002)",
+        "근거": "https://www.imdb.com/title/tt0253474/soundtrack/"
+      }
     ]
   },
   "쇼팽 발라드 4번(Chopin Ballade No. 4 in F minor, Op. 52)": {
@@ -947,11 +989,6 @@
       "따뜻한 시작",
       "격정적인 중간부",
       "그리움"
-    ],
-    "OST": [
-      "영화 '이별의 곡' (1934)",
-      "애니메이션 '강철의 연금술사' 극장판",
-      "한국 화장품 광고"
     ]
   },
   "쇼팽 에튀드 Op. 25 No. 1 '에올리언 하프'(Chopin Etude in Ab major, Op. 25 No. 1 'Aeolian Harp')": {
@@ -994,6 +1031,12 @@
       "장송곡 같은 호흡",
       "간결한 화음",
       "애도"
+    ],
+    "OST": [
+      {
+        "작품": "영화 《파이브 이지 피시즈 / Five Easy Pieces》(1970)",
+        "근거": "https://www.classicfm.com/discover-music/periods-genres/film-tv/most-iconic-uses-classical-music-soundtrack/"
+      }
     ]
   },
   "쇼팽 프렐류드 15번 '빗방울'(Chopin Prelude in Db major, Op. 28 No. 15 'Raindrop')": {
@@ -1010,7 +1053,14 @@
       "회상"
     ],
     "OST": [
-      "영화 《샤인 / Shine》(1996)"
+      {
+        "작품": "영화 《샤인 / Shine》(1996)",
+        "근거": "https://www.imdb.com/title/tt0117631/soundtrack/"
+      },
+      {
+        "작품": "영국 드라마 《더 크라운 / The Crown》(2019, 시즌 3)",
+        "근거": "https://www.classicfm.com/discover-music/periods-genres/film-tv/the-crown-season-3-soundtrack-music-songs/"
+      }
     ]
   },
   "쇼팽 피아노 소나타 3번 1악장(Chopin Piano Sonata No. 3 in B minor, Op. 58 1st mvt)": {
@@ -1083,7 +1133,10 @@
       "절제된 고조"
     ],
     "OST": [
-      "영화 《배리 린든 / Barry Lyndon》(1975)"
+      {
+        "작품": "영화 《배리 린든 / Barry Lyndon》(1975)",
+        "근거": "https://www.imdb.com/title/tt0072684/soundtrack/"
+      }
     ]
   },
   "스트라빈스키 불새(Stravinsky The Firebird)": {
@@ -1100,7 +1153,10 @@
       "환상적인 결말"
     ],
     "OST": [
-      "영화 《판타지아 2000 / Fantasia 2000》(1999)"
+      {
+        "작품": "영화 《판타지아 2000 / Fantasia 2000》(1999)",
+        "근거": "https://www.imdb.com/title/tt0120910/soundtrack/"
+      }
     ]
   },
   "시벨리우스 교향곡 2번 4악장(Sibelius Symphony No. 2 in D major, Op. 43 4th mvt)": {
@@ -1129,6 +1185,12 @@
       "강한 금관악기",
       "찬가 선율",
       "민족적 희망"
+    ],
+    "OST": [
+      {
+        "작품": "영화 《다이 하드 2 / Die Hard 2》(1990, 선율 인용)",
+        "근거": "https://www.michaelkamen.com/catalogue/die-hard-2"
+      }
     ]
   },
   "시벨리우스 바이올린 협주곡 3악장(Sibelius Violin Concerto in D minor, Op. 3rd mvt)": {
@@ -1381,9 +1443,6 @@
       "사랑과 죽음",
       "밤하늘의 별",
       "마지막 회상"
-    ],
-    "OST": [
-      "드라마 '펜트하우스' (2020-2021)"
     ]
   },
   "푸치니 투란도트 중 '아무도 잠들지 마라'(Puccini Turandot, 'Nessun Dorma')": {
@@ -1400,10 +1459,10 @@
       "장대한 절정"
     ],
     "OST": [
-      "한국 KTF '쇼(SHOW)' 광고",
-      "영화 '미션 임파서블: 로그 네이션' (2015)",
-      "영국 폴 포츠 오디션 우승곡",
-      "드라마 '펜트하우스' (2020)"
+      {
+        "작품": "영화 《미션 임파서블: 로그 네이션 / Mission: Impossible – Rogue Nation》(2015)",
+        "근거": "https://www.classicfm.com/discover-music/periods-genres/film-tv/most-iconic-uses-classical-music-soundtrack/"
+      }
     ]
   },
   "하농 명피아니스트가 되는 60 연습곡 1번(Hanon The Virtuoso Pianist in 60 Exercises, No. 1)": {

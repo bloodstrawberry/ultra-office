@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
+import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import MenuItem from '@mui/material/MenuItem';
@@ -20,7 +21,7 @@ type Classic = {
   position: number;
   categories: string[];
   features: string[];
-  ost: string[];
+  ost: { 작품: string; 근거: string }[];
   highlights: number[];
 };
 
@@ -49,12 +50,20 @@ export function ClassicSearchView({ classics }: { classics: Classic[] }) {
         (classic) =>
           (highlight === 'all' || classic.highlights.includes(Number(highlight))) &&
           matchesTerms(
-            [classic.title, ...classic.categories, ...classic.features, ...classic.ost],
+            [
+              classic.title,
+              ...classic.categories,
+              ...classic.features,
+              ...classic.ost.map((use) => use.작품),
+            ],
             query
           ) &&
           matchesTerms(classic.categories, categoryQuery) &&
           matchesTerms(classic.features, featureQuery) &&
-          matchesTerms(classic.ost, ostQuery)
+          matchesTerms(
+            classic.ost.map((use) => use.작품),
+            ostQuery
+          )
       ),
     [classics, highlight, query, categoryQuery, featureQuery, ostQuery]
   );
@@ -67,7 +76,7 @@ export function ClassicSearchView({ classics }: { classics: Classic[] }) {
         </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
           전체 검색 또는 항목별 검색을 사용하고, 하이라이트 1~4의 수록 위치를 확인하세요. 여러
-          필터를 함께 사용할 수 있습니다.
+          필터를 함께 사용할 수 있습니다. OST에는 사용 근거를 확인한 작품만 표시합니다.
         </Typography>
       </Box>
 
@@ -196,9 +205,11 @@ export function ClassicSearchView({ classics }: { classics: Classic[] }) {
                   <Typography variant="body2" sx={{ fontWeight: 700, mb: 0.25 }}>
                     OST
                   </Typography>
-                  {classic.ost.map((work) => (
-                    <Typography key={work} variant="body2" sx={{ color: 'text.secondary' }}>
-                      {work}
+                  {classic.ost.map((use) => (
+                    <Typography key={use.작품} variant="body2" sx={{ color: 'text.secondary' }}>
+                      <Link href={use.근거} target="_blank" rel="noopener noreferrer">
+                        {use.작품}
+                      </Link>
                     </Typography>
                   ))}
                 </Box>

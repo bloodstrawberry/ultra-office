@@ -13,7 +13,10 @@
       "익살스러운 분위기"
     ],
     "OST": [
-      "TV 시리즈 《Alfred Hitchcock Presents》(1955)"
+      {
+        "작품": "TV 시리즈 《Alfred Hitchcock Presents》(1955)",
+        "근거": "https://www.hitchcockwiki.com/wiki/Alfred_Hitchcock_Show"
+      }
     ]
   },
   "그리그 난쟁이의 행진(Grieg Procession of the Dwarfs)": {
@@ -44,8 +47,14 @@
       "점점 커지는 관현악"
     ],
     "OST": [
-      "영화 《판타지아 / Fantasia》(1940)",
-      "영화 《판타지아 2000 / Fantasia 2000》(1999)"
+      {
+        "작품": "영화 《판타지아 / Fantasia》(1940)",
+        "근거": "https://www.youtube.com/watch?v=Rrm8usaH0sM"
+      },
+      {
+        "작품": "영화 《마법사의 제자 / The Sorcerer's Apprentice》(2010)",
+        "근거": "https://filmmusic.com/movie/the-sorcerers-apprentice-2010/"
+      }
     ]
   },
   "드보르작 슬라브무곡 2번 E단조(Dvorák Slavonic Dance Op. 72 No. 2 E minor)": {
@@ -74,6 +83,12 @@
       "부드러운 흐름",
       "고요함",
       "섬세한 여운"
+    ],
+    "OST": [
+      {
+        "작품": "미국 드라마 《웨스트월드 / Westworld》(2016, 시즌 1)",
+        "근거": "https://www.imdb.com/title/tt4630546/soundtrack/"
+      }
     ]
   },
   "드뷔시 아라베스크 1번(Debussy Arabesque No.1)": {
@@ -88,10 +103,6 @@
       "가벼운 장식음",
       "유연한 리듬",
       "빛나는 음색"
-    ],
-    "OST": [
-      "영화 '릴리 슈슈의 모든 것' (2001)",
-      "다수의 한국 화장품 및 향수 CF"
     ]
   },
   "라흐마니노프 프렐류드 Op.23 No.5(Rahmaninov Prelude Op. 23 No. 5 in G minor)": {
@@ -106,9 +117,6 @@
       "힘찬 화음",
       "극적인 중간부",
       "결연함"
-    ],
-    "OST": [
-      "영화 '라흐마니노프' (2007)"
     ]
   },
   "라흐마니노프 피아노 협주곡 2번 C단조 Op. 18(Rahmaninov Piano Concerto No.2 in C minor Op. 18)": {
@@ -125,11 +133,10 @@
       "낭만적"
     ],
     "OST": [
-      "영화 《밀회 / Brief Encounter》(1945)",
-      "한국 드라마 '밀회' (2014)",
-      "일본 드라마 '노다메 칸타빌레' (2006)",
-      "한국 영화 '호로비츠를 위하여' (2006)",
-      "영화 '7년만의 외출' (1955)"
+      {
+        "작품": "영화 《밀회 / Brief Encounter》(1945)",
+        "근거": "https://www.youtube.com/watch?v=hubyFqSUaGA"
+      }
     ]
   },
   "라흐마니노프 피아노 협주곡 3번 D단조 Op. 30(Rahmaninov Piano Concerto No. 3 in D minor Op. 30)": {
@@ -146,9 +153,10 @@
       "거대한 절정"
     ],
     "OST": [
-      "영화 《샤인 / Shine》(1996)",
-      "영화 '샤인' (1996)",
-      "드라마 '밀회' (2014)"
+      {
+        "작품": "영화 《샤인 / Shine》(1996)",
+        "근거": "https://www.imdb.com/title/tt0117631/soundtrack/"
+      }
     ]
   },
   "로자스 파도를 넘어(Rosas Sobre Las Olas)": {
@@ -193,9 +201,14 @@
       "익살스러움"
     ],
     "OST": [
-      "단편 애니메이션 《Rhapsody Rabbit》(1946)",
-      "단편 애니메이션 《The Cat Concerto》(1947)",
-      "영화 《샤인 / Shine》(1996)"
+      {
+        "작품": "애니메이션 《Rhapsody Rabbit》(1946)",
+        "근거": "https://mathcs.holycross.edu/~groberts/Courses/Mont2/Handouts/CD1.pdf"
+      },
+      {
+        "작품": "애니메이션 《The Cat Concerto》(1947)",
+        "근거": "https://www.imdb.com/title/tt0039251/trivia/"
+      }
     ]
   },
   "리케츠 보기 대령 행진곡(Ricketts Colonel Bogey March)": {
@@ -212,7 +225,10 @@
       "단체 행진"
     ],
     "OST": [
-      "영화 《콰이 강의 다리 / The Bridge on the River Kwai》(1957)"
+      {
+        "작품": "영화 《콰이 강의 다리 / The Bridge on the River Kwai》(1957)",
+        "근거": "https://www.imdb.com/title/tt0050212/soundtrack/"
+      }
     ]
   },
   "멘델스존 교향곡 4번 '이탈리아' 1악장(Mendelssohn Symphony No.4 in A, 'Italian' 1st. mov)": {
@@ -299,7 +315,14 @@
       "장엄한 슬픔"
     ],
     "OST": [
-      "영화 《아마데우스 / Amadeus》(1984)"
+      {
+        "작품": "영화 《아마데우스 / Amadeus》(1984)",
+        "근거": "https://www.imdb.com/title/tt0086879/soundtrack/"
+      },
+      {
+        "작품": "영국 드라마 《엔데버 / Endeavour》(2014, 시즌 2 3화 'Sway')",
+        "근거": "https://morseandlewisandendeavour.com/wp-content/uploads/2022/08/Music-from-Endeavour-classical-19th-aug-2022-PDF.pdf"
+      }
     ]
   },
   "모차르트 마술피리 서곡(Mozart The Magic Flute Overture)": {
@@ -316,7 +339,10 @@
       "극적인 전환"
     ],
     "OST": [
-      "영화 《아마데우스 / Amadeus》(1984)"
+      {
+        "작품": "영화 《아마데우스 / Amadeus》(1984)",
+        "근거": "https://www.imdb.com/title/tt0086879/soundtrack/"
+      }
     ]
   },
   "모차르트 피가로의 결혼 서곡(Mozart The Marriage of Figaro Overture K.492)": {
@@ -333,7 +359,10 @@
       "경쾌한 무대"
     ],
     "OST": [
-      "영화 《킹스 스피치 / The King's Speech》(2010)"
+      {
+        "작품": "영화 《킹스 스피치 / The King's Speech》(2010)",
+        "근거": "https://www.imdb.com/title/tt1504320/soundtrack/"
+      }
     ]
   },
   "모차르트 피아노 협주곡 21번 2악장(Mozart Piano Concerto No.21 in C, K.467 2nd. mov)": {
@@ -350,7 +379,14 @@
       "따뜻한 여운"
     ],
     "OST": [
-      "영화 《엘비라 마디간 / Elvira Madigan》(1967)"
+      {
+        "작품": "영화 《엘비라 마디간 / Elvira Madigan》(1967)",
+        "근거": "https://www.imdb.com/title/tt0061620/soundtrack/"
+      },
+      {
+        "작품": "영화 《나를 사랑한 스파이 / The Spy Who Loved Me》(1977)",
+        "근거": "https://www.helloclassical.org/classical-music-in-film/"
+      }
     ]
   },
   "무소륵스키 민둥산의 하룻밤(Mussorgsky A Night on Bald Mountain)": {
@@ -367,8 +403,10 @@
       "새벽의 평온"
     ],
     "OST": [
-      "영화 《판타지아 / Fantasia》(1940)",
-      "광고 CM 《Maxell: Blown Away》(영국편, 1980년대)"
+      {
+        "작품": "영화 《판타지아 / Fantasia》(1940)",
+        "근거": "https://www.imdb.com/title/tt0032455/soundtrack/"
+      }
     ]
   },
   "무소륵스키 전람회의 그림 중 키예프의 대문(Mussorgsky Pictures at an Exhibition - The Great Gate of Kiev)": {
@@ -399,11 +437,22 @@
       "압도적인 관현악"
     ],
     "OST": [
-      "영화 《지옥의 묵시록 / Apocalypse Now》(1979)",
-      "영화 《왓치맨 / Watchmen》(2009)",
-      "영화 '지옥의 묵시록' (1979)",
-      "다수의 전쟁/진격/헬기 등장 씬 BGM",
-      "영화 '블루스 브라더스' (1980)"
+      {
+        "작품": "영화 《지옥의 묵시록 / Apocalypse Now》(1979)",
+        "근거": "https://www.youtube.com/watch?v=VE03Lqm3nbI"
+      },
+      {
+        "작품": "영화 《왓치맨 / Watchmen》(2009)",
+        "근거": "https://www.youtube.com/watch?v=Ox0LHICe9Qc"
+      },
+      {
+        "작품": "영화 《하늘을 나는 용감한 남자들 / Those Magnificent Men in Their Flying Machines》(1965)",
+        "근거": "https://www.imdb.com/title/tt0059797/soundtrack/"
+      },
+      {
+        "작품": "애니메이션 영화 《랭고 / Rango》(2011)",
+        "근거": "https://www.imdb.com/title/tt1192628/soundtrack/"
+      }
     ]
   },
   "바그너 로엔그린 중 3막 전주곡(Wagner Lohengrin - Prelude to Act III)": {
@@ -432,9 +481,6 @@
       "엄숙함과 격정의 대비",
       "오페라 서곡",
       "장대한 결말"
-    ],
-    "OST": [
-      "영화 '지옥의 묵시록' (1979)"
     ]
   },
   "바흐 관현악 모음곡 2번 7악장 '바디네리'(Bach Orchestral Suite No.2 in b minor 7th. mov 'Badinerie')": {
@@ -505,10 +551,6 @@
       "합창",
       "씩씩한 노동 장면",
       "힘찬 에너지"
-    ],
-    "OST": [
-      "한국 자동차 CF (힘/엔진 강조)",
-      "망치질/공장/노동 관련 예능 BGM"
     ]
   },
   "베토벤 교향곡 6번 전원 5악장(Beethoven Symphony No.6 'Pastorale' 5th. mov)": {
@@ -539,7 +581,10 @@
       "장엄함"
     ],
     "OST": [
-      "영화 《킹스 스피치 / The King's Speech》(2010)"
+      {
+        "작품": "영화 《킹스 스피치 / The King's Speech》(2010)",
+        "근거": "https://www.youtube.com/watch?v=PPLIw64rLJc"
+      }
     ]
   },
   "베토벤 교향곡 9번 합창 2악장(Beethoven Symphony No.9 in D minor 'Choral' 2nd. mov)": {
@@ -556,7 +601,14 @@
       "격렬한 에너지"
     ],
     "OST": [
-      "영화 《시계태엽 오렌지 / A Clockwork Orange》(1971)"
+      {
+        "작품": "영화 《시계태엽 오렌지 / A Clockwork Orange》(1971)",
+        "근거": "https://www.helloclassical.org/classical-music-in-film/"
+      },
+      {
+        "작품": "영국 드라마 《엔데버 / Endeavour》(2019, 시즌 6 1화 'Pylon')",
+        "근거": "https://morseandlewisandendeavour.com/wp-content/uploads/2022/08/Music-from-Endeavour-classical-19th-aug-2022-PDF.pdf"
+      }
     ]
   },
   "베토벤 미뉴에트 G장조(Beethoven Minuet in G major)": {
@@ -587,9 +639,10 @@
       "애수"
     ],
     "OST": [
-      "한국 드라마 '베토벤 바이러스' (2008)",
-      "한국 영화 '친절한 금자씨' (2005)",
-      "다수의 슬프거나 격정적인 CF BGM"
+      {
+        "작품": "영화 《그 남자는 거기 없었다 / The Man Who Wasn't There》(2001)",
+        "근거": "https://www.classicfm.com/discover-music/periods-genres/film-tv/most-iconic-uses-classical-music-soundtrack/"
+      }
     ]
   },
   "베토벤 피아노 소나타 14번 월광 3악장(Beethoven Piano Sonata No.14 'Moonlight' 3rd. mov)": {
@@ -604,10 +657,6 @@
       "급한 아르페지오",
       "몰아치는 리듬",
       "극적"
-    ],
-    "OST": [
-      "애니메이션 '명탐정 코난: 피아노 소나타 '월광' 살인사건'",
-      "영화 '피아니스트' (2002)"
     ]
   },
   "베토벤 피아노 협주곡 3번(Beethoven Piano Concerto No.3 in C minor Op.37)": {
@@ -678,10 +727,6 @@
       "반복되는 주제",
       "부드러움",
       "낭만적"
-    ],
-    "OST": [
-      "다수의 90년대 한국 로맨틱 드라마 BGM",
-      "전국 피아노 학원의 단골 콩쿠르/연주회 곡"
     ]
   },
   "샤르팡티에 테 데움 중 프렐류드(Charpentier Te Deum - Prelude)": {
@@ -752,10 +797,6 @@
       "격렬한 화음",
       "저항의 느낌",
       "어두운 긴박감"
-    ],
-    "OST": [
-      "한국 드라마 '천국의 계단' (2003)",
-      "한국 드라마 '베토벤 바이러스' (2008)"
     ]
   },
   "쇼팽 에튀드 Op.25 No.9 '나비'(Chopin Etude Op. 25 No. 9 'Butterfly')": {
@@ -840,9 +881,6 @@
       "짧고 빠른 음형",
       "장난스러움",
       "발랄함"
-    ],
-    "OST": [
-      "다수의 반려동물 관련 한국 예능 및 CF"
     ]
   },
   "쇼팽 왈츠 7번(Chopin Waltz in C Sharp minor, Op. 64 No. 2)": {
@@ -997,10 +1035,6 @@
       "그리운 선율",
       "부드러운 반주",
       "조용한 호소"
-    ],
-    "OST": [
-      "한국 영화 '클래식' (2003)",
-      "한국 아파트 및 우아한 분위기 CF 다수"
     ]
   },
   "슈베르트 스케르초 1번(Schubert Scherzo D 593, No. 1)": {
@@ -1115,7 +1149,10 @@
       "폭발적인 리듬"
     ],
     "OST": [
-      "영화 《판타지아 / Fantasia》(1940)"
+      {
+        "작품": "영화 《판타지아 / Fantasia》(1940)",
+        "근거": "https://www.imdb.com/title/tt0032455/soundtrack/"
+      }
     ]
   },
   "아르노 버글러의 꿈(Arnaud Bugler's Dream)": {
@@ -1202,7 +1239,10 @@
       "호두까기 인형"
     ],
     "OST": [
-      "영화 《판타지아 / Fantasia》(1940)"
+      {
+        "작품": "영화 《판타지아 / Fantasia》(1940)",
+        "근거": "https://www.imdb.com/title/tt0032455/soundtrack/"
+      }
     ]
   },
   "차이콥스키 로미오와 줄리엣 서곡(Tchaikovsky Romeo and Juliet Overture)": {
@@ -1315,10 +1355,6 @@
       "고풍스러운 선율",
       "절제된 애수",
       "부드러운 관현악"
-    ],
-    "OST": [
-      "한국 고급 승용차 광고 다수",
-      "영화 '도플갱어' (2003)"
     ]
   },
   "폰키엘리 지오콘다 중 시간의 춤(Ponchielli La Gioconda - Dance of the Hours)": {
@@ -1335,9 +1371,10 @@
       "극장 분위기"
     ],
     "OST": [
-      "영화 《판타지아 / Fantasia》(1940)",
-      "애니메이션 '환타지아' (1940) 하마와 악어의 발레 씬",
-      "한국 시계/시간 관련 광고"
+      {
+        "작품": "영화 《판타지아 / Fantasia》(1940)",
+        "근거": "https://www.imdb.com/title/tt0032455/soundtrack/"
+      }
     ]
   },
   "프로코피예프 교향곡 1번 '고전'(Prokofiev Symphony No. 1 in D major, Op. 25 'Classical')": {
@@ -1450,11 +1487,6 @@
       "강한 반복 리듬",
       "도시적",
       "관능적"
-    ],
-    "OST": [
-      "한국 김연아 피겨스케이팅 프로그램",
-      "한국 드라마 '베토벤 바이러스' (2008)",
-      "다수의 탱고/관능적인 방송 씬 BGM"
     ]
   },
   "하차투리안 가면무도회 모음곡 중 왈츠(Khachaturian Masquerade Suite - Waltz)": {
@@ -1483,10 +1515,6 @@
       "날카로운 타악기",
       "숨가쁜 질주",
       "격렬함"
-    ],
-    "OST": [
-      "한국 예능 프로그램 바쁘게 움직이거나 혼란스러운 씬 단골 BGM",
-      "서커스 및 곡예 관련 전 세계 BGM"
     ]
   },
   "헨델 수상음악 중 알라 혼파이프(Händel Water Music - Alla Hornpipe, HWV. 349)": {
@@ -1517,7 +1545,10 @@
       "밝은 축하"
     ],
     "OST": [
-      "2012년 런던 올림픽 개막식 007 제임스 본드 등장씬"
+      {
+        "작품": "영화 《네 번의 결혼식과 한 번의 장례식 / Four Weddings and a Funeral》(1994)",
+        "근거": "https://www.imdb.com/title/tt0109831/soundtrack/"
+      }
     ]
   }
 }

@@ -9,7 +9,8 @@ import { CONFIG } from 'src/global-config';
 
 import { ClassicSearchView } from 'src/sections/classic-search/classic-search-view';
 
-type ClassicDetails = { 카테고리: string[]; 특징: string[]; OST?: string[] };
+type OstUse = { 작품: string; 근거: string };
+type ClassicDetails = { 카테고리: string[]; 특징: string[]; OST?: OstUse[] };
 
 export const metadata: Metadata = {
   title: `클래식 검색 | Dashboard - ${CONFIG.appName}`,
@@ -30,7 +31,7 @@ const classics = Object.values(
         position: number;
         categories: string[];
         features: string[];
-        ost: string[];
+        ost: OstUse[];
         highlights: number[];
       }
     >
@@ -47,7 +48,10 @@ const classics = Object.values(
 
       entry.categories = [...new Set([...entry.categories, ...details.카테고리])];
       entry.features = [...new Set([...entry.features, ...details.특징])];
-      entry.ost = [...new Set([...entry.ost, ...(details.OST ?? [])])];
+      entry.ost = [...entry.ost, ...(details.OST ?? [])].filter(
+        (use, useIndex, uses) =>
+          uses.findIndex((candidate) => candidate.작품 === use.작품) === useIndex
+      );
       entry.highlights.push(index + 1);
       entries[title] = entry;
     });
