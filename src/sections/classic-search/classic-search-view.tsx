@@ -8,7 +8,6 @@ import Chip from '@mui/material/Chip';
 import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
-import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Autocomplete from '@mui/material/Autocomplete';
@@ -23,7 +22,6 @@ type Classic = {
   categories: string[];
   features: string[];
   ost: { 작품: string; 근거: string }[];
-  highlights: number[];
 };
 
 const PAGE_SIZE = 50;
@@ -52,22 +50,9 @@ function ClassicCard({
 
   return (
     <Card variant="outlined" sx={{ p: { xs: 2, sm: 2.5 } }}>
-      <Stack
-        direction={{ xs: 'column', sm: 'row' }}
-        spacing={1}
-        justifyContent="space-between"
-        alignItems={{ sm: 'flex-start' }}
-        sx={{ mb: 1.5 }}
-      >
-        <Typography variant="subtitle1" sx={{ fontWeight: 700, overflowWrap: 'anywhere' }}>
-          {String(classic.position).padStart(3, '0')}. {classic.title}
-        </Typography>
-        <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ flexShrink: 0 }}>
-          {classic.highlights.map((number) => (
-            <Chip key={number} label={`하이라이트 ${number}`} color="primary" size="small" />
-          ))}
-        </Stack>
-      </Stack>
+      <Typography variant="subtitle1" sx={{ mb: 1.5, fontWeight: 700, overflowWrap: 'anywhere' }}>
+        {String(classic.position).padStart(3, '0')}. {classic.title}
+      </Typography>
       <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 1 }}>
         {classic.categories.map((category) => (
           <Chip key={category} label={category} size="small" variant="outlined" />
@@ -147,7 +132,6 @@ export function ClassicSearchView({ classics }: { classics: Classic[] }) {
   const [featureQuery, setFeatureQuery] = useState('');
   const [ostQuery, setOstQuery] = useState('');
   const [memoQuery, setMemoQuery] = useState('');
-  const [highlight, setHighlight] = useState('all');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [memos, setMemos] = useState<Record<string, string>>({});
   const [storageError, setStorageError] = useState('');
@@ -192,20 +176,24 @@ export function ClassicSearchView({ classics }: { classics: Classic[] }) {
   };
 
   const results = useMemo(
-    () =>
-      classics.filter(
+    () => {
+      const trimmedQuery = query.trim();
+      const numberQuery = /^\d{1,3}$/.test(trimmedQuery) ? Number(trimmedQuery) : null;
+
+      return classics.filter(
         (classic) =>
-          (highlight === 'all' || classic.highlights.includes(Number(highlight))) &&
-          matchesTerms(
-            [
-              classic.title,
-              ...classic.categories,
-              ...classic.features,
-              ...classic.ost.map((use) => use.작품),
-              memos[classic.title] ?? '',
-            ],
-            query
-          ) &&
+          (numberQuery !== null
+            ? classic.position === numberQuery
+            : matchesTerms(
+                [
+                  classic.title,
+                  ...classic.categories,
+                  ...classic.features,
+                  ...classic.ost.map((use) => use.작품),
+                  memos[classic.title] ?? '',
+                ],
+                query
+              )) &&
           (selectedCategories.length === 0 ||
             selectedCategories.some((category) => classic.categories.includes(category))) &&
           matchesTerms(classic.features, featureQuery) &&
@@ -214,8 +202,9 @@ export function ClassicSearchView({ classics }: { classics: Classic[] }) {
             ostQuery
           ) &&
           matchesTerms([memos[classic.title] ?? ''], memoQuery)
-      ),
-    [classics, highlight, query, selectedCategories, featureQuery, ostQuery, memoQuery, memos]
+      );
+    },
+    [classics, query, selectedCategories, featureQuery, ostQuery, memoQuery, memos]
   );
 
   return (
@@ -225,53 +214,34 @@ export function ClassicSearchView({ classics }: { classics: Classic[] }) {
           클래식 검색
         </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          전체 검색 또는 항목별 검색을 사용하고, 하이라이트 1~4의 수록 위치를 확인하세요. 여러
-          필터를 함께 사용할 수 있습니다. 카테고리는 여러 개 선택할 수 있으며, 선택한 카테고리 중
-          하나라도 포함된 곡이 나옵니다. OST에는 사용 근거를 확인한 작품만 표시합니다. 메모는 이
-          브라우저에 저장됩니다.
+          클래식 400곡을 번호, 곡명, 카테고리, 특징, OST, 메모로 검색하세요. 여러 필터를 함께
+          사용할 수 있습니다. 카테고리는 여러 개 선택할 수 있으며, 선택한 카테고리 중 하나라도
+          포함된 곡이 나옵니다. OST에는 사용 근거를 확인한 작품만 표시합니다. 메모는 이 브라우저에
+          저장됩니다.
         </Typography>
       </Box>
 
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mb: 1.5 }}>
-        <TextField
-          id="classic-search-query"
-          fullWidth
-          value={query}
-          onChange={(event) => {
-            setQuery(event.target.value);
-            setVisibleCount(PAGE_SIZE);
-          }}
-          placeholder="곡명, 카테고리, 특징, OST, 메모 전체 검색"
-          aria-label="클래식 검색어"
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchRoundedIcon />
-                </InputAdornment>
-              ),
-            },
-          }}
-        />
-        <TextField
-          id="classic-highlight-filter"
-          select
-          label="하이라이트"
-          value={highlight}
-          onChange={(event) => {
-            setHighlight(event.target.value);
-            setVisibleCount(PAGE_SIZE);
-          }}
-          sx={{ minWidth: { sm: 170 } }}
-        >
-          <MenuItem value="all">전체</MenuItem>
-          {[1, 2, 3, 4].map((number) => (
-            <MenuItem key={number} value={String(number)}>
-              하이라이트 {number}
-            </MenuItem>
-          ))}
-        </TextField>
-      </Stack>
+      <TextField
+        id="classic-search-query"
+        fullWidth
+        value={query}
+        onChange={(event) => {
+          setQuery(event.target.value);
+          setVisibleCount(PAGE_SIZE);
+        }}
+        placeholder="번호, 곡명, 카테고리, 특징, OST, 메모 전체 검색"
+        aria-label="클래식 검색어"
+        sx={{ mb: 1.5 }}
+        slotProps={{
+          input: {
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchRoundedIcon />
+              </InputAdornment>
+            ),
+          },
+        }}
+      />
 
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} sx={{ mb: 2.5 }}>
         <Autocomplete

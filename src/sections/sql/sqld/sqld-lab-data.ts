@@ -8,7 +8,8 @@ export interface PracticeTable {
   rows: Record<string, string | number | null>[];
 }
 
-const SQL_START = /^(SELECT|WITH|INSERT|UPDATE|DELETE|CREATE|ALTER|DROP|MERGE)\b/i;
+const SQL_START =
+  /\b(SELECT|WITH|INSERT\s+INTO|INSERT|UPDATE|DELETE\s+FROM|DELETE|MERGE\s+INTO|MERGE|CREATE\s+TABLE|CREATE\s+VIEW|CREATE|ALTER\s+TABLE|ALTER|DROP\s+TABLE|DROP\s+VIEW|DROP|TRUNCATE\s+TABLE|TRUNCATE|SAVEPOINT|ROLLBACK|COMMIT|GRANT|REVOKE|EXPLAIN|DESCRIBE|DESC)\b/i;
 const SQL_TOPIC =
   /\b(SELECT|WHERE|GROUP BY|HAVING|ORDER BY|JOIN|UNION|INSERT|UPDATE|DELETE|CREATE TABLE|ALTER TABLE|DROP TABLE|NULL|NVL|COUNT|SUM|AVG|RANK|ROWNUM|SUBSTR|CASE|SQL)\b/i;
 
@@ -36,20 +37,56 @@ export function cleanSql(value: string): string {
 
 export function cleanSqlForInput(value: string): string {
   if (!value) return '';
-  let cleaned = value
+
+  // 1. 마크다운 코드 블록 및 백틱 제거
+  let text = value
     .replace(/```(?:sql)?/gi, '')
     .replace(/^`+|`+$/g, '')
-    .split('\n')
-    .map((line) => line.replace(/^\s*--\s*[①-⑳\d.()]+\s*/, '').trimEnd())
-    .filter((line) => !/^\s*--/.test(line))
-    .join('\n')
     .trim();
 
-  // 번호 접두사 제거 (예: ①, 1., (1), [1] 등)
-  cleaned = cleaned.replace(/^[①-⑳\d]+[\s.)\]\-,:]+/u, '').trim();
-  cleaned = cleaned.replace(/^\[(?:SQL|쿼리|보기)?\s*\d*\]\s*/i, '').trim();
+  // 2. SQL 쿼리 시작 키워드 탐색 (앞의 '(나) SQL Server\n', '1. ', 'Oracle:' 등의 비-SQL 라벨/텍스트 제거)
+  const match = text.match(SQL_START);
+  if (match && typeof match.index === 'number') {
+    let startIndex = match.index;
+    const prefix = text.slice(0, startIndex);
 
-  return cleaned;
+    // 단, prefix 끝부분에 `(` 가 하나 열려있고, 라벨 괄호(예: `(가)`, `(1)`)가 아니라면 서브쿼리 여는 괄호일 수 있음
+    if (/\(\s*$/.test(prefix) && !/\([가-힣\d\w\s-]+\)\s*$/u.test(prefix)) {
+      startIndex = prefix.lastIndexOf('(');
+    }
+
+    text = text.slice(startIndex).trim();
+  } else {
+    // 키워드가 매칭되지 않은 경우라도 접두사 번호/라벨 제거 시도
+    text = text.replace(/^[①-⑳\d]+[\s.)\]\-,:]+/u, '').trim();
+    text = text.replace(/^\([가-힣\d\w\s-]+\)[\s:]*/u, '').trim();
+    text = text.replace(/^\[(?:SQL|쿼리|보기)?\s*\d*\][\s:]*/i, '').trim();
+  }
+
+  // 3. 주석 라인 정리: 줄 단위 주석 중 라벨 주석 제거
+  const lines = text
+    .split('\n')
+    .map((line) => line.replace(/^\s*--\s*[①-⑳\d.()]+\s*/, '').trimEnd())
+    .filter((line) => !/^\s*--\s*(?:\([가-힣\d\w]+\)|SQL\s*\d+)/i.test(line));
+
+  text = lines.join('\n').trim();
+
+  // 4. 세미콜론 뒤에 붙은 비-SQL 부가 텍스트 제거 (예: `SELECT ...; (오답 설명)` -> `SELECT ...;`)
+  const semicolonIndex = text.indexOf(';');
+  if (semicolonIndex !== -1) {
+    const afterSemicolon = text.slice(semicolonIndex + 1).trim();
+    // 세미콜론 뒤의 내용이 다른 SQL 시작 키워드를 포함하지 않는 설명문인 경우 세미콜론까지만 취함
+    if (afterSemicolon && !SQL_START.test(afterSemicolon)) {
+      text = text.slice(0, semicolonIndex + 1);
+    }
+  }
+
+  // 5. 끝에 세미콜론이 없는 단일 라인 쿼리면 세미콜론 붙여주기
+  if (text && !text.endsWith(';') && !text.includes('\n')) {
+    text = `${text};`;
+  }
+
+  return text;
 }
 
 export function isSqlQuery(text: string): boolean {
@@ -65,11 +102,16 @@ export function isSqlQuery(text: string): boolean {
 export function getPracticeQueries(problem: Problem): string[] {
   const content = [problem.question, problem.description].join('\n');
   const fenced = [...content.matchAll(/```(?:sql)?\s*([\s\S]*?)```/gi)].flatMap((match) => {
-    const cleaned = cleanSql(match[1]);
+    const cleaned = cleanSqlForInput(match[1]);
     // Numbered statements in a single fence are common in SQLD questions.
-    return cleaned.includes(';') ? cleaned.split(';').map((part) => part.trim()) : [cleaned];
+    return cleaned.includes(';')
+      ? cleaned
+          .split(';')
+          .map((part) => cleanSqlForInput(part))
+          .filter(Boolean)
+      : [cleaned];
   });
-  const choices = problem.choices.map(cleanSql).filter((choice) => SQL_START.test(choice));
+  const choices = problem.choices.map(cleanSqlForInput).filter((choice) => SQL_START.test(choice));
   return [...new Set([...fenced, ...choices].filter((query) => SQL_START.test(query)))];
 }
 

@@ -373,7 +373,7 @@ export const TOOL_METADATA_MAP: Record<
 
   // 기타 도구
   [paths.classicSearch]: {
-    description: '클래식 곡명, 카테고리, 특징으로 검색하고 하이라이트 1~4 수록 위치 확인',
+    description: '클래식 400곡을 번호, 곡명, 카테고리, 특징으로 검색',
     tag: '음악 검색',
     badgeColor: 'primary',
   },
