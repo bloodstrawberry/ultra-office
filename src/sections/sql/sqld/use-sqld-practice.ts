@@ -13,7 +13,7 @@ import { useMemo, useState, useEffect, useCallback } from 'react';
 
 import { CONFIG } from 'src/global-config';
 
-import { createEmptyProblem } from './types';
+import { createEmptyProblem, getProblemAttemptCounts } from './types';
 
 // ----------------------------------------------------------------------
 
@@ -178,16 +178,41 @@ export function useSqldPractice() {
         setSelectedRoundId(savedRound);
       }
 
-      const savedStudyMode = localStorage.getItem(STORAGE_KEY_STUDY_MODE);
-      if (savedStudyMode !== null) {
-        setShowAllAnswers(savedStudyMode === 'true');
+      // 새로고침 후에는 학습 모드(정답 전체 보기)를 항상 정답 OFF(false)로 시작
+      setShowAllAnswers(false);
+      try {
+        localStorage.removeItem(STORAGE_KEY_STUDY_MODE);
+      } catch {
+        // Ignore
       }
 
       const savedRecords = localStorage.getItem(STORAGE_KEY_RECORDS);
       if (savedRecords) {
         const parsed = JSON.parse(savedRecords);
         if (parsed && typeof parsed === 'object') {
-          setUserRecords(parsed);
+          // 새로고침 시 풀었던 문제들도 다시 정답 OFF(선택 및 해설 닫힘) 상태로 리셋하되,
+          // 문제 번호 옆에 표기될 정답/오답 누적 횟수(correctCount, wrongCount)는 그대로 보존
+          const sanitizedRecords: Record<string, Record<number, UserProblemRecord>> = {};
+          for (const [roundId, roundProblems] of Object.entries(parsed)) {
+            if (roundProblems && typeof roundProblems === 'object') {
+              sanitizedRecords[roundId] = {};
+              for (const [idxStr, rec] of Object.entries(
+                roundProblems as Record<string, UserProblemRecord>
+              )) {
+                const idx = Number(idxStr);
+                const counts = getProblemAttemptCounts(rec);
+                sanitizedRecords[roundId][idx] = {
+                  selectedAnswers: [],
+                  isSubmitted: false,
+                  isCorrect: false,
+                  isRevealed: false,
+                  correctCount: counts.correctCount,
+                  wrongCount: counts.wrongCount,
+                };
+              }
+            }
+          }
+          setUserRecords(sanitizedRecords);
         }
       }
     } catch {
@@ -331,6 +356,7 @@ export function useSqldPractice() {
   // 7. Submit Answer (Grading)
   const handleSubmitAnswer = useCallback(() => {
     if (!selectedRoundId || !currentProblem) return;
+    if (currentRecord?.isSubmitted) return;
 
     const selections = currentRecord?.selectedAnswers || [];
     if (selections.length === 0) {
@@ -358,7 +384,13 @@ export function useSqldPractice() {
         isSubmitted: false,
         isCorrect: false,
         isRevealed: false,
+        correctCount: 0,
+        wrongCount: 0,
       };
+
+      const counts = getProblemAttemptCounts(oldRecord);
+      const nextCorrectCount = isCorrect ? counts.correctCount + 1 : counts.correctCount;
+      const nextWrongCount = !isCorrect ? counts.wrongCount + 1 : counts.wrongCount;
 
       return {
         ...prev,
@@ -370,6 +402,8 @@ export function useSqldPractice() {
             isSubmitted: true,
             isCorrect,
             isRevealed: true,
+            correctCount: nextCorrectCount,
+            wrongCount: nextWrongCount,
           },
         },
       };
@@ -408,19 +442,33 @@ export function useSqldPractice() {
     });
   }, [selectedRoundId, currentIndex]);
 
-  // 9. Reset single problem
+  // 9. Reset single problem (다시 풀기: 답안 초기화하되 누적 풀이 횟수는 보존)
   const handleResetProblem = useCallback(() => {
     if (!selectedRoundId) return;
 
     setUserRecords((prev) => {
       const roundMap = { ...(prev[selectedRoundId] || {}) };
-      delete roundMap[currentIndex];
+      const oldRecord = roundMap[currentIndex];
+      if (!oldRecord) return prev;
+
+      const counts = getProblemAttemptCounts(oldRecord);
+
       return {
         ...prev,
-        [selectedRoundId]: roundMap,
+        [selectedRoundId]: {
+          ...roundMap,
+          [currentIndex]: {
+            selectedAnswers: [],
+            isSubmitted: false,
+            isCorrect: false,
+            isRevealed: false,
+            correctCount: counts.correctCount,
+            wrongCount: counts.wrongCount,
+          },
+        },
       };
     });
-    toast.info('문제 답안이 초기화되었습니다.');
+    toast.info('문제 답안이 초기화되었습니다. 다시 풀어보세요.');
   }, [selectedRoundId, currentIndex]);
 
   // 10. Reset whole round
@@ -756,10 +804,11 @@ export function useSqldPractice() {
 
   return {
     rounds: data?.tree || [],
-    totalQuestionCount: data?.tree.reduce(
-      (total, round) => total + (data.scripts[round.id]?.problems.length || 0),
-      0
-    ) || 0,
+    totalQuestionCount:
+      data?.tree.reduce(
+        (total, round) => total + (data.scripts[round.id]?.problems.length || 0),
+        0
+      ) || 0,
     selectedRoundId,
     currentProblems,
     currentProblem,

@@ -193,6 +193,10 @@
       {
         "작품": "영화 《트와일라잇 / Twilight》(2008)",
         "근거": "https://www.imdb.com/title/tt1099212/soundtrack/"
+      },
+      {
+        "작품": "영화 《에브리씽 에브리웨어 올 앳 원스 / Everything Everywhere All at Once》(2022)",
+        "근거": "https://www.imdb.com/title/tt6710474/soundtrack/"
       }
     ]
   },
@@ -496,6 +500,14 @@
       {
         "작품": "영화 《마스터 앤드 커맨더 / Master and Commander》(2003)",
         "근거": "https://www.youtube.com/watch?v=a6Ji-KDLG8Y"
+      },
+      {
+        "작품": "영화 《피아니스트 / The Pianist》(2002)",
+        "근거": "https://www.imdb.com/title/tt0253474/soundtrack/"
+      },
+      {
+        "작품": "영화 《솔로이스트 / The Soloist》(2009)",
+        "근거": "https://www.imdb.com/title/tt0824721/soundtrack/"
       }
     ]
   },
@@ -796,6 +808,12 @@
       "밝음",
       "천둥과 번개",
       "바이올린"
+    ],
+    "OST": [
+      {
+        "작품": "영화 《마라톤 보이 / Ralph》(2004)",
+        "근거": "https://www.imdb.com/title/tt0411802/soundtrack/"
+      }
     ]
   },
   "비발디 사계 중 여름 3악장(Vivaldi The Four Seasons, Summer, 3rd. mov)": {
@@ -863,6 +881,16 @@
       "매서운 바람",
       "긴장감",
       "빠른 움직임"
+    ],
+    "OST": [
+      {
+        "작품": "영화 《올드보이 / Oldboy》(2003)",
+        "근거": "https://www.imdb.com/title/tt0364569/soundtrack/"
+      },
+      {
+        "작품": "영화 《존 윅 3: 파라벨룸 / John Wick: Chapter 3 - Parabellum》(2019)",
+        "근거": "https://www.imdb.com/title/tt6146586/soundtrack/"
+      }
     ]
   },
   "비발디 사계 중 겨울 2악장(Vivaldi The Four Seasons, Winter, 2nd. mov)": {
@@ -1301,6 +1329,10 @@
       {
         "작품": "영화 《브래스드 오프 / Brassed Off》(1996)",
         "근거": "https://www.imdb.com/title/tt0115744/soundtrack/"
+      },
+      {
+        "작품": "영화 《킹스맨: 시크릿 에이전트 / Kingsman: The Secret Service》(2014)",
+        "근거": "https://www.imdb.com/title/tt2802144/soundtrack/"
       }
     ]
   },
@@ -1449,6 +1481,10 @@
       "발레"
     ],
     "OST": [
+      {
+        "작품": "영화 《블랙 스완 / Black Swan》(2010)",
+        "근거": "https://www.imdb.com/title/tt0947798/soundtrack/"
+      },
       {
         "작품": "영화 《블랙 스완 / Black Swan》(2010)",
         "근거": "https://www.imdb.com/title/tt0947798/soundtrack/"

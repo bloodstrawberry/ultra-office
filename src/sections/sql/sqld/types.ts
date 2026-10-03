@@ -71,6 +71,40 @@ export interface UserProblemRecord {
   isSubmitted: boolean;
   isCorrect: boolean;
   isRevealed: boolean;
+  correctCount?: number;
+  wrongCount?: number;
+}
+
+export interface ProblemAttemptCounts {
+  correctCount: number;
+  wrongCount: number;
+  totalAttempts: number;
+}
+
+export function getProblemAttemptCounts(record?: UserProblemRecord): ProblemAttemptCounts {
+  if (!record) {
+    return { correctCount: 0, wrongCount: 0, totalAttempts: 0 };
+  }
+
+  const correctCount =
+    typeof record.correctCount === 'number'
+      ? record.correctCount
+      : record.isSubmitted && record.isCorrect
+        ? 1
+        : 0;
+
+  const wrongCount =
+    typeof record.wrongCount === 'number'
+      ? record.wrongCount
+      : record.isSubmitted && !record.isCorrect
+        ? 1
+        : 0;
+
+  return {
+    correctCount,
+    wrongCount,
+    totalAttempts: correctCount + wrongCount,
+  };
 }
 
 export interface SubjectStats {

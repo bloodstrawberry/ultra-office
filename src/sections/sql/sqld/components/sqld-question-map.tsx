@@ -11,6 +11,8 @@ import { alpha, useTheme } from '@mui/material/styles';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import HighlightOffOutlinedIcon from '@mui/icons-material/HighlightOffOutlined';
 
+import { getProblemAttemptCounts } from '../types';
+
 // ----------------------------------------------------------------------
 
 interface SqldQuestionMapProps {
@@ -39,6 +41,7 @@ export function SqldQuestionMap({
     const isCurrent = currentIndex === pIdx;
     const isSubmitted = record?.isSubmitted;
     const isCorrect = record?.isCorrect;
+    const attemptCounts = getProblemAttemptCounts(record);
 
     let bgcolor = 'background.paper';
     let color = 'text.primary';
@@ -60,17 +63,21 @@ export function SqldQuestionMap({
       color = theme.vars.palette.primary.main;
     }
 
+    const attemptSummary =
+      attemptCounts.totalAttempts > 0
+        ? ` (정답 ${attemptCounts.correctCount}회 / 오답 ${attemptCounts.wrongCount}회)`
+        : '';
+
+    const tooltipTitle = isSubmitted
+      ? `${pIdx + 1}번: ${isCorrect ? '정답' : '오답'}${attemptSummary}`
+      : record?.selectedAnswers?.length
+        ? `${pIdx + 1}번: 답안 작성됨 (미채점)${attemptSummary}`
+        : attemptCounts.totalAttempts > 0
+          ? `${pIdx + 1}번: 다시 풀기 진행 중${attemptSummary}`
+          : `${pIdx + 1}번: 미풀이`;
+
     return (
-      <Tooltip
-        key={pIdx}
-        title={
-          isSubmitted
-            ? `${pIdx + 1}번: ${isCorrect ? '정답' : '오답'}`
-            : record?.selectedAnswers?.length
-              ? `${pIdx + 1}번: 답안 작성됨 (미채점)`
-              : `${pIdx + 1}번: 미풀이`
-        }
-      >
+      <Tooltip key={pIdx} title={tooltipTitle}>
         <Box
           component="button"
           onClick={() => onSelectProblem(pIdx)}

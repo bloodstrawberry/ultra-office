@@ -23,13 +23,16 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
+import HighlightOffOutlinedIcon from '@mui/icons-material/HighlightOffOutlined';
 
 import { KatexMath } from 'src/components/katex';
-import { MermaidDiagram } from 'src/components/mermaid';
 import { ChartRenderer } from 'src/components/chart';
+import { MermaidDiagram } from 'src/components/mermaid';
 
+import { getProblemAttemptCounts } from '../types';
 import { SqldSqlPractice } from './sqld-sql-practice';
 import { SqldProblemMemo } from './sqld-problem-memo';
 import { isSqlPracticeProblem } from '../sqld-lab-data';
@@ -75,6 +78,7 @@ export function SqldProblemCard({
   const isSubmitted = Boolean(record?.isSubmitted);
   const isRevealed = showAllAnswers || Boolean(record?.isRevealed) || isSubmitted;
   const isCorrect = Boolean(record?.isCorrect);
+  const attemptCounts = getProblemAttemptCounts(record);
 
   const problemFormulas = Array.isArray(problem.formulas)
     ? problem.formulas.filter((f) => f && f.trim())
@@ -137,7 +141,7 @@ export function SqldProblemCard({
           }}
         >
           {/* Left: Number circle & result status */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, flexWrap: 'wrap' }}>
             <Box
               sx={{
                 width: 36,
@@ -154,6 +158,53 @@ export function SqldProblemCard({
             >
               {problemIndex + 1}
             </Box>
+
+            {/* 정답 / 오답 횟수 표기 (풀지 않은 문제는 아무것도 표시하지 않음) */}
+            {attemptCounts.totalAttempts > 0 && (
+              <Box
+                sx={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 0.75,
+                  px: 1.2,
+                  py: 0.4,
+                  borderRadius: 1,
+                  bgcolor: (t) => alpha(t.palette.grey[500], 0.08),
+                  border: (t) => `1px solid ${t.vars.palette.divider}`,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  userSelect: 'none',
+                }}
+              >
+                <Box
+                  component="span"
+                  sx={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 0.35,
+                    color: attemptCounts.correctCount > 0 ? 'success.main' : 'text.disabled',
+                  }}
+                >
+                  <CheckCircleOutlineIcon sx={{ fontSize: 15 }} />
+                  정답 {attemptCounts.correctCount}회
+                </Box>
+                <Box component="span" sx={{ color: 'text.disabled', opacity: 0.5, mx: 0.1 }}>
+                  •
+                </Box>
+                <Box
+                  component="span"
+                  sx={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 0.35,
+                    color: attemptCounts.wrongCount > 0 ? 'error.main' : 'text.disabled',
+                  }}
+                >
+                  <HighlightOffOutlinedIcon sx={{ fontSize: 15 }} />
+                  오답 {attemptCounts.wrongCount}회
+                </Box>
+              </Box>
+            )}
 
             {isSubmitted && (
               <Chip
