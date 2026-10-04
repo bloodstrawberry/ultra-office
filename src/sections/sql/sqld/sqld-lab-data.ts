@@ -18,11 +18,10 @@ export interface ResolvedPracticeLab {
 
 const SQL_START =
   /\b(SELECT|WITH|INSERT\s+INTO|INSERT|UPDATE|DELETE\s+FROM|DELETE|MERGE\s+INTO|MERGE|CREATE\s+TABLE|CREATE\s+VIEW|CREATE|ALTER\s+TABLE|ALTER|DROP\s+TABLE|DROP\s+VIEW|DROP|TRUNCATE\s+TABLE|TRUNCATE|SAVEPOINT|ROLLBACK|COMMIT|GRANT|REVOKE|EXPLAIN|DESCRIBE|DESC)\b/i;
-const INCOMPLETE_SQL = /\.\.\.|_{3,}|\(\s*\?\s*\)|\(\s*ㄱ\s*\)/i;
 
 function isSqlStatement(query: string): boolean {
   const text = query.trim();
-  if (!text || INCOMPLETE_SQL.test(text)) return false;
+  if (!text) return false;
   if (/^SELECT\s/i.test(text)) {
     return (
       /\bFROM\b/i.test(text) ||

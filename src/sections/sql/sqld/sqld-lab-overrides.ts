@@ -805,7 +805,7 @@ const LABS: Record<string, SqlPracticeLab> = {
 };
 
 export function getSqldLabOverride(problem: Problem): SqlPracticeLab | undefined {
-  const round = problem.hashtags.find((tag) => /^#제(?:60|61|62)회$/.test(tag))?.match(/\d+/)?.[0];
+  const round = problem.hashtags.find((tag) => /^#.*\d+\uD68C$/.test(tag))?.match(/\d+/)?.[0];
   const number = problem.hashtags.find((tag) => /^#\d+번$/.test(tag))?.match(/\d+/)?.[0];
   return round && number ? LABS[`${round}-${number}`] : undefined;
 }
