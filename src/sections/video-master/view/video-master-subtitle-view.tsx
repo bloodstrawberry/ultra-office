@@ -2267,15 +2267,15 @@ export function VideoMasterSubtitleView() {
                         my: 0,
                         '&::after': {
                           content: '""',
-                          width: 4,
-                          height: 52,
-                          borderRadius: 2,
+                          width: 2,
+                          height: '100%',
+                          borderRadius: 1,
                           bgcolor: 'divider',
-                          transition: 'background-color 0.2s, transform 0.2s',
+                          transition: 'background-color 0.2s, width 0.2s',
                         },
                         '&:hover::after, &:active::after': {
                           bgcolor: 'primary.main',
-                          transform: 'scaleX(1.4)',
+                          width: 3,
                         },
                       }
                     : {
@@ -2286,15 +2286,15 @@ export function VideoMasterSubtitleView() {
                         mx: 0,
                         '&::after': {
                           content: '""',
-                          height: 4,
-                          width: 52,
-                          borderRadius: 2,
+                          height: 2,
+                          width: '100%',
+                          borderRadius: 1,
                           bgcolor: 'divider',
-                          transition: 'background-color 0.2s, transform 0.2s',
+                          transition: 'background-color 0.2s, height 0.2s',
                         },
                         '&:hover::after, &:active::after': {
                           bgcolor: 'primary.main',
-                          transform: 'scaleY(1.4)',
+                          height: 3,
                         },
                       },
                   [theme.breakpoints.down('md')]: {
@@ -2305,15 +2305,15 @@ export function VideoMasterSubtitleView() {
                     mx: 0,
                     '&::after': {
                       content: '""',
-                      height: 4,
-                      width: 52,
-                      borderRadius: 2,
+                      height: 2,
+                      width: '100%',
+                      borderRadius: 1,
                       bgcolor: 'divider',
-                      transition: 'background-color 0.2s, transform 0.2s',
+                      transition: 'background-color 0.2s, height 0.2s',
                     },
                     '&:hover::after, &:active::after': {
                       bgcolor: 'primary.main',
-                      transform: 'scaleY(1.4)',
+                      height: 3,
                     },
                   },
                 };

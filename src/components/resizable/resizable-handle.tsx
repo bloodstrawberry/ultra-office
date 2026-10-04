@@ -7,7 +7,6 @@ import { Separator } from 'react-resizable-panels';
 
 import Box from '@mui/material/Box';
 import Tooltip from '@mui/material/Tooltip';
-import DragIndicatorRoundedIcon from '@mui/icons-material/DragIndicatorRounded';
 
 // ----------------------------------------------------------------------
 
@@ -23,7 +22,7 @@ export function ResizableHandle({
   direction = 'horizontal',
   tooltipText = '드래그하여 크기 조절',
   disabled = false,
-  showGrip = true,
+  showGrip = false,
   sx,
 }: ResizableHandleProps) {
   const isVertical = direction === 'vertical';
@@ -105,38 +104,9 @@ export function ResizableHandle({
                   boxShadow: (theme) => `0 0 6px ${theme.palette.primary.main}80`,
                 },
               }),
-          '&:hover .resizable-divider-grip': {
-            opacity: 1,
-            color: 'primary.main',
-          },
           ...sx,
         }}
-      >
-        {showGrip && (
-          <Box
-            className="resizable-divider-grip"
-            sx={{
-              zIndex: 1,
-              width: isVertical ? 30 : 18,
-              height: isVertical ? 18 : 30,
-              borderRadius: 1,
-              bgcolor: 'background.paper',
-              border: '1px solid',
-              borderColor: 'divider',
-              color: 'text.disabled',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: 1,
-              opacity: 0.35,
-              transition: (theme) => theme.transitions.create(['opacity', 'color']),
-              transform: isVertical ? 'rotate(90deg)' : 'none',
-            }}
-          >
-            <DragIndicatorRoundedIcon sx={{ fontSize: 16 }} />
-          </Box>
-        )}
-      </Box>
+      />
     </Separator>
   );
 

@@ -2348,21 +2348,23 @@ export function GifStudioCreateView() {
                 userSelect: 'none',
                 touchAction: 'none',
                 bgcolor: 'transparent',
-                borderRadius: 1,
-                transition: 'background-color 0.15s ease',
-                '&:hover': {
-                  bgcolor: 'rgba(56, 189, 248, 0.3)',
-                },
-                '&::after': {
-                  content: '""',
-                  width: 3.5,
-                  height: 36,
-                  borderRadius: 2,
-                  bgcolor: '#7dd3fc',
-                  boxShadow: '0 0 6px rgba(56, 189, 248, 0.6)',
+                '&:hover .divider-bar, &:active .divider-bar': {
+                  bgcolor: 'primary.main',
+                  width: '3px',
                 },
               }}
-            />
+            >
+              <Box
+                className="divider-bar"
+                sx={{
+                  width: '2px',
+                  height: '100%',
+                  bgcolor: 'divider',
+                  borderRadius: '1px',
+                  transition: 'all 0.15s ease',
+                }}
+              />
+            </Box>
 
             <Card
               sx={{
@@ -3383,20 +3385,23 @@ export function GifStudioCreateView() {
               touchAction: 'none',
               bgcolor: 'transparent',
               my: -0.2,
-              transition: 'background-color 0.15s ease',
-              '&:hover': {
-                bgcolor: 'rgba(56, 189, 248, 0.25)',
-              },
-              '&::after': {
-                content: '""',
-                width: 56,
-                height: 3.5,
-                borderRadius: 2,
-                bgcolor: '#7dd3fc',
-                boxShadow: '0 0 6px rgba(56, 189, 248, 0.6)',
+              '&:hover .divider-hbar, &:active .divider-hbar': {
+                bgcolor: 'primary.main',
+                height: '3px',
               },
             }}
-          />
+          >
+            <Box
+              className="divider-hbar"
+              sx={{
+                width: '100%',
+                height: '2px',
+                bgcolor: 'divider',
+                borderRadius: '1px',
+                transition: 'all 0.15s ease',
+              }}
+            />
+          </Box>
 
           <Card
             sx={{

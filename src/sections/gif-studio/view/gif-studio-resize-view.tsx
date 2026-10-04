@@ -1775,26 +1775,30 @@ export function GifStudioResizeView() {
               sx={{
                 width: 8,
                 cursor: 'col-resize',
-                bgcolor: 'divider',
-                transition: 'background-color 0.2s',
                 position: 'relative',
                 flexShrink: 0,
-                '&:hover': {
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                userSelect: 'none',
+                touchAction: 'none',
+                '&:hover .divider-bar, &:active .divider-bar': {
                   bgcolor: 'primary.main',
-                },
-                '&::after': {
-                  content: '""',
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  width: 2,
-                  height: 24,
-                  bgcolor: 'text.disabled',
-                  borderRadius: 1,
+                  width: '3px',
                 },
               }}
-            />
+            >
+              <Box
+                className="divider-bar"
+                sx={{
+                  width: '2px',
+                  height: '100%',
+                  bgcolor: 'divider',
+                  borderRadius: '1px',
+                  transition: 'all 0.15s ease',
+                }}
+              />
+            </Box>
 
             {/* Right Column: Controls Panel */}
             <Box

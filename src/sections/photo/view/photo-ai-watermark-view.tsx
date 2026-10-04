@@ -1264,11 +1264,6 @@ export function AiWatermarkView() {
                 bgcolor: 'primary.main',
                 width: '3px',
               },
-              '&:hover .divider-handle, &:active .divider-handle': {
-                bgcolor: 'primary.main',
-                borderColor: 'primary.main',
-                '& > div > div': { bgcolor: '#ffffff' },
-              },
             }}
           >
             <Box
@@ -1281,45 +1276,6 @@ export function AiWatermarkView() {
                 transition: 'all 0.15s ease',
               }}
             />
-            <Box
-              className="divider-handle"
-              sx={{
-                position: 'absolute',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                width: 14,
-                height: 36,
-                borderRadius: 1,
-                bgcolor: 'background.paper',
-                border: '1px solid',
-                borderColor: 'divider',
-                boxShadow: 2,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all 0.15s ease',
-                pointerEvents: 'none',
-              }}
-            >
-              <Box
-                sx={{
-                  width: 4,
-                  height: 14,
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  '& > div': {
-                    width: 1.5,
-                    height: '100%',
-                    bgcolor: 'text.disabled',
-                    borderRadius: 1,
-                    transition: 'all 0.15s ease',
-                  },
-                }}
-              >
-                <div />
-                <div />
-              </Box>
-            </Box>
           </Box>
 
           {/* Right: Customization Sidebar */}

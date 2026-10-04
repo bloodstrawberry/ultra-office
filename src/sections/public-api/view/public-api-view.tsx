@@ -1082,16 +1082,27 @@ export function PublicApiView() {
             display: { xs: 'none', md: 'flex' },
             width: 8,
             cursor: 'col-resize',
-            bgcolor: 'action.hover',
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0,
             userSelect: 'none',
             touchAction: 'none',
-            '&:hover': { bgcolor: 'primary.main', opacity: 0.5 },
+            '&:hover .divider-bar, &:active .divider-bar': {
+              bgcolor: 'primary.main',
+              width: '3px',
+            },
           }}
         >
-          <Box sx={{ width: 2, height: 28, bgcolor: 'text.disabled', borderRadius: 1 }} />
+          <Box
+            className="divider-bar"
+            sx={{
+              width: '2px',
+              height: '100%',
+              bgcolor: 'divider',
+              borderRadius: '1px',
+              transition: 'all 0.15s ease',
+            }}
+          />
         </Box>
 
         {/* ================================================================ */}

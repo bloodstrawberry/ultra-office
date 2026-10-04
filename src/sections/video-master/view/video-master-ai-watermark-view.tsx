@@ -1313,14 +1313,30 @@ export function VideoMasterAiWatermarkView() {
           <Box
             onMouseDown={handleResizeMouseDown}
             sx={{
-              width: 6,
+              width: 8,
               cursor: 'col-resize',
-              display: { xs: 'none', md: 'block' },
-              '&:hover': { bgcolor: 'primary.main' },
-              transition: 'background 0.2s',
-              borderRadius: 1,
+              display: { xs: 'none', md: 'flex' },
+              alignItems: 'center',
+              justifyContent: 'center',
+              userSelect: 'none',
+              touchAction: 'none',
+              '&:hover .divider-bar, &:active .divider-bar': {
+                bgcolor: 'primary.main',
+                width: '3px',
+              },
             }}
-          />
+          >
+            <Box
+              className="divider-bar"
+              sx={{
+                width: '2px',
+                height: '100%',
+                bgcolor: 'divider',
+                borderRadius: '1px',
+                transition: 'all 0.15s ease',
+              }}
+            />
+          </Box>
 
           {/* Right: Feature Tool Tabs & Customizer Sidebar */}
           <Card

@@ -792,19 +792,23 @@ export function VideoMasterMergeView() {
               userSelect: 'none',
               touchAction: 'none',
               mx: 0.5,
-              '&::after': {
-                content: '""',
-                width: 3,
-                height: 48,
-                borderRadius: 1.5,
-                bgcolor: 'divider',
-                transition: 'background-color 0.2s',
-              },
-              '&:hover::after': {
+              '&:hover .divider-bar, &:active .divider-bar': {
                 bgcolor: 'primary.main',
+                width: '3px',
               },
             }}
-          />
+          >
+            <Box
+              className="divider-bar"
+              sx={{
+                width: '2px',
+                height: '100%',
+                bgcolor: 'divider',
+                borderRadius: '1px',
+                transition: 'all 0.15s ease',
+              }}
+            />
+          </Box>
 
           {/* Right: Output Settings & Merge Action Panel */}
           <Box

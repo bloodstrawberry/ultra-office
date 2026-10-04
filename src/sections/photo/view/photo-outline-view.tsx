@@ -495,53 +495,12 @@ export function PhotoOutlineView() {
               flexShrink: 0,
               position: 'relative',
               '&:hover .divider-bar, &:active .divider-bar': { bgcolor: 'primary.main', width: 3 },
-              '&:hover .divider-handle, &:active .divider-handle': {
-                bgcolor: 'primary.main',
-                borderColor: 'primary.main',
-              },
             }}
           >
             <Box
               className="divider-bar"
               sx={{ width: 2, height: '100%', bgcolor: 'divider', borderRadius: 1 }}
             />
-            <Box
-              className="divider-handle"
-              sx={{
-                position: 'absolute',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                width: 14,
-                height: 36,
-                borderRadius: 1,
-                bgcolor: 'background.paper',
-                border: '1px solid',
-                borderColor: 'divider',
-                boxShadow: 2,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                pointerEvents: 'none',
-              }}
-            >
-              <Box
-                sx={{
-                  width: 4,
-                  height: 14,
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  '& > div': {
-                    width: 1.5,
-                    height: '100%',
-                    bgcolor: 'text.disabled',
-                    borderRadius: 1,
-                  },
-                }}
-              >
-                <div />
-                <div />
-              </Box>
-            </Box>
           </Box>
 
           <Box

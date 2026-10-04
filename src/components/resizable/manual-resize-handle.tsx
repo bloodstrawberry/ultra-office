@@ -5,7 +5,6 @@ import type { Theme, SxProps } from '@mui/material/styles';
 import React, { useRef, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
-import DragIndicatorRoundedIcon from '@mui/icons-material/DragIndicatorRounded';
 
 // ----------------------------------------------------------------------
 
@@ -98,26 +97,6 @@ export function ManualResizeHandle({
         },
         ...sx,
       }}
-    >
-      <Box
-        sx={{
-          zIndex: 1,
-          width: isVertical ? 30 : 18,
-          height: isVertical ? 18 : 30,
-          borderRadius: 1,
-          bgcolor: 'background.paper',
-          border: '1px solid',
-          borderColor: 'divider',
-          color: 'text.disabled',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: 1,
-          transform: isVertical ? 'rotate(90deg)' : 'none',
-        }}
-      >
-        <DragIndicatorRoundedIcon sx={{ fontSize: 16 }} />
-      </Box>
-    </Box>
+    />
   );
 }

@@ -86,28 +86,7 @@ export function MatlabSplitResizer({
                 },
               }),
         }}
-      >
-        {/* Grip indicator */}
-        <Box
-          sx={{
-            ...(isVertical
-              ? {
-                  width: 2,
-                  height: 24,
-                  borderRadius: '1px',
-                  bgcolor: isDragging ? '#ffffff' : theme.uiColors.textMuted,
-                  opacity: isDragging ? 1 : 0.6,
-                }
-              : {
-                  width: 24,
-                  height: 2,
-                  borderRadius: '1px',
-                  bgcolor: isDragging ? '#ffffff' : theme.uiColors.textMuted,
-                  opacity: isDragging ? 1 : 0.6,
-                }),
-          }}
-        />
-      </Box>
+      />
     </Tooltip>
   );
 }
