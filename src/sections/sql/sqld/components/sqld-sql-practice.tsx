@@ -43,6 +43,7 @@ import { ResizablePanel, ResizableHandle, ResizablePanelGroup } from 'src/compon
 
 import { SqlResultTable } from 'src/sections/public/sql/sql-result-table';
 
+import { getSqldLabOverride } from '../sqld-lab-overrides';
 import { isRichTextEmpty, RichContentRenderer } from './rich-content-renderer';
 import { readPracticeTables, seedPracticeTables, executePracticeQuery } from '../sqld-sql-engine';
 import {
@@ -83,6 +84,8 @@ export function SqldSqlPractice({ problem, problemKey, problemIndex }: Props) {
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
 
   const lab = useMemo(() => getPracticeLab(problem), [problem]);
+  // Original dialect SQL can differ from the executable AlaSQL example.
+  const hasLabOverride = Boolean(getSqldLabOverride(problem));
   const selectableChoices = useMemo(
     () =>
       problem.choices.map((choice, index) =>
@@ -451,7 +454,7 @@ export function SqldSqlPractice({ problem, problemKey, problemIndex }: Props) {
                         <RichContentRenderer
                           content={problem.question}
                           idPrefix="modal_question"
-                          onSqlClick={handleSelectSql}
+                          onSqlClick={hasLabOverride ? undefined : handleSelectSql}
                           sx={{
                             '& p': {
                               fontSize: 15,
@@ -492,7 +495,7 @@ export function SqldSqlPractice({ problem, problemKey, problemIndex }: Props) {
                           <RichContentRenderer
                             content={problem.description}
                             idPrefix="modal_desc"
-                            onSqlClick={handleSelectSql}
+                            onSqlClick={hasLabOverride ? undefined : handleSelectSql}
                           />
                         </Box>
                       </Box>

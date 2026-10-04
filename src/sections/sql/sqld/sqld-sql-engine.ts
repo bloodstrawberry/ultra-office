@@ -15,7 +15,8 @@ export function seedPracticeTables(alasql: AlaSql, database: string, tables: Pra
   alasql(`USE ${database}`);
   tables.forEach((table) => {
     alasql(
-      `CREATE TABLE ${quoted(table.name)} (${table.columns.map((column) => `${quoted(column)} STRING`).join(', ')})`
+      table.ddl ||
+        `CREATE TABLE ${quoted(table.name)} (${table.columns.map((column) => `${quoted(column)} STRING`).join(', ')})`
     );
     table.rows.forEach((row) => {
       const values = table.columns.map((column) => row[column]);
@@ -23,6 +24,15 @@ export function seedPracticeTables(alasql: AlaSql, database: string, tables: Pra
         `INSERT INTO ${quoted(table.name)} VALUES (${values.map(() => '?').join(', ')})`,
         values
       );
+    });
+  });
+  const tableNames = new Set(tables.map((table) => table.name));
+  const aliases = new Set<string>();
+  tables.forEach((table) => {
+    [table.name.toLowerCase(), table.name.toUpperCase()].forEach((alias) => {
+      if (tableNames.has(alias) || aliases.has(alias)) return;
+      alasql(`CREATE VIEW ${quoted(alias)} AS SELECT * FROM ${quoted(table.name)}`);
+      aliases.add(alias);
     });
   });
   alasql('CREATE TABLE IF NOT EXISTS DUAL (DUMMY STRING)');
@@ -62,11 +72,21 @@ export function executePracticeQuery(alasql: AlaSql, database: string, sql: stri
         ? prefix
         : `UPDATE ${table} SET`
   );
-  const raw = alasql(queryForEngine);
-  const rows = Array.isArray(raw) ? (raw as Record<string, unknown>[]) : [{ affected_rows: raw }];
+  const execution = alasql(queryForEngine);
+  const raw =
+    /;\s*(?:SELECT|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER)\b/i.test(queryForEngine) &&
+    Array.isArray(execution)
+      ? execution[execution.length - 1]
+      : execution;
+  const rows: Record<string, unknown>[] = Array.isArray(raw)
+    ? (raw as Record<string, unknown>[])
+    : [{ affected_rows: raw }];
+  const columns = [...new Set(rows.flatMap((row) => Object.keys(row)))];
   return {
-    columns: rows.length && typeof rows[0] === 'object' ? Object.keys(rows[0]) : [],
-    rows,
+    columns,
+    rows: rows.map((row) =>
+      Object.fromEntries(columns.map((column) => [column, row[column] ?? null]))
+    ),
     rowCount: rows.length,
     executionTimeMs: Math.round((performance.now() - started) * 10) / 10,
   };

@@ -50,6 +50,8 @@ export interface Problem {
   isLlmProcessed?: boolean;
   llmPredictedAnswer?: number;
   llmKeyConcept?: string;
+  /** Hide SQL practice when the browser engine cannot represent the tested database behavior. */
+  sqlPracticeDisabled?: boolean;
   practiceLab?: SqlPracticeLab;
   /** Legacy per-choice fixtures; existing exported problem data still supports this shape. */
   choiceLabs?: ChoiceLabItem[];
@@ -58,6 +60,8 @@ export interface Problem {
 export interface ChoiceLabTable {
   name: string;
   description?: string;
+  /** Optional AlaSQL-compatible CREATE TABLE statement for constraint exercises. */
+  ddl?: string;
   columns: string[];
   rows: Record<string, string | number | null>[];
 }

@@ -2,6 +2,8 @@ import type { Problem, ChoiceLabTable, SqlPracticeExample } from './types';
 
 import { SAMPLE_DATASETS } from 'src/sections/public/sql/sample-datasets';
 
+import { getSqldLabOverride } from './sqld-lab-overrides';
+
 export type PracticeTable = ChoiceLabTable;
 
 export interface ResolvedPracticeExample extends SqlPracticeExample {
@@ -16,8 +18,21 @@ export interface ResolvedPracticeLab {
 
 const SQL_START =
   /\b(SELECT|WITH|INSERT\s+INTO|INSERT|UPDATE|DELETE\s+FROM|DELETE|MERGE\s+INTO|MERGE|CREATE\s+TABLE|CREATE\s+VIEW|CREATE|ALTER\s+TABLE|ALTER|DROP\s+TABLE|DROP\s+VIEW|DROP|TRUNCATE\s+TABLE|TRUNCATE|SAVEPOINT|ROLLBACK|COMMIT|GRANT|REVOKE|EXPLAIN|DESCRIBE|DESC)\b/i;
-const SQL_TOPIC =
-  /\b(SELECT|WHERE|GROUP BY|HAVING|ORDER BY|JOIN|UNION|INSERT|UPDATE|DELETE|CREATE TABLE|ALTER TABLE|DROP TABLE|NULL|NVL|COUNT|SUM|AVG|RANK|ROWNUM|SUBSTR|CASE|SQL)\b/i;
+const INCOMPLETE_SQL = /\.\.\.|_{3,}|\(\s*\?\s*\)|\(\s*ㄱ\s*\)/i;
+
+function isSqlStatement(query: string): boolean {
+  const text = query.trim();
+  if (!text || INCOMPLETE_SQL.test(text)) return false;
+  if (/^SELECT\s/i.test(text)) {
+    return (
+      /\bFROM\b/i.test(text) ||
+      /^SELECT\s+(?:\*|\d+|'|"|NULL\b|CASE\b|[A-Za-z_][\w$]*\s*\()/i.test(text)
+    );
+  }
+  return /^(?:WITH\s+(?:RECURSIVE\s+)?[A-Za-z_][\w$]*\s+AS\s*\(|INSERT\s+(?:INTO|FIRST)\s+|UPDATE\s+.+?\s+SET\s+|DELETE\s+FROM\s+|MERGE\s+INTO\s+|CREATE\s+(?:TABLE|VIEW)\s+|ALTER\s+TABLE\s+|DROP\s+(?:TABLE|VIEW)\s+|TRUNCATE\s+TABLE\s+|SAVEPOINT\s+|ROLLBACK\b|COMMIT\b|GRANT\s+|REVOKE\s+|EXPLAIN\s+|DESCRIBE\s+|DESC\s+)/is.test(
+    text
+  );
+}
 
 // AlaSQL accepts Unicode column names only when they are bracket quoted.
 // Keep literals, existing quoted identifiers, and comments untouched.
@@ -98,11 +113,7 @@ export function cleanSqlForInput(value: string): string {
 export function isSqlQuery(text: string): boolean {
   if (!text) return false;
   const cleaned = cleanSqlForInput(text);
-  if (!cleaned) return false;
-  if (SQL_START.test(cleaned)) return true;
-  return /\b(SELECT|FROM|WHERE|JOIN|GROUP BY|HAVING|ORDER BY|INSERT INTO|UPDATE|DELETE FROM)\b/i.test(
-    cleaned
-  );
+  return isSqlStatement(cleaned);
 }
 
 export function extractSqlFromText(text: string): string {
@@ -128,6 +139,9 @@ export function getPracticeLab(problem: Problem): ResolvedPracticeLab {
       examples: problem.practiceLab.examples || [],
     };
   }
+
+  const override = getSqldLabOverride(problem);
+  if (override) return override;
 
   return {
     tables: [],
@@ -174,16 +188,14 @@ export function getPracticeQueries(problem: Problem): string[] {
           .filter(Boolean)
       : [cleaned];
   });
-  const choices = problem.choices.map(cleanSqlForInput).filter((choice) => SQL_START.test(choice));
-  return [
-    ...new Set([...labQueries, ...fenced, ...choices].filter((query) => SQL_START.test(query))),
-  ];
+  const choices = problem.choices.map(cleanSqlForInput).filter(isSqlStatement);
+  return [...new Set([...labQueries, ...fenced, ...choices].filter(isSqlStatement))];
 }
 
 export function isSqlPracticeProblem(problem: Problem): boolean {
+  if (problem.sqlPracticeDisabled) return false;
   if (getPracticeLab(problem).examples.length > 0) return true;
-  if (getPracticeQueries(problem).length > 0) return true;
-  return SQL_TOPIC.test([problem.question, problem.description, ...problem.choices].join(' '));
+  return getPracticeQueries(problem).length > 0;
 }
 
 function parseValue(raw: string): string | number | null {
@@ -193,6 +205,7 @@ function parseValue(raw: string): string | number | null {
     .replace(/^`|`$/g, '')
     .trim();
   if (/^(NULL|-)$/i.test(value)) return null;
+  if (/^-?\d{1,3}(?:,\d{3})+(?:\.\d+)?$/.test(value)) return Number(value.replace(/,/g, ''));
   if (/^-?\d+(?:\.\d+)?$/.test(value)) return Number(value);
   return value;
 }
@@ -213,8 +226,7 @@ export function getPracticeTables(problem: Problem): PracticeTable[] {
       .split('|')
       .slice(1, -1)
       .map((part) => part.trim().replace(/`/g, ''));
-    if (!columns.length || columns.some((column) => !/^[\p{L}_][\p{L}\p{N}_]*$/u.test(column)))
-      continue;
+    if (!columns.length || columns.some((column) => !column)) continue;
 
     const rows: PracticeTable['rows'] = [];
     index += 2;
@@ -230,7 +242,10 @@ export function getPracticeTables(problem: Problem): PracticeTable[] {
       index += 1;
     }
 
-    const name = heading.match(/^([\p{L}_][\p{L}\p{N}_]*)/u)?.[1] || `T${tables.length + 1}`;
+    if (/결과/.test(heading)) continue;
+    const name =
+      heading.replace(/^원본\s+/u, '').match(/^([\p{L}_][\p{L}\p{N}_]*)/u)?.[1] ||
+      `T${tables.length + 1}`;
     if (rows.length && !tables.some((table) => table.name.toUpperCase() === name.toUpperCase())) {
       tables.push({ name, columns, rows });
     }

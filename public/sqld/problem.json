@@ -60352,6 +60352,7 @@
             "#50번"
           ],
           "question": "다음 SQL을 순서대로 실행했을 때, 테이블에 최종적으로 남아있는 행의 개수는?",
+          "sqlPracticeDisabled": true,
           "description": "```sql\nCREATE TABLE TBL (NUM NUMBER);\n\nINSERT INTO TBL VALUES (1);\nSAVEPOINT SP1;\n\nINSERT INTO TBL VALUES (2);\nINSERT INTO TBL VALUES (3);\n\nROLLBACK TO SP1;\n\nINSERT INTO TBL VALUES (4);\n\nCOMMIT;\n\nSELECT COUNT(*) FROM TBL;\n```",
           "conceptLinks": [],
           "formulas": [],
@@ -64709,6 +64710,7 @@
             "#48번"
           ],
           "question": "TAB1에 3건이 저장된 상태에서 다음 SQL을 순서대로 수행한 뒤 SELECT COUNT(*) FROM TAB1;의 결과는?",
+          "sqlPracticeDisabled": true,
           "description": "```sql\nINSERT INTO TAB1 VALUES (...);   -- 1건 추가\nSAVEPOINT S1;\nINSERT INTO TAB1 VALUES (...);   -- 1건 추가\nCOMMIT;\nINSERT INTO TAB1 VALUES (...);   -- 1건 추가\nROLLBACK TO S1;\n```",
           "conceptLinks": [],
           "formulas": [],
@@ -64795,6 +64797,7 @@
             "#49번"
           ],
           "question": "Oracle에서 다음과 같이 테이블을 생성하였다. 제시된 ALTER TABLE 문을 각각 독립적으로 실행할 때 문법 오류가 발생하는 것은? (다른 테이블에서 EMP.EMPNO를 참조하는 외래키는 없다.)",
+          "sqlPracticeDisabled": true,
           "description": "```sql\nCREATE TABLE DEPT (\n  DEPTNO NUMBER PRIMARY KEY\n);\n\nCREATE TABLE EMP (\n  EMPNO  NUMBER CONSTRAINT EMP_PK PRIMARY KEY,\n  DEPTNO NUMBER CONSTRAINT EMP_FK REFERENCES DEPT(DEPTNO)\n);\n```",
           "conceptLinks": [],
           "formulas": [],
