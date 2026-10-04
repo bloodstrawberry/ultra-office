@@ -50,6 +50,8 @@ export interface Problem {
   isLlmProcessed?: boolean;
   llmPredictedAnswer?: number;
   llmKeyConcept?: string;
+  practiceLab?: SqlPracticeLab;
+  /** Legacy per-choice fixtures; existing exported problem data still supports this shape. */
   choiceLabs?: ChoiceLabItem[];
 }
 
@@ -66,6 +68,23 @@ export interface ChoiceLabItem {
   sql: string;
   table?: ChoiceLabTable;
   tables?: ChoiceLabTable[];
+}
+
+/** Tables are shared by the examples in one problem. */
+export interface SqlPracticeLab {
+  tables: ChoiceLabTable[];
+  examples: SqlPracticeExample[];
+}
+
+export interface SqlPracticeExample {
+  id: string;
+  title: string;
+  sql: string;
+  description?: string;
+  /** One-based choice number; omit for an example that applies to the whole question. */
+  choiceNum?: number;
+  /** Selects a subset of practiceLab.tables. Omit to use every table. */
+  tableNames?: string[];
 }
 
 export interface SqldRound {

@@ -61551,94 +61551,13 @@
             [],
             []
           ],
-          "choiceLabs": [
-            {
-              "choiceNum": 1,
-              "title": "1) DISTINCT의 NULL 중복 제거 검증",
-              "sql": "SELECT DISTINCT num FROM null_sample;",
-              "table": {
+          "practiceLab": {
+            "tables": [
+              {
                 "name": "null_sample",
-                "description": "1번 검증: DISTINCT num (10, 20, 30, NULL 1건만 반영 확인)",
                 "columns": [
                   "id",
-                  "num"
-                ],
-                "rows": [
-                  {
-                    "id": 1,
-                    "num": 10
-                  },
-                  {
-                    "id": 2,
-                    "num": 20
-                  },
-                  {
-                    "id": 3,
-                    "num": 20
-                  },
-                  {
-                    "id": 4,
-                    "num": null
-                  },
-                  {
-                    "id": 5,
-                    "num": null
-                  },
-                  {
-                    "id": 6,
-                    "num": 30
-                  }
-                ]
-              }
-            },
-            {
-              "choiceNum": 2,
-              "title": "2) COUNT(DISTINCT num) 고유값 집계 검증",
-              "sql": "SELECT COUNT(DISTINCT num) AS distinct_num_cnt FROM null_sample;",
-              "table": {
-                "name": "null_sample",
-                "description": "2번 검증: COUNT(DISTINCT num) 고유값 개수 (NULL 제외 3건)",
-                "columns": [
-                  "id",
-                  "num"
-                ],
-                "rows": [
-                  {
-                    "id": 1,
-                    "num": 10
-                  },
-                  {
-                    "id": 2,
-                    "num": 20
-                  },
-                  {
-                    "id": 3,
-                    "num": 20
-                  },
-                  {
-                    "id": 4,
-                    "num": null
-                  },
-                  {
-                    "id": 5,
-                    "num": null
-                  },
-                  {
-                    "id": 6,
-                    "num": 30
-                  }
-                ]
-              }
-            },
-            {
-              "choiceNum": 3,
-              "title": "3) 다중행 함수(SUM, COUNT)의 NULL 제외 검증",
-              "sql": "SELECT SUM(num) AS sum_num, COUNT(num) AS count_num, COUNT(*) AS count_all FROM null_sample;",
-              "table": {
-                "name": "null_sample",
-                "description": "3번 검증: SUM(num), COUNT(num)의 NULL 제외 (SUM=80, COUNT=4, COUNT(*)=6)",
-                "columns": [
-                  "id",
+                  "category",
                   "num",
                   "val"
                 ],
@@ -61646,83 +61565,73 @@
                   {
                     "id": 1,
                     "num": 10,
-                    "val": 100
+                    "val": 100,
+                    "category": "A"
                   },
                   {
                     "id": 2,
                     "num": 20,
-                    "val": 200
+                    "val": 200,
+                    "category": "A"
                   },
                   {
                     "id": 3,
                     "num": 20,
-                    "val": 300
+                    "val": 300,
+                    "category": "B"
                   },
                   {
                     "id": 4,
                     "num": null,
-                    "val": null
+                    "val": null,
+                    "category": null
                   },
                   {
                     "id": 5,
                     "num": null,
-                    "val": 500
+                    "val": 500,
+                    "category": null
                   },
                   {
                     "id": 6,
                     "num": 30,
-                    "val": null
+                    "val": null,
+                    "category": "B"
                   }
                 ]
               }
-            },
-            {
-              "choiceNum": 4,
-              "title": "4) GROUP BY의 NULL 그룹 생성 검증 (정답)",
-              "sql": "SELECT category, COUNT(*) AS group_count, SUM(num) AS group_sum FROM null_sample GROUP BY category;",
-              "table": {
-                "name": "null_sample",
+            ],
+            "examples": [
+              {
+                "id": "choice-1",
+                "choiceNum": 1,
+                "title": "1) DISTINCT의 NULL 중복 제거 검증",
+                "description": "1번 검증: DISTINCT num (10, 20, 30, NULL 1건만 반영 확인)",
+                "sql": "SELECT DISTINCT num FROM null_sample;"
+              },
+              {
+                "id": "choice-2",
+                "choiceNum": 2,
+                "title": "2) COUNT(DISTINCT num) 고유값 집계 검증",
+                "description": "2번 검증: COUNT(DISTINCT num) 고유값 개수 (NULL 제외 3건)",
+                "sql": "SELECT COUNT(DISTINCT num) AS distinct_num_cnt FROM null_sample;"
+              },
+              {
+                "id": "choice-3",
+                "choiceNum": 3,
+                "title": "3) 다중행 함수(SUM, COUNT)의 NULL 제외 검증",
+                "description": "3번 검증: SUM(num), COUNT(num)의 NULL 제외 (SUM=80, COUNT=4, COUNT(*)=6)",
+                "sql": "SELECT SUM(num) AS sum_num, COUNT(num) AS count_num, COUNT(*) AS count_all FROM null_sample;"
+              },
+              {
+                "id": "choice-4",
+                "choiceNum": 4,
+                "title": "4) GROUP BY의 NULL 그룹 생성 검증 (정답)",
                 "description": "4번 검증: GROUP BY category 시 NULL도 한 그룹으로 정상 출력 (제외되지 않음)",
-                "columns": [
-                  "id",
-                  "category",
-                  "num"
-                ],
-                "rows": [
-                  {
-                    "id": 1,
-                    "category": "A",
-                    "num": 10
-                  },
-                  {
-                    "id": 2,
-                    "category": "A",
-                    "num": 20
-                  },
-                  {
-                    "id": 3,
-                    "category": "B",
-                    "num": 20
-                  },
-                  {
-                    "id": 4,
-                    "category": null,
-                    "num": null
-                  },
-                  {
-                    "id": 5,
-                    "category": null,
-                    "num": null
-                  },
-                  {
-                    "id": 6,
-                    "category": "B",
-                    "num": 30
-                  }
-                ]
+                "sql": "SELECT category, COUNT(*) AS group_count, SUM(num) AS group_sum FROM null_sample GROUP BY category;"
               }
-            }
-          ]
+            ]
+          }
         },
         {
           "hashtags": [

@@ -1,7 +1,7 @@
 'use client';
 
 import type { Problem } from '../types';
-import type { PracticeTable } from '../sqld-lab-data';
+import type { AlaSql } from '../sqld-sql-engine';
 import type { QueryResult } from 'src/sections/public/sql/types';
 
 import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
@@ -12,7 +12,6 @@ import Alert from '@mui/material/Alert';
 import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
-import Tooltip from '@mui/material/Tooltip';
 import { alpha } from '@mui/material/styles';
 import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
@@ -41,44 +40,16 @@ import { MermaidDiagram } from 'src/components/mermaid';
 
 import { SqlResultTable } from 'src/sections/public/sql/sql-result-table';
 
+import { seedPracticeTables, executePracticeQuery } from '../sqld-sql-engine';
 import { isRichTextEmpty, RichContentRenderer } from './rich-content-renderer';
 import {
-  isSqlQuery,
+  getPracticeLab,
   cleanSqlForInput,
+  getExampleTables,
   getPracticeTables,
   getPracticeQueries,
-  getChoiceLabItems,
   extractSqlFromText,
-  quoteUnicodeIdentifiers,
 } from '../sqld-lab-data';
-
-type AlaSql = ((query: string, params?: unknown[]) => unknown) & {
-  databases?: Record<string, unknown>;
-};
-
-function quoted(identifier: string) {
-  return `[${identifier.replace(/]/g, ']]')}]`;
-}
-
-function seedTables(alasql: AlaSql, database: string, tables: PracticeTable[]) {
-  alasql(`DROP DATABASE IF EXISTS ${database}`);
-  alasql(`CREATE DATABASE ${database}`);
-  alasql(`USE ${database}`);
-  tables.forEach((table) => {
-    alasql(
-      `CREATE TABLE ${quoted(table.name)} (${table.columns.map((column) => `${quoted(column)} STRING`).join(', ')})`
-    );
-    table.rows.forEach((row) => {
-      const values = table.columns.map((column) => row[column]);
-      alasql(
-        `INSERT INTO ${quoted(table.name)} VALUES (${values.map(() => '?').join(', ')})`,
-        values
-      );
-    });
-  });
-  alasql('CREATE TABLE IF NOT EXISTS DUAL (DUMMY STRING)');
-  alasql("INSERT INTO DUAL VALUES ('X')");
-}
 
 interface Props {
   problem: Problem;
@@ -94,24 +65,18 @@ export function SqldSqlPractice({ problem, problemKey, problemIndex }: Props) {
   const [error, setError] = useState('');
   const [flashFeedback, setFlashFeedback] = useState<string | null>(null);
   const [selectedChoiceIndex, setSelectedChoiceIndex] = useState(0);
+  const [selectedExampleId, setSelectedExampleId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
 
-  const choiceLabItems = useMemo(() => getChoiceLabItems(problem), [problem]);
-  const activeLabItem = choiceLabItems[selectedChoiceIndex] || null;
+  const lab = useMemo(() => getPracticeLab(problem), [problem]);
+  const activeExample = lab.examples.find((example) => example.id === selectedExampleId) || null;
 
   const queries = useMemo(() => getPracticeQueries(problem), [problem]);
   const defaultTables = useMemo(() => getPracticeTables(problem), [problem]);
-  const displayTables = useMemo(() => {
-    if (activeLabItem) {
-      if (activeLabItem.tables && activeLabItem.tables.length > 0) {
-        return activeLabItem.tables as PracticeTable[];
-      }
-      if (activeLabItem.table) {
-        return [activeLabItem.table] as PracticeTable[];
-      }
-    }
-    return defaultTables;
-  }, [activeLabItem, defaultTables]);
+  const displayTables = useMemo(
+    () => getExampleTables(lab, activeExample, defaultTables),
+    [lab, activeExample, defaultTables]
+  );
 
   const database = useMemo(
     () => `sqld_practice_${problemKey.replace(/[^a-zA-Z0-9_]/g, '_')}`,
@@ -138,15 +103,19 @@ export function SqldSqlPractice({ problem, problemKey, problemIndex }: Props) {
 
   useEffect(() => {
     setOpen(false);
-    setSelectedChoiceIndex(0);
-    if (choiceLabItems.length > 0) {
-      setSql(cleanSqlForInput(choiceLabItems[0].sql));
-    } else {
-      setSql(queries[0] || `SELECT * FROM ${defaultTables[0]?.name || 'DUAL'};`);
-    }
+    const firstExample = lab.examples[0];
+    setSelectedExampleId(firstExample?.id || null);
+    setSelectedChoiceIndex(
+      firstExample ? (firstExample.choiceNum ? firstExample.choiceNum - 1 : -1) : 0
+    );
+    setSql(
+      firstExample
+        ? cleanSqlForInput(firstExample.sql)
+        : queries[0] || `SELECT * FROM ${defaultTables[0]?.name || 'DUAL'};`
+    );
     setResult(null);
     setError('');
-  }, [problemKey, queries, defaultTables, choiceLabItems]);
+  }, [problemKey, queries, defaultTables, lab]);
 
   useEffect(() => {
     if (!open || engine) return undefined;
@@ -167,7 +136,7 @@ export function SqldSqlPractice({ problem, problemKey, problemIndex }: Props) {
   useEffect(() => {
     if (!open || !engine) return;
     try {
-      seedTables(engine, database, displayTables);
+      seedPracticeTables(engine, database, displayTables);
       setResult(null);
       setError('');
     } catch (cause) {
@@ -175,34 +144,53 @@ export function SqldSqlPractice({ problem, problemKey, problemIndex }: Props) {
     }
   }, [open, engine, database, displayTables]);
 
+  useEffect(() => {
+    if (!flashFeedback) return undefined;
+    const timer = setTimeout(() => setFlashFeedback(null), 1800);
+    return () => clearTimeout(timer);
+  }, [flashFeedback]);
+
+  const handleSelectExample = useCallback(
+    (exampleId: string) => {
+      const example = lab.examples.find((item) => item.id === exampleId);
+      if (!example) return;
+      setSelectedExampleId(example.id);
+      setSelectedChoiceIndex(example.choiceNum ? example.choiceNum - 1 : -1);
+      setSql(cleanSqlForInput(example.sql));
+      setError('');
+      setResult(null);
+      setFlashFeedback(`${example.title} 예제가 반영되었습니다.`);
+      inputRef.current?.focus();
+    },
+    [lab]
+  );
+
   const handleSelectChoice = useCallback(
     (cIndex: number) => {
       setSelectedChoiceIndex(cIndex);
-      const lab = choiceLabItems[cIndex];
-      if (lab) {
-        const cleaned = cleanSqlForInput(lab.sql);
-        setSql(cleaned);
-        setFlashFeedback(`${cIndex + 1}번 보기의 예제 테이블과 SQL이 반영되었습니다.`);
+      const example = lab.examples.find((item) => item.choiceNum === cIndex + 1);
+      if (example) {
+        handleSelectExample(example.id);
       } else {
+        setSelectedExampleId(null);
         const choice = problem.choices[cIndex];
         const choiceDesc = problem.choiceDescriptions?.[cIndex] || '';
         const choiceSql = extractSqlFromText(choice) || extractSqlFromText(choiceDesc);
         if (choiceSql) {
           setSql(choiceSql);
           setFlashFeedback(`${cIndex + 1}번 보기의 SQL이 반영되었습니다.`);
+        } else {
+          setSql('');
+          setFlashFeedback(`${cIndex + 1}번 보기를 선택했습니다. SQL을 입력해 보세요.`);
         }
       }
       setError('');
       setResult(null);
-      setTimeout(() => {
-        setFlashFeedback(null);
-      }, 1800);
-
       if (inputRef.current) {
         inputRef.current.focus();
       }
     },
-    [choiceLabItems, problem]
+    [lab, handleSelectExample, problem]
   );
 
   const handleSelectSql = useCallback((queryToInsert: string) => {
@@ -212,10 +200,6 @@ export function SqldSqlPractice({ problem, problemKey, problemIndex }: Props) {
     setError('');
     setResult(null);
     setFlashFeedback('SQL 입력창에 반영되었습니다.');
-    setTimeout(() => {
-      setFlashFeedback(null);
-    }, 1800);
-
     if (inputRef.current) {
       inputRef.current.focus();
     }
@@ -229,21 +213,7 @@ export function SqldSqlPractice({ problem, problemKey, problemIndex }: Props) {
       return;
     }
     try {
-      engine(`USE ${database}`);
-      const started = performance.now();
-      const normalized = query
-        .replace(/\bMINUS\b/gi, 'EXCEPT')
-        .replace(/FETCH\s+FIRST\s+(\d+)\s+ROWS?\s+ONLY/gi, 'LIMIT $1');
-      const raw = engine(quoteUnicodeIdentifiers(normalized));
-      const rows = Array.isArray(raw)
-        ? (raw as Record<string, unknown>[])
-        : [{ affected_rows: raw }];
-      setResult({
-        columns: rows.length && typeof rows[0] === 'object' ? Object.keys(rows[0]) : [],
-        rows,
-        rowCount: rows.length,
-        executionTimeMs: Math.round((performance.now() - started) * 10) / 10,
-      });
+      setResult(executePracticeQuery(engine, database, query));
       setError('');
     } catch (cause) {
       setResult(null);
@@ -254,9 +224,9 @@ export function SqldSqlPractice({ problem, problemKey, problemIndex }: Props) {
   const reset = () => {
     if (!engine) return;
     try {
-      seedTables(engine, database, displayTables);
-      if (activeLabItem) {
-        setSql(cleanSqlForInput(activeLabItem.sql));
+      seedPracticeTables(engine, database, displayTables);
+      if (activeExample) {
+        setSql(cleanSqlForInput(activeExample.sql));
       } else {
         setSql(queries[0] || `SELECT * FROM ${displayTables[0]?.name || 'DUAL'};`);
       }
@@ -395,9 +365,8 @@ export function SqldSqlPractice({ problem, problemKey, problemIndex }: Props) {
                 variant="caption"
                 sx={{ color: 'primary.main', fontWeight: 700, lineHeight: 1.5 }}
               >
-                💡 아래 <strong>객관식 보기(1~4번)를 클릭</strong>하면 해당 보기를 검증할 수 있는
-                <strong>예제 테이블</strong>과 <strong>검증 SQL 명령어</strong>가 오른쪽에 바로
-                반영됩니다.
+                💡 보기를 클릭하면 연결된 SQL 예제가 선택됩니다. 오른쪽에서 다른 예제를 고르거나
+                SQL을 직접 수정해 실행할 수 있습니다.
               </Typography>
             </Box>
 
@@ -546,10 +515,12 @@ export function SqldSqlPractice({ problem, problemKey, problemIndex }: Props) {
                       letterSpacing: 0.5,
                     }}
                   >
-                    객관식 보기 (클릭 시 우측 테이블 & SQL 변경)
+                    객관식 보기 (클릭 시 연결된 예제 선택)
                   </Typography>
                   <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 11 }}>
-                    {selectedChoiceIndex + 1}번 보기 선택됨
+                    {selectedChoiceIndex >= 0
+                      ? `${selectedChoiceIndex + 1}번 보기 선택됨`
+                      : '공통 예제 선택됨'}
                   </Typography>
                 </Box>
 
@@ -674,17 +645,14 @@ export function SqldSqlPractice({ problem, problemKey, problemIndex }: Props) {
                     gap: 0.75,
                   }}
                 >
-                  📌{' '}
-                  {activeLabItem
-                    ? `${selectedChoiceIndex + 1}번 보기 검증 예제 테이블`
-                    : '실습 예제 데이터 테이블'}
+                  📌 {activeExample?.title || '실습 예제 데이터 테이블'}
                 </Typography>
-                {activeLabItem?.table?.description ? (
+                {activeExample?.description ? (
                   <Chip
                     size="small"
                     color="primary"
                     variant="soft"
-                    label={activeLabItem.table.description}
+                    label={activeExample.description}
                     sx={{ fontSize: 11, fontWeight: 700, height: 22 }}
                   />
                 ) : (
@@ -773,33 +741,54 @@ export function SqldSqlPractice({ problem, problemKey, problemIndex }: Props) {
               </Box>
             </Box>
 
-            {/* Quick Practice Queries (Buttons) */}
-            {queries.length > 1 && (
+            {/* Explicit examples keep their SQL and fixture selection together. */}
+            {lab.examples.length > 0 ? (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
                 <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>
-                  빠른 SQL 예시 선택
+                  실행 예제 선택
                 </Typography>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
-                  {queries.map((query, index) => (
+                  {lab.examples.map((example) => (
                     <Button
-                      key={`${index}-${query}`}
+                      key={example.id}
                       size="small"
-                      variant={sql.trim() === query.trim() ? 'contained' : 'outlined'}
-                      color="primary"
-                      onClick={() => handleSelectSql(query)}
-                      sx={{
-                        fontSize: 12,
-                        py: 0.4,
-                        px: 1.2,
-                        fontWeight: 600,
-                        textTransform: 'none',
-                      }}
+                      variant={activeExample?.id === example.id ? 'contained' : 'outlined'}
+                      onClick={() => handleSelectExample(example.id)}
+                      sx={{ fontSize: 12, textTransform: 'none' }}
                     >
-                      SQL 예시 {index + 1}
+                      {example.title}
                     </Button>
                   ))}
                 </Box>
               </Box>
+            ) : (
+              queries.length > 1 && (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>
+                    빠른 SQL 예시 선택
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
+                    {queries.map((query, index) => (
+                      <Button
+                        key={`${index}-${query}`}
+                        size="small"
+                        variant={sql.trim() === query.trim() ? 'contained' : 'outlined'}
+                        color="primary"
+                        onClick={() => handleSelectSql(query)}
+                        sx={{
+                          fontSize: 12,
+                          py: 0.4,
+                          px: 1.2,
+                          fontWeight: 600,
+                          textTransform: 'none',
+                        }}
+                      >
+                        SQL 예시 {index + 1}
+                      </Button>
+                    ))}
+                  </Box>
+                </Box>
+              )
             )}
 
             {/* SQL Input Area */}

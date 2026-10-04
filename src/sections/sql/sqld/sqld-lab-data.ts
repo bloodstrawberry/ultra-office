@@ -1,11 +1,17 @@
-import type { Problem, ChoiceLabItem } from './types';
+import type { Problem, ChoiceLabTable, SqlPracticeExample } from './types';
 
 import { SAMPLE_DATASETS } from 'src/sections/public/sql/sample-datasets';
 
-export interface PracticeTable {
-  name: string;
-  columns: string[];
-  rows: Record<string, string | number | null>[];
+export type PracticeTable = ChoiceLabTable;
+
+export interface ResolvedPracticeExample extends SqlPracticeExample {
+  /** Tables embedded by older choiceLabs records. */
+  legacyTables?: PracticeTable[];
+}
+
+export interface ResolvedPracticeLab {
+  tables: PracticeTable[];
+  examples: ResolvedPracticeExample[];
 }
 
 const SQL_START =
@@ -115,80 +121,44 @@ export function extractSqlFromText(text: string): string {
   return '';
 }
 
-export function getChoiceLabItems(problem: Problem): ChoiceLabItem[] {
-  if (problem.choiceLabs && problem.choiceLabs.length > 0) {
-    return problem.choiceLabs;
+export function getPracticeLab(problem: Problem): ResolvedPracticeLab {
+  if (problem.practiceLab) {
+    return {
+      tables: problem.practiceLab.tables || [],
+      examples: problem.practiceLab.examples || [],
+    };
   }
 
-  // 62회 13번 또는 NULL 처리 문제 폴백
-  if (
-    problem.question.includes('NULL 값의 처리') ||
-    problem.choices.some((c) => c.includes('COUNT(DISTINCT num)'))
-  ) {
-    const rawRows = [
-      { id: 1, category: 'A', num: 10, val: 100 },
-      { id: 2, category: 'A', num: 20, val: 200 },
-      { id: 3, category: 'B', num: 20, val: 300 },
-      { id: 4, category: null, num: null, val: null },
-      { id: 5, category: null, num: null, val: 500 },
-      { id: 6, category: 'B', num: 30, val: null },
-    ];
+  return {
+    tables: [],
+    examples: (problem.choiceLabs || []).map((item, index) => ({
+      id: `legacy-${index}`,
+      title: item.title || `${item.choiceNum}번 보기 예제`,
+      sql: item.sql,
+      description: item.table?.description || item.tables?.[0]?.description,
+      choiceNum: item.choiceNum,
+      legacyTables: item.tables?.length ? item.tables : item.table ? [item.table] : undefined,
+    })),
+  };
+}
 
-    return [
-      {
-        choiceNum: 1,
-        title: '1) DISTINCT의 중복 NULL 1건 반영 검증',
-        sql: 'SELECT DISTINCT num FROM null_sample;',
-        table: {
-          name: 'null_sample',
-          description: '1번 검증: DISTINCT num (10, 20, 30, NULL 1건만 조회)',
-          columns: ['id', 'num'],
-          rows: rawRows.map((r) => ({ id: r.id, num: r.num })),
-        },
-      },
-      {
-        choiceNum: 2,
-        title: '2) COUNT(DISTINCT num) 고유값 개수 집계 검증',
-        sql: 'SELECT COUNT(DISTINCT num) AS distinct_num_cnt FROM null_sample;',
-        table: {
-          name: 'null_sample',
-          description: '2번 검증: COUNT(DISTINCT num) 고유값 집계 (NULL 제외 3건)',
-          columns: ['id', 'num'],
-          rows: rawRows.map((r) => ({ id: r.id, num: r.num })),
-        },
-      },
-      {
-        choiceNum: 3,
-        title: '3) 다중행 함수(SUM, COUNT)의 NULL 제외 검증',
-        sql: 'SELECT SUM(num) AS sum_num, COUNT(num) AS count_num, COUNT(*) AS count_all FROM null_sample;',
-        table: {
-          name: 'null_sample',
-          description:
-            '3번 검증: SUM(num), COUNT(num)의 NULL 제외 비교 (SUM=80, COUNT=4, COUNT(*)=6)',
-          columns: ['id', 'num', 'val'],
-          rows: rawRows.map((r) => ({ id: r.id, num: r.num, val: r.val })),
-        },
-      },
-      {
-        choiceNum: 4,
-        title: '4) GROUP BY의 NULL 그룹 정상 출력 검증 (정답/오답 확인)',
-        sql: 'SELECT category, COUNT(*) AS group_count, SUM(num) AS group_sum FROM null_sample GROUP BY category;',
-        table: {
-          name: 'null_sample',
-          description:
-            '4번 검증: GROUP BY category 시 NULL도 한 그룹으로 정상 출력 (제외되지 않음)',
-          columns: ['id', 'category', 'num'],
-          rows: rawRows.map((r) => ({ id: r.id, category: r.category, num: r.num })),
-        },
-      },
-    ];
+export function getExampleTables(
+  lab: ResolvedPracticeLab,
+  example: ResolvedPracticeExample | null,
+  fallbackTables: PracticeTable[]
+): PracticeTable[] {
+  if (example?.legacyTables?.length) return example.legacyTables;
+  if (lab.tables.length) {
+    if (!example?.tableNames) return lab.tables;
+    return lab.tables.filter((table) =>
+      example.tableNames!.some((name) => name.toLowerCase() === table.name.toLowerCase())
+    );
   }
-
-  return [];
+  return fallbackTables;
 }
 
 export function getPracticeQueries(problem: Problem): string[] {
-  const choiceLabQueries = getChoiceLabItems(problem).map((item) => cleanSqlForInput(item.sql));
+  const labQueries = getPracticeLab(problem).examples.map((item) => cleanSqlForInput(item.sql));
   const content = [
     problem.question,
     problem.description,
@@ -206,14 +176,12 @@ export function getPracticeQueries(problem: Problem): string[] {
   });
   const choices = problem.choices.map(cleanSqlForInput).filter((choice) => SQL_START.test(choice));
   return [
-    ...new Set(
-      [...choiceLabQueries, ...fenced, ...choices].filter((query) => SQL_START.test(query))
-    ),
+    ...new Set([...labQueries, ...fenced, ...choices].filter((query) => SQL_START.test(query))),
   ];
 }
 
 export function isSqlPracticeProblem(problem: Problem): boolean {
-  if (getChoiceLabItems(problem).length > 0) return true;
+  if (getPracticeLab(problem).examples.length > 0) return true;
   if (getPracticeQueries(problem).length > 0) return true;
   return SQL_TOPIC.test([problem.question, problem.description, ...problem.choices].join(' '));
 }
@@ -230,6 +198,7 @@ function parseValue(raw: string): string | number | null {
 }
 
 export function getPracticeTables(problem: Problem): PracticeTable[] {
+  if (problem.practiceLab?.tables?.length) return problem.practiceLab.tables;
   const lines = problem.description.split('\n');
   const tables: PracticeTable[] = [];
   let heading = '';
