@@ -187,6 +187,7 @@ export const paths = {
     flip: `/photo/flip`,
     resize: `/photo/resize`,
     padding: `/photo/padding`,
+    outline: `/photo/outline`,
     ogImage: `/photo/og-image`,
     svg: `/photo/svg`,
     newsCaption: `/photo/news-caption`,

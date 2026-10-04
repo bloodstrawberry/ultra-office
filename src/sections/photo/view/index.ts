@@ -23,6 +23,7 @@ export * from './photo-mosaic-view';
 export * from './photo-resize-view';
 export * from './photo-convert-view';
 export * from './photo-padding-view';
+export * from './photo-outline-view';
 
 export * from './photo-compress-view';
 export * from './photo-four-cut-view';

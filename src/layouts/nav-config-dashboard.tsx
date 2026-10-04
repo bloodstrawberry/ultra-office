@@ -196,6 +196,7 @@ export const navData: NavSectionProps['data'] = [
           { title: 'AI 배경 제거', path: paths.photo.bgRemove },
           { title: '워터마크 제거', path: paths.photo.watermarkRemove, info: newFeatureBadge },
           { title: '여백 조정', path: paths.photo.padding },
+          { title: '테두리 추가', path: paths.photo.outline, info: newFeatureBadge },
           { title: '스마트 OCR', path: paths.ocr },
           { title: 'Color Picker', path: paths.photo.colorPicker },
           { title: '사진 용량 압축', path: paths.photo.compress },

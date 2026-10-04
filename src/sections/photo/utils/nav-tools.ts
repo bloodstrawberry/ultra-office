@@ -123,6 +123,11 @@ export const TOOL_METADATA_MAP: Record<
     tag: 'NEW',
     badgeColor: 'success',
   },
+  [paths.photo.outline]: {
+    description: '배경색을 클릭해 투명화하고 글자·그림 윤곽에 원하는 색과 굵기의 테두리 추가',
+    tag: 'NEW',
+    badgeColor: 'primary',
+  },
   [paths.ocr]: {
     description: '영수증, 명함, 캡처 이미지, 스캔 문서에서 텍스트를 정확하게 추출',
     tag: '고정밀',
