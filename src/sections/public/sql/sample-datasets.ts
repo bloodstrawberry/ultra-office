@@ -953,6 +953,43 @@ export const SAMPLE_DATASETS: SqlDataset[] = [
           { id: 3, val: 'NEW_C' },
         ],
       },
+      {
+        name: 'null_sample',
+        description:
+          'NULL 연산, 집계 함수(SUM, COUNT), DISTINCT, GROUP BY 실습용 6행 샘플 테이블 (NULL_SAMPLE)',
+        columns: [
+          { name: 'id', type: 'INT', isPrimary: true, description: '데이터 고유 번호' },
+          {
+            name: 'category',
+            type: 'VARCHAR(10)',
+            description: '그룹 분류 (A, B, NULL - GROUP BY 시 NULL 그룹 생성 검증)',
+          },
+          {
+            name: 'num',
+            type: 'INT',
+            description: '숫자 컬럼 (10, 20, 20, NULL, NULL, 30 - 중복 및 NULL 처리 검증)',
+          },
+          {
+            name: 'val',
+            type: 'INT',
+            description: '비교 컬럼 (100, 200, 300, NULL, 500, NULL - 연산 및 결측치 검증)',
+          },
+        ],
+        ddl: `CREATE TABLE null_sample (
+  id INT PRIMARY KEY,
+  category VARCHAR(10),
+  num INT,
+  val INT
+);`,
+        initialData: [
+          { id: 1, category: 'A', num: 10, val: 100 },
+          { id: 2, category: 'A', num: 20, val: 200 },
+          { id: 3, category: 'B', num: 20, val: 300 },
+          { id: 4, category: null, num: null, val: null },
+          { id: 5, category: null, num: null, val: 500 },
+          { id: 6, category: 'B', num: 30, val: null },
+        ],
+      },
     ],
   },
 ];

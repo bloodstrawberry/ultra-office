@@ -47,6 +47,8 @@ import {
   cleanSqlForInput,
   getPracticeTables,
   getPracticeQueries,
+  getChoiceLabItems,
+  extractSqlFromText,
   quoteUnicodeIdentifiers,
 } from '../sqld-lab-data';
 
@@ -91,10 +93,26 @@ export function SqldSqlPractice({ problem, problemKey, problemIndex }: Props) {
   const [engine, setEngine] = useState<AlaSql | null>(null);
   const [error, setError] = useState('');
   const [flashFeedback, setFlashFeedback] = useState<string | null>(null);
+  const [selectedChoiceIndex, setSelectedChoiceIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
 
+  const choiceLabItems = useMemo(() => getChoiceLabItems(problem), [problem]);
+  const activeLabItem = choiceLabItems[selectedChoiceIndex] || null;
+
   const queries = useMemo(() => getPracticeQueries(problem), [problem]);
-  const tables = useMemo(() => getPracticeTables(problem), [problem]);
+  const defaultTables = useMemo(() => getPracticeTables(problem), [problem]);
+  const displayTables = useMemo(() => {
+    if (activeLabItem) {
+      if (activeLabItem.tables && activeLabItem.tables.length > 0) {
+        return activeLabItem.tables as PracticeTable[];
+      }
+      if (activeLabItem.table) {
+        return [activeLabItem.table] as PracticeTable[];
+      }
+    }
+    return defaultTables;
+  }, [activeLabItem, defaultTables]);
+
   const database = useMemo(
     () => `sqld_practice_${problemKey.replace(/[^a-zA-Z0-9_]/g, '_')}`,
     [problemKey]
@@ -120,10 +138,15 @@ export function SqldSqlPractice({ problem, problemKey, problemIndex }: Props) {
 
   useEffect(() => {
     setOpen(false);
-    setSql(queries[0] || `SELECT * FROM ${tables[0]?.name || 'DUAL'};`);
+    setSelectedChoiceIndex(0);
+    if (choiceLabItems.length > 0) {
+      setSql(cleanSqlForInput(choiceLabItems[0].sql));
+    } else {
+      setSql(queries[0] || `SELECT * FROM ${defaultTables[0]?.name || 'DUAL'};`);
+    }
     setResult(null);
     setError('');
-  }, [problemKey, queries, tables]);
+  }, [problemKey, queries, defaultTables, choiceLabItems]);
 
   useEffect(() => {
     if (!open || engine) return undefined;
@@ -144,13 +167,43 @@ export function SqldSqlPractice({ problem, problemKey, problemIndex }: Props) {
   useEffect(() => {
     if (!open || !engine) return;
     try {
-      seedTables(engine, database, tables);
+      seedTables(engine, database, displayTables);
       setResult(null);
       setError('');
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
     }
-  }, [open, engine, database, tables]);
+  }, [open, engine, database, displayTables]);
+
+  const handleSelectChoice = useCallback(
+    (cIndex: number) => {
+      setSelectedChoiceIndex(cIndex);
+      const lab = choiceLabItems[cIndex];
+      if (lab) {
+        const cleaned = cleanSqlForInput(lab.sql);
+        setSql(cleaned);
+        setFlashFeedback(`${cIndex + 1}번 보기의 예제 테이블과 SQL이 반영되었습니다.`);
+      } else {
+        const choice = problem.choices[cIndex];
+        const choiceDesc = problem.choiceDescriptions?.[cIndex] || '';
+        const choiceSql = extractSqlFromText(choice) || extractSqlFromText(choiceDesc);
+        if (choiceSql) {
+          setSql(choiceSql);
+          setFlashFeedback(`${cIndex + 1}번 보기의 SQL이 반영되었습니다.`);
+        }
+      }
+      setError('');
+      setResult(null);
+      setTimeout(() => {
+        setFlashFeedback(null);
+      }, 1800);
+
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    },
+    [choiceLabItems, problem]
+  );
 
   const handleSelectSql = useCallback((queryToInsert: string) => {
     const cleaned = cleanSqlForInput(queryToInsert);
@@ -201,8 +254,12 @@ export function SqldSqlPractice({ problem, problemKey, problemIndex }: Props) {
   const reset = () => {
     if (!engine) return;
     try {
-      seedTables(engine, database, tables);
-      setSql(queries[0] || `SELECT * FROM ${tables[0]?.name || 'DUAL'};`);
+      seedTables(engine, database, displayTables);
+      if (activeLabItem) {
+        setSql(cleanSqlForInput(activeLabItem.sql));
+      } else {
+        setSql(queries[0] || `SELECT * FROM ${displayTables[0]?.name || 'DUAL'};`);
+      }
       setResult(null);
       setError('');
     } catch (cause) {
@@ -338,8 +395,9 @@ export function SqldSqlPractice({ problem, problemKey, problemIndex }: Props) {
                 variant="caption"
                 sx={{ color: 'primary.main', fontWeight: 700, lineHeight: 1.5 }}
               >
-                💡 문제 지문 및 객관식 보기의 <strong>SQL 쿼리를 클릭</strong>하면 오른쪽 입력창에
-                바로 입력되어 편리하게 테스트할 수 있습니다.
+                💡 아래 <strong>객관식 보기(1~4번)를 클릭</strong>하면 해당 보기를 검증할 수 있는
+                <strong>예제 테이블</strong>과 <strong>검증 SQL 명령어</strong>가 오른쪽에 바로
+                반영됩니다.
               </Typography>
             </Box>
 
@@ -488,68 +546,59 @@ export function SqldSqlPractice({ problem, problemKey, problemIndex }: Props) {
                       letterSpacing: 0.5,
                     }}
                   >
-                    객관식 보기
+                    객관식 보기 (클릭 시 우측 테이블 & SQL 변경)
                   </Typography>
                   <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 11 }}>
-                    SQL 항목 클릭 시 입력창 반영
+                    {selectedChoiceIndex + 1}번 보기 선택됨
                   </Typography>
                 </Box>
 
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                   {problem.choices.map((choice, cIndex) => {
                     const choiceNum = cIndex + 1;
-                    const isSql = isSqlQuery(choice);
-                    const cleanedSql = cleanSqlForInput(choice);
+                    const isSelected = selectedChoiceIndex === cIndex;
 
                     return (
                       <Box
                         key={cIndex}
-                        onClick={() => {
-                          if (isSql) {
-                            handleSelectSql(cleanedSql);
-                          }
-                        }}
+                        onClick={() => handleSelectChoice(cIndex)}
                         sx={{
                           p: 1.5,
                           borderRadius: 1.5,
-                          border: '1.5px solid',
-                          borderColor: isSql ? 'primary.main' : 'divider',
-                          bgcolor: isSql
-                            ? (t) => alpha(t.palette.primary.main, 0.04)
+                          border: isSelected ? '2px solid' : '1.5px solid',
+                          borderColor: isSelected ? 'primary.main' : 'divider',
+                          bgcolor: isSelected
+                            ? (t) => alpha(t.palette.primary.main, 0.08)
                             : 'background.paper',
                           display: 'flex',
-                          alignItems: 'flex-start',
+                          alignItems: 'center',
                           gap: 1.5,
+                          cursor: 'pointer',
                           transition: 'all 0.15s ease',
-                          ...(isSql && {
-                            cursor: 'pointer',
-                            '&:hover': {
-                              bgcolor: (t) => alpha(t.palette.primary.main, 0.1),
-                              borderColor: 'primary.dark',
-                              transform: 'translateY(-1px)',
-                              boxShadow: (t) => t.customShadows?.z4 || 2,
-                            },
-                          }),
+                          '&:hover': {
+                            bgcolor: (t) => alpha(t.palette.primary.main, 0.04),
+                            borderColor: isSelected ? 'primary.main' : 'primary.light',
+                            transform: 'translateY(-1px)',
+                            boxShadow: (t) => t.customShadows?.z4 || 2,
+                          },
                         }}
-                        title={isSql ? '클릭하여 SQL 입력창에 넣기' : undefined}
                       >
                         {/* Choice Number Badge */}
                         <Box
                           sx={{
-                            width: 26,
-                            height: 26,
+                            width: 28,
+                            height: 28,
                             borderRadius: '50%',
-                            bgcolor: isSql
+                            bgcolor: isSelected
                               ? 'primary.main'
                               : (t) => alpha(t.palette.grey[500], 0.16),
-                            color: isSql ? 'primary.contrastText' : 'text.primary',
+                            color: isSelected ? 'primary.contrastText' : 'text.primary',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             fontWeight: 800,
                             fontSize: 13,
                             flexShrink: 0,
-                            mt: 0.2,
                           }}
                         >
                           {choiceNum}
@@ -561,60 +610,29 @@ export function SqldSqlPractice({ problem, problemKey, problemIndex }: Props) {
                             content={choice}
                             idPrefix={`modal_choice_${cIndex}`}
                             inline
-                            onSqlClick={handleSelectSql}
                             sx={{
-                              '& code': {
-                                fontFamily: 'monospace',
+                              '& p': {
+                                m: 0,
+                                fontWeight: isSelected ? 800 : 500,
+                                fontSize: 14,
+                                color: isSelected ? 'primary.dark' : 'text.primary',
                               },
                             }}
                           />
-
-                          {/* Extra choice description if present */}
-                          {!isRichTextEmpty(problem.choiceDescriptions?.[cIndex]) && (
-                            <Box sx={{ mt: 0.5, color: 'text.secondary', fontSize: 13 }}>
-                              <RichContentRenderer
-                                content={problem.choiceDescriptions?.[cIndex] || ''}
-                                idPrefix={`modal_choice_desc_${cIndex}`}
-                                onSqlClick={handleSelectSql}
-                              />
-                            </Box>
-                          )}
-
-                          {/* Extra choice formula if present */}
-                          {problem.choiceFormulas?.[cIndex]?.map((fText, fIdx) => (
-                            <Box key={fIdx} sx={{ mt: 0.5 }}>
-                              <KatexMath math={fText} />
-                            </Box>
-                          ))}
                         </Box>
 
-                        {/* Action badge/button for SQL choice */}
-                        {isSql && (
-                          <Tooltip title="클릭하여 SQL 입력창에 넣기">
-                            <Button
-                              size="small"
-                              variant="contained"
-                              color="primary"
-                              startIcon={<PlayArrowRoundedIcon sx={{ fontSize: 15 }} />}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleSelectSql(cleanedSql);
-                              }}
-                              sx={{
-                                flexShrink: 0,
-                                fontSize: 11,
-                                fontWeight: 700,
-                                py: 0.2,
-                                px: 1,
-                                height: 26,
-                                minHeight: 26,
-                                boxShadow: 'none',
-                              }}
-                            >
-                              입력
-                            </Button>
-                          </Tooltip>
-                        )}
+                        <Chip
+                          size="small"
+                          label={isSelected ? '선택됨' : '선택'}
+                          color={isSelected ? 'primary' : 'default'}
+                          variant={isSelected ? 'filled' : 'outlined'}
+                          sx={{
+                            fontSize: 11,
+                            fontWeight: 700,
+                            height: 22,
+                            flexShrink: 0,
+                          }}
+                        />
                       </Box>
                     );
                   })}
@@ -637,13 +655,48 @@ export function SqldSqlPractice({ problem, problemKey, problemIndex }: Props) {
           >
             {/* Guide & Table previews */}
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-              <Typography variant="body2" color="text.secondary">
-                예제 데이터를 확인하고 SQL을 작성하거나 왼쪽에서 쿼리를 선택하여 실행해 보세요.
-              </Typography>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: 1,
+                }}
+              >
+                <Typography
+                  variant="subtitle2"
+                  sx={{
+                    fontWeight: 800,
+                    color: 'primary.main',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.75,
+                  }}
+                >
+                  📌{' '}
+                  {activeLabItem
+                    ? `${selectedChoiceIndex + 1}번 보기 검증 예제 테이블`
+                    : '실습 예제 데이터 테이블'}
+                </Typography>
+                {activeLabItem?.table?.description ? (
+                  <Chip
+                    size="small"
+                    color="primary"
+                    variant="soft"
+                    label={activeLabItem.table.description}
+                    sx={{ fontSize: 11, fontWeight: 700, height: 22 }}
+                  />
+                ) : (
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: 12 }}>
+                    예제 데이터를 확인하고 SQL을 직접 작성하거나 실행해 보세요.
+                  </Typography>
+                )}
+              </Box>
 
               {/* Sample Tables */}
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
-                {tables.map((table) => (
+                {displayTables.map((table) => (
                   <Box
                     key={table.name}
                     sx={{

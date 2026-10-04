@@ -1,4 +1,4 @@
-import type { Problem } from './types';
+import type { Problem, ChoiceLabItem } from './types';
 
 import { SAMPLE_DATASETS } from 'src/sections/public/sql/sample-datasets';
 
@@ -99,8 +99,101 @@ export function isSqlQuery(text: string): boolean {
   );
 }
 
+export function extractSqlFromText(text: string): string {
+  if (!text) return '';
+  const match = text.match(/```(?:sql)?\s*([\s\S]*?)```/i);
+  if (match) {
+    return cleanSqlForInput(match[1]);
+  }
+  const inlineMatch = text.match(/`([^`]+)`/);
+  if (inlineMatch && isSqlQuery(inlineMatch[1])) {
+    return cleanSqlForInput(inlineMatch[1]);
+  }
+  if (isSqlQuery(text)) {
+    return cleanSqlForInput(text);
+  }
+  return '';
+}
+
+export function getChoiceLabItems(problem: Problem): ChoiceLabItem[] {
+  if (problem.choiceLabs && problem.choiceLabs.length > 0) {
+    return problem.choiceLabs;
+  }
+
+  // 62회 13번 또는 NULL 처리 문제 폴백
+  if (
+    problem.question.includes('NULL 값의 처리') ||
+    problem.choices.some((c) => c.includes('COUNT(DISTINCT num)'))
+  ) {
+    const rawRows = [
+      { id: 1, category: 'A', num: 10, val: 100 },
+      { id: 2, category: 'A', num: 20, val: 200 },
+      { id: 3, category: 'B', num: 20, val: 300 },
+      { id: 4, category: null, num: null, val: null },
+      { id: 5, category: null, num: null, val: 500 },
+      { id: 6, category: 'B', num: 30, val: null },
+    ];
+
+    return [
+      {
+        choiceNum: 1,
+        title: '1) DISTINCT의 중복 NULL 1건 반영 검증',
+        sql: 'SELECT DISTINCT num FROM null_sample;',
+        table: {
+          name: 'null_sample',
+          description: '1번 검증: DISTINCT num (10, 20, 30, NULL 1건만 조회)',
+          columns: ['id', 'num'],
+          rows: rawRows.map((r) => ({ id: r.id, num: r.num })),
+        },
+      },
+      {
+        choiceNum: 2,
+        title: '2) COUNT(DISTINCT num) 고유값 개수 집계 검증',
+        sql: 'SELECT COUNT(DISTINCT num) AS distinct_num_cnt FROM null_sample;',
+        table: {
+          name: 'null_sample',
+          description: '2번 검증: COUNT(DISTINCT num) 고유값 집계 (NULL 제외 3건)',
+          columns: ['id', 'num'],
+          rows: rawRows.map((r) => ({ id: r.id, num: r.num })),
+        },
+      },
+      {
+        choiceNum: 3,
+        title: '3) 다중행 함수(SUM, COUNT)의 NULL 제외 검증',
+        sql: 'SELECT SUM(num) AS sum_num, COUNT(num) AS count_num, COUNT(*) AS count_all FROM null_sample;',
+        table: {
+          name: 'null_sample',
+          description:
+            '3번 검증: SUM(num), COUNT(num)의 NULL 제외 비교 (SUM=80, COUNT=4, COUNT(*)=6)',
+          columns: ['id', 'num', 'val'],
+          rows: rawRows.map((r) => ({ id: r.id, num: r.num, val: r.val })),
+        },
+      },
+      {
+        choiceNum: 4,
+        title: '4) GROUP BY의 NULL 그룹 정상 출력 검증 (정답/오답 확인)',
+        sql: 'SELECT category, COUNT(*) AS group_count, SUM(num) AS group_sum FROM null_sample GROUP BY category;',
+        table: {
+          name: 'null_sample',
+          description:
+            '4번 검증: GROUP BY category 시 NULL도 한 그룹으로 정상 출력 (제외되지 않음)',
+          columns: ['id', 'category', 'num'],
+          rows: rawRows.map((r) => ({ id: r.id, category: r.category, num: r.num })),
+        },
+      },
+    ];
+  }
+
+  return [];
+}
+
 export function getPracticeQueries(problem: Problem): string[] {
-  const content = [problem.question, problem.description].join('\n');
+  const choiceLabQueries = getChoiceLabItems(problem).map((item) => cleanSqlForInput(item.sql));
+  const content = [
+    problem.question,
+    problem.description,
+    ...(problem.choiceDescriptions || []),
+  ].join('\n');
   const fenced = [...content.matchAll(/```(?:sql)?\s*([\s\S]*?)```/gi)].flatMap((match) => {
     const cleaned = cleanSqlForInput(match[1]);
     // Numbered statements in a single fence are common in SQLD questions.
@@ -112,10 +205,15 @@ export function getPracticeQueries(problem: Problem): string[] {
       : [cleaned];
   });
   const choices = problem.choices.map(cleanSqlForInput).filter((choice) => SQL_START.test(choice));
-  return [...new Set([...fenced, ...choices].filter((query) => SQL_START.test(query)))];
+  return [
+    ...new Set(
+      [...choiceLabQueries, ...fenced, ...choices].filter((query) => SQL_START.test(query))
+    ),
+  ];
 }
 
 export function isSqlPracticeProblem(problem: Problem): boolean {
+  if (getChoiceLabItems(problem).length > 0) return true;
   if (getPracticeQueries(problem).length > 0) return true;
   return SQL_TOPIC.test([problem.question, problem.description, ...problem.choices].join(' '));
 }
@@ -174,7 +272,7 @@ export function getPracticeTables(problem: Problem): PracticeTable[] {
 
   const standard = SAMPLE_DATASETS.find((dataset) => dataset.id === 'sqld_sqlp');
   return (standard?.tables || [])
-    .filter((table) => ['emp', 'dept', 'emp_sample'].includes(table.name))
+    .filter((table) => ['emp', 'dept', 'emp_sample', 'null_sample'].includes(table.name))
     .map((table) => ({
       name: table.name,
       columns: table.columns.map((column) => column.name),

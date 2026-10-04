@@ -236,6 +236,61 @@ export const SQLD_PROBLEMS: SqlProblem[] = [
     ],
   },
 
+  // -------------------------------------------------------------------------
+  // 카테고리: 산술연산자 > 하위 카테고리: NULL 값 처리 규칙 (기출 62회 13번)
+  // -------------------------------------------------------------------------
+  {
+    id: 'sqld-null-practice-62-13',
+    datasetId: 'sqld_sqlp',
+    targetTable: 'null_sample',
+    level: 2,
+    category: '산술연산자',
+    subCategory: 'NULL 값 처리 규칙 (기출 62회 13번)',
+    title: '[SQLD 제62회 13번] NULL 값의 처리 특성 완벽 검증 (DISTINCT, 집계함수, GROUP BY)',
+    description:
+      '**【SQLD 제62회 13번 기출 완벽 실습】**\n`null_sample` 테이블(6개 행: id, category, num, val)을 활용하여 시험에 자주 출제되는 NULL 값 처리 규칙 4가지를 손계산 및 쿼리로 직접 검증합니다.\n\n1. **[보기 1 검증] DISTINCT와 NULL**: `DISTINCT num`으로 조회 시 여러 개의 NULL도 단 1개로 중복 제거되는지 확인 (결과: 10, 20, 30, NULL 총 4행)\n2. **[보기 2 검증] COUNT(DISTINCT 컬럼)**: `COUNT(DISTINCT num)` (별칭 `cnt_distinct_num`) 실행 시 문법 오류 없이 NULL을 제외한 고유값 수(3)를 반환하는지 확인\n3. **[보기 3 검증] 집계 함수의 NULL 제외**: `SUM(num)` (별칭 `sum_num`), `COUNT(num)` (별칭 `cnt_num`), `COUNT(*)` (별칭 `cnt_all`)을 조회하여 다중행 함수가 NULL을 연산에서 제외하는지 확인 (SUM=80, COUNT(num)=4, COUNT(*)=6)\n4. **[보기 4 검증 (정답)] GROUP BY와 NULL**: `GROUP BY category`로 그룹화하여 NULL인 행도 제외되지 않고 한 그룹으로 정상 출력되는지 확인\n\n💡 **핵심 오답 판별 포인트**:\n- GROUP BY 기준 컬럼에 NULL이 있으면 제외되는 것이 아니라 **NULL 또한 하나의 그룹으로 묶여서 결과 집합에 정상 출력**됩니다. 따라서 "NULL을 제외한 행만 출력된다"는 4번 선지는 틀렸습니다.',
+    initialQuery: `SELECT category, COUNT(*) AS group_cnt, SUM(num) AS group_sum\nFROM null_sample\nGROUP BY category;`,
+    solutionQuery: `SELECT category, COUNT(*) AS group_cnt, SUM(num) AS group_sum FROM null_sample GROUP BY category`,
+    hint: '`SELECT category, COUNT(*), SUM(num) FROM null_sample GROUP BY category;`를 실행하여 NULL 그룹이 출력되는지 확인하세요.',
+    explanation:
+      '1. DISTINCT는 여러 개의 NULL도 중복 제거하여 단 1개의 NULL만 결과에 반영합니다.\n2. COUNT(DISTINCT 컬럼)은 표준 SQL 문법이며, NULL은 제외하고 고유값의 개수를 집계합니다.\n3. SUM(컬럼), COUNT(컬럼) 등 컬럼 표현식을 취하는 집계 함수는 NULL을 연산에서 제외합니다. (COUNT(*)만 NULL 포함)\n4. GROUP BY 기준 컬럼에 NULL이 포함되어 있으면 NULL도 한 그룹으로 묶여 결과에 출력됩니다. (제외되지 않음)',
+    quickExamples: [
+      {
+        label: '[보기 1 검증] SELECT DISTINCT num (중복 NULL 1개 반영)',
+        query: `SELECT DISTINCT num FROM null_sample;`,
+        description: '중복된 20과 2개의 NULL이 각각 1건으로 합쳐져 10, 20, 30, NULL 4건 반환',
+      },
+      {
+        label: '[보기 2 검증] COUNT(DISTINCT num) (고유값 3건 집계)',
+        query: `SELECT COUNT(DISTINCT num) AS cnt_distinct_num FROM null_sample;`,
+        description: '문법 정상 동작하며 NULL은 제외되고 10, 20, 30 고유값 개수인 3 반환',
+      },
+      {
+        label: '[보기 3 검증] SUM(num), COUNT(num), COUNT(*) 비교',
+        query: `SELECT SUM(num) AS sum_num, COUNT(num) AS cnt_num, COUNT(*) AS cnt_all FROM null_sample;`,
+        description: '전체 행은 6건이지만 COUNT(num)은 NULL 2건이 제외되어 4건, SUM(num)은 80 계산',
+      },
+      {
+        label: '[보기 4 검증] GROUP BY category (NULL 그룹 정상 출력 확인)',
+        query: `SELECT category, COUNT(*) AS group_cnt, SUM(num) AS group_sum FROM null_sample GROUP BY category;`,
+        description: 'category가 NULL인 행들도 버려지지 않고 하나의 그룹(2행)으로 당당히 출력됨!',
+      },
+    ],
+    tryModifications: [
+      {
+        label: 'val 컬럼으로 DISTINCT val 테스트',
+        query: `SELECT DISTINCT val FROM null_sample;`,
+        guide: 'val 컬럼(100, 200, 300, 500, NULL 2개)에서도 NULL이 1개만 남는지 확인해 보세요.',
+      },
+      {
+        label: 'AVG(num)과 AVG(COALESCE(num, 0)) 비교',
+        query: `SELECT AVG(num) AS avg_skip_null, AVG(COALESCE(num, 0)) AS avg_with_zero FROM null_sample;`,
+        guide:
+          'AVG 역시 NULL을 제외하므로 80/4=20이 되고, 0으로 치환하면 80/6=13.33이 되는 차이를 확인해 보세요.',
+      },
+    ],
+  },
+
   // =========================================================================
   // 대분류: 문자 함수 (Character Functions) - DUAL 테이블 활용
   // =========================================================================

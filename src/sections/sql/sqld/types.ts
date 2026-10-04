@@ -50,6 +50,22 @@ export interface Problem {
   isLlmProcessed?: boolean;
   llmPredictedAnswer?: number;
   llmKeyConcept?: string;
+  choiceLabs?: ChoiceLabItem[];
+}
+
+export interface ChoiceLabTable {
+  name: string;
+  description?: string;
+  columns: string[];
+  rows: Record<string, string | number | null>[];
+}
+
+export interface ChoiceLabItem {
+  choiceNum: number;
+  title?: string;
+  sql: string;
+  table?: ChoiceLabTable;
+  tables?: ChoiceLabTable[];
 }
 
 export interface SqldRound {
