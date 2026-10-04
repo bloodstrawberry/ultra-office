@@ -61803,7 +61803,65 @@
             [],
             [],
             []
-          ]
+          ],
+          "practiceLab": {
+            "tables": [
+              {
+                "name": "case_input",
+                "columns": ["input_value", "match_value", "return_value"],
+                "rows": [{ "input_value": "AB", "match_value": "CD", "return_value": "EF" }]
+              },
+              {
+                "name": "decode_input",
+                "columns": ["input_value", "match_value", "return_value", "default_value"],
+                "rows": [{ "input_value": "AB", "match_value": "CD", "return_value": "EF", "default_value": null }]
+              },
+              {
+                "name": "coalesce_input",
+                "columns": ["first_value", "second_value", "third_value"],
+                "rows": [{ "first_value": "AB", "second_value": "CD", "third_value": null }]
+              },
+              {
+                "name": "nullif_input",
+                "columns": ["first_value", "second_value"],
+                "rows": [{ "first_value": "A", "second_value": "A" }]
+              }
+            ],
+            "examples": [
+              {
+                "id": "choice-1",
+                "choiceNum": 1,
+                "title": "1) CASE 결과 확인",
+                "description": "AB와 CD가 일치하지 않고 ELSE가 없어 NULL 반환",
+                "tableNames": ["case_input"],
+                "sql": "SELECT input_value, match_value, return_value, CASE input_value WHEN match_value THEN return_value END AS result FROM case_input;"
+              },
+              {
+                "id": "choice-2",
+                "choiceNum": 2,
+                "title": "2) DECODE 결과 확인",
+                "description": "AB와 CD가 일치하지 않아 기본값 NULL 반환",
+                "tableNames": ["decode_input"],
+                "sql": "SELECT input_value, match_value, return_value, default_value, DECODE(input_value, match_value, return_value, default_value) AS result FROM decode_input;"
+              },
+              {
+                "id": "choice-3",
+                "choiceNum": 3,
+                "title": "3) COALESCE 결과 확인 (정답)",
+                "description": "첫 번째 NULL이 아닌 값 AB 반환",
+                "tableNames": ["coalesce_input"],
+                "sql": "SELECT first_value, second_value, third_value, COALESCE(first_value, second_value, third_value) AS result FROM coalesce_input;"
+              },
+              {
+                "id": "choice-4",
+                "choiceNum": 4,
+                "title": "4) NULLIF 결과 확인",
+                "description": "두 값 A가 같아 NULL 반환",
+                "tableNames": ["nullif_input"],
+                "sql": "SELECT first_value, second_value, NULLIF(first_value, second_value) AS result FROM nullif_input;"
+              }
+            ]
+          }
         },
         {
           "hashtags": [
@@ -61889,7 +61947,57 @@
             [],
             [],
             []
-          ]
+          ],
+          "practiceLab": {
+            "tables": [
+              {
+                "name": "EMP",
+                "columns": ["EMPNO", "ENAME", "SAL"],
+                "rows": [
+                  { "EMPNO": 101, "ENAME": "KIM", "SAL": 9000 },
+                  { "EMPNO": 102, "ENAME": "LEE", "SAL": 3000 },
+                  { "EMPNO": 103, "ENAME": "PARK", "SAL": 5000 },
+                  { "EMPNO": 104, "ENAME": "CHOI", "SAL": 1000 },
+                  { "EMPNO": 105, "ENAME": "JUNG", "SAL": 8000 },
+                  { "EMPNO": 106, "ENAME": "HAN", "SAL": 2000 },
+                  { "EMPNO": 107, "ENAME": "YOON", "SAL": 4000 },
+                  { "EMPNO": 108, "ENAME": "LIM", "SAL": 7000 },
+                  { "EMPNO": 109, "ENAME": "SON", "SAL": 6000 },
+                  { "EMPNO": 110, "ENAME": "OH", "SAL": 10000 }
+                ]
+              }
+            ],
+            "examples": [
+              {
+                "id": "choice-1",
+                "choiceNum": 1,
+                "title": "1) TOP 5",
+                "description": "급여 정렬 후 최저 5명: 1000, 2000, 3000, 4000, 5000",
+                "sql": "SELECT TOP 5 * FROM EMP ORDER BY SAL ASC;"
+              },
+              {
+                "id": "choice-2",
+                "choiceNum": 2,
+                "title": "2) WITH TIES 재현",
+                "description": "실습 엔진용 동등 쿼리: 5번째 급여 이하를 모두 조회 (이 문제는 동률 없음)",
+                "sql": "SELECT * FROM EMP WHERE SAL <= (SELECT MAX(SAL) FROM (SELECT TOP 5 SAL FROM EMP ORDER BY SAL ASC) AS boundary) ORDER BY SAL ASC;"
+              },
+              {
+                "id": "choice-3",
+                "choiceNum": 3,
+                "title": "3) ROWNUM 실행 순서 재현 (정답)",
+                "description": "실습 엔진용 동등 쿼리: 먼저 입력 순서의 5행을 선택한 뒤 그 5행만 정렬",
+                "sql": "SELECT * FROM (SELECT TOP 5 * FROM EMP) AS first_five ORDER BY SAL ASC;"
+              },
+              {
+                "id": "choice-4",
+                "choiceNum": 4,
+                "title": "4) FETCH FIRST 5",
+                "description": "급여 정렬 후 최저 5명: 1000, 2000, 3000, 4000, 5000",
+                "sql": "SELECT * FROM EMP ORDER BY SAL ASC FETCH FIRST 5 ROWS ONLY;"
+              }
+            ]
+          }
         },
         {
           "hashtags": [
@@ -61975,7 +62083,43 @@
             [],
             [],
             []
-          ]
+          ],
+          "practiceLab": {
+            "tables": [
+              {
+                "name": "직원",
+                "columns": ["이름", "부서번호", "급여"],
+                "rows": [
+                  { "이름": "홍길동", "부서번호": 10, "급여": 3000 },
+                  { "이름": "이몽룡", "부서번호": 11, "급여": 3500 },
+                  { "이름": "이영희", "부서번호": 20, "급여": 4000 }
+                ]
+              },
+              {
+                "name": "부서",
+                "columns": ["부서번호", "지역"],
+                "rows": [
+                  { "부서번호": 10, "지역": "서울" },
+                  { "부서번호": 11, "지역": "서울" },
+                  { "부서번호": 20, "지역": "부산" }
+                ]
+              }
+            ],
+            "examples": [
+              {
+                "id": "update-all-employees",
+                "title": "UPDATE 실행",
+                "description": "서울 부서가 존재하므로 직원 3명 모두 갱신됩니다.",
+                "sql": "UPDATE 직원 A\nSET    급여 = 급여 * 1.1\nWHERE  EXISTS (SELECT 1\n               FROM   부서 B\n               WHERE  지역 = '서울');"
+              },
+              {
+                "id": "check-updated-salaries",
+                "title": "갱신 결과 조회",
+                "description": "UPDATE 실행 후 선택하면 세 직원의 새 급여를 확인할 수 있습니다.",
+                "sql": "SELECT 이름, 부서번호, ROUND(급여, 0) AS 갱신급여 FROM 직원;"
+              }
+            ]
+          }
         },
         {
           "hashtags": [

@@ -29,6 +29,22 @@ export function seedPracticeTables(alasql: AlaSql, database: string, tables: Pra
   alasql("INSERT INTO DUAL VALUES ('X')");
 }
 
+export function readPracticeTables(
+  alasql: AlaSql,
+  database: string,
+  tables: PracticeTable[]
+): PracticeTable[] {
+  alasql(`USE ${database}`);
+  return tables.map((table) => {
+    try {
+      const rows = alasql(`SELECT * FROM ${quoted(table.name)}`);
+      return Array.isArray(rows) ? { ...table, rows: rows as PracticeTable['rows'] } : table;
+    } catch {
+      return table;
+    }
+  });
+}
+
 export function executePracticeQuery(alasql: AlaSql, database: string, sql: string): QueryResult {
   alasql(`USE ${database}`);
   const started = performance.now();
@@ -37,7 +53,16 @@ export function executePracticeQuery(alasql: AlaSql, database: string, sql: stri
     .replace(/;\s*$/, '')
     .replace(/\bMINUS\b/gi, 'EXCEPT')
     .replace(/FETCH\s+FIRST\s+(\d+)\s+ROWS?\s+ONLY/gi, 'LIMIT $1');
-  const raw = alasql(quoteUnicodeIdentifiers(normalized));
+  // AlaSQL does not parse an alias after the UPDATE target. Remove an unused
+  // target alias while keeping the SQL shown in the practice editor intact.
+  const queryForEngine = quoteUnicodeIdentifiers(normalized).replace(
+    /^UPDATE\s+(\[[^\]]+\]|[A-Za-z_][\w$]*)\s+([A-Za-z_]\w*)\s+SET\b/i,
+    (prefix, table: string, alias: string, _offset, statement: string) =>
+      new RegExp(`\\b${alias}\\s*\\.`, 'i').test(statement.slice(prefix.length))
+        ? prefix
+        : `UPDATE ${table} SET`
+  );
+  const raw = alasql(queryForEngine);
   const rows = Array.isArray(raw) ? (raw as Record<string, unknown>[]) : [{ affected_rows: raw }];
   return {
     columns: rows.length && typeof rows[0] === 'object' ? Object.keys(rows[0]) : [],

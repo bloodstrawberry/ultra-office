@@ -15,6 +15,7 @@ export interface ResizableHandleProps {
   direction?: 'horizontal' | 'vertical';
   tooltipText?: string;
   disabled?: boolean;
+  showGrip?: boolean;
   sx?: SxProps<Theme>;
 }
 
@@ -22,6 +23,7 @@ export function ResizableHandle({
   direction = 'horizontal',
   tooltipText = '드래그하여 크기 조절',
   disabled = false,
+  showGrip = true,
   sx,
 }: ResizableHandleProps) {
   const isVertical = direction === 'vertical';
@@ -110,28 +112,30 @@ export function ResizableHandle({
           ...sx,
         }}
       >
-        <Box
-          className="resizable-divider-grip"
-          sx={{
-            zIndex: 1,
-            width: isVertical ? 30 : 18,
-            height: isVertical ? 18 : 30,
-            borderRadius: 1,
-            bgcolor: 'background.paper',
-            border: '1px solid',
-            borderColor: 'divider',
-            color: 'text.disabled',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: 1,
-            opacity: 0.35,
-            transition: (theme) => theme.transitions.create(['opacity', 'color']),
-            transform: isVertical ? 'rotate(90deg)' : 'none',
-          }}
-        >
-          <DragIndicatorRoundedIcon sx={{ fontSize: 16 }} />
-        </Box>
+        {showGrip && (
+          <Box
+            className="resizable-divider-grip"
+            sx={{
+              zIndex: 1,
+              width: isVertical ? 30 : 18,
+              height: isVertical ? 18 : 30,
+              borderRadius: 1,
+              bgcolor: 'background.paper',
+              border: '1px solid',
+              borderColor: 'divider',
+              color: 'text.disabled',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: 1,
+              opacity: 0.35,
+              transition: (theme) => theme.transitions.create(['opacity', 'color']),
+              transform: isVertical ? 'rotate(90deg)' : 'none',
+            }}
+          >
+            <DragIndicatorRoundedIcon sx={{ fontSize: 16 }} />
+          </Box>
+        )}
       </Box>
     </Separator>
   );
