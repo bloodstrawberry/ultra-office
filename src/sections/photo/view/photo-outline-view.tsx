@@ -224,10 +224,15 @@ export function PhotoOutlineView() {
     const editedData = ctx.createImageData(canvas.width, canvas.height);
     editedData.data.set(pixels);
     ctx.putImageData(editedData, 0, 0);
+    setIsProcessing(true);
     setResultSrc('');
     setWorkingPixels(pixels);
     setEditedSrc(canvas.toDataURL('image/png'));
-    toast.success(`${removedCount.toLocaleString()}개 픽셀의 배경색을 투명하게 만들었습니다.`);
+    setPreviewMode('single');
+    setRemoveMode(false);
+    toast.success(
+      `${removedCount.toLocaleString()}개 픽셀의 배경색을 지우고 테두리를 다시 적용했습니다.`
+    );
   };
 
   const handleResetBackground = () => {
@@ -547,7 +552,8 @@ export function PhotoOutlineView() {
                     sx={{ display: 'block', color: 'text.secondary', mb: 1.5 }}
                   >
                     버튼을 누른 뒤 왼쪽 이미지에서 지울 배경색을 클릭하세요. 비슷한 색은 이미지
-                    전체에서 투명해집니다. 여러 색을 이어서 선택할 수 있습니다.
+                    전체에서 투명해지고 테두리가 다시 적용됩니다. 다른 색도 지우려면 버튼을 다시
+                    누르세요.
                   </Typography>
                   <Button
                     fullWidth
