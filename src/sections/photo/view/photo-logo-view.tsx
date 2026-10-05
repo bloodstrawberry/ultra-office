@@ -7,6 +7,7 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
+import Slider from '@mui/material/Slider';
 import Select from '@mui/material/Select';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
@@ -28,9 +29,13 @@ import AspectRatioRoundedIcon from '@mui/icons-material/AspectRatioRounded';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { downloadDataUrl, shareToKakaoTalk } from '../utils/image-processor';
-import { type LogoShape, renderShapedLogo } from '../utils/shaped-logo-processor';
 import { type CropRect, InteractiveCropBox } from '../components/interactive-crop-box';
 import { AppsInTossNavHeader, PhotoUploadWorkspace, type SampleImageItem } from '../components';
+import {
+  type LogoShape,
+  renderShapedLogo,
+  type LogoShapeSettings,
+} from '../utils/shaped-logo-processor';
 
 const LOGO_SAMPLE_IMAGES: SampleImageItem[] = [
   {
@@ -59,11 +64,15 @@ const MIN_SIZE = 1;
 const MAX_SIZE = 16384;
 
 const LOGO_SHAPES: { value: LogoShape; label: string }[] = [
-  { value: 'circle', label: '원형' },
-  { value: 'rounded', label: '둥근 사각형' },
-  { value: 'square', label: '정사각형' },
-  { value: 'hexagon', label: '육각형' },
+  { value: 'circle', label: '원형 / 타원' },
+  { value: 'polygon', label: 'N각형' },
+  { value: 'star', label: '별' },
   { value: 'heart', label: '하트' },
+  { value: 'diamond', label: '마름모' },
+  { value: 'capsule', label: '캡슐' },
+  { value: 'shield', label: '방패' },
+  { value: 'speechBubble', label: '말풍선' },
+  { value: 'droplet', label: '물방울' },
   { value: 'none', label: '도형 없음 · 기존 크롭' },
 ];
 
@@ -152,6 +161,11 @@ export function LogoView() {
   const [heightInput, setHeightInput] = useState<string>('600');
   const [isAspectLocked, setIsAspectLocked] = useState<boolean>(true);
   const [shape, setShape] = useState<LogoShape>('circle');
+  const [shapeRotation, setShapeRotation] = useState<number>(0);
+  const [polygonSides, setPolygonSides] = useState<number>(6);
+  const [polygonSidesInput, setPolygonSidesInput] = useState<string>('6');
+  const [roundness, setRoundness] = useState<number>(0);
+  const [starPoints, setStarPoints] = useState<number>(5);
   const [resultDataUrl, setResultDataUrl] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [rightPanelWidth, setRightPanelWidth] = useState<number>(380);
@@ -198,7 +212,8 @@ export function LogoView() {
     const request = ++renderRequestRef.current;
     setResultDataUrl('');
     try {
-      const outUrl = await renderShapedLogo(src, cropArea, targetWidth, targetHeight, shape);
+      const settings: LogoShapeSettings = { shape, rotation: shapeRotation, polygonSides, roundness, starPoints };
+      const outUrl = await renderShapedLogo(src, cropArea, targetWidth, targetHeight, settings);
       if (request === renderRequestRef.current) setResultDataUrl(outUrl);
     } catch {
       if (request === renderRequestRef.current) {
@@ -206,7 +221,7 @@ export function LogoView() {
         toast.error('로고 미리보기를 만들지 못했습니다.');
       }
     }
-  }, [shape]);
+  }, [shape, shapeRotation, polygonSides, roundness, starPoints]);
 
   useEffect(() => {
     if (imageSrc) generateLogo(imageSrc, crop, outputWidth, outputHeight);
@@ -294,6 +309,13 @@ export function LogoView() {
 
   const handleCropChange = (newCrop: CropRect) => {
     setCrop(newCrop);
+  };
+
+  const handleCommitPolygonSides = () => {
+    const parsed = Number.parseInt(polygonSidesInput, 10);
+    const next = Number.isFinite(parsed) ? Math.max(3, Math.min(360, parsed)) : polygonSides;
+    setPolygonSides(next);
+    setPolygonSidesInput(String(next));
   };
 
   const handleCommitWidth = () => {
@@ -501,7 +523,7 @@ export function LogoView() {
                   naturalWidth={imageDimensions.width}
                   naturalHeight={imageDimensions.height}
                   aspectRatio={outputWidth / (outputHeight || 1)}
-                  shape={shape}
+                  shapeSettings={{ shape, rotation: shapeRotation, polygonSides, roundness, starPoints }}
                   crop={crop}
                   onChange={handleCropChange}
                 />
@@ -555,13 +577,13 @@ export function LogoView() {
               flexShrink: 0,
               gap: 2,
               minHeight: 0,
-              overflow: 'auto',
+              overflow: { xs: 'visible', md: 'auto' },
               pl: { md: 1 },
               pr: 0.5,
             }}
           >
             {/* Resolution Setting Card */}
-            <Card sx={{ p: 2, borderRadius: 2 }}>
+            <Card sx={{ p: 2, borderRadius: 2, flexShrink: 0 }}>
               <Box
                 sx={{
                   display: 'flex',
@@ -665,26 +687,113 @@ export function LogoView() {
               </FormControl>
             </Card>
 
-            <Card sx={{ p: 2.5, borderRadius: 2 }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
+            <Card sx={{ p: 2, borderRadius: 2, flexShrink: 0 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.25 }}>
                 도형 로고 만들기
               </Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 2 }}>
-                왼쪽 이미지에서 도형을 드래그·조절하세요. 선택한 도형 밖은 투명해집니다.
+              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 1.5 }}>
+                도형을 드래그·조절하면 바깥은 투명해집니다.
               </Typography>
-              <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-                <InputLabel id="logo-shape-label">도형</InputLabel>
-                <Select
-                  labelId="logo-shape-label"
-                  value={shape}
-                  label="도형"
-                  onChange={(event) => setShape(event.target.value as LogoShape)}
-                >
-                  {LOGO_SHAPES.map((item) => (
-                    <MenuItem key={item.value} value={item.value}>{item.label}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: shape === 'polygon' ? 'minmax(0, 1fr) 116px' : '1fr',
+                  gap: 1,
+                  alignItems: 'start',
+                  mb: shape === 'none' ? 0 : 1.25,
+                }}
+              >
+                <FormControl fullWidth size="small">
+                  <InputLabel id="logo-shape-label">도형</InputLabel>
+                  <Select
+                    labelId="logo-shape-label"
+                    value={shape}
+                    label="도형"
+                    onChange={(event) => setShape(event.target.value as LogoShape)}
+                  >
+                    {LOGO_SHAPES.map((item) => (
+                      <MenuItem key={item.value} value={item.value}>{item.label}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                {shape === 'polygon' && (
+                  <TextField
+                    fullWidth
+                    size="small"
+                    type="number"
+                    label="변의 수 N"
+                    value={polygonSidesInput}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      setPolygonSidesInput(value);
+                      const parsed = Number(value);
+                      if (Number.isInteger(parsed) && parsed >= 3 && parsed <= 360) {
+                        setPolygonSides(parsed);
+                      }
+                    }}
+                    onBlur={handleCommitPolygonSides}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') (event.target as HTMLInputElement).blur();
+                    }}
+                    slotProps={{ htmlInput: { min: 3, max: 360, step: 1 } }}
+                  />
+                )}
+              </Box>
+              {shape === 'polygon' && (
+                <Box sx={{ display: 'grid', gridTemplateColumns: '62px minmax(0, 1fr) 38px', gap: 1, alignItems: 'center', minHeight: 38 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>둥글기</Typography>
+                  <Slider
+                    value={roundness}
+                    min={0}
+                    max={100}
+                    step={1}
+                    onChange={(_, value) => setRoundness(value as number)}
+                    valueLabelDisplay="auto"
+                    aria-label="N각형 모서리 둥글기"
+                  />
+                  <Typography variant="caption" sx={{ textAlign: 'right', fontWeight: 700 }}>
+                    {roundness}%
+                  </Typography>
+                </Box>
+              )}
+              {shape === 'star' && (
+                <Box sx={{ display: 'grid', gridTemplateColumns: '62px minmax(0, 1fr) 38px', gap: 1, alignItems: 'center', minHeight: 38 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>꼭짓점</Typography>
+                  <Slider
+                    value={starPoints}
+                    min={4}
+                    max={24}
+                    step={1}
+                    onChange={(_, value) => setStarPoints(value as number)}
+                    valueLabelDisplay="auto"
+                    aria-label="별 꼭짓점 수"
+                  />
+                  <Typography variant="caption" sx={{ textAlign: 'right', fontWeight: 700 }}>
+                    {starPoints}개
+                  </Typography>
+                </Box>
+              )}
+              {shape !== 'none' && (
+                <Box sx={{ display: 'grid', gridTemplateColumns: '38px minmax(0, 1fr) 36px 44px', gap: 1, alignItems: 'center', minHeight: 38, mt: shape === 'polygon' || shape === 'star' ? 0.5 : 0 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>회전</Typography>
+                  <Slider
+                    value={shapeRotation}
+                    min={-180}
+                    max={180}
+                    step={1}
+                    onChange={(_, value) => setShapeRotation(value as number)}
+                    valueLabelDisplay="auto"
+                    valueLabelFormat={(value) => `${value}°`}
+                    aria-label="도형 회전"
+                  />
+                  <Typography variant="caption" sx={{ textAlign: 'right', fontWeight: 700 }}>
+                    {shapeRotation}°
+                  </Typography>
+                  <Button size="small" disabled={shapeRotation === 0} onClick={() => setShapeRotation(0)} sx={{ minWidth: 0, px: 0, fontSize: '0.7rem' }}>
+                    초기화
+                  </Button>
+                </Box>
+              )}
             </Card>
 
             {/* Preview Card */}
@@ -692,6 +801,7 @@ export function LogoView() {
               sx={{
                 p: 2.5,
                 borderRadius: 2,
+                flexShrink: 0,
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
@@ -758,7 +868,7 @@ export function LogoView() {
             </Card>
 
             {/* Action Buttons */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25, mt: 'auto', pt: 0.5 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25, mt: 'auto', pt: 0.5, flexShrink: 0 }}>
               <Button
                 fullWidth
                 variant="outlined"

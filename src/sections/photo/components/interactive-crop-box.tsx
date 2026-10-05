@@ -1,10 +1,22 @@
 'use client';
 
-import type { LogoShape } from '../utils/shaped-logo-processor';
-
 import React, { useId, useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
+
+import {
+  getLogoShapePath,
+  getShapeFitScale,
+  type LogoShapeSettings,
+} from '../utils/shaped-logo-processor';
+
+const DEFAULT_SHAPE_SETTINGS: LogoShapeSettings = {
+  shape: 'none',
+  rotation: 0,
+  polygonSides: 6,
+  roundness: 0,
+  starPoints: 5,
+};
 
 export interface CropRect {
   x: number;
@@ -20,7 +32,7 @@ interface InteractiveCropBoxProps {
   aspectRatio?: number; // width / height or null for free
   crop: CropRect;
   onChange: (crop: CropRect) => void;
-  shape?: LogoShape;
+  shapeSettings?: LogoShapeSettings;
   minWidth?: number;
   minHeight?: number;
 }
@@ -34,10 +46,11 @@ export function InteractiveCropBox({
   aspectRatio,
   crop,
   onChange,
-  shape = 'none',
+  shapeSettings = DEFAULT_SHAPE_SETTINGS,
   minWidth = 1,
   minHeight = 1,
 }: InteractiveCropBoxProps) {
+  const { shape, rotation: shapeRotation } = shapeSettings;
   const shapeMaskId = useId().replace(/:/g, '');
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
@@ -376,38 +389,11 @@ export function InteractiveCropBox({
   const handleSize = Math.max(6, Math.min(10, Math.max(boxWidth, boxHeight) < 14 ? 6 : 10));
   const handleOffset = -handleSize / 2;
 
-  const shapeSize = Math.min(boxWidth, boxHeight);
-  const shapeX = (boxWidth - shapeSize) / 2;
-  const shapeY = (boxHeight - shapeSize) / 2;
-  const shapeMarkup = (fill: string, stroke: string = 'none') => {
-    const props = { fill, stroke, strokeWidth: 2 };
-    if (shape === 'circle') {
-      return <circle cx={boxWidth / 2} cy={boxHeight / 2} r={shapeSize / 2} {...props} />;
-    }
-    if (shape === 'rounded') {
-      return <rect x={shapeX} y={shapeY} width={shapeSize} height={shapeSize} rx={shapeSize * 0.2} {...props} />;
-    }
-    if (shape === 'hexagon') {
-      const points = Array.from({ length: 6 }, (_, i) => {
-        const angle = (Math.PI * i) / 3 - Math.PI / 2;
-        return `${boxWidth / 2 + Math.cos(angle) * shapeSize / 2},${boxHeight / 2 + Math.sin(angle) * shapeSize / 2}`;
-      }).join(' ');
-      return <polygon points={points} {...props} />;
-    }
-    if (shape === 'heart') {
-      const x = shapeX;
-      const y = shapeY;
-      const s = shapeSize;
-      const cx = boxWidth / 2;
-      const path = `M ${cx} ${y + s * 0.9}
-        C ${x + s * 0.12} ${y + s * 0.64}, ${x} ${y + s * 0.42}, ${x + s * 0.13} ${y + s * 0.22}
-        C ${x + s * 0.27} ${y}, ${x + s * 0.45} ${y + s * 0.09}, ${cx} ${y + s * 0.26}
-        C ${x + s * 0.55} ${y + s * 0.09}, ${x + s * 0.73} ${y}, ${x + s * 0.87} ${y + s * 0.22}
-        C ${x + s} ${y + s * 0.42}, ${x + s * 0.88} ${y + s * 0.64}, ${cx} ${y + s * 0.9} Z`;
-      return <path d={path} {...props} />;
-    }
-    return <rect x={shapeX} y={shapeY} width={shapeSize} height={shapeSize} {...props} />;
-  };
+  const fitScale = getShapeFitScale(shape, boxWidth, boxHeight, shapeRotation);
+  const centerX = boxWidth / 2;
+  const centerY = boxHeight / 2;
+  const shapeTransform = `translate(${centerX} ${centerY}) rotate(${shapeRotation}) scale(${fitScale}) translate(${-centerX} ${-centerY})`;
+  const shapePath = shape === 'none' ? '' : getLogoShapePath(shapeSettings, boxWidth, boxHeight);
 
   const handles = [
     { pos: 'nw', cursor: 'nwse-resize', top: handleOffset, left: handleOffset },
@@ -521,11 +507,11 @@ export function InteractiveCropBox({
               <defs>
                 <mask id={shapeMaskId}>
                   <rect width={boxWidth} height={boxHeight} fill="white" />
-                  {shapeMarkup('black')}
+                  <path d={shapePath} fill="black" transform={shapeTransform} />
                 </mask>
               </defs>
               <rect width={boxWidth} height={boxHeight} fill="rgba(0, 0, 0, 0.65)" mask={`url(#${shapeMaskId})`} />
-              {shapeMarkup('none', '#38bdf8')}
+              <path d={shapePath} fill="none" stroke="#38bdf8" strokeWidth={2} transform={shapeTransform} />
             </svg>
           )}
           {shape === 'none' && showGrid && (
