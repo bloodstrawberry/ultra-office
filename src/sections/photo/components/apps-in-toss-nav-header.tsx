@@ -30,7 +30,7 @@ export const APPS_IN_TOSS_TABS: AppsInTossTabItem[] = [
     label: '로고 만들기',
     badge: '600×600',
     title: '로고 / 아이콘 맞춤 생성기',
-    description: '정사각형 크롭 및 600×600 고해상도 앱 아이콘과 프로필 이미지를 생성합니다.',
+    description: '이미지에서 원형 등 원하는 도형을 선택하고 바깥을 투명하게 만든 PNG 로고를 생성합니다.',
     icon: <CropSquareRoundedIcon sx={{ fontSize: 20 }} />,
   },
   {

@@ -1,16 +1,20 @@
 'use client';
 
 import { toast } from 'sonner';
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
+import Select from '@mui/material/Select';
 import Tooltip from '@mui/material/Tooltip';
+import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
+import InputLabel from '@mui/material/InputLabel';
+import FormControl from '@mui/material/FormControl';
 import InputAdornment from '@mui/material/InputAdornment';
 import CircularProgress from '@mui/material/CircularProgress';
 import LockRoundedIcon from '@mui/icons-material/LockRounded';
@@ -23,9 +27,10 @@ import AspectRatioRoundedIcon from '@mui/icons-material/AspectRatioRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
+import { downloadDataUrl, shareToKakaoTalk } from '../utils/image-processor';
+import { type LogoShape, renderShapedLogo } from '../utils/shaped-logo-processor';
 import { type CropRect, InteractiveCropBox } from '../components/interactive-crop-box';
 import { AppsInTossNavHeader, PhotoUploadWorkspace, type SampleImageItem } from '../components';
-import { downloadDataUrl, shareToKakaoTalk, cropAndResizeLogo } from '../utils/image-processor';
 
 const LOGO_SAMPLE_IMAGES: SampleImageItem[] = [
   {
@@ -52,6 +57,15 @@ const LOGO_SAMPLE_IMAGES: SampleImageItem[] = [
 
 const MIN_SIZE = 1;
 const MAX_SIZE = 16384;
+
+const LOGO_SHAPES: { value: LogoShape; label: string }[] = [
+  { value: 'circle', label: '원형' },
+  { value: 'rounded', label: '둥근 사각형' },
+  { value: 'square', label: '정사각형' },
+  { value: 'hexagon', label: '육각형' },
+  { value: 'heart', label: '하트' },
+  { value: 'none', label: '도형 없음 · 기존 크롭' },
+];
 
 interface RatioPreset {
   label: string;
@@ -137,6 +151,7 @@ export function LogoView() {
   const [widthInput, setWidthInput] = useState<string>('600');
   const [heightInput, setHeightInput] = useState<string>('600');
   const [isAspectLocked, setIsAspectLocked] = useState<boolean>(true);
+  const [shape, setShape] = useState<LogoShape>('circle');
   const [resultDataUrl, setResultDataUrl] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [rightPanelWidth, setRightPanelWidth] = useState<number>(380);
@@ -145,6 +160,7 @@ export function LogoView() {
   const resizeStartXRef = useRef<number>(0);
   const resizeStartWidthRef = useRef<number>(380);
   const naturalDimensionsRef = useRef<{ width: number; height: number }>({ width: 0, height: 0 });
+  const renderRequestRef = useRef(0);
 
   const handleDividerPointerDown = (e: React.PointerEvent) => {
     e.preventDefault();
@@ -173,22 +189,32 @@ export function LogoView() {
     }
   };
 
-  const generateLogo = useCallback(
-    async (
-      src: string,
-      cropArea: CropRect,
-      targetWidth: number = outputWidth,
-      targetHeight: number = outputHeight
-    ) => {
-      try {
-        const outUrl = await cropAndResizeLogo(src, cropArea, targetWidth, targetHeight);
-        setResultDataUrl(outUrl);
-      } catch {
-        // ignore
+  const generateLogo = useCallback(async (
+    src: string,
+    cropArea: CropRect,
+    targetWidth: number,
+    targetHeight: number
+  ) => {
+    const request = ++renderRequestRef.current;
+    setResultDataUrl('');
+    try {
+      const outUrl = await renderShapedLogo(src, cropArea, targetWidth, targetHeight, shape);
+      if (request === renderRequestRef.current) setResultDataUrl(outUrl);
+    } catch {
+      if (request === renderRequestRef.current) {
+        setResultDataUrl('');
+        toast.error('로고 미리보기를 만들지 못했습니다.');
       }
-    },
-    [outputWidth, outputHeight]
-  );
+    }
+  }, [shape]);
+
+  useEffect(() => {
+    if (imageSrc) generateLogo(imageSrc, crop, outputWidth, outputHeight);
+    else {
+      renderRequestRef.current += 1;
+      setResultDataUrl('');
+    }
+  }, [imageSrc, crop, outputWidth, outputHeight, generateLogo]);
 
   const loadSampleImage = useCallback(
     (url: string) => {
@@ -219,11 +245,10 @@ export function LogoView() {
           height: Math.max(1, Math.round(cropH)),
         };
         setCrop(initialCrop);
-        generateLogo(url, initialCrop, outputWidth, outputHeight);
       };
       img.src = url;
     },
-    [generateLogo, outputWidth, outputHeight]
+    [outputWidth, outputHeight]
   );
 
   const processFile = useCallback(
@@ -259,20 +284,16 @@ export function LogoView() {
             height: Math.max(1, Math.round(cropH)),
           };
           setCrop(initialCrop);
-          generateLogo(src, initialCrop, outputWidth, outputHeight);
         };
         img.src = src;
       };
       reader.readAsDataURL(file);
     },
-    [generateLogo, outputWidth, outputHeight]
+    [outputWidth, outputHeight]
   );
 
   const handleCropChange = (newCrop: CropRect) => {
     setCrop(newCrop);
-    if (imageSrc) {
-      generateLogo(imageSrc, newCrop, outputWidth, outputHeight);
-    }
   };
 
   const handleCommitWidth = () => {
@@ -302,10 +323,6 @@ export function LogoView() {
       naturalDimensionsRef.current.height
     );
     setCrop(adjustedCrop);
-
-    if (imageSrc) {
-      generateLogo(imageSrc, adjustedCrop, num, nextH);
-    }
   };
 
   const handleCommitHeight = () => {
@@ -335,10 +352,6 @@ export function LogoView() {
       naturalDimensionsRef.current.height
     );
     setCrop(adjustedCrop);
-
-    if (imageSrc) {
-      generateLogo(imageSrc, adjustedCrop, nextW, num);
-    }
   };
 
   const handleSelectPreset = (preset: RatioPreset) => {
@@ -355,10 +368,6 @@ export function LogoView() {
       naturalDimensionsRef.current.height
     );
     setCrop(adjustedCrop);
-
-    if (imageSrc) {
-      generateLogo(imageSrc, adjustedCrop, preset.width, preset.height);
-    }
   };
 
   const handleSave = async () => {
@@ -394,6 +403,10 @@ export function LogoView() {
     }
   };
 
+  const selectedPresetIndex = RATIO_PRESETS.findIndex(
+    (preset) => preset.width === outputWidth && preset.height === outputHeight
+  );
+
   return (
     <DashboardContent
       sx={{
@@ -424,7 +437,7 @@ export function LogoView() {
             gap: { xs: 2, md: 0 },
             flex: '1 1 auto',
             minHeight: 0,
-            height: '100%',
+            height: { xs: 'auto', md: '100%' },
             position: 'relative',
           }}
         >
@@ -436,7 +449,7 @@ export function LogoView() {
               flex: '1 1 0px',
               minWidth: 0,
               minHeight: 0,
-              height: '100%',
+              height: { xs: 'auto', md: '100%' },
               pr: { md: 1 },
             }}
           >
@@ -448,7 +461,7 @@ export function LogoView() {
                 flexDirection: 'column',
                 flex: '1 1 auto',
                 minHeight: 0,
-                height: '100%',
+                height: { xs: 400, md: '100%' },
               }}
             >
               <Box
@@ -461,7 +474,7 @@ export function LogoView() {
                 }}
               >
                 <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                  크롭 영역 드래그 & 조절
+                  도형 선택 영역 드래그 & 조절
                 </Typography>
                 <Chip
                   size="small"
@@ -476,7 +489,7 @@ export function LogoView() {
                   position: 'relative',
                   width: '100%',
                   flex: '1 1 auto',
-                  minHeight: 0,
+                  minHeight: { xs: 300, md: 0 },
                   height: '100%',
                   borderRadius: 0,
                   overflow: 'hidden',
@@ -488,6 +501,7 @@ export function LogoView() {
                   naturalWidth={imageDimensions.width}
                   naturalHeight={imageDimensions.height}
                   aspectRatio={outputWidth / (outputHeight || 1)}
+                  shape={shape}
                   crop={crop}
                   onChange={handleCropChange}
                 />
@@ -547,13 +561,13 @@ export function LogoView() {
             }}
           >
             {/* Resolution Setting Card */}
-            <Card sx={{ p: 2.5, borderRadius: 2 }}>
+            <Card sx={{ p: 2, borderRadius: 2 }}>
               <Box
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  mb: 1.5,
+                  mb: 1.25,
                 }}
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -581,7 +595,7 @@ export function LogoView() {
               </Box>
 
               {/* Width & Height Inputs */}
-              <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', mb: 2 }}>
+              <Box sx={{ display: 'flex', gap: 1.25, alignItems: 'center', mb: 1.5 }}>
                 <TextField
                   fullWidth
                   size="small"
@@ -625,29 +639,52 @@ export function LogoView() {
                 />
               </Box>
 
-              <Typography
-                variant="caption"
-                sx={{ color: 'text.secondary', fontWeight: 600, mb: 1, display: 'block' }}
-              >
-                규격 프리셋 선택
+              <FormControl fullWidth size="small">
+                <InputLabel id="logo-resolution-preset-label">규격 프리셋</InputLabel>
+                <Select
+                  labelId="logo-resolution-preset-label"
+                  value={selectedPresetIndex >= 0 ? selectedPresetIndex : 'custom'}
+                  label="규격 프리셋"
+                  onChange={(event) => {
+                    const preset = RATIO_PRESETS[Number(event.target.value)];
+                    if (preset) handleSelectPreset(preset);
+                  }}
+                  sx={{ '& .MuiSelect-select': { fontWeight: 600 } }}
+                >
+                  {selectedPresetIndex < 0 && (
+                    <MenuItem value="custom" disabled>
+                      사용자 지정 · {outputWidth} × {outputHeight} px
+                    </MenuItem>
+                  )}
+                  {RATIO_PRESETS.map((preset, index) => (
+                    <MenuItem key={preset.label} value={index}>
+                      {preset.label} · {preset.width} × {preset.height} px
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Card>
+
+            <Card sx={{ p: 2.5, borderRadius: 2 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
+                도형 로고 만들기
               </Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
-                {RATIO_PRESETS.map((preset) => {
-                  const isCurrent = outputWidth === preset.width && outputHeight === preset.height;
-                  return (
-                    <Chip
-                      key={preset.label}
-                      label={`${preset.label} (${preset.width}×${preset.height})`}
-                      size="small"
-                      clickable
-                      color={isCurrent ? 'primary' : 'default'}
-                      variant={isCurrent ? 'filled' : 'outlined'}
-                      onClick={() => handleSelectPreset(preset)}
-                      sx={{ fontWeight: isCurrent ? 700 : 500 }}
-                    />
-                  );
-                })}
-              </Box>
+              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 2 }}>
+                왼쪽 이미지에서 도형을 드래그·조절하세요. 선택한 도형 밖은 투명해집니다.
+              </Typography>
+              <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                <InputLabel id="logo-shape-label">도형</InputLabel>
+                <Select
+                  labelId="logo-shape-label"
+                  value={shape}
+                  label="도형"
+                  onChange={(event) => setShape(event.target.value as LogoShape)}
+                >
+                  {LOGO_SHAPES.map((item) => (
+                    <MenuItem key={item.value} value={item.value}>{item.label}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Card>
 
             {/* Preview Card */}
@@ -686,7 +723,10 @@ export function LogoView() {
                   height: 180,
                   borderRadius: 0,
                   overflow: 'hidden',
-                  bgcolor: '#0f172a',
+                  bgcolor: '#f8fafc',
+                  backgroundImage: 'linear-gradient(45deg, #e2e8f0 25%, transparent 25%), linear-gradient(-45deg, #e2e8f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e2e8f0 75%), linear-gradient(-45deg, transparent 75%, #e2e8f0 75%)',
+                  backgroundSize: '20px 20px',
+                  backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0',
                   boxShadow: '0 10px 25px -5px rgba(0,0,0,0.3)',
                   border: '2px solid rgba(255,255,255,0.1)',
                   display: 'flex',
@@ -713,7 +753,7 @@ export function LogoView() {
               </Box>
 
               <Typography variant="caption" sx={{ color: 'text.secondary', textAlign: 'center' }}>
-                포맷: PNG 무손실 고해상도 출력
+                포맷: PNG 무손실 고해상도 출력{shape !== 'none' ? ' · 도형 밖 투명' : ''}
               </Typography>
             </Card>
 

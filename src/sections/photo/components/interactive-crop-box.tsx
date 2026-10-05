@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import type { LogoShape } from '../utils/shaped-logo-processor';
+
+import React, { useId, useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 
@@ -18,6 +20,7 @@ interface InteractiveCropBoxProps {
   aspectRatio?: number; // width / height or null for free
   crop: CropRect;
   onChange: (crop: CropRect) => void;
+  shape?: LogoShape;
   minWidth?: number;
   minHeight?: number;
 }
@@ -31,9 +34,11 @@ export function InteractiveCropBox({
   aspectRatio,
   crop,
   onChange,
+  shape = 'none',
   minWidth = 1,
   minHeight = 1,
 }: InteractiveCropBoxProps) {
+  const shapeMaskId = useId().replace(/:/g, '');
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
 
@@ -371,6 +376,39 @@ export function InteractiveCropBox({
   const handleSize = Math.max(6, Math.min(10, Math.max(boxWidth, boxHeight) < 14 ? 6 : 10));
   const handleOffset = -handleSize / 2;
 
+  const shapeSize = Math.min(boxWidth, boxHeight);
+  const shapeX = (boxWidth - shapeSize) / 2;
+  const shapeY = (boxHeight - shapeSize) / 2;
+  const shapeMarkup = (fill: string, stroke: string = 'none') => {
+    const props = { fill, stroke, strokeWidth: 2 };
+    if (shape === 'circle') {
+      return <circle cx={boxWidth / 2} cy={boxHeight / 2} r={shapeSize / 2} {...props} />;
+    }
+    if (shape === 'rounded') {
+      return <rect x={shapeX} y={shapeY} width={shapeSize} height={shapeSize} rx={shapeSize * 0.2} {...props} />;
+    }
+    if (shape === 'hexagon') {
+      const points = Array.from({ length: 6 }, (_, i) => {
+        const angle = (Math.PI * i) / 3 - Math.PI / 2;
+        return `${boxWidth / 2 + Math.cos(angle) * shapeSize / 2},${boxHeight / 2 + Math.sin(angle) * shapeSize / 2}`;
+      }).join(' ');
+      return <polygon points={points} {...props} />;
+    }
+    if (shape === 'heart') {
+      const x = shapeX;
+      const y = shapeY;
+      const s = shapeSize;
+      const cx = boxWidth / 2;
+      const path = `M ${cx} ${y + s * 0.9}
+        C ${x + s * 0.12} ${y + s * 0.64}, ${x} ${y + s * 0.42}, ${x + s * 0.13} ${y + s * 0.22}
+        C ${x + s * 0.27} ${y}, ${x + s * 0.45} ${y + s * 0.09}, ${cx} ${y + s * 0.26}
+        C ${x + s * 0.55} ${y + s * 0.09}, ${x + s * 0.73} ${y}, ${x + s * 0.87} ${y + s * 0.22}
+        C ${x + s} ${y + s * 0.42}, ${x + s * 0.88} ${y + s * 0.64}, ${cx} ${y + s * 0.9} Z`;
+      return <path d={path} {...props} />;
+    }
+    return <rect x={shapeX} y={shapeY} width={shapeSize} height={shapeSize} {...props} />;
+  };
+
   const handles = [
     { pos: 'nw', cursor: 'nwse-resize', top: handleOffset, left: handleOffset },
     { pos: 'ne', cursor: 'nesw-resize', top: handleOffset, right: handleOffset },
@@ -464,14 +502,33 @@ export function InteractiveCropBox({
             minWidth: '1px',
             minHeight: '1px',
             boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.65)',
-            border: '2px solid #38bdf8',
+            border: shape === 'none' ? '2px solid #38bdf8' : '2px dashed rgba(56, 189, 248, 0.7)',
             cursor: 'move',
             zIndex: 10,
           }}
           onPointerDown={(e) => handlePointerDown('move', e)}
         >
           {/* Grid lines (Rule of thirds) */}
-          {showGrid && (
+          {shape !== 'none' && (
+            <svg
+              width="100%"
+              height="100%"
+              viewBox={`0 0 ${boxWidth} ${boxHeight}`}
+              preserveAspectRatio="none"
+              style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
+              aria-hidden="true"
+            >
+              <defs>
+                <mask id={shapeMaskId}>
+                  <rect width={boxWidth} height={boxHeight} fill="white" />
+                  {shapeMarkup('black')}
+                </mask>
+              </defs>
+              <rect width={boxWidth} height={boxHeight} fill="rgba(0, 0, 0, 0.65)" mask={`url(#${shapeMaskId})`} />
+              {shapeMarkup('none', '#38bdf8')}
+            </svg>
+          )}
+          {shape === 'none' && showGrid && (
             <Box
               sx={{
                 position: 'absolute',
