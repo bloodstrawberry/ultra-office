@@ -323,6 +323,7 @@ export function SqldSqlPractice({ problem, problemKey, problemIndex }: Props) {
       >
         {/* Modal Title */}
         <DialogTitle
+          component="div"
           sx={{
             display: 'flex',
             alignItems: 'center',
@@ -350,7 +351,7 @@ export function SqldSqlPractice({ problem, problemKey, problemIndex }: Props) {
             >
               {typeof problemIndex === 'number' ? problemIndex + 1 : 'Q'}
             </Box>
-            <Typography variant="h6" sx={{ fontWeight: 800 }}>
+            <Typography variant="h6" component="h2" sx={{ fontWeight: 800 }}>
               SQL 실습 & 쿼리 검증
             </Typography>
             {problem.hashtags?.map((tag, tIdx) => (

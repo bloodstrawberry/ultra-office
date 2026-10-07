@@ -37,15 +37,23 @@ export function SqlWalkthroughDialog({ sql, onClose }: Props) {
       onClose={onClose}
       fullWidth
       fullScreen={isSmall}
-      maxWidth="md"
+      maxWidth="lg"
       aria-labelledby="sqld-sql-walkthrough-title"
-      sx={{ '& .MuiDialog-paper': { maxHeight: isSmall ? '100dvh' : '92dvh' } }}
+      sx={{
+        '& .MuiDialog-paper': {
+          height: isSmall ? '100dvh' : '90vh',
+          maxHeight: isSmall ? '100dvh' : '90vh',
+          display: 'flex',
+          flexDirection: 'column',
+        },
+      }}
     >
       <DialogTitle
         id="sqld-sql-walkthrough-title"
-        sx={{ display: 'flex', alignItems: 'center', gap: 1, pr: 1.5 }}
+        component="div"
+        sx={{ display: 'flex', alignItems: 'center', gap: 1, pr: 1.5, flexShrink: 0 }}
       >
-        <Typography variant="h6" sx={{ flex: 1, fontWeight: 800 }}>
+        <Typography variant="h6" component="h2" sx={{ flex: 1, fontWeight: 800 }}>
           SQL 단계별 원리
         </Typography>
         <IconButton onClick={onClose} aria-label="단계별 원리 닫기">
@@ -53,7 +61,17 @@ export function SqlWalkthroughDialog({ sql, onClose }: Props) {
         </IconButton>
       </DialogTitle>
 
-      <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <DialogContent
+        dividers
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
+          flex: 1,
+          minHeight: 0,
+          overflowY: 'auto',
+        }}
+      >
         <Alert severity="info" sx={{ flexShrink: 0 }}>
           입력한 SQL의 구조를 읽는 학습용 순서입니다. 실제 물리적 실행 순서와 최적화 방식은
           데이터베이스마다 다를 수 있습니다.
@@ -151,7 +169,7 @@ export function SqlWalkthroughDialog({ sql, onClose }: Props) {
         )}
       </DialogContent>
 
-      <DialogActions sx={{ px: 2, py: 1.25, justifyContent: 'space-between' }}>
+      <DialogActions sx={{ px: 2, py: 1.25, justifyContent: 'space-between', flexShrink: 0 }}>
         <Button
           startIcon={<NavigateBeforeRoundedIcon />}
           disabled={activeIndex <= 0}

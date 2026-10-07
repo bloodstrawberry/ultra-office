@@ -2,11 +2,11 @@
 
 import JSZip from 'jszip';
 import { toast } from 'sonner';
-import { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
-import Stack from '@mui/material/Stack';
+import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
 import Slider from '@mui/material/Slider';
 import Typography from '@mui/material/Typography';
@@ -14,14 +14,17 @@ import IconButton from '@mui/material/IconButton';
 import ToggleButton from '@mui/material/ToggleButton';
 import CircularProgress from '@mui/material/CircularProgress';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
 import UploadRoundedIcon from '@mui/icons-material/UploadRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
+import BorderAllRoundedIcon from '@mui/icons-material/BorderAllRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { PhotoUploadWorkspace } from 'src/sections/photo/components';
+import { shareToKakaoTalk } from 'src/sections/photo/utils/image-processor';
 
 import { loadWebtoonSample, WEBTOON_SAMPLE_IMAGES } from './webtoon-samples';
 import { type SignAsset, findSignBounds, drawSignedImage, type SignOptions } from './sign-renderer';
@@ -46,20 +49,29 @@ const DEFAULT_OPTIONS: SignOptions = {
 };
 
 const SIGN_PRESETS = [
-  { file: 'sign-blood-eng1.png', label: '피로물든딸기 영문 1' },
-  { file: 'sign-blood-eng2.png', label: '피로물든딸기 영문 2' },
-  { file: 'sign-blood-kor.png', label: '피로물든딸기 한글' },
-  { file: 'sign-employee-eng.png', label: '이달의 우수사원 영문' },
-  { file: 'sign-employee-kor.png', label: '이달의 우수사원 한글' },
+  { file: 'sign-blood-eng1.png', label: '피로물든딸기 영문 1', desc: 'Blood Strawberry Cursive' },
+  { file: 'sign-blood-eng2.png', label: '피로물든딸기 영문 2', desc: 'Blood Strawberry Modern' },
+  { file: 'sign-blood-kor.png', label: '피로물든딸기 한글', desc: '피로물든딸기 캘리그라피' },
+  { file: 'sign-employee-eng.png', label: '이달의 우수사원 영문', desc: 'Employee MVP Signature' },
+  { file: 'sign-employee-kor.png', label: '이달의 우수사원 한글', desc: '이달의 우수사원 캘리' },
 ] as const;
 
 const signUrl = (file: string) => `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/sign/${file}`;
 
-function OptionSlider({
+const SIGN_PANEL_TABS = [
+  { id: 'presets', label: '싸인 선택' },
+  { id: 'layout', label: '여백 & 배치' },
+  { id: 'images', label: '이미지 목록' },
+] as const;
+
+type SignPanelTab = (typeof SIGN_PANEL_TABS)[number]['id'];
+
+function CompactSlider({
   label,
   value,
   min,
   max,
+  step = 1,
   onChange,
   suffix = '%',
 }: {
@@ -67,25 +79,33 @@ function OptionSlider({
   value: number;
   min: number;
   max: number;
+  step?: number;
   onChange: (value: number) => void;
   suffix?: string;
 }) {
   return (
-    <Box>
-      <Stack direction="row" justifyContent="space-between">
-        <Typography variant="body2">{label}</Typography>
-        <Typography variant="caption" color="text.secondary">
+    <Box sx={{ mb: 0.85 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.25 }}>
+        <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
+          {label}
+        </Typography>
+        <Typography
+          variant="caption"
+          sx={{ fontWeight: 700, color: 'primary.main', fontSize: '0.75rem' }}
+        >
           {value}
           {suffix}
         </Typography>
-      </Stack>
+      </Box>
       <Slider
         size="small"
         value={value}
         min={min}
         max={max}
+        step={step}
         onChange={(_, next) => onChange(next as number)}
         aria-label={label}
+        sx={{ py: 0.4 }}
       />
     </Box>
   );
@@ -141,15 +161,51 @@ export function WebtoonSignView() {
   const urlsRef = useRef(new Set<string>());
   const mountedRef = useRef(true);
   const draggingRef = useRef(false);
+
   const [items, setItems] = useState<ImageItem[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [options, setOptions] = useState<SignOptions>(DEFAULT_OPTIONS);
   const [settingsReady, setSettingsReady] = useState(false);
   const [signAsset, setSignAsset] = useState<SignAsset | null>(null);
   const [exporting, setExporting] = useState(false);
+
+  const [activeTab, setActiveTab] = useState<SignPanelTab>('presets');
+  const [rightPanelWidth, setRightPanelWidth] = useState<number>(380);
+
+  const isResizingRef = useRef<boolean>(false);
+  const resizeStartXRef = useRef<number>(0);
+  const resizeStartWidthRef = useRef<number>(380);
+
   const selected = items.find((item) => item.id === selectedId) ?? items[0];
   const activeSign = signAsset?.file === options.signFile ? signAsset : null;
   const signReady = !options.signFile || !!activeSign;
+
+  const handleDividerPointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    isResizingRef.current = true;
+    resizeStartXRef.current = e.clientX;
+    resizeStartWidthRef.current = rightPanelWidth;
+  };
+
+  const handleDividerPointerMove = (e: React.PointerEvent) => {
+    if (!isResizingRef.current) return;
+    const deltaX = resizeStartXRef.current - e.clientX;
+    const newWidth = Math.max(300, Math.min(650, resizeStartWidthRef.current + deltaX));
+    setRightPanelWidth(newWidth);
+  };
+
+  const handleDividerPointerUp = (e: React.PointerEvent) => {
+    if (isResizingRef.current) {
+      isResizingRef.current = false;
+      try {
+        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+      } catch {
+        // ignore
+      }
+    }
+  };
 
   useEffect(() => {
     mountedRef.current = true;
@@ -193,7 +249,7 @@ export function WebtoonSignView() {
         }
       }
     } catch {
-      // A corrupt or unavailable local store should not prevent editing.
+      // ignore
     }
     setSettingsReady(true);
   }, []);
@@ -203,7 +259,7 @@ export function WebtoonSignView() {
     try {
       localStorage.setItem('webtoon-studio:sign-settings:v1', JSON.stringify(options));
     } catch {
-      // Browsers can disable or fill local storage; the current session still works.
+      // ignore
     }
   }, [options, settingsReady]);
 
@@ -338,369 +394,674 @@ export function WebtoonSignView() {
     }
   };
 
+  const handleShare = async () => {
+    if (!selected || exporting) return;
+    setExporting(true);
+    try {
+      const canvas = document.createElement('canvas');
+      drawSignedImage(canvas, selected.image, options, activeSign);
+      const dataUrl = canvas.toDataURL('image/png');
+      const res = await shareToKakaoTalk(
+        dataUrl,
+        '[Ultra Office] 웹툰 싸인 완성작',
+        `webtoon_sign_${Date.now()}.png`
+      );
+      toast.success(res.message);
+    } catch {
+      toast.error('공유 중 오류가 발생했습니다.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <DashboardContent
-      maxWidth={false}
-      sx={{ display: 'flex', flexDirection: 'column', minHeight: 0, height: '100%' }}
+      sx={{
+        flex: '1 1 auto',
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: 0,
+        height: '100%',
+        pb: { xs: 2, sm: 3 },
+      }}
     >
-      <Stack spacing={2} sx={{ flex: 1, minHeight: 0 }}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
-            웹툰 싸인추가
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            이미지에 여백과 둥근 모서리를 만들고 준비된 PNG 싸인을 원하는 위치에 배치하세요.
-          </Typography>
-        </Box>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*"
+      <Box sx={{ mb: 2, flexShrink: 0 }}>
+        <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
+          웹툰 싸인추가 스튜디오 (Webtoon Signature Studio)
+        </Typography>
+        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          이미지에 여백과 둥근 모서리를 만들고 준비된 시그니처 싸인을 원하는 위치에 자유롭게
+          배치합니다.
+        </Typography>
+      </Box>
+
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        multiple
+        hidden
+        onChange={(event) => {
+          if (event.target.files) void addFiles(event.target.files);
+          event.target.value = '';
+        }}
+      />
+
+      {!selected ? (
+        <PhotoUploadWorkspace
+          sampleImages={WEBTOON_SAMPLE_IMAGES}
+          onSelectSample={(url) => void selectSample(url)}
+          onFileSelect={(file) => void addFiles([file])}
+          onFilesSelect={(files) => void addFiles(files)}
           multiple
-          hidden
-          onChange={(event) => {
-            if (event.target.files) void addFiles(event.target.files);
-            event.target.value = '';
-          }}
+          title="싸인을 추가할 웹툰/사진 업로드"
+          subtitle="한 장 또는 여러 장을 드래그하거나 클릭하여 올려주세요."
+          icon={<BorderAllRoundedIcon sx={{ fontSize: 36 }} />}
         />
-        {!selected ? (
-          <PhotoUploadWorkspace
-            sampleImages={WEBTOON_SAMPLE_IMAGES}
-            onSelectSample={(url) => void selectSample(url)}
-            onFileSelect={(file) => void addFiles([file])}
-            onFilesSelect={(files) => void addFiles(files)}
-            multiple
-            title="싸인을 넣을 이미지 업로드"
-            subtitle="한 장 또는 여러 장을 드래그하거나 클립보드(Ctrl+V)에서 붙여넣으세요."
-          />
-        ) : (
-          <Stack direction={{ xs: 'column', lg: 'row' }} spacing={2} alignItems="flex-start">
+      ) : (
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            gap: { xs: 2, md: 0 },
+            flex: '1 1 auto',
+            minHeight: 0,
+            height: '100%',
+            position: 'relative',
+          }}
+        >
+          {/* Left: Viewport */}
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              flex: '1 1 0px',
+              minWidth: 0,
+              minHeight: 0,
+              height: '100%',
+              pr: { md: 1 },
+            }}
+          >
             <Card
               sx={{
-                p: 2,
-                width: { xs: '100%', lg: 260 },
-                flexShrink: 0,
-                maxHeight: { lg: 'calc(100vh - 160px)' },
-                overflowY: 'auto',
+                p: { xs: 1.5, sm: 2 },
+                borderRadius: 2,
+                display: 'flex',
+                flexDirection: 'column',
+                flex: '1 1 auto',
+                minHeight: 0,
+                height: '100%',
+                position: 'relative',
+                overflow: 'hidden',
+                bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'grey.900' : 'grey.100'),
               }}
             >
-              <Stack spacing={2}>
-                <Typography variant="h6">싸인 설정</Typography>
-                <Typography variant="body2">싸인 이미지</Typography>
+              {/* Top Viewport Info */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  mb: 1.5,
+                  flexShrink: 0,
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Chip
+                    size="small"
+                    label={`원본 ${selected.image.naturalWidth} × ${selected.image.naturalHeight}px`}
+                    variant="outlined"
+                    sx={{ fontWeight: 600, fontSize: '0.72rem' }}
+                  />
+                  <Chip
+                    size="small"
+                    color="primary"
+                    variant="soft"
+                    label={`출력 ${Math.round(selected.image.naturalWidth * (1 + options.padding / 50))} × ${Math.round(selected.image.naturalHeight + (selected.image.naturalWidth * (options.padding + options.footer)) / 100)}px`}
+                    sx={{ fontWeight: 700, fontSize: '0.72rem' }}
+                  />
+                </Box>
+                <Chip
+                  size="small"
+                  label={`이미지 ${items.length}장`}
+                  sx={{ fontWeight: 600, fontSize: '0.72rem' }}
+                />
+              </Box>
+
+              {/* Canvas Center Preview */}
+              <Box
+                sx={{
+                  flex: '1 1 0px',
+                  minHeight: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'auto',
+                  p: 1,
+                  userSelect: 'none',
+                }}
+              >
                 <Box
-                  sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 1 }}
+                  sx={{
+                    position: 'relative',
+                    display: 'inline-block',
+                    boxShadow: 4,
+                    borderRadius: 1,
+                    overflow: 'hidden',
+                    lineHeight: 0,
+                    backgroundImage:
+                      options.backgroundMode === 'transparent'
+                        ? 'conic-gradient(#e0e0e0 25%, #ffffff 0 50%, #e0e0e0 0 75%, #ffffff 0)'
+                        : 'none',
+                    backgroundSize: '20px 20px',
+                    bgcolor: options.backgroundMode === 'white' ? '#ffffff' : 'transparent',
+                  }}
                 >
-                  <Button
-                    size="small"
-                    variant={options.signFile === null ? 'contained' : 'outlined'}
-                    onClick={() => updateOption('signFile', null)}
-                    sx={{ minHeight: 64 }}
-                  >
-                    사용 안 함
-                  </Button>
-                  {SIGN_PRESETS.map(({ file, label }) => (
-                    <Button
-                      key={file}
-                      size="small"
-                      variant={options.signFile === file ? 'contained' : 'outlined'}
-                      onClick={() => updateOption('signFile', file)}
-                      aria-label={label}
-                      sx={{ minWidth: 0, minHeight: 64, flexDirection: 'column', gap: 0.5, p: 0.5 }}
-                    >
-                      <Box
-                        aria-hidden="true"
-                        sx={{
-                          width: '100%',
-                          height: 34,
-                          bgcolor: 'white',
-                          borderRadius: 1,
-                          backgroundImage: `url("${signUrl(file)}")`,
-                          backgroundSize: 'auto 180px',
-                          backgroundPosition: 'right bottom',
-                          backgroundRepeat: 'no-repeat',
-                        }}
-                      />
-                      <Typography variant="caption" sx={{ lineHeight: 1.2, color: 'inherit' }}>
-                        {label}
-                      </Typography>
-                    </Button>
-                  ))}
-                </Box>
-                <Box>
-                  <Typography variant="body2" sx={{ mb: 1 }}>
-                    여백 배경
-                  </Typography>
-                  <ToggleButtonGroup
-                    size="small"
-                    fullWidth
-                    exclusive
-                    value={options.backgroundMode}
-                    onChange={(_, value: SignOptions['backgroundMode'] | null) => {
-                      if (value) updateOption('backgroundMode', value);
+                  <canvas
+                    ref={previewRef}
+                    aria-label="싸인 적용 미리보기"
+                    onPointerDown={(event) => {
+                      if (!options.signFile) return;
+                      draggingRef.current = true;
+                      event.currentTarget.setPointerCapture(event.pointerId);
+                      placeSign(event);
                     }}
-                    aria-label="여백 배경"
-                  >
-                    <ToggleButton value="white">흰색</ToggleButton>
-                    <ToggleButton value="transparent">투명</ToggleButton>
-                  </ToggleButtonGroup>
+                    onPointerMove={(event) => {
+                      if (draggingRef.current) placeSign(event);
+                    }}
+                    onPointerUp={() => {
+                      draggingRef.current = false;
+                    }}
+                    onPointerCancel={() => {
+                      draggingRef.current = false;
+                    }}
+                    style={{
+                      display: 'block',
+                      maxWidth: '100%',
+                      maxHeight: 'calc(100vh - 270px)',
+                      width: 'auto',
+                      height: 'auto',
+                      touchAction: 'none',
+                      cursor: options.signFile ? 'crosshair' : 'default',
+                    }}
+                  />
                 </Box>
-                <OptionSlider
-                  label="바깥 여백"
-                  value={options.padding}
-                  min={0}
-                  max={25}
-                  onChange={(value) => updateOption('padding', value)}
-                />
-                <OptionSlider
-                  label="하단 여백"
-                  value={options.footer}
-                  min={0}
-                  max={30}
-                  onChange={(value) => updateOption('footer', value)}
-                />
-                <OptionSlider
-                  label="모서리 둥글기"
-                  value={options.radius}
-                  min={0}
-                  max={30}
-                  onChange={(value) => updateOption('radius', value)}
-                />
-                <OptionSlider
-                  label="싸인 크기"
+              </Box>
+
+              {/* Bottom Instructions */}
+              <Typography
+                variant="caption"
+                sx={{
+                  color: 'text.secondary',
+                  textAlign: 'center',
+                  mt: 1,
+                  flexShrink: 0,
+                  fontSize: '0.72rem',
+                }}
+              >
+                미리보기를 클릭하거나 드래그하여 싸인 위치를 실시간으로 변경할 수 있습니다.
+              </Typography>
+            </Card>
+          </Box>
+
+          {/* Draggable Divider */}
+          <Box
+            onPointerDown={handleDividerPointerDown}
+            onPointerMove={handleDividerPointerMove}
+            onPointerUp={handleDividerPointerUp}
+            sx={{
+              display: { xs: 'none', md: 'flex' },
+              width: 16,
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'col-resize',
+              userSelect: 'none',
+              touchAction: 'none',
+              zIndex: 10,
+              flexShrink: 0,
+              position: 'relative',
+              '&:hover .divider-bar, &:active .divider-bar': {
+                bgcolor: 'primary.main',
+                width: '3px',
+              },
+            }}
+          >
+            <Box
+              className="divider-bar"
+              sx={{
+                width: '2px',
+                height: '100%',
+                bgcolor: 'divider',
+                borderRadius: '1px',
+                transition: 'all 0.15s ease',
+              }}
+            />
+          </Box>
+
+          {/* Right: Settings Panel */}
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              width: { xs: '100%', md: `${rightPanelWidth}px` },
+              minWidth: { md: `${rightPanelWidth}px` },
+              maxWidth: { md: `${rightPanelWidth}px` },
+              flexShrink: 0,
+              gap: 1.25,
+              minHeight: 0,
+              height: '100%',
+              overflow: { xs: 'auto', md: 'hidden' },
+              pl: { md: 1 },
+              pr: 0.5,
+            }}
+          >
+            <Card
+              sx={{
+                p: { xs: 1.75, sm: 2 },
+                borderRadius: 2,
+                display: 'flex',
+                flexDirection: 'column',
+                flex: '1 1 auto',
+                minHeight: 0,
+                height: '100%',
+              }}
+            >
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.75, flexShrink: 0 }}>
+                싸인 & 여백 설정
+              </Typography>
+
+              {/* Tabs */}
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1.25, flexShrink: 0 }}>
+                {SIGN_PANEL_TABS.map((tab) => (
+                  <Chip
+                    key={tab.id}
+                    label={tab.label}
+                    size="small"
+                    clickable
+                    color={activeTab === tab.id ? 'primary' : 'default'}
+                    variant={activeTab === tab.id ? 'filled' : 'outlined'}
+                    onClick={() => setActiveTab(tab.id)}
+                    sx={{ fontWeight: 600, fontSize: '0.72rem', height: 26 }}
+                  />
+                ))}
+              </Box>
+
+              {/* Dynamic Scroll Section */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  flex: '1 1 0px',
+                  minHeight: 0,
+                  overflowY: 'auto',
+                  pr: 0.5,
+                  mb: 1.25,
+                  '&::-webkit-scrollbar': { width: '5px' },
+                  '&::-webkit-scrollbar-track': { bgcolor: 'transparent' },
+                  '&::-webkit-scrollbar-thumb': { bgcolor: 'divider', borderRadius: '3px' },
+                  '&::-webkit-scrollbar-thumb:hover': { bgcolor: 'text.disabled' },
+                }}
+              >
+                {/* TAB 1: Presets */}
+                {activeTab === 'presets' && (
+                  <ToggleButtonGroup
+                    orientation="vertical"
+                    value={options.signFile ?? ''}
+                    exclusive
+                    fullWidth
+                    sx={{ display: 'flex', flexDirection: 'column', gap: 0.6 }}
+                  >
+                    <ToggleButton
+                      value=""
+                      onClick={() => updateOption('signFile', null)}
+                      sx={{
+                        justifyContent: 'flex-start',
+                        borderRadius: 1.5,
+                        border: '1px solid',
+                        borderColor: options.signFile === null ? 'primary.main' : 'divider',
+                        p: '7px 10px',
+                        textAlign: 'left',
+                        bgcolor: options.signFile === null ? 'primary.lighter' : 'transparent',
+                        '&:hover': {
+                          bgcolor: options.signFile === null ? 'primary.lighter' : 'action.hover',
+                        },
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, width: '100%' }}>
+                        <Box
+                          sx={{
+                            width: 38,
+                            height: 38,
+                            borderRadius: 1,
+                            bgcolor: 'background.neutral',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontWeight: 700,
+                            fontSize: '0.8rem',
+                          }}
+                        >
+                          ✕
+                        </Box>
+                        <Box sx={{ minWidth: 0, flex: 1 }}>
+                          <Typography
+                            variant="subtitle2"
+                            sx={{ fontWeight: 700, fontSize: '0.82rem' }}
+                          >
+                            사용 안 함
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            sx={{ color: 'text.secondary', fontSize: '0.7rem' }}
+                          >
+                            싸인 없이 여백과 모서리만 적용
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </ToggleButton>
+
+                    {SIGN_PRESETS.map((p) => {
+                      const isSel = options.signFile === p.file;
+                      return (
+                        <ToggleButton
+                          key={p.file}
+                          value={p.file}
+                          onClick={() => updateOption('signFile', p.file)}
+                          sx={{
+                            justifyContent: 'flex-start',
+                            borderRadius: 1.5,
+                            border: '1px solid',
+                            borderColor: isSel ? 'primary.main' : 'divider',
+                            p: '7px 10px',
+                            textAlign: 'left',
+                            bgcolor: isSel ? 'primary.lighter' : 'transparent',
+                            '&:hover': {
+                              bgcolor: isSel ? 'primary.lighter' : 'action.hover',
+                            },
+                          }}
+                        >
+                          <Box
+                            sx={{ display: 'flex', alignItems: 'center', gap: 1.25, width: '100%' }}
+                          >
+                            <Box
+                              sx={{
+                                width: 48,
+                                height: 38,
+                                borderRadius: 1,
+                                bgcolor: '#ffffff',
+                                border: '1px solid',
+                                borderColor: 'divider',
+                                backgroundImage: `url("${signUrl(p.file)}")`,
+                                backgroundSize: 'auto 140px',
+                                backgroundPosition: 'right bottom',
+                                backgroundRepeat: 'no-repeat',
+                                flexShrink: 0,
+                              }}
+                            />
+                            <Box sx={{ minWidth: 0, flex: 1 }}>
+                              <Typography
+                                variant="subtitle2"
+                                sx={{
+                                  fontWeight: 700,
+                                  fontSize: '0.82rem',
+                                  whiteSpace: 'nowrap',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  color: isSel ? 'primary.darker' : 'text.primary',
+                                }}
+                              >
+                                {p.label}
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                sx={{ color: 'text.secondary', fontSize: '0.7rem' }}
+                              >
+                                {p.desc}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </ToggleButton>
+                      );
+                    })}
+                  </ToggleButtonGroup>
+                )}
+
+                {/* TAB 2: Layout & Details */}
+                {activeTab === 'layout' && (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography
+                        variant="caption"
+                        sx={{ fontWeight: 700, color: 'text.secondary', mb: 0.5, display: 'block' }}
+                      >
+                        여백 배경 방식
+                      </Typography>
+                      <ToggleButtonGroup
+                        size="small"
+                        fullWidth
+                        exclusive
+                        value={options.backgroundMode}
+                        onChange={(_, value: SignOptions['backgroundMode'] | null) => {
+                          if (value) updateOption('backgroundMode', value);
+                        }}
+                      >
+                        <ToggleButton value="white">흰색 배경</ToggleButton>
+                        <ToggleButton value="transparent">투명 배경 (PNG)</ToggleButton>
+                      </ToggleButtonGroup>
+                    </Box>
+
+                    <CompactSlider
+                      label="바깥 여백 (Padding)"
+                      value={options.padding}
+                      min={0}
+                      max={25}
+                      onChange={(value) => updateOption('padding', value)}
+                    />
+
+                    <CompactSlider
+                      label="하단 여백 (Footer)"
+                      value={options.footer}
+                      min={0}
+                      max={30}
+                      onChange={(value) => updateOption('footer', value)}
+                    />
+
+                    <CompactSlider
+                      label="모서리 둥글기 (Radius)"
+                      value={options.radius}
+                      min={0}
+                      max={30}
+                      onChange={(value) => updateOption('radius', value)}
+                    />
+
+                    <CompactSlider
+                      label="싸인 각도 (Angle)"
+                      value={options.signAngle}
+                      min={-180}
+                      max={180}
+                      suffix="°"
+                      onChange={(value) => updateOption('signAngle', value)}
+                    />
+                  </Box>
+                )}
+
+                {/* TAB 3: Images */}
+                {activeTab === 'images' && (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+                    <Button
+                      fullWidth
+                      size="small"
+                      variant="outlined"
+                      startIcon={<UploadRoundedIcon />}
+                      onClick={() => fileRef.current?.click()}
+                      sx={{ mb: 0.5 }}
+                    >
+                      사진 추가하기
+                    </Button>
+
+                    {items.map((item) => (
+                      <Box
+                        key={item.id}
+                        onClick={() => setSelectedId(item.id)}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          p: '6px 8px',
+                          borderRadius: 1.5,
+                          border: '1px solid',
+                          borderColor: item.id === selected?.id ? 'primary.main' : 'divider',
+                          bgcolor:
+                            item.id === selected?.id ? 'primary.lighter' : 'background.paper',
+                          cursor: 'pointer',
+                          '&:hover': {
+                            bgcolor: item.id === selected?.id ? 'primary.lighter' : 'action.hover',
+                          },
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            minWidth: 0,
+                            flex: 1,
+                          }}
+                        >
+                          <Box
+                            component="img"
+                            src={item.url}
+                            alt=""
+                            sx={{
+                              width: 34,
+                              height: 34,
+                              objectFit: 'cover',
+                              borderRadius: 1,
+                              flexShrink: 0,
+                            }}
+                          />
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              fontWeight: 600,
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              color: item.id === selected?.id ? 'primary.darker' : 'text.primary',
+                            }}
+                          >
+                            {item.file.name}
+                          </Typography>
+                        </Box>
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeItem(item.id);
+                          }}
+                        >
+                          <DeleteRoundedIcon sx={{ fontSize: 16 }} />
+                        </IconButton>
+                      </Box>
+                    ))}
+                  </Box>
+                )}
+              </Box>
+
+              {/* Bottom Quick Sliders (Art Style Pattern) */}
+              <Box sx={{ pt: 1, borderTop: '1px solid', borderColor: 'divider', flexShrink: 0 }}>
+                <CompactSlider
+                  label="싸인 크기 (Size)"
                   value={options.signSize}
                   min={5}
                   max={100}
                   onChange={(value) => updateOption('signSize', value)}
                 />
-                <OptionSlider
-                  label="싸인 각도"
-                  value={options.signAngle}
-                  min={-180}
-                  max={180}
-                  suffix="°"
-                  onChange={(value) => updateOption('signAngle', value)}
-                />
-                <OptionSlider
-                  label="가로 위치"
+                <CompactSlider
+                  label="가로 위치 (X)"
                   value={options.signX}
                   min={0}
                   max={100}
                   onChange={(value) => updateOption('signX', value)}
                 />
-                <OptionSlider
-                  label="세로 위치"
+                <CompactSlider
+                  label="세로 위치 (Y)"
                   value={options.signY}
                   min={0}
                   max={100}
                   onChange={(value) => updateOption('signY', value)}
                 />
-                <Typography variant="caption" color="text.secondary">
-                  미리보기를 클릭하거나 드래그해 싸인 위치를 바꿀 수 있습니다. 설정은 모든 이미지에
-                  적용됩니다.
-                </Typography>
-              </Stack>
-              <Stack
-                spacing={1}
-                sx={{
-                  mt: 2,
-                  pt: 2,
-                  borderTop: '1px solid',
-                  borderColor: 'divider',
-                  position: 'sticky',
-                  bottom: 0,
-                  bgcolor: 'background.paper',
-                }}
-              >
+              </Box>
+            </Card>
+
+            {/* Bottom Actions */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.85, flexShrink: 0 }}>
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0.85 }}>
                 <Button
                   fullWidth
                   variant="outlined"
                   color="inherit"
-                  startIcon={<RefreshRoundedIcon />}
+                  size="small"
                   onClick={startOver}
+                  startIcon={<RefreshRoundedIcon sx={{ fontSize: 18 }} />}
+                  sx={{ py: 0.75, borderRadius: 1.5, fontWeight: 600, fontSize: '0.8rem' }}
                 >
                   다른 사진
                 </Button>
+
                 <Button
                   fullWidth
                   variant="contained"
-                  startIcon={
-                    exporting ? (
-                      <CircularProgress size={18} color="inherit" />
-                    ) : (
-                      <DownloadRoundedIcon />
-                    )
-                  }
+                  color="secondary"
+                  size="small"
+                  onClick={handleShare}
                   disabled={!signReady || exporting}
-                  onClick={saveSelected}
+                  startIcon={<ShareRoundedIcon sx={{ fontSize: 18 }} />}
+                  sx={{ py: 0.75, borderRadius: 1.5, fontWeight: 600, fontSize: '0.8rem' }}
                 >
-                  결과물 저장
+                  공유
                 </Button>
-                {items.length > 1 && (
-                  <Button
-                    fullWidth
-                    variant="outlined"
-                    startIcon={<DownloadRoundedIcon />}
-                    disabled={!signReady || exporting}
-                    onClick={saveAll}
-                  >
-                    전체 ZIP 저장
-                  </Button>
-                )}
-              </Stack>
-            </Card>
-            <Card
-              sx={{
-                p: 2,
-                flex: 1,
-                width: '100%',
-                minWidth: 0,
-                minHeight: 420,
-                textAlign: 'center',
-                bgcolor: 'grey.100',
-              }}
-            >
-              {selected ? (
-                <Stack spacing={1} alignItems="center">
-                  <Box
-                    sx={{
-                      maxWidth: '100%',
-                      overflow: 'auto',
-                      boxShadow: 3,
-                      lineHeight: 0,
-                      backgroundImage:
-                        options.backgroundMode === 'transparent'
-                          ? 'conic-gradient(#d9dee5 25%, #ffffff 0 50%, #d9dee5 0 75%, #ffffff 0)'
-                          : 'none',
-                      backgroundSize: '20px 20px',
-                    }}
-                  >
-                    <canvas
-                      ref={previewRef}
-                      aria-label="싸인 적용 미리보기"
-                      onPointerDown={(event) => {
-                        if (!options.signFile) return;
-                        draggingRef.current = true;
-                        event.currentTarget.setPointerCapture(event.pointerId);
-                        placeSign(event);
-                      }}
-                      onPointerMove={(event) => {
-                        if (draggingRef.current) placeSign(event);
-                      }}
-                      onPointerUp={() => {
-                        draggingRef.current = false;
-                      }}
-                      onPointerCancel={() => {
-                        draggingRef.current = false;
-                      }}
-                      style={{
-                        display: 'block',
-                        maxWidth: '100%',
-                        maxHeight: '70vh',
-                        width: 'auto',
-                        height: 'auto',
-                        touchAction: 'none',
-                        cursor: options.signFile ? 'crosshair' : 'default',
-                      }}
-                    />
-                  </Box>
-                  <Typography variant="caption" color="text.secondary">
-                    {selected.file.name} · 원본 {selected.image.naturalWidth} ×{' '}
-                    {selected.image.naturalHeight}px
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    출력 {Math.round(selected.image.naturalWidth * (1 + options.padding / 50))} ×{' '}
-                    {Math.round(
-                      selected.image.naturalHeight +
-                        (selected.image.naturalWidth * (options.padding + options.footer)) / 100
-                    )}
-                    px
-                  </Typography>
-                </Stack>
-              ) : (
-                <Stack
-                  alignItems="center"
-                  justifyContent="center"
-                  spacing={2}
-                  sx={{ minHeight: 380 }}
-                >
-                  <UploadRoundedIcon sx={{ fontSize: 56, color: 'text.disabled' }} />
-                  <Typography color="text.secondary">
-                    이미지를 한 장 또는 여러 장 올려 주세요.
-                  </Typography>
-                  <Button variant="outlined" onClick={() => fileRef.current?.click()}>
-                    이미지 선택
-                  </Button>
-                </Stack>
-              )}
-            </Card>
-            {items.length > 0 && (
-              <Card
-                sx={{
-                  p: 2,
-                  width: { xs: '100%', lg: 220 },
-                  flexShrink: 0,
-                  maxHeight: { lg: '75vh' },
-                  overflowY: 'auto',
-                }}
+              </Box>
+
+              <Button
+                fullWidth
+                variant="contained"
+                color="primary"
+                onClick={saveSelected}
+                disabled={!signReady || exporting}
+                startIcon={
+                  exporting ? (
+                    <CircularProgress size={18} color="inherit" />
+                  ) : (
+                    <DownloadRoundedIcon />
+                  )
+                }
+                sx={{ py: 1, borderRadius: 2, fontWeight: 700, fontSize: '0.88rem' }}
               >
-                <Typography variant="h6" sx={{ mb: 1 }}>
-                  이미지 ({items.length})
-                </Typography>
+                결과물 저장 (PNG)
+              </Button>
+
+              {items.length > 1 && (
                 <Button
                   fullWidth
-                  size="small"
                   variant="outlined"
-                  startIcon={<UploadRoundedIcon />}
-                  onClick={() => fileRef.current?.click()}
-                  sx={{ mb: 1 }}
+                  color="primary"
+                  size="small"
+                  onClick={saveAll}
+                  disabled={!signReady || exporting}
+                  startIcon={<DownloadRoundedIcon sx={{ fontSize: 18 }} />}
+                  sx={{ py: 0.65, borderRadius: 1.5, fontWeight: 600, fontSize: '0.78rem' }}
                 >
-                  사진 추가
+                  전체 ZIP 저장 ({items.length}장)
                 </Button>
-                <Stack spacing={1}>
-                  {items.map((item) => (
-                    <Stack key={item.id} direction="row" alignItems="center" spacing={0.5}>
-                      <Button
-                        variant={item.id === selected?.id ? 'contained' : 'outlined'}
-                        onClick={() => setSelectedId(item.id)}
-                        sx={{
-                          flex: 1,
-                          minWidth: 0,
-                          justifyContent: 'flex-start',
-                          textTransform: 'none',
-                        }}
-                      >
-                        <Box
-                          component="img"
-                          src={item.url}
-                          alt=""
-                          sx={{ width: 36, height: 36, objectFit: 'cover', borderRadius: 1, mr: 1 }}
-                        />
-                        <Box
-                          component="span"
-                          sx={{
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {item.file.name}
-                        </Box>
-                      </Button>
-                      <IconButton
-                        size="small"
-                        aria-label={`${item.file.name} 제거`}
-                        onClick={() => removeItem(item.id)}
-                      >
-                        <DeleteRoundedIcon fontSize="small" />
-                      </IconButton>
-                    </Stack>
-                  ))}
-                </Stack>
-              </Card>
-            )}
-          </Stack>
-        )}
-      </Stack>
+              )}
+            </Box>
+          </Box>
+        </Box>
+      )}
     </DashboardContent>
   );
 }
+
+export default WebtoonSignView;

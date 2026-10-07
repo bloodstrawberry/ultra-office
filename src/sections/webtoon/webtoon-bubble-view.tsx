@@ -1,11 +1,11 @@
 'use client';
 
 import { toast } from 'sonner';
-import { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
-import Stack from '@mui/material/Stack';
+import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
 import Select from '@mui/material/Select';
 import Slider from '@mui/material/Slider';
@@ -17,17 +17,26 @@ import IconButton from '@mui/material/IconButton';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
 import ToggleButton from '@mui/material/ToggleButton';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import CircularProgress from '@mui/material/CircularProgress';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import ArrowUpwardRoundedIcon from '@mui/icons-material/ArrowUpwardRounded';
+import FormatItalicRoundedIcon from '@mui/icons-material/FormatItalicRounded';
 import ArrowDownwardRoundedIcon from '@mui/icons-material/ArrowDownwardRounded';
+import FormatAlignLeftRoundedIcon from '@mui/icons-material/FormatAlignLeftRounded';
+import FormatAlignRightRoundedIcon from '@mui/icons-material/FormatAlignRightRounded';
+import ChatBubbleOutlineRoundedIcon from '@mui/icons-material/ChatBubbleOutlineRounded';
+import FormatAlignCenterRoundedIcon from '@mui/icons-material/FormatAlignCenterRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { PhotoUploadWorkspace } from 'src/sections/photo/components';
+import { downloadDataUrl, shareToKakaoTalk } from 'src/sections/photo/utils/image-processor';
 import { STUDIO_FONTS, ensureStudioFontsLoaded } from 'src/sections/gif-studio/data/gif-fonts';
 
 import { loadWebtoonSample, WEBTOON_SAMPLE_IMAGES } from './webtoon-samples';
@@ -36,16 +45,15 @@ import {
   createBubble,
   BUBBLE_SHAPES,
   RESIZE_HANDLES,
-  IMAGE_BUBBLE_ASSETS,
   isTextOnlyShape,
-  getImageBubbleAsset,
-  preloadImageBubbleAssets,
   type BorderStyle,
   type BubbleShape,
   drawWebtoonCanvas,
   type ResizeHandle,
   type TailDirection,
+  getImageBubbleAsset,
   RESIZE_HANDLE_OFFSET,
+  preloadImageBubbleAssets,
 } from './bubble-renderer';
 
 const LOCAL_FONTS = [
@@ -65,6 +73,199 @@ const FONT_OPTIONS = [
 ];
 
 const BUBBLE_SETTINGS_KEY = 'webtoon-studio:bubble-settings:v1';
+
+const MAIN_PANEL_TABS = [
+  { id: 'templates', label: '말풍선 템플릿' },
+  { id: 'edit', label: '대사 & 스타일 편집' },
+  { id: 'layers', label: '레이어 목록' },
+] as const;
+
+type MainPanelTab = (typeof MAIN_PANEL_TABS)[number]['id'];
+
+const TEMPLATE_CATEGORIES = [
+  { id: 'all', label: '전체' },
+  { id: 'basic', label: '기본 모양' },
+  { id: 'effect', label: '효과·강조' },
+  { id: 'asset', label: '일러스트 에셋' },
+] as const;
+
+type TemplateCategory = (typeof TEMPLATE_CATEGORIES)[number]['id'];
+
+interface TemplateItemInfo {
+  id: BubbleShape;
+  label: string;
+  desc: string;
+  category: 'basic' | 'effect' | 'asset';
+  icon?: string;
+  assetFile?: string;
+}
+
+const TEMPLATE_LIST: TemplateItemInfo[] = [
+  // 기본 모양 (Basic)
+  {
+    id: 'oval',
+    label: '기본 타원',
+    desc: '대화용 기본 부드러운 타원',
+    category: 'basic',
+    icon: '💬',
+  },
+  {
+    id: 'circleSpeech',
+    label: '원형 말풍선',
+    desc: '동그란 귀여운 대사 풍선',
+    category: 'basic',
+    icon: '🗨️',
+  },
+  {
+    id: 'rounded',
+    label: '둥근 사각형',
+    desc: '메신저·모던 웹툰 대화',
+    category: 'basic',
+    icon: '🔲',
+  },
+  { id: 'box', label: '각진 말풍선', desc: '설명·차분한 대사 상자', category: 'basic', icon: '⏹️' },
+  {
+    id: 'narration',
+    label: '내레이션',
+    desc: '배경 해설·상황 설명 박스',
+    category: 'basic',
+    icon: '📜',
+  },
+  {
+    id: 'chat',
+    label: '메신저 대화',
+    desc: '모바일 톡 메신저 말풍선',
+    category: 'basic',
+    icon: '📱',
+  },
+  {
+    id: 'cloud',
+    label: '구름 말풍선',
+    desc: '부드러운 분위기·몽환 대사',
+    category: 'basic',
+    icon: '☁️',
+  },
+
+  // 효과 / 강조 (Effect)
+  { id: 'shout', label: '외침 풍선', desc: '외침·큰 소리 대사', category: 'effect', icon: '📢' },
+  {
+    id: 'burst',
+    label: '폭발 말풍선',
+    desc: '강한 충격·고함·강조',
+    category: 'effect',
+    icon: '💥',
+  },
+  {
+    id: 'spiky',
+    label: '충격 스파이크',
+    desc: '날카로운 긴장감·파편 효과',
+    category: 'effect',
+    icon: '⚡',
+  },
+  { id: 'thought', label: '생각 풍선', desc: '속마음·독백·상상', category: 'effect', icon: '💭' },
+  {
+    id: 'whisper',
+    label: '속삭임',
+    desc: '조용한 속삭임·비밀 이야기',
+    category: 'effect',
+    icon: '🤫',
+  },
+  { id: 'heart', label: '하트 풍선', desc: '두근두근·애정 표현', category: 'effect', icon: '❤️' },
+  { id: 'star', label: '별 모양', desc: '반짝이는 환호·아이디어', category: 'effect', icon: '⭐' },
+  {
+    id: 'titleText',
+    label: '큰 제목 글자',
+    desc: '배경 없는 대형 타이틀',
+    category: 'effect',
+    icon: '🔤',
+  },
+  {
+    id: 'emphasisText',
+    label: '효과선 대사',
+    desc: '효과음·집중 대사',
+    category: 'effect',
+    icon: '❗',
+  },
+  {
+    id: 'outlinedText',
+    label: '윤곽선 글자',
+    desc: '외곽선 강조 텍스트',
+    category: 'effect',
+    icon: '🏷️',
+  },
+
+  // 일러스트 에셋 (Asset)
+  {
+    id: 'assetRetro',
+    label: '손그림 둥근',
+    desc: '고전 만화 감성 스케치',
+    category: 'asset',
+    assetFile: 'retro.png',
+  },
+  {
+    id: 'assetComicCloud',
+    label: '손그림 각진',
+    desc: '만화풍 몽환 구름',
+    category: 'asset',
+    assetFile: 'comic-cloud.png',
+  },
+  {
+    id: 'assetThought',
+    label: '동글 생각',
+    desc: '퐁퐁 방울 생각 거품',
+    category: 'asset',
+    assetFile: 'thought.png',
+  },
+  {
+    id: 'assetPuffy',
+    label: '푹신 구름',
+    desc: '깔끔한 흰 구름 말풍선',
+    category: 'asset',
+    assetFile: 'blank-cloud.png',
+  },
+  {
+    id: 'assetBurst',
+    label: '번쩍 외침',
+    desc: '효과음 집중선 폭발',
+    category: 'asset',
+    assetFile: 'burst.png',
+  },
+  {
+    id: 'assetInk',
+    label: '잉크 번짐',
+    desc: '손그림 볼펜 스타일',
+    category: 'asset',
+    assetFile: 'round.png',
+  },
+  {
+    id: 'assetBoldCloud',
+    label: '진한 구름',
+    desc: '선명한 손그림 라운드',
+    category: 'asset',
+    assetFile: 'round-alt.png',
+  },
+  {
+    id: 'assetDashed',
+    label: '점선 그림자',
+    desc: '부드러운 점선 타원',
+    category: 'asset',
+    assetFile: 'oval.png',
+  },
+  {
+    id: 'assetCallout',
+    label: '손그림 네모',
+    desc: '시선 집중 손그림 박스',
+    category: 'asset',
+    assetFile: 'callout.png',
+  },
+  {
+    id: 'assetPink',
+    label: '핑크 광택',
+    desc: '광택 테두리 러블리 버블',
+    category: 'asset',
+    assetFile: 'pink-gloss.png',
+  },
+];
 
 function restoreBubbles(value: unknown): Bubble[] | null {
   if (!Array.isArray(value)) return null;
@@ -103,14 +304,24 @@ function ColorField({
   const [draft, setDraft] = useState(value);
   useEffect(() => setDraft(value), [value]);
   return (
-    <Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 0 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 1, minWidth: 0 }}>
       <Box
         component="input"
         type="color"
         aria-label={label}
         value={value}
         onChange={(event: React.ChangeEvent<HTMLInputElement>) => onChange(event.target.value)}
-        sx={{ width: 40, height: 36, p: 0, border: 0, bgcolor: 'transparent', cursor: 'pointer' }}
+        sx={{
+          width: 36,
+          height: 36,
+          p: 0,
+          border: '1px solid',
+          borderColor: 'divider',
+          borderRadius: 1,
+          bgcolor: 'transparent',
+          cursor: 'pointer',
+          flexShrink: 0,
+        }}
       />
       <TextField
         size="small"
@@ -125,11 +336,11 @@ function ColorField({
         }}
         sx={{ minWidth: 0, flex: 1 }}
       />
-    </Stack>
+    </Box>
   );
 }
 
-function NumberSlider({
+function CompactSlider({
   label,
   value,
   min,
@@ -147,14 +358,19 @@ function NumberSlider({
   suffix?: string;
 }) {
   return (
-    <Box>
-      <Stack direction="row" justifyContent="space-between">
-        <Typography variant="body2">{label}</Typography>
-        <Typography variant="caption" color="text.secondary">
+    <Box sx={{ mb: 0.85 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.25 }}>
+        <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
+          {label}
+        </Typography>
+        <Typography
+          variant="caption"
+          sx={{ fontWeight: 700, color: 'primary.main', fontSize: '0.75rem' }}
+        >
           {value}
           {suffix}
         </Typography>
-      </Stack>
+      </Box>
       <Slider
         size="small"
         value={value}
@@ -163,7 +379,7 @@ function NumberSlider({
         step={step}
         onChange={(_, next) => onChange(next as number)}
         aria-label={label}
-        sx={{ py: 0.5 }}
+        sx={{ py: 0.4 }}
       />
     </Box>
   );
@@ -183,18 +399,56 @@ export function WebtoonBubbleView() {
       }
     | null
   >(null);
+
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 900, height: 900 });
   const [background, setBackground] = useState('#ffffff');
   const [bubbles, setBubbles] = useState<Bubble[]>(() => [createBubble('oval', 0)]);
-  const [selectedId, setSelectedId] = useState<string | null>(bubbles[0]?.id ?? null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [settingsReady, setSettingsReady] = useState(false);
   const [fontRevision, setFontRevision] = useState(0);
   const [assetRevision, setAssetRevision] = useState(0);
+
+  const [activeTab, setActiveTab] = useState<MainPanelTab>('templates');
+  const [templateCategory, setTemplateCategory] = useState<TemplateCategory>('all');
+  const [rightPanelWidth, setRightPanelWidth] = useState<number>(390);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+
+  const isResizingRef = useRef<boolean>(false);
+  const resizeStartXRef = useRef<number>(0);
+  const resizeStartWidthRef = useRef<number>(390);
+
   const selected = bubbles.find((bubble) => bubble.id === selectedId) ?? null;
   const selectedFontFamily = selected?.fontFamily;
   const textOnlyShape = selected ? isTextOnlyShape(selected.shape) : false;
   const imageAsset = selected ? getImageBubbleAsset(selected.shape) : undefined;
+
+  const handleDividerPointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    isResizingRef.current = true;
+    resizeStartXRef.current = e.clientX;
+    resizeStartWidthRef.current = rightPanelWidth;
+  };
+
+  const handleDividerPointerMove = (e: React.PointerEvent) => {
+    if (!isResizingRef.current) return;
+    const deltaX = resizeStartXRef.current - e.clientX;
+    const newWidth = Math.max(300, Math.min(650, resizeStartWidthRef.current + deltaX));
+    setRightPanelWidth(newWidth);
+  };
+
+  const handleDividerPointerUp = (e: React.PointerEvent) => {
+    if (isResizingRef.current) {
+      isResizingRef.current = false;
+      try {
+        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+      } catch {
+        // ignore
+      }
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -221,21 +475,19 @@ export function WebtoonBubbleView() {
             setBackground(data.background);
           }
           const restored = restoreBubbles(data.bubbles);
-          if (restored) {
+          if (restored && restored.length > 0) {
             setBubbles(restored);
             setSelectedId(
               typeof data.selectedId === 'string' &&
                 restored.some((bubble) => bubble.id === data.selectedId)
                 ? data.selectedId
-                : data.selectedId === null
-                  ? null
-                  : (restored[0]?.id ?? null)
+                : restored[0].id
             );
           }
         }
       }
     } catch {
-      // Keep the editor usable if local storage is unavailable or invalid.
+      // ignore
     }
     setSettingsReady(true);
   }, []);
@@ -248,7 +500,7 @@ export function WebtoonBubbleView() {
         JSON.stringify({ background, bubbles, selectedId })
       );
     } catch {
-      // The current session still works when local storage is full or disabled.
+      // ignore
     }
   }, [background, bubbles, selectedId, settingsReady]);
 
@@ -305,6 +557,8 @@ export function WebtoonBubbleView() {
     const bubble = createBubble(shape, bubbles.length);
     setBubbles((items) => [...items, bubble]);
     setSelectedId(bubble.id);
+    setActiveTab('edit');
+    toast.success('새 말풍선이 추가되었습니다.');
   };
 
   const changeSelectedShape = (shape: BubbleShape) => {
@@ -372,6 +626,7 @@ export function WebtoonBubbleView() {
     };
     setBubbles((items) => [...items, copy]);
     setSelectedId(copy.id);
+    toast.success('말풍선이 복제되었습니다.');
   };
 
   const moveLayer = (direction: -1 | 1) => {
@@ -400,6 +655,13 @@ export function WebtoonBubbleView() {
         height: Math.round(nextImage.naturalHeight * scale),
       });
       setImage(nextImage);
+      if (bubbles.length === 0) {
+        const initial = createBubble('oval', 0);
+        setBubbles([initial]);
+        setSelectedId(initial.id);
+      } else if (!selectedId) {
+        setSelectedId(bubbles[0].id);
+      }
       URL.revokeObjectURL(url);
     };
     nextImage.onerror = () => {
@@ -453,60 +715,78 @@ export function WebtoonBubbleView() {
     );
   };
 
+  const bubbleAt = (point: { x: number; y: number }) => {
+    for (let i = bubbles.length - 1; i >= 0; i -= 1) {
+      const bubble = bubbles[i];
+      const local = toBubbleLocal(point, bubble);
+      const w = (bubble.width * canvasSize.width) / 2;
+      const h = (bubble.height * canvasSize.width) / 2;
+      if (Math.abs(local.x) <= w && Math.abs(local.y) <= h) {
+        return bubble;
+      }
+    }
+    return null;
+  };
+
   const pointerDown = (event: React.PointerEvent<HTMLCanvasElement>) => {
     const point = pointFromEvent(event);
     if (selected) {
       const handle = resizeHandleAt(point, selected, event.currentTarget);
       if (handle) {
+        event.currentTarget.setPointerCapture(event.pointerId);
         const local = toBubbleLocal(point, selected);
         dragRef.current = {
           mode: 'resize',
-          bubble: { ...selected },
+          bubble: selected,
           handle,
           offsetX:
             local.x - handle.x * ((selected.width * canvasSize.width) / 2 + RESIZE_HANDLE_OFFSET),
           offsetY:
             local.y - handle.y * ((selected.height * canvasSize.width) / 2 + RESIZE_HANDLE_OFFSET),
         };
-        event.currentTarget.setPointerCapture(event.pointerId);
-        event.currentTarget.focus();
-        event.preventDefault();
         return;
       }
     }
-    const hit = [...bubbles].reverse().find((bubble) => {
-      const { x: localX, y: localY } = toBubbleLocal(point, bubble);
-      return (
-        Math.abs(localX) <= (bubble.width * canvasSize.width) / 2 &&
-        Math.abs(localY) <= (bubble.height * canvasSize.width) / 2
-      );
-    });
-    setSelectedId(hit?.id ?? null);
+    const hit = bubbleAt(point);
     if (hit) {
-      dragRef.current = { mode: 'move', id: hit.id, dx: point.x - hit.x, dy: point.y - hit.y };
+      setSelectedId(hit.id);
+      setActiveTab('edit');
       event.currentTarget.setPointerCapture(event.pointerId);
-      event.currentTarget.focus();
-      event.preventDefault();
+      dragRef.current = {
+        mode: 'move',
+        id: hit.id,
+        dx: point.x - hit.x,
+        dy: point.y - hit.y,
+      };
     } else {
-      dragRef.current = null;
+      setSelectedId(null);
     }
   };
 
   const pointerMove = (event: React.PointerEvent<HTMLCanvasElement>) => {
     const point = pointFromEvent(event);
     if (!dragRef.current) {
-      const handle = selected && resizeHandleAt(point, selected, event.currentTarget);
-      event.currentTarget.style.cursor = handle
-        ? handle.x === 0
-          ? 'ns-resize'
-          : handle.y === 0
-            ? 'ew-resize'
-            : handle.x === handle.y
-              ? 'nwse-resize'
-              : 'nesw-resize'
-        : 'move';
+      if (!selected) {
+        event.currentTarget.style.cursor = 'default';
+        return;
+      }
+      const handle = resizeHandleAt(point, selected, event.currentTarget);
+      if (handle) {
+        event.currentTarget.style.cursor =
+          handle.x === 0
+            ? 'ns-resize'
+            : handle.y === 0
+              ? 'ew-resize'
+              : handle.x === handle.y
+                ? 'nwse-resize'
+                : 'nesw-resize';
+      } else {
+        const hit = bubbleAt(point);
+        event.currentTarget.style.cursor = hit ? 'move' : 'default';
+      }
       return;
     }
+
     if (dragRef.current.mode === 'resize') {
       const { bubble, handle, offsetX, offsetY } = dragRef.current;
       const local = toBubbleLocal(point, bubble);
@@ -552,6 +832,7 @@ export function WebtoonBubbleView() {
       );
       return;
     }
+
     const { id, dx, dy } = dragRef.current;
     setBubbles((items) =>
       items.map((item) =>
@@ -566,570 +847,921 @@ export function WebtoonBubbleView() {
     );
   };
 
-  const exportPng = async () => {
+  const handleSaveResult = async () => {
+    setIsProcessing(true);
     try {
       await preloadImageBubbleAssets();
       const canvas = document.createElement('canvas');
       canvas.width = canvasSize.width;
       canvas.height = canvasSize.height;
       drawWebtoonCanvas(canvas, image, background, bubbles);
-      const link = document.createElement('a');
-      link.href = canvas.toDataURL('image/png');
-      link.download = 'webtoon-bubbles.png';
-      link.click();
-      toast.success('결과물을 PNG로 저장했습니다.');
+      const dataUrl = canvas.toDataURL('image/png');
+      const res = await downloadDataUrl(dataUrl, `webtoon_bubble_${Date.now()}.png`);
+      toast.success(res.message);
     } catch {
-      toast.error('PNG 저장에 실패했습니다.');
+      toast.error('결과물 저장 중 오류가 발생했습니다.');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
+  const handleShare = async () => {
+    setIsProcessing(true);
+    try {
+      await preloadImageBubbleAssets();
+      const canvas = document.createElement('canvas');
+      canvas.width = canvasSize.width;
+      canvas.height = canvasSize.height;
+      drawWebtoonCanvas(canvas, image, background, bubbles);
+      const dataUrl = canvas.toDataURL('image/png');
+      const res = await shareToKakaoTalk(
+        dataUrl,
+        '[Ultra Office] 웹툰 말풍선 스튜디오 작품',
+        `webtoon_${Date.now()}.png`
+      );
+      toast.success(res.message);
+    } catch {
+      toast.error('공유 중 오류가 발생했습니다.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const filteredTemplates =
+    templateCategory === 'all'
+      ? TEMPLATE_LIST
+      : TEMPLATE_LIST.filter((t) => t.category === templateCategory);
+
   return (
     <DashboardContent
-      maxWidth={false}
-      sx={{ display: 'flex', flexDirection: 'column', minHeight: 0, height: '100%' }}
+      sx={{
+        flex: '1 1 auto',
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: 0,
+        height: '100%',
+        pb: { xs: 2, sm: 3 },
+      }}
     >
-      <Stack spacing={2} sx={{ flex: 1, minHeight: 0 }}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
-            웹툰 말풍선 추가
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            이미지를 올리고 말풍선을 배치하세요. 드래그해 이동하고, 손잡이로 크기를 조절하세요.
-          </Typography>
-        </Box>
-        {!image ? (
-          <PhotoUploadWorkspace
-            sampleImages={WEBTOON_SAMPLE_IMAGES}
-            onSelectSample={(url) => void selectSample(url)}
-            onFileSelect={uploadImage}
-            title="말풍선을 넣을 이미지 업로드"
-            subtitle="사진을 드래그하거나 클립보드(Ctrl+V)에서 붙여넣으세요."
-          />
-        ) : (
-          <Stack direction={{ xs: 'column', lg: 'row' }} spacing={2} alignItems="flex-start">
+      <Box sx={{ mb: 2, flexShrink: 0 }}>
+        <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
+          웹툰 말풍선 스튜디오 (Webtoon Bubble Studio)
+        </Typography>
+        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          대사와 말풍선을 직관적으로 배치하고 모양·크기·스타일을 조절하여 생생한 웹툰 장면을
+          완성합니다.
+        </Typography>
+      </Box>
+
+      {!image ? (
+        <PhotoUploadWorkspace
+          sampleImages={WEBTOON_SAMPLE_IMAGES}
+          onSelectSample={(url) => void selectSample(url)}
+          onFileSelect={uploadImage}
+          title="말풍선을 추가할 웹툰/사진 업로드"
+          subtitle="PNG, JPG, WEBP 이미지를 드래그하거나 클릭하여 올려주세요."
+          icon={<ChatBubbleOutlineRoundedIcon sx={{ fontSize: 36 }} />}
+        />
+      ) : (
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            gap: { xs: 2, md: 0 },
+            flex: '1 1 auto',
+            minHeight: 0,
+            height: '100%',
+            position: 'relative',
+          }}
+        >
+          {/* Left: Main Canvas Workspace */}
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              flex: '1 1 0px',
+              minWidth: 0,
+              minHeight: 0,
+              height: '100%',
+              pr: { md: 1 },
+            }}
+          >
             <Card
               sx={{
-                p: 2,
-                width: { xs: '100%', lg: 220 },
-                flexShrink: 0,
-                maxHeight: { lg: 'calc(100vh - 160px)' },
-                overflowY: 'auto',
+                p: { xs: 1.5, sm: 2 },
+                borderRadius: 2,
+                display: 'flex',
+                flexDirection: 'column',
+                flex: '1 1 auto',
+                minHeight: 0,
+                height: '100%',
+                position: 'relative',
+                overflow: 'hidden',
+                bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'grey.900' : 'grey.100'),
               }}
             >
-              <Typography variant="h6" sx={{ mb: 1.5 }}>
-                말풍선 종류
-              </Typography>
-              <Box
-                sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 1 }}
-              >
-                {BUBBLE_SHAPES.filter((shape) => !getImageBubbleAsset(shape.id)).map((shape) => (
-                  <Button
-                    key={shape.id}
-                    variant="outlined"
-                    size="small"
-                    title={shape.label}
-                    onClick={() => addBubble(shape.id)}
-                    sx={{
-                      minHeight: 36,
-                      minWidth: 0,
-                      px: 0.5,
-                      fontSize: '0.625rem',
-                      letterSpacing: '-0.03em',
-                    }}
-                  >
-                    <Box
-                      component="span"
-                      sx={{
-                        minWidth: 0,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {shape.label}
-                    </Box>
-                  </Button>
-                ))}
-              </Box>
-              <Divider sx={{ my: 2 }} />
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                무료 이미지 말풍선
-              </Typography>
-              <Box
-                sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 1 }}
-              >
-                {IMAGE_BUBBLE_ASSETS.map((asset) => (
-                  <Button
-                    key={asset.id}
-                    variant="outlined"
-                    title={asset.label}
-                    onClick={() => addBubble(asset.id)}
-                    sx={{
-                      minWidth: 0,
-                      height: 84,
-                      p: 0.5,
-                      display: 'flex',
-                      flexDirection: 'column',
-                    }}
-                  >
-                    <Box
-                      component="img"
-                      src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/webtoon/bubbles/${asset.file}`}
-                      alt=""
-                      sx={{ width: '100%', height: 55, objectFit: 'contain' }}
-                    />
-                    <Typography
-                      variant="caption"
-                      noWrap
-                      sx={{ width: '100%', lineHeight: 1.2, fontSize: '0.625rem' }}
-                    >
-                      {asset.label}
-                    </Typography>
-                  </Button>
-                ))}
-              </Box>
-              <Divider sx={{ my: 2 }} />
-              <ColorField label="캔버스 배경색" value={background} onChange={setBackground} />
-              <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>
-                레이어 ({bubbles.length})
-              </Typography>
-              <Stack spacing={0.5}>
-                {[...bubbles].reverse().map((bubble, index) => (
-                  <Button
-                    key={bubble.id}
-                    variant={selectedId === bubble.id ? 'contained' : 'text'}
-                    color={selectedId === bubble.id ? 'primary' : 'inherit'}
-                    onClick={() => setSelectedId(bubble.id)}
-                    title={`${BUBBLE_SHAPES.find((shape) => shape.id === bubble.shape)?.label} · ${bubble.text}`}
-                    sx={{
-                      justifyContent: 'flex-start',
-                      textTransform: 'none',
-                      minWidth: 0,
-                      maxWidth: '100%',
-                      px: 0.75,
-                    }}
-                  >
-                    <Box
-                      component="span"
-                      sx={{
-                        minWidth: 0,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        fontSize: '0.7rem',
-                      }}
-                    >
-                      {bubbles.length - index}.{' '}
-                      {BUBBLE_SHAPES.find((shape) => shape.id === bubble.shape)?.label} ·{' '}
-                      {bubble.text.replace(/\s+/g, ' ')}
-                    </Box>
-                  </Button>
-                ))}
-              </Stack>
-            </Card>
-            <Card
-              sx={{
-                p: 2,
-                flex: 1,
-                width: '100%',
-                minWidth: 0,
-                textAlign: 'center',
-                bgcolor: 'grey.100',
-              }}
-            >
+              {/* Top Viewport Toolbar */}
               <Box
                 sx={{
-                  display: 'inline-block',
-                  maxWidth: '100%',
-                  overflow: 'auto',
-                  boxShadow: 3,
-                  lineHeight: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  mb: 1.5,
+                  flexShrink: 0,
                 }}
               >
-                <canvas
-                  ref={previewRef}
-                  tabIndex={0}
-                  onPointerDown={pointerDown}
-                  onPointerMove={pointerMove}
-                  onPointerUp={() => {
-                    dragRef.current = null;
-                  }}
-                  onPointerCancel={() => {
-                    dragRef.current = null;
-                  }}
-                  style={{
-                    display: 'block',
-                    maxWidth: '100%',
-                    maxHeight: '72vh',
-                    width: 'auto',
-                    height: 'auto',
-                    touchAction: 'none',
-                    cursor: 'move',
-                  }}
-                  aria-label="웹툰 말풍선 캔버스"
-                />
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Chip
+                    size="small"
+                    label={`${canvasSize.width} × ${canvasSize.height} px`}
+                    variant="outlined"
+                    sx={{ fontWeight: 600, fontSize: '0.72rem' }}
+                  />
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                      배경:
+                    </Typography>
+                    <Box
+                      component="input"
+                      type="color"
+                      value={background}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setBackground(e.target.value)
+                      }
+                      title="캔버스 배경색"
+                      sx={{
+                        width: 24,
+                        height: 24,
+                        p: 0,
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        borderRadius: '50%',
+                        cursor: 'pointer',
+                        bgcolor: 'transparent',
+                      }}
+                    />
+                  </Box>
+                </Box>
+
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                  <Chip
+                    size="small"
+                    color="primary"
+                    variant="soft"
+                    label={`레이어 ${bubbles.length}개`}
+                    sx={{ fontWeight: 700, fontSize: '0.72rem' }}
+                  />
+                </Box>
               </Box>
-              <Typography variant="caption" display="block" sx={{ mt: 1 }}>
-                말풍선을 드래그해 이동 · 손잡이로 크기 조절 · Delete 키로 삭제 · {canvasSize.width}{' '}
-                × {canvasSize.height}
-                px
+
+              {/* Canvas Center Area */}
+              <Box
+                sx={{
+                  flex: '1 1 0px',
+                  minHeight: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'auto',
+                  p: 1,
+                  userSelect: 'none',
+                }}
+              >
+                <Box
+                  sx={{
+                    position: 'relative',
+                    display: 'inline-block',
+                    boxShadow: 4,
+                    borderRadius: 1,
+                    overflow: 'hidden',
+                    lineHeight: 0,
+                    bgcolor: background,
+                    backgroundImage:
+                      background === 'transparent'
+                        ? 'conic-gradient(#e0e0e0 25%, #ffffff 0 50%, #e0e0e0 0 75%, #ffffff 0)'
+                        : 'none',
+                    backgroundSize: '20px 20px',
+                  }}
+                >
+                  <canvas
+                    ref={previewRef}
+                    tabIndex={0}
+                    onPointerDown={pointerDown}
+                    onPointerMove={pointerMove}
+                    onPointerUp={() => {
+                      dragRef.current = null;
+                    }}
+                    onPointerCancel={() => {
+                      dragRef.current = null;
+                    }}
+                    style={{
+                      display: 'block',
+                      maxWidth: '100%',
+                      maxHeight: 'calc(100vh - 270px)',
+                      width: 'auto',
+                      height: 'auto',
+                      touchAction: 'none',
+                      cursor: 'default',
+                    }}
+                    aria-label="웹툰 말풍선 캔버스"
+                  />
+                </Box>
+              </Box>
+
+              {/* Bottom Instructions */}
+              <Typography
+                variant="caption"
+                sx={{
+                  color: 'text.secondary',
+                  textAlign: 'center',
+                  mt: 1,
+                  flexShrink: 0,
+                  fontSize: '0.72rem',
+                }}
+              >
+                말풍선 클릭하여 선택 · 드래그하여 이동 · 모서리 손잡이로 크기 조절 · Delete키로 삭제
               </Typography>
             </Card>
+          </Box>
+
+          {/* Draggable Divider (Desktop) */}
+          <Box
+            onPointerDown={handleDividerPointerDown}
+            onPointerMove={handleDividerPointerMove}
+            onPointerUp={handleDividerPointerUp}
+            sx={{
+              display: { xs: 'none', md: 'flex' },
+              width: 16,
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'col-resize',
+              userSelect: 'none',
+              touchAction: 'none',
+              zIndex: 10,
+              flexShrink: 0,
+              position: 'relative',
+              '&:hover .divider-bar, &:active .divider-bar': {
+                bgcolor: 'primary.main',
+                width: '3px',
+              },
+            }}
+          >
+            <Box
+              className="divider-bar"
+              sx={{
+                width: '2px',
+                height: '100%',
+                bgcolor: 'divider',
+                borderRadius: '1px',
+                transition: 'all 0.15s ease',
+              }}
+            />
+          </Box>
+
+          {/* Right: Settings & Editing Controls */}
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              width: { xs: '100%', md: `${rightPanelWidth}px` },
+              minWidth: { md: `${rightPanelWidth}px` },
+              maxWidth: { md: `${rightPanelWidth}px` },
+              flexShrink: 0,
+              gap: 1.25,
+              minHeight: 0,
+              height: '100%',
+              overflow: { xs: 'auto', md: 'hidden' },
+              pl: { md: 1 },
+              pr: 0.5,
+            }}
+          >
             <Card
               sx={{
-                p: 2,
-                width: { xs: '100%', lg: 280 },
-                flexShrink: 0,
-                maxHeight: { lg: 'calc(100vh - 160px)' },
-                overflowY: 'auto',
+                p: { xs: 1.75, sm: 2 },
+                borderRadius: 2,
+                display: 'flex',
+                flexDirection: 'column',
+                flex: '1 1 auto',
+                minHeight: 0,
+                height: '100%',
               }}
             >
-              <Typography variant="h6" sx={{ mb: 1 }}>
-                말풍선 편집
+              {/* Category Tab Chips (Art-Style Pattern) */}
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.75, flexShrink: 0 }}>
+                말풍선 스튜디오 컨트롤
               </Typography>
-              {!selected ? (
-                <Typography color="text.secondary">말풍선을 선택하거나 새로 추가하세요.</Typography>
-              ) : (
-                <Stack spacing={1.5}>
-                  <Stack direction="row" spacing={0.5}>
-                    <IconButton aria-label="복제" title="복제" onClick={duplicateSelected}>
-                      <ContentCopyRoundedIcon />
-                    </IconButton>
-                    <IconButton aria-label="앞으로" title="앞으로" onClick={() => moveLayer(1)}>
-                      <ArrowUpwardRoundedIcon />
-                    </IconButton>
-                    <IconButton aria-label="뒤로" title="뒤로" onClick={() => moveLayer(-1)}>
-                      <ArrowDownwardRoundedIcon />
-                    </IconButton>
-                    <IconButton
-                      aria-label="삭제"
-                      title="삭제"
-                      color="error"
-                      onClick={removeSelected}
-                    >
-                      <DeleteRoundedIcon />
-                    </IconButton>
-                  </Stack>
-                  <TextField
-                    multiline
-                    minRows={3}
-                    label="대사"
-                    value={selected.text}
-                    onChange={(event) => updateSelected({ text: event.target.value })}
-                    fullWidth
+
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1.25, flexShrink: 0 }}>
+                {MAIN_PANEL_TABS.map((tab) => (
+                  <Chip
+                    key={tab.id}
+                    label={tab.label}
+                    size="small"
+                    clickable
+                    color={activeTab === tab.id ? 'primary' : 'default'}
+                    variant={activeTab === tab.id ? 'filled' : 'outlined'}
+                    onClick={() => setActiveTab(tab.id)}
+                    sx={{ fontWeight: 600, fontSize: '0.72rem', height: 26 }}
                   />
-                  <FormControl size="small" fullWidth>
-                    <InputLabel>말풍선 모양</InputLabel>
-                    <Select
-                      label="말풍선 모양"
-                      value={selected.shape}
-                      onChange={(event) => changeSelectedShape(event.target.value as BubbleShape)}
-                    >
-                      {BUBBLE_SHAPES.map(({ id, label }) => (
-                        <MenuItem key={id} value={id}>
-                          {label}
-                        </MenuItem>
+                ))}
+              </Box>
+
+              {/* Dynamic Scrollable Content */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  flex: '1 1 0px',
+                  minHeight: 0,
+                  overflowY: 'auto',
+                  pr: 0.5,
+                  mb: 1.25,
+                  '&::-webkit-scrollbar': { width: '5px' },
+                  '&::-webkit-scrollbar-track': { bgcolor: 'transparent' },
+                  '&::-webkit-scrollbar-thumb': { bgcolor: 'divider', borderRadius: '3px' },
+                  '&::-webkit-scrollbar-thumb:hover': { bgcolor: 'text.disabled' },
+                }}
+              >
+                {/* TAB 1: 말풍선 템플릿 목록 */}
+                {activeTab === 'templates' && (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 0.5 }}>
+                      {TEMPLATE_CATEGORIES.map((cat) => (
+                        <Chip
+                          key={cat.id}
+                          label={cat.label}
+                          size="small"
+                          clickable
+                          color={templateCategory === cat.id ? 'primary' : 'default'}
+                          variant={templateCategory === cat.id ? 'filled' : 'outlined'}
+                          onClick={() => setTemplateCategory(cat.id)}
+                          sx={{ fontSize: '0.68rem', height: 22 }}
+                        />
                       ))}
-                    </Select>
-                  </FormControl>
-                  {imageAsset && (
-                    <Typography variant="caption" color="text.secondary">
-                      이미지의 색과 꼭지는 원본 디자인입니다. 글자, 크기, 회전, 대칭, 투명도와
-                      그림자는 조절할 수 있습니다.
-                    </Typography>
-                  )}
-                  {!textOnlyShape && !imageAsset && (
-                    <FormControl size="small" fullWidth>
-                      <InputLabel>꼬리 방향</InputLabel>
-                      <Select
-                        label="꼬리 방향"
-                        value={selected.tail}
-                        onChange={(event) =>
-                          updateSelected({ tail: event.target.value as TailDirection })
-                        }
+                    </Box>
+
+                    <ToggleButtonGroup
+                      orientation="vertical"
+                      value={selected?.shape || ''}
+                      exclusive
+                      fullWidth
+                      sx={{ display: 'flex', flexDirection: 'column', gap: 0.6 }}
+                    >
+                      {filteredTemplates.map((item) => (
+                        <ToggleButton
+                          key={item.id}
+                          value={item.id}
+                          onClick={() => {
+                            if (selected) {
+                              changeSelectedShape(item.id);
+                              toast.success(
+                                `선택된 말풍선이 '${item.label}' 모양으로 변경되었습니다.`
+                              );
+                            } else {
+                              addBubble(item.id);
+                            }
+                          }}
+                          sx={{
+                            justifyContent: 'flex-start',
+                            borderRadius: 1.5,
+                            border: '1px solid',
+                            borderColor: selected?.shape === item.id ? 'primary.main' : 'divider',
+                            p: '7px 10px',
+                            textAlign: 'left',
+                            flexShrink: 0,
+                            bgcolor:
+                              selected?.shape === item.id ? 'primary.lighter' : 'transparent',
+                            transition: 'all 0.15s ease',
+                            '&:hover': {
+                              bgcolor:
+                                selected?.shape === item.id ? 'primary.lighter' : 'action.hover',
+                            },
+                          }}
+                        >
+                          <Box
+                            sx={{ display: 'flex', alignItems: 'center', gap: 1.25, width: '100%' }}
+                          >
+                            <Box
+                              sx={{
+                                width: 38,
+                                height: 38,
+                                borderRadius: 1,
+                                bgcolor: 'background.neutral',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                                overflow: 'hidden',
+                                border: '1px solid',
+                                borderColor: 'divider',
+                              }}
+                            >
+                              {item.assetFile ? (
+                                <Box
+                                  component="img"
+                                  src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/webtoon/bubbles/${item.assetFile}`}
+                                  alt=""
+                                  sx={{ width: '85%', height: '85%', objectFit: 'contain' }}
+                                />
+                              ) : (
+                                <Typography sx={{ fontSize: '1.25rem' }}>{item.icon}</Typography>
+                              )}
+                            </Box>
+                            <Box sx={{ minWidth: 0, flex: 1 }}>
+                              <Typography
+                                variant="subtitle2"
+                                sx={{
+                                  fontWeight: 700,
+                                  fontSize: '0.82rem',
+                                  whiteSpace: 'nowrap',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  color:
+                                    selected?.shape === item.id ? 'primary.darker' : 'text.primary',
+                                }}
+                              >
+                                {item.label}
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  color: 'text.secondary',
+                                  fontSize: '0.7rem',
+                                  display: '-webkit-box',
+                                  WebkitLineClamp: 1,
+                                  WebkitBoxOrient: 'vertical',
+                                  overflow: 'hidden',
+                                }}
+                              >
+                                {item.desc}
+                              </Typography>
+                            </Box>
+                            <AddRoundedIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+                          </Box>
+                        </ToggleButton>
+                      ))}
+                    </ToggleButtonGroup>
+                  </Box>
+                )}
+
+                {/* TAB 2: 대사 & 스타일 편집 */}
+                {activeTab === 'edit' && (
+                  <>
+                    {!selected ? (
+                      <Box
+                        sx={{
+                          py: 5,
+                          textAlign: 'center',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: 1.5,
+                        }}
                       >
-                        {(['bottom', 'top', 'left', 'right', 'none'] as const).map(
-                          (value, index) => (
-                            <MenuItem key={value} value={value}>
-                              {['아래', '위', '왼쪽', '오른쪽', '없음'][index]}
-                            </MenuItem>
-                          )
+                        <ChatBubbleOutlineRoundedIcon
+                          sx={{ fontSize: 44, color: 'text.disabled' }}
+                        />
+                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                          캔버스에서 편집할 말풍선을 클릭하거나
+                          <br />
+                          상단 &apos;말풍선 템플릿&apos;에서 새로 추가하세요.
+                        </Typography>
+                        <Button
+                          size="small"
+                          variant="contained"
+                          startIcon={<AddRoundedIcon />}
+                          onClick={() => setActiveTab('templates')}
+                        >
+                          말풍선 추가하기
+                        </Button>
+                      </Box>
+                    ) : (
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                        {/* Selected Bubble Quick Actions */}
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            p: 0.75,
+                            bgcolor: 'background.neutral',
+                            borderRadius: 1.5,
+                          }}
+                        >
+                          <Typography variant="caption" sx={{ fontWeight: 700, pl: 0.5 }}>
+                            {BUBBLE_SHAPES.find((s) => s.id === selected.shape)?.label || '말풍선'}
+                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
+                            <IconButton size="small" title="복제" onClick={duplicateSelected}>
+                              <ContentCopyRoundedIcon fontSize="small" />
+                            </IconButton>
+                            <IconButton size="small" title="위로" onClick={() => moveLayer(1)}>
+                              <ArrowUpwardRoundedIcon fontSize="small" />
+                            </IconButton>
+                            <IconButton size="small" title="아래로" onClick={() => moveLayer(-1)}>
+                              <ArrowDownwardRoundedIcon fontSize="small" />
+                            </IconButton>
+                            <IconButton
+                              size="small"
+                              title="삭제"
+                              color="error"
+                              onClick={removeSelected}
+                            >
+                              <DeleteRoundedIcon fontSize="small" />
+                            </IconButton>
+                          </Box>
+                        </Box>
+
+                        {/* Dialogue Text */}
+                        <TextField
+                          multiline
+                          minRows={3}
+                          label="대사 입력"
+                          value={selected.text}
+                          onChange={(e) => updateSelected({ text: e.target.value })}
+                          fullWidth
+                          size="small"
+                        />
+
+                        {/* Font Selection */}
+                        <FormControl size="small" fullWidth>
+                          <InputLabel>폰트 서체</InputLabel>
+                          <Select
+                            label="폰트 서체"
+                            value={selected.fontFamily}
+                            onChange={(e) => updateSelected({ fontFamily: e.target.value })}
+                          >
+                            {FONT_OPTIONS.map((f) => (
+                              <MenuItem key={f.label} value={f.value}>
+                                {f.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+
+                        {/* Text Formatting Controls */}
+                        <Box sx={{ display: 'flex', gap: 0.75 }}>
+                          <ToggleButtonGroup
+                            size="small"
+                            fullWidth
+                            value={selected.textAlign}
+                            exclusive
+                            onChange={(_, v) => v && updateSelected({ textAlign: v })}
+                          >
+                            <ToggleButton value="left" aria-label="왼쪽 정렬">
+                              <FormatAlignLeftRoundedIcon fontSize="small" />
+                            </ToggleButton>
+                            <ToggleButton value="center" aria-label="가운데 정렬">
+                              <FormatAlignCenterRoundedIcon fontSize="small" />
+                            </ToggleButton>
+                            <ToggleButton value="right" aria-label="오른쪽 정렬">
+                              <FormatAlignRightRoundedIcon fontSize="small" />
+                            </ToggleButton>
+                          </ToggleButtonGroup>
+
+                          <ToggleButton
+                            size="small"
+                            value="italic"
+                            selected={Boolean(selected.italic)}
+                            onChange={() => updateSelected({ italic: !selected.italic })}
+                            aria-label="기울임"
+                            sx={{ px: 1.5 }}
+                          >
+                            <FormatItalicRoundedIcon fontSize="small" />
+                          </ToggleButton>
+                        </Box>
+
+                        {/* Tail Direction for non-image shapes */}
+                        {!textOnlyShape && !imageAsset && (
+                          <FormControl size="small" fullWidth>
+                            <InputLabel>꼬리 방향</InputLabel>
+                            <Select
+                              label="꼬리 방향"
+                              value={selected.tail}
+                              onChange={(e) =>
+                                updateSelected({ tail: e.target.value as TailDirection })
+                              }
+                            >
+                              {(['bottom', 'top', 'left', 'right', 'none'] as const).map(
+                                (value, index) => (
+                                  <MenuItem key={value} value={value}>
+                                    {['아래', '위', '왼쪽', '오른쪽', '없음 (꼬리 없음)'][index]}
+                                  </MenuItem>
+                                )
+                              )}
+                            </Select>
+                          </FormControl>
                         )}
-                      </Select>
-                    </FormControl>
-                  )}
-                  {!textOnlyShape && !imageAsset && selected.tail !== 'none' && (
-                    <>
-                      <NumberSlider
-                        label="꼭지 길이"
-                        value={Math.round(selected.tailLength * 100)}
-                        min={5}
-                        max={60}
-                        onChange={(value) => updateSelected({ tailLength: value / 100 })}
-                        suffix="%"
-                      />
-                      {selected.shape !== 'thought' && (
-                        <>
-                          <NumberSlider
-                            label="꼭지 폭"
-                            value={Math.round((selected.tailWidth ?? 0.24) * 100)}
-                            min={10}
-                            max={50}
-                            onChange={(value) => updateSelected({ tailWidth: value / 100 })}
-                            suffix="%"
+
+                        {/* Flip Buttons */}
+                        {!textOnlyShape && (
+                          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0.75 }}>
+                            <Button
+                              size="small"
+                              variant={selected.flipX ? 'contained' : 'outlined'}
+                              onClick={() => updateSelected({ flipX: !selected.flipX })}
+                              sx={{ fontSize: '0.75rem' }}
+                            >
+                              좌우 반전
+                            </Button>
+                            <Button
+                              size="small"
+                              variant={selected.flipY ? 'contained' : 'outlined'}
+                              onClick={() => updateSelected({ flipY: !selected.flipY })}
+                              sx={{ fontSize: '0.75rem' }}
+                            >
+                              상하 반전
+                            </Button>
+                          </Box>
+                        )}
+
+                        <Divider sx={{ my: 0.5 }} />
+
+                        {/* Colors Section */}
+                        <Typography
+                          variant="caption"
+                          sx={{ fontWeight: 700, color: 'text.secondary' }}
+                        >
+                          색상 및 스타일
+                        </Typography>
+
+                        <ColorField
+                          label="글자색"
+                          value={selected.textColor}
+                          onChange={(textColor) => updateSelected({ textColor })}
+                        />
+
+                        <ColorField
+                          label="글자 외곽선색"
+                          value={selected.textStrokeColor ?? '#171717'}
+                          onChange={(textStrokeColor) => updateSelected({ textStrokeColor })}
+                        />
+
+                        {!textOnlyShape && !imageAsset && (
+                          <>
+                            <ColorField
+                              label="말풍선 배경색"
+                              value={selected.fill}
+                              onChange={(fill) => updateSelected({ fill })}
+                            />
+                            <ColorField
+                              label="테두리 색상"
+                              value={selected.stroke}
+                              onChange={(stroke) => updateSelected({ stroke })}
+                            />
+                            <FormControl size="small" fullWidth>
+                              <InputLabel>테두리 스타일</InputLabel>
+                              <Select
+                                label="테두리 스타일"
+                                value={selected.borderStyle ?? 'solid'}
+                                onChange={(e) =>
+                                  updateSelected({ borderStyle: e.target.value as BorderStyle })
+                                }
+                              >
+                                <MenuItem value="solid">실선</MenuItem>
+                                <MenuItem value="dashed">점선 (대시)</MenuItem>
+                                <MenuItem value="dotted">작은 점선</MenuItem>
+                              </Select>
+                            </FormControl>
+                          </>
+                        )}
+
+                        {!textOnlyShape && (
+                          <ColorField
+                            label="그림자 색상"
+                            value={selected.shadowColor ?? '#555555'}
+                            onChange={(shadowColor) => updateSelected({ shadowColor })}
                           />
-                          <NumberSlider
-                            label="꼭지 위치"
-                            value={Math.round((selected.tailPosition ?? 0) * 100)}
-                            min={-60}
-                            max={60}
-                            onChange={(value) => updateSelected({ tailPosition: value / 100 })}
-                            suffix="%"
-                          />
-                        </>
-                      )}
-                    </>
-                  )}
-                  <Divider />
-                  {!textOnlyShape && !imageAsset && (
-                    <ColorField
-                      label="말풍선 배경색"
-                      value={selected.fill}
-                      onChange={(fill) => updateSelected({ fill })}
-                    />
-                  )}
-                  {!textOnlyShape && !imageAsset && (
-                    <ColorField
-                      label="테두리 색"
-                      value={selected.stroke}
-                      onChange={(stroke) => updateSelected({ stroke })}
-                    />
-                  )}
-                  {!textOnlyShape && !imageAsset && (
-                    <NumberSlider
-                      label="테두리 굵기"
-                      value={selected.strokeWidth}
-                      min={0}
-                      max={24}
-                      onChange={(strokeWidth) => updateSelected({ strokeWidth })}
-                      suffix="px"
-                    />
-                  )}
-                  {!textOnlyShape && !imageAsset && (
-                    <FormControl size="small" fullWidth>
-                      <InputLabel>테두리 스타일</InputLabel>
-                      <Select
-                        label="테두리 스타일"
-                        value={selected.borderStyle ?? 'solid'}
-                        onChange={(event) =>
-                          updateSelected({ borderStyle: event.target.value as BorderStyle })
-                        }
-                      >
-                        <MenuItem value="solid">실선</MenuItem>
-                        <MenuItem value="dashed">점선</MenuItem>
-                        <MenuItem value="dotted">작은 점선</MenuItem>
-                      </Select>
-                    </FormControl>
-                  )}
-                  {!textOnlyShape && (
-                    <Stack direction="row" spacing={1}>
-                      <Button
-                        fullWidth
-                        size="small"
-                        variant={selected.flipX ? 'contained' : 'outlined'}
-                        aria-pressed={Boolean(selected.flipX)}
-                        onClick={() => updateSelected({ flipX: !selected.flipX })}
-                      >
-                        좌우 대칭
-                      </Button>
-                      <Button
-                        fullWidth
-                        size="small"
-                        variant={selected.flipY ? 'contained' : 'outlined'}
-                        aria-pressed={Boolean(selected.flipY)}
-                        onClick={() => updateSelected({ flipY: !selected.flipY })}
-                      >
-                        상하 대칭
-                      </Button>
-                    </Stack>
-                  )}
-                  {!textOnlyShape && (
-                    <NumberSlider
-                      label="그림자 흐림"
-                      value={selected.shadowBlur ?? 0}
-                      min={0}
-                      max={30}
-                      onChange={(shadowBlur) => updateSelected({ shadowBlur })}
-                      suffix="px"
-                    />
-                  )}
-                  {!textOnlyShape && Boolean(selected.shadowBlur) && (
-                    <ColorField
-                      label="그림자 색"
-                      value={selected.shadowColor ?? '#555555'}
-                      onChange={(shadowColor) => updateSelected({ shadowColor })}
-                    />
-                  )}
-                  <NumberSlider
-                    label="투명도"
-                    value={selected.opacity}
-                    min={10}
-                    max={100}
-                    onChange={(opacity) => updateSelected({ opacity })}
-                    suffix="%"
-                  />
-                  <NumberSlider
-                    label="가로 크기"
-                    value={Math.round(selected.width * 100)}
-                    min={10}
-                    max={100}
-                    onChange={(value) => updateSelected({ width: value / 100 })}
-                    suffix="%"
-                  />
-                  <NumberSlider
-                    label="세로 크기"
-                    value={Math.round(selected.height * 100)}
-                    min={8}
-                    max={80}
-                    onChange={(value) => updateSelected({ height: value / 100 })}
-                    suffix="%"
-                  />
-                  <NumberSlider
-                    label="회전"
-                    value={selected.rotation}
-                    min={-180}
-                    max={180}
-                    onChange={(rotation) => updateSelected({ rotation })}
-                    suffix="°"
-                  />
-                  <Divider />
-                  <FormControl size="small" fullWidth>
-                    <InputLabel>폰트</InputLabel>
-                    <Select
-                      label="폰트"
-                      value={selected.fontFamily}
-                      onChange={(event) => updateSelected({ fontFamily: event.target.value })}
+                        )}
+                      </Box>
+                    )}
+                  </>
+                )}
+
+                {/* TAB 3: 레이어 목록 */}
+                {activeTab === 'layers' && (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        mb: 0.5,
+                      }}
                     >
-                      {FONT_OPTIONS.map((font) => (
-                        <MenuItem key={font.label} value={font.value}>
-                          {font.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                  <ColorField
-                    label="글자색"
-                    value={selected.textColor}
-                    onChange={(textColor) => updateSelected({ textColor })}
-                  />
-                  <ColorField
-                    label="글자 윤곽선 색"
-                    value={selected.textStrokeColor ?? '#171717'}
-                    onChange={(textStrokeColor) => updateSelected({ textStrokeColor })}
-                  />
-                  <NumberSlider
-                    label="글자 윤곽선 굵기"
-                    value={selected.textStrokeWidth ?? 0}
-                    min={0}
-                    max={12}
-                    step={0.5}
-                    onChange={(textStrokeWidth) => updateSelected({ textStrokeWidth })}
-                    suffix="px"
-                  />
-                  <NumberSlider
-                    label="글자 크기"
+                      <Typography
+                        variant="caption"
+                        sx={{ fontWeight: 700, color: 'text.secondary' }}
+                      >
+                        레이어 목록 ({bubbles.length})
+                      </Typography>
+                      <Button
+                        size="small"
+                        startIcon={<AddRoundedIcon />}
+                        onClick={() => setActiveTab('templates')}
+                        sx={{ fontSize: '0.72rem' }}
+                      >
+                        말풍선 추가
+                      </Button>
+                    </Box>
+
+                    {[...bubbles].reverse().map((b, idx) => {
+                      const shapeInfo = BUBBLE_SHAPES.find((s) => s.id === b.shape);
+                      const isCur = b.id === selectedId;
+                      return (
+                        <Box
+                          key={b.id}
+                          onClick={() => {
+                            setSelectedId(b.id);
+                            setActiveTab('edit');
+                          }}
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            p: '8px 10px',
+                            borderRadius: 1.5,
+                            border: '1px solid',
+                            borderColor: isCur ? 'primary.main' : 'divider',
+                            bgcolor: isCur ? 'primary.lighter' : 'background.paper',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease',
+                            '&:hover': {
+                              bgcolor: isCur ? 'primary.lighter' : 'action.hover',
+                            },
+                          }}
+                        >
+                          <Box sx={{ minWidth: 0, flex: 1, pr: 1 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <Chip
+                                size="small"
+                                label={`#${bubbles.length - idx}`}
+                                sx={{ height: 18, fontSize: '0.62rem', fontWeight: 700 }}
+                              />
+                              <Typography
+                                variant="subtitle2"
+                                sx={{
+                                  fontWeight: 700,
+                                  fontSize: '0.78rem',
+                                  color: isCur ? 'primary.darker' : 'text.primary',
+                                }}
+                              >
+                                {shapeInfo?.label || '말풍선'}
+                              </Typography>
+                            </Box>
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                color: 'text.secondary',
+                                fontSize: '0.7rem',
+                                display: '-webkit-box',
+                                WebkitLineClamp: 1,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden',
+                                mt: 0.25,
+                              }}
+                            >
+                              {b.text ? b.text.replace(/\s+/g, ' ') : '(대사 없음)'}
+                            </Typography>
+                          </Box>
+
+                          <Box
+                            sx={{ display: 'flex', alignItems: 'center' }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <IconButton
+                              size="small"
+                              title="복제"
+                              onClick={() => {
+                                setSelectedId(b.id);
+                                duplicateSelected();
+                              }}
+                            >
+                              <ContentCopyRoundedIcon sx={{ fontSize: 16 }} />
+                            </IconButton>
+                            <IconButton
+                              size="small"
+                              color="error"
+                              title="삭제"
+                              onClick={() => {
+                                setBubbles((items) => items.filter((item) => item.id !== b.id));
+                                if (selectedId === b.id) setSelectedId(null);
+                              }}
+                            >
+                              <DeleteRoundedIcon sx={{ fontSize: 16 }} />
+                            </IconButton>
+                          </Box>
+                        </Box>
+                      );
+                    })}
+                  </Box>
+                )}
+              </Box>
+
+              {/* Sliders in compact container (Photo Art Style Pattern) */}
+              {selected && (
+                <Box sx={{ pt: 1, borderTop: '1px solid', borderColor: 'divider', flexShrink: 0 }}>
+                  <CompactSlider
+                    label="글자 크기 (Font Size)"
                     value={selected.fontSize}
                     min={12}
                     max={100}
                     onChange={(fontSize) => updateSelected({ fontSize })}
                     suffix="px"
                   />
-                  <NumberSlider
-                    label="글자 굵기"
-                    value={selected.fontWeight}
-                    min={100}
-                    max={900}
-                    step={100}
-                    onChange={(fontWeight) => updateSelected({ fontWeight })}
+
+                  {!textOnlyShape && !imageAsset && (
+                    <CompactSlider
+                      label="테두리 굵기 (Stroke Width)"
+                      value={selected.strokeWidth}
+                      min={0}
+                      max={20}
+                      onChange={(strokeWidth) => updateSelected({ strokeWidth })}
+                      suffix="px"
+                    />
+                  )}
+
+                  <CompactSlider
+                    label="투명도 (Opacity)"
+                    value={selected.opacity}
+                    min={10}
+                    max={100}
+                    onChange={(opacity) => updateSelected({ opacity })}
+                    suffix="%"
                   />
-                  <ToggleButtonGroup
-                    size="small"
-                    fullWidth
-                    value={selected.italic ? 'italic' : 'normal'}
-                    exclusive
-                    onChange={(_, value) => {
-                      if (value) updateSelected({ italic: value === 'italic' });
-                    }}
-                  >
-                    <ToggleButton value="normal">보통</ToggleButton>
-                    <ToggleButton value="italic">기울임</ToggleButton>
-                  </ToggleButtonGroup>
-                  <ToggleButtonGroup
-                    size="small"
-                    fullWidth
-                    value={selected.textAlign}
-                    exclusive
-                    onChange={(_, value) => {
-                      if (value) updateSelected({ textAlign: value });
-                    }}
-                  >
-                    <ToggleButton value="left">왼쪽</ToggleButton>
-                    <ToggleButton value="center">가운데</ToggleButton>
-                    <ToggleButton value="right">오른쪽</ToggleButton>
-                  </ToggleButtonGroup>
-                  <NumberSlider
-                    label="줄 간격"
-                    value={selected.lineHeight}
-                    min={0.8}
-                    max={2}
-                    step={0.05}
-                    onChange={(lineHeight) => updateSelected({ lineHeight })}
+
+                  <CompactSlider
+                    label="회전 각도 (Rotation)"
+                    value={selected.rotation}
+                    min={-180}
+                    max={180}
+                    onChange={(rotation) => updateSelected({ rotation })}
+                    suffix="°"
                   />
-                  <NumberSlider
-                    label="글자 간격"
-                    value={selected.letterSpacing}
-                    min={-3}
-                    max={12}
-                    step={0.5}
-                    onChange={(letterSpacing) => updateSelected({ letterSpacing })}
-                    suffix="px"
-                  />
-                </Stack>
+                </Box>
               )}
-              <Stack
-                spacing={1}
-                sx={{
-                  mt: 2,
-                  pt: 2,
-                  borderTop: '1px solid',
-                  borderColor: 'divider',
-                  position: 'sticky',
-                  bottom: 0,
-                  bgcolor: 'background.paper',
-                }}
-              >
+            </Card>
+
+            {/* Action Buttons (Photo Art Style Pattern) */}
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 0.85,
+                flexShrink: 0,
+              }}
+            >
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0.85 }}>
                 <Button
                   fullWidth
                   variant="outlined"
                   color="inherit"
-                  startIcon={<RefreshRoundedIcon />}
+                  size="small"
                   onClick={() => setImage(null)}
+                  startIcon={<RefreshRoundedIcon sx={{ fontSize: 18 }} />}
+                  sx={{ py: 0.75, borderRadius: 1.5, fontWeight: 600, fontSize: '0.8rem' }}
                 >
                   다른 사진
                 </Button>
+
                 <Button
                   fullWidth
                   variant="contained"
-                  startIcon={<DownloadRoundedIcon />}
-                  onClick={exportPng}
+                  color="secondary"
+                  size="small"
+                  onClick={handleShare}
+                  disabled={isProcessing}
+                  startIcon={<ShareRoundedIcon sx={{ fontSize: 18 }} />}
+                  sx={{ py: 0.75, borderRadius: 1.5, fontWeight: 600, fontSize: '0.8rem' }}
                 >
-                  결과물 저장
+                  공유
                 </Button>
-              </Stack>
-            </Card>
-          </Stack>
-        )}
-      </Stack>
+              </Box>
+
+              {/* Main: Clean Result Save */}
+              <Button
+                fullWidth
+                variant="contained"
+                color="primary"
+                onClick={handleSaveResult}
+                disabled={isProcessing}
+                startIcon={
+                  isProcessing ? (
+                    <CircularProgress size={18} color="inherit" />
+                  ) : (
+                    <DownloadRoundedIcon />
+                  )
+                }
+                sx={{ py: 1, borderRadius: 2, fontWeight: 700, fontSize: '0.88rem' }}
+              >
+                결과물 저장 (PNG)
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+      )}
     </DashboardContent>
   );
 }
+
+export default WebtoonBubbleView;
