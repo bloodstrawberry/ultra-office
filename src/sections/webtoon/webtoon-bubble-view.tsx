@@ -61,6 +61,33 @@ const FONT_OPTIONS = [
   { label: 'Times New Roman', value: '"Times New Roman", serif' },
 ];
 
+const BUBBLE_SETTINGS_KEY = 'webtoon-studio:bubble-settings:v1';
+
+function restoreBubbles(value: unknown): Bubble[] | null {
+  if (!Array.isArray(value)) return null;
+  return value.slice(0, 100).flatMap((entry, index) => {
+    if (!entry || typeof entry !== 'object') return [];
+    const saved = entry as Partial<Bubble>;
+    if (
+      typeof saved.id !== 'string' ||
+      typeof saved.shape !== 'string' ||
+      !BUBBLE_SHAPES.some(({ id }) => id === saved.shape)
+    )
+      return [];
+    const bubble = createBubble(saved.shape as BubbleShape, index);
+    for (const key of Object.keys(bubble) as (keyof Bubble)[]) {
+      const field = saved[key];
+      if (
+        typeof field === typeof bubble[key] &&
+        (typeof field !== 'number' || (Number.isFinite(field) && Math.abs(field) < 10_000))
+      ) {
+        Object.assign(bubble, { [key]: field });
+      }
+    }
+    return [bubble];
+  });
+}
+
 function ColorField({
   label,
   value,
@@ -158,10 +185,53 @@ export function WebtoonBubbleView() {
   const [background, setBackground] = useState('#ffffff');
   const [bubbles, setBubbles] = useState<Bubble[]>(() => [createBubble('oval', 0)]);
   const [selectedId, setSelectedId] = useState<string | null>(bubbles[0]?.id ?? null);
+  const [settingsReady, setSettingsReady] = useState(false);
   const [fontRevision, setFontRevision] = useState(0);
   const selected = bubbles.find((bubble) => bubble.id === selectedId) ?? null;
   const selectedFontFamily = selected?.fontFamily;
   const textOnlyShape = selected ? isTextOnlyShape(selected.shape) : false;
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(BUBBLE_SETTINGS_KEY);
+      if (saved) {
+        const parsed: unknown = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') {
+          const data = parsed as { background?: unknown; bubbles?: unknown; selectedId?: unknown };
+          if (typeof data.background === 'string' && /^#[0-9a-fA-F]{6}$/.test(data.background)) {
+            setBackground(data.background);
+          }
+          const restored = restoreBubbles(data.bubbles);
+          if (restored) {
+            setBubbles(restored);
+            setSelectedId(
+              typeof data.selectedId === 'string' &&
+                restored.some((bubble) => bubble.id === data.selectedId)
+                ? data.selectedId
+                : data.selectedId === null
+                  ? null
+                  : (restored[0]?.id ?? null)
+            );
+          }
+        }
+      }
+    } catch {
+      // Keep the editor usable if local storage is unavailable or invalid.
+    }
+    setSettingsReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!settingsReady) return;
+    try {
+      localStorage.setItem(
+        BUBBLE_SETTINGS_KEY,
+        JSON.stringify({ background, bubbles, selectedId })
+      );
+    } catch {
+      // The current session still works when local storage is full or disabled.
+    }
+  }, [background, bubbles, selectedId, settingsReady]);
 
   useEffect(() => {
     ensureStudioFontsLoaded();
@@ -225,6 +295,7 @@ export function WebtoonBubbleView() {
       width: preset.width,
       height: preset.height,
       tail: preset.tail,
+      tailLength: preset.tailLength,
       fill: preset.fill,
       stroke: preset.stroke,
       strokeWidth: preset.strokeWidth,
@@ -238,6 +309,7 @@ export function WebtoonBubbleView() {
       fontFamily: preset.fontFamily,
       fontSize: preset.fontSize,
       fontWeight: preset.fontWeight,
+      italic: preset.italic,
       textColor: preset.textColor,
       textStrokeColor: preset.textStrokeColor,
       textStrokeWidth: preset.textStrokeWidth,

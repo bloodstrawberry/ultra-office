@@ -13,6 +13,7 @@ import Alert from '@mui/material/Alert';
 import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
+import Tooltip from '@mui/material/Tooltip';
 import { alpha } from '@mui/material/styles';
 import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
@@ -301,19 +302,18 @@ export function SqldSqlPractice({ problem, problemKey, problemIndex }: Props) {
       <Dialog
         open={open}
         onClose={() => setOpen(false)}
-        maxWidth="xl"
-        fullWidth
+        fullScreen
         scroll="paper"
         sx={{
           '& .MuiDialog-paper': {
             width: '100%',
-            maxWidth: 1480,
-            height: { xs: '92vh', md: '88vh' },
-            maxHeight: '92vh',
+            maxWidth: 'none',
+            height: '100dvh',
+            maxHeight: '100dvh',
             display: 'flex',
             flexDirection: 'column',
-            borderRadius: 2,
-            m: { xs: 1, md: 2 },
+            borderRadius: 0,
+            m: 0,
           },
         }}
       >
@@ -955,21 +955,66 @@ export function SqldSqlPractice({ problem, problemKey, problemIndex }: Props) {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
+                          gap: 1,
                         }}
                       >
                         <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
                           SQL 입력
                         </Typography>
-                        {flashFeedback && (
-                          <Chip
-                            icon={<CheckCircleOutlineRoundedIcon sx={{ fontSize: 16 }} />}
-                            label={flashFeedback}
-                            size="small"
-                            color="success"
-                            variant="soft"
-                            sx={{ fontWeight: 700, fontSize: 12, height: 24 }}
-                          />
-                        )}
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 0.75,
+                            ml: 'auto',
+                            minWidth: 0,
+                          }}
+                        >
+                          {flashFeedback && (
+                            <Chip
+                              icon={<CheckCircleOutlineRoundedIcon sx={{ fontSize: 16 }} />}
+                              label={flashFeedback}
+                              size="small"
+                              color="success"
+                              variant="soft"
+                              sx={{ fontWeight: 700, fontSize: 12, height: 24, minWidth: 0 }}
+                            />
+                          )}
+                          <Tooltip title="실행 (Ctrl + Enter)">
+                            <span>
+                              <IconButton
+                                size="small"
+                                disabled={!engine}
+                                onClick={run}
+                                aria-label="SQL 실행 (Ctrl + Enter)"
+                                sx={{
+                                  bgcolor: 'primary.main',
+                                  color: 'primary.contrastText',
+                                  '&:hover': { bgcolor: 'primary.dark' },
+                                  '&.Mui-disabled': {
+                                    bgcolor: 'action.disabledBackground',
+                                    color: 'action.disabled',
+                                  },
+                                }}
+                              >
+                                <PlayArrowRoundedIcon fontSize="small" />
+                              </IconButton>
+                            </span>
+                          </Tooltip>
+                          <Tooltip title="SQL 초기화">
+                            <span>
+                              <IconButton
+                                size="small"
+                                disabled={!engine}
+                                onClick={reset}
+                                aria-label="SQL 초기화"
+                                sx={{ border: 1, borderColor: 'divider' }}
+                              >
+                                <RestartAltRoundedIcon fontSize="small" />
+                              </IconButton>
+                            </span>
+                          </Tooltip>
+                        </Box>
                       </Box>
 
                       <TextField
@@ -1004,30 +1049,6 @@ export function SqldSqlPractice({ problem, problemKey, problemIndex }: Props) {
                       />
                     </Box>
 
-                    {/* Execution Buttons */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        startIcon={<PlayArrowRoundedIcon />}
-                        disabled={!engine}
-                        onClick={run}
-                        sx={{ fontWeight: 700 }}
-                      >
-                        실행 (Ctrl + Enter)
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        color="inherit"
-                        startIcon={<RestartAltRoundedIcon />}
-                        disabled={!engine}
-                        onClick={reset}
-                        sx={{ fontWeight: 600 }}
-                      >
-                        초기화
-                      </Button>
-                    </Box>
-
                     {/* Error Message */}
                     {error && (
                       <Alert severity="error" sx={{ py: 0.5 }}>
@@ -1060,12 +1081,8 @@ export function SqldSqlPractice({ problem, problemKey, problemIndex }: Props) {
                         flex: 1,
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: 1,
                       }}
                     >
-                      <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
-                        실행 결과 {result && `(${result.rowCount}행, ${result.executionTimeMs}ms)`}
-                      </Typography>
                       <Box
                         sx={{
                           border: 1,

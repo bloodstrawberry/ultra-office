@@ -19,6 +19,13 @@ export const BUBBLE_SHAPES = [
   { id: 'diamond', label: '마름모' },
   { id: 'hexagon', label: '육각형' },
   { id: 'wave', label: '물결 말풍선' },
+  { id: 'radio', label: '라디오 전자음' },
+  { id: 'rough', label: '거친 목소리' },
+  { id: 'wobbly', label: '떨리는 말' },
+  { id: 'pixel', label: '픽셀 대사' },
+  { id: 'chat', label: '메신저 대화' },
+  { id: 'telepathy', label: '텔레파시' },
+  { id: 'speed', label: '속도선 대사' },
 ] as const;
 
 export type BubbleShape = (typeof BUBBLE_SHAPES)[number]['id'];
@@ -109,17 +116,26 @@ export const createBubble = (shape: BubbleShape, count: number): Bubble => ({
     shape === 'circleSpeech'
       ? 'right'
       : isTextOnlyShape(shape) ||
-          ['narration', 'caption', 'heart', 'diamond', 'hexagon'].includes(shape)
+          ['narration', 'caption', 'heart', 'diamond', 'hexagon', 'telepathy'].includes(shape)
         ? 'none'
         : 'bottom',
-  tailLength: 0.2,
-  tailWidth: 0.24,
-  tailPosition: 0,
+  tailLength: shape === 'chat' ? 0.11 : 0.2,
+  tailWidth: shape === 'chat' ? 0.12 : 0.24,
+  tailPosition: shape === 'chat' ? 0.55 : 0,
   flipX: false,
   flipY: false,
-  fill: shape === 'circleSpeech' ? '#fff2b5' : '#ffffff',
-  stroke: '#171717',
-  strokeWidth: isTextOnlyShape(shape) ? 0 : 3,
+  fill:
+    shape === 'circleSpeech'
+      ? '#fff2b5'
+      : shape === 'chat'
+        ? '#bfe6ff'
+        : shape === 'telepathy'
+          ? '#f3eaff'
+          : shape === 'radio'
+            ? '#e9f5ff'
+            : '#ffffff',
+  stroke: shape === 'radio' ? '#16406c' : '#171717',
+  strokeWidth: isTextOnlyShape(shape) || shape === 'chat' ? 0 : 3,
   borderStyle: shape === 'whisper' ? 'dashed' : 'solid',
   shadowBlur: 0,
   shadowColor: '#555555',
@@ -135,7 +151,7 @@ export const createBubble = (shape: BubbleShape, count: number): Bubble => ({
           ? 42
           : 34,
   fontWeight: shape === 'titleText' ? 900 : shape === 'circleSpeech' ? 500 : 700,
-  italic: false,
+  italic: shape === 'radio' || shape === 'telepathy',
   textColor: shape === 'outlinedText' ? '#ffffff' : '#171717',
   textStrokeColor: shape === 'outlinedText' ? '#555555' : '#171717',
   textStrokeWidth: shape === 'outlinedText' ? 7 : 0,
@@ -206,14 +222,54 @@ function bubblePath(ctx: CanvasRenderingContext2D, shape: BubbleShape, w: number
     case 'shout':
       radialShape(ctx, w, h, 14, 0.79);
       break;
+    case 'radio':
+      radialShape(ctx, w, h, 24, 0.88);
+      break;
     case 'burst':
       radialShape(ctx, w, h, 18, 0.64);
       break;
     case 'spiky':
       radialShape(ctx, w, h, 12, 0.5, 0.12);
       break;
+    case 'rough': {
+      const vertices: [number, number][] = [];
+      for (let index = 0; index < 56; index += 1) {
+        const angle = (index * Math.PI * 2) / 56;
+        const jitter = Math.sin(index * 8.7) * 0.035 + Math.sin(index * 3.1) * 0.025;
+        vertices.push([
+          Math.cos(angle) * w * 0.48 * (1 + jitter),
+          Math.sin(angle) * h * 0.48 * (1 + jitter),
+        ]);
+      }
+      polygon(ctx, vertices);
+      break;
+    }
     case 'star':
       radialShape(ctx, w, h, 8, 0.64);
+      break;
+    case 'pixel':
+      polygon(ctx, [
+        [-w * 0.37, -h * 0.5],
+        [w * 0.37, -h * 0.5],
+        [w * 0.37, -h * 0.38],
+        [w * 0.47, -h * 0.38],
+        [w * 0.47, -h * 0.22],
+        [w * 0.5, -h * 0.22],
+        [w * 0.5, h * 0.22],
+        [w * 0.47, h * 0.22],
+        [w * 0.47, h * 0.38],
+        [w * 0.37, h * 0.38],
+        [w * 0.37, h * 0.5],
+        [-w * 0.37, h * 0.5],
+        [-w * 0.37, h * 0.38],
+        [-w * 0.47, h * 0.38],
+        [-w * 0.47, h * 0.22],
+        [-w * 0.5, h * 0.22],
+        [-w * 0.5, -h * 0.22],
+        [-w * 0.47, -h * 0.22],
+        [-w * 0.47, -h * 0.38],
+        [-w * 0.37, -h * 0.38],
+      ]);
       break;
     case 'heart':
       ctx.moveTo(0, h * 0.45);
@@ -254,7 +310,29 @@ function bubblePath(ctx: CanvasRenderingContext2D, shape: BubbleShape, w: number
       ctx.closePath();
       break;
     }
+    case 'wobbly': {
+      const steps = 36;
+      const pointAt = (index: number) => {
+        const angle = (index * Math.PI * 2) / steps;
+        const wobble = 1 + Math.sin(angle * 5 + 0.4) * 0.06 + Math.sin(angle * 9) * 0.04;
+        return { x: Math.cos(angle) * w * 0.48 * wobble, y: Math.sin(angle) * h * 0.48 * wobble };
+      };
+      const start = pointAt(0);
+      ctx.moveTo(start.x, start.y);
+      for (let index = 0; index < steps; index += 1) {
+        const point = pointAt(index);
+        const next = pointAt(index + 1);
+        ctx.quadraticCurveTo(point.x, point.y, (point.x + next.x) / 2, (point.y + next.y) / 2);
+      }
+      ctx.closePath();
+      break;
+    }
+    case 'chat':
+      ctx.roundRect(-w / 2, -h / 2, w, h, Math.min(w, h) * 0.28);
+      break;
     case 'circleSpeech':
+    case 'telepathy':
+    case 'speed':
       ctx.ellipse(0, 0, w / 2, h / 2, 0, 0, Math.PI * 2);
       break;
     default:
@@ -350,9 +428,39 @@ function drawThoughtDots(ctx: CanvasRenderingContext2D, bubble: Bubble, w: numbe
   }
 }
 
+function drawSpeedLines(ctx: CanvasRenderingContext2D, w: number, h: number) {
+  ctx.save();
+  ctx.shadowBlur = 0;
+  ctx.setLineDash([]);
+  ctx.lineWidth = Math.max(1.5, ctx.lineWidth * 0.65);
+  ctx.lineCap = 'round';
+  for (let index = 0; index < 18; index += 1) {
+    const angle = (index * Math.PI * 2) / 18;
+    const inner = 0.54 + (index % 3) * 0.025;
+    const outer = 0.66 + (index % 4) * 0.025;
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(angle) * w * inner, Math.sin(angle) * h * inner);
+    ctx.lineTo(Math.cos(angle) * w * outer, Math.sin(angle) * h * outer);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawTelepathyRing(ctx: CanvasRenderingContext2D, w: number, h: number) {
+  ctx.save();
+  ctx.shadowBlur = 0;
+  ctx.setLineDash([ctx.lineWidth * 2, ctx.lineWidth * 2]);
+  ctx.lineWidth = Math.max(1, ctx.lineWidth * 0.6);
+  ctx.beginPath();
+  ctx.ellipse(0, 0, Math.max(1, w / 2 - 11), Math.max(1, h / 2 - 11), 0, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+}
+
 function drawBodyAndTail(ctx: CanvasRenderingContext2D, bubble: Bubble, w: number, h: number) {
   const hasTail = bubble.tail !== 'none' && bubble.shape !== 'thought';
-  if (hasTail && ['oval', 'circleSpeech', 'whisper'].includes(bubble.shape)) {
+  if (bubble.shape === 'speed') drawSpeedLines(ctx, w, h);
+  if (hasTail && ['oval', 'circleSpeech', 'whisper', 'speed'].includes(bubble.shape)) {
     ellipseWithTailPath(ctx, bubble, w, h);
     ctx.fill();
     if (bubble.strokeWidth > 0) ctx.stroke();
@@ -364,6 +472,7 @@ function drawBodyAndTail(ctx: CanvasRenderingContext2D, bubble: Bubble, w: numbe
   if (!hasTail) {
     if (bubble.strokeWidth > 0) ctx.stroke();
     if (bubble.shape === 'thought' && bubble.tail !== 'none') drawThoughtDots(ctx, bubble, w, h);
+    if (bubble.shape === 'telepathy' && bubble.strokeWidth > 0) drawTelepathyRing(ctx, w, h);
     return;
   }
 
@@ -387,6 +496,16 @@ function drawBodyAndTail(ctx: CanvasRenderingContext2D, bubble: Bubble, w: numbe
   }
   ctx.beginPath();
   ctx.moveTo(first.x, first.y);
+  if (bubble.shape === 'radio') {
+    ctx.lineTo(
+      first.x + (tip.x - first.x) * 0.42 + (second.x - first.x) * 0.22,
+      first.y + (tip.y - first.y) * 0.42 + (second.y - first.y) * 0.22
+    );
+    ctx.lineTo(
+      first.x + (tip.x - first.x) * 0.68 - (second.x - first.x) * 0.12,
+      first.y + (tip.y - first.y) * 0.68 - (second.y - first.y) * 0.12
+    );
+  }
   ctx.lineTo(tip.x, tip.y);
   ctx.lineTo(second.x, second.y);
   ctx.closePath();
@@ -394,6 +513,16 @@ function drawBodyAndTail(ctx: CanvasRenderingContext2D, bubble: Bubble, w: numbe
   if (bubble.strokeWidth > 0) {
     ctx.beginPath();
     ctx.moveTo(first.x, first.y);
+    if (bubble.shape === 'radio') {
+      ctx.lineTo(
+        first.x + (tip.x - first.x) * 0.42 + (second.x - first.x) * 0.22,
+        first.y + (tip.y - first.y) * 0.42 + (second.y - first.y) * 0.22
+      );
+      ctx.lineTo(
+        first.x + (tip.x - first.x) * 0.68 - (second.x - first.x) * 0.12,
+        first.y + (tip.y - first.y) * 0.68 - (second.y - first.y) * 0.12
+      );
+    }
     ctx.lineTo(tip.x, tip.y);
     ctx.lineTo(second.x, second.y);
     ctx.stroke();

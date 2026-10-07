@@ -12,8 +12,8 @@ import Slider from '@mui/material/Slider';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import CircularProgress from '@mui/material/CircularProgress';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import UploadRoundedIcon from '@mui/icons-material/UploadRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
@@ -174,11 +174,14 @@ export function WebtoonSignView() {
               : fallback;
           setOptions({
             signFile:
-              data.signFile === null || SIGN_PRESETS.some(({ file }) => file === data.signFile)
-                ? data.signFile
-                : DEFAULT_OPTIONS.signFile,
+              data.signFile === null
+                ? null
+                : (SIGN_PRESETS.find(({ file }) => file === data.signFile)?.file ??
+                  DEFAULT_OPTIONS.signFile),
             backgroundMode:
-              data.backgroundMode === 'transparent' ? 'transparent' : DEFAULT_OPTIONS.backgroundMode,
+              data.backgroundMode === 'transparent'
+                ? 'transparent'
+                : DEFAULT_OPTIONS.backgroundMode,
             padding: number(data.padding, DEFAULT_OPTIONS.padding, 0, 25),
             footer: number(data.footer, DEFAULT_OPTIONS.footer, 0, 30),
             radius: number(data.radius, DEFAULT_OPTIONS.radius, 0, 30),
