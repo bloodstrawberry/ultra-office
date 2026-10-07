@@ -31,6 +31,7 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import SchemaRoundedIcon from '@mui/icons-material/SchemaRounded';
 import BarChartRoundedIcon from '@mui/icons-material/BarChartRounded';
 import FunctionsRoundedIcon from '@mui/icons-material/FunctionsRounded';
+import MenuBookRoundedIcon from '@mui/icons-material/MenuBookRounded';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
@@ -45,6 +46,7 @@ import { ResizablePanel, ResizableHandle, ResizablePanelGroup } from 'src/compon
 import { SqlResultTable } from 'src/sections/public/sql/sql-result-table';
 
 import { getSqldLabOverride } from '../sqld-lab-overrides';
+import { SqlWalkthroughDialog } from './sql-walkthrough-dialog';
 import { isRichTextEmpty, RichContentRenderer } from './rich-content-renderer';
 import { readPracticeTables, seedPracticeTables, executePracticeQuery } from '../sqld-sql-engine';
 import {
@@ -75,6 +77,7 @@ function formatPracticeValue(value: string | number | null): string {
 export function SqldSqlPractice({ problem, problemKey, problemIndex }: Props) {
   const isWide = useMediaQuery((theme) => theme.breakpoints.up('md'));
   const [open, setOpen] = useState(false);
+  const [walkthroughOpen, setWalkthroughOpen] = useState(false);
   const [sql, setSql] = useState('');
   const [result, setResult] = useState<QueryResult | null>(null);
   const [engine, setEngine] = useState<AlaSql | null>(null);
@@ -134,6 +137,7 @@ export function SqldSqlPractice({ problem, problemKey, problemIndex }: Props) {
 
   useEffect(() => {
     setOpen(false);
+    setWalkthroughOpen(false);
     const firstExample = lab.examples[0];
     setSelectedExampleId(firstExample?.id || null);
     setSelectedChoiceIndex(firstExample?.choiceNum ? firstExample.choiceNum - 1 : -1);
@@ -958,9 +962,21 @@ export function SqldSqlPractice({ problem, problemKey, problemIndex }: Props) {
                           gap: 1,
                         }}
                       >
-                        <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
-                          SQL 입력
-                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+                            SQL 입력
+                          </Typography>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            startIcon={<MenuBookRoundedIcon fontSize="small" />}
+                            disabled={!sql.trim()}
+                            onClick={() => setWalkthroughOpen(true)}
+                            sx={{ fontWeight: 700, whiteSpace: 'nowrap', px: 1 }}
+                          >
+                            원리 보기
+                          </Button>
+                        </Box>
                         <Box
                           sx={{
                             display: 'flex',
@@ -1111,6 +1127,9 @@ export function SqldSqlPractice({ problem, problemKey, problemIndex }: Props) {
           </Button>
         </DialogActions>
       </Dialog>
+      {walkthroughOpen && (
+        <SqlWalkthroughDialog sql={sql} onClose={() => setWalkthroughOpen(false)} />
+      )}
     </Box>
   );
 }

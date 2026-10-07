@@ -1,3 +1,106 @@
+export const IMAGE_BUBBLE_ASSETS = [
+  {
+    id: 'assetRetro',
+    label: '손그림 둥근',
+    file: 'retro.png',
+    aspect: 1.43,
+    width: 0.46,
+    textWidth: 0.68,
+    textHeight: 0.5,
+    textY: -0.12,
+  },
+  {
+    id: 'assetComicCloud',
+    label: '손그림 각진',
+    file: 'comic-cloud.png',
+    aspect: 1.09,
+    width: 0.42,
+    textWidth: 0.68,
+    textHeight: 0.47,
+    textY: -0.12,
+  },
+  {
+    id: 'assetThought',
+    label: '동글 생각',
+    file: 'thought.png',
+    aspect: 1.05,
+    width: 0.42,
+    textWidth: 0.62,
+    textHeight: 0.48,
+    textY: -0.18,
+  },
+  {
+    id: 'assetPuffy',
+    label: '푹신 구름',
+    file: 'blank-cloud.png',
+    aspect: 1.34,
+    width: 0.46,
+    textWidth: 0.65,
+    textHeight: 0.54,
+    textY: 0,
+  },
+  {
+    id: 'assetBurst',
+    label: '번쩍 외침',
+    file: 'burst.png',
+    aspect: 1.01,
+    width: 0.42,
+    textWidth: 0.52,
+    textHeight: 0.46,
+    textY: -0.07,
+  },
+  {
+    id: 'assetInk',
+    label: '잉크 번짐',
+    file: 'round.png',
+    aspect: 1,
+    width: 0.42,
+    textWidth: 0.58,
+    textHeight: 0.45,
+    textY: -0.1,
+  },
+  {
+    id: 'assetBoldCloud',
+    label: '진한 구름',
+    file: 'round-alt.png',
+    aspect: 1,
+    width: 0.42,
+    textWidth: 0.56,
+    textHeight: 0.45,
+    textY: -0.12,
+  },
+  {
+    id: 'assetDashed',
+    label: '점선 그림자',
+    file: 'oval.png',
+    aspect: 1.15,
+    width: 0.44,
+    textWidth: 0.6,
+    textHeight: 0.48,
+    textY: -0.1,
+  },
+  {
+    id: 'assetCallout',
+    label: '손그림 네모',
+    file: 'callout.png',
+    aspect: 1.14,
+    width: 0.43,
+    textWidth: 0.62,
+    textHeight: 0.48,
+    textY: -0.11,
+  },
+  {
+    id: 'assetPink',
+    label: '핑크 광택',
+    file: 'pink-gloss.png',
+    aspect: 1.42,
+    width: 0.46,
+    textWidth: 0.7,
+    textHeight: 0.5,
+    textY: -0.12,
+  },
+] as const;
+
 export const BUBBLE_SHAPES = [
   { id: 'titleText', label: '큰 제목 글자' },
   { id: 'emphasisText', label: '효과선 대사' },
@@ -26,15 +129,44 @@ export const BUBBLE_SHAPES = [
   { id: 'chat', label: '메신저 대화' },
   { id: 'telepathy', label: '텔레파시' },
   { id: 'speed', label: '속도선 대사' },
+  ...IMAGE_BUBBLE_ASSETS,
 ] as const;
 
 export type BubbleShape = (typeof BUBBLE_SHAPES)[number]['id'];
+export type ImageBubbleAsset = (typeof IMAGE_BUBBLE_ASSETS)[number];
 export type TailDirection = 'bottom' | 'top' | 'left' | 'right' | 'none';
 export type BorderStyle = 'solid' | 'dashed' | 'dotted';
 export const TEXT_ONLY_SHAPES: BubbleShape[] = ['titleText', 'emphasisText', 'outlinedText'];
 
 export function isTextOnlyShape(shape: BubbleShape) {
   return TEXT_ONLY_SHAPES.includes(shape);
+}
+
+export function getImageBubbleAsset(shape: BubbleShape): ImageBubbleAsset | undefined {
+  return IMAGE_BUBBLE_ASSETS.find((asset) => asset.id === shape);
+}
+
+const imageBubbleCache = new Map<string, HTMLImageElement>();
+const imageBubbleLoads = new Map<string, Promise<void>>();
+
+export async function preloadImageBubbleAssets(): Promise<void> {
+  await Promise.all(
+    IMAGE_BUBBLE_ASSETS.map((asset) => {
+      const pending = imageBubbleLoads.get(asset.id);
+      if (pending) return pending;
+      const loading = new Promise<void>((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => {
+          imageBubbleCache.set(asset.id, image);
+          resolve();
+        };
+        image.onerror = () => reject(new Error(`${asset.file} 파일을 불러오지 못했습니다.`));
+        image.src = `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/webtoon/bubbles/${asset.file}`;
+      });
+      imageBubbleLoads.set(asset.id, loading);
+      return loading;
+    })
+  );
 }
 
 export const RESIZE_HANDLES = [
@@ -85,80 +217,93 @@ export interface Bubble {
   letterSpacing: number;
 }
 
-export const createBubble = (shape: BubbleShape, count: number): Bubble => ({
-  id: crypto.randomUUID(),
-  shape,
-  text:
-    shape === 'thought'
-      ? '무슨 생각을 하지?'
+export function createBubble(shape: BubbleShape, count: number): Bubble {
+  const asset = getImageBubbleAsset(shape);
+  return {
+    id: crypto.randomUUID(),
+    shape,
+    text:
+      shape === 'thought'
+        ? '무슨 생각을 하지?'
+        : shape === 'titleText'
+          ? '제목을\n입력하세요'
+          : shape === 'emphasisText'
+            ? '강조 대사'
+            : shape === 'outlinedText'
+              ? '윤곽선 대사'
+              : shape === 'circleSpeech'
+                ? '대사를\n입력하세요'
+                : '대사를 입력하세요',
+    x: Math.min(0.5 + (count % 4) * 0.055, 0.75),
+    y: Math.min((shape === 'titleText' ? 0.16 : 0.3) + (count % 4) * 0.055, 0.75),
+    width:
+      asset?.width ??
+      (shape === 'titleText'
+        ? 0.9
+        : shape === 'outlinedText'
+          ? 0.6
+          : shape === 'circleSpeech'
+            ? 0.33
+            : 0.42),
+    height: asset
+      ? asset.width / asset.aspect
       : shape === 'titleText'
-        ? '제목을\n입력하세요'
-        : shape === 'emphasisText'
-          ? '강조 대사'
-          : shape === 'outlinedText'
-            ? '윤곽선 대사'
-            : shape === 'circleSpeech'
-              ? '대사를\n입력하세요'
-              : '대사를 입력하세요',
-  x: Math.min(0.5 + (count % 4) * 0.055, 0.75),
-  y: Math.min((shape === 'titleText' ? 0.16 : 0.3) + (count % 4) * 0.055, 0.75),
-  width:
-    shape === 'titleText'
-      ? 0.9
-      : shape === 'outlinedText'
-        ? 0.6
+        ? 0.3
         : shape === 'circleSpeech'
           ? 0.33
-          : 0.42,
-  height: shape === 'titleText' ? 0.3 : shape === 'circleSpeech' ? 0.33 : 0.25,
-  rotation: 0,
-  tail:
-    shape === 'circleSpeech'
-      ? 'right'
-      : isTextOnlyShape(shape) ||
-          ['narration', 'caption', 'heart', 'diamond', 'hexagon', 'telepathy'].includes(shape)
-        ? 'none'
-        : 'bottom',
-  tailLength: shape === 'chat' ? 0.11 : 0.2,
-  tailWidth: shape === 'chat' ? 0.12 : 0.24,
-  tailPosition: shape === 'chat' ? 0.55 : 0,
-  flipX: false,
-  flipY: false,
-  fill:
-    shape === 'circleSpeech'
-      ? '#fff2b5'
-      : shape === 'chat'
-        ? '#bfe6ff'
-        : shape === 'telepathy'
-          ? '#f3eaff'
-          : shape === 'radio'
-            ? '#e9f5ff'
-            : '#ffffff',
-  stroke: shape === 'radio' ? '#16406c' : '#171717',
-  strokeWidth: isTextOnlyShape(shape) || shape === 'chat' ? 0 : 3,
-  borderStyle: shape === 'whisper' ? 'dashed' : 'solid',
-  shadowBlur: 0,
-  shadowColor: '#555555',
-  opacity: 100,
-  fontFamily:
-    shape === 'circleSpeech' ? '"Malgun Gothic", sans-serif' : '"JalnanGothic", sans-serif',
-  fontSize:
-    shape === 'titleText'
-      ? 95
-      : shape === 'outlinedText'
-        ? 50
-        : shape === 'circleSpeech' || shape === 'emphasisText'
-          ? 42
-          : 34,
-  fontWeight: shape === 'titleText' ? 900 : shape === 'circleSpeech' ? 500 : 700,
-  italic: shape === 'radio' || shape === 'telepathy',
-  textColor: shape === 'outlinedText' ? '#ffffff' : '#171717',
-  textStrokeColor: shape === 'outlinedText' ? '#555555' : '#171717',
-  textStrokeWidth: shape === 'outlinedText' ? 7 : 0,
-  textAlign: 'center',
-  lineHeight: shape === 'titleText' ? 1.1 : 1.25,
-  letterSpacing: 0,
-});
+          : 0.25,
+    rotation: 0,
+    tail: asset
+      ? 'none'
+      : shape === 'circleSpeech'
+        ? 'right'
+        : isTextOnlyShape(shape) ||
+            ['narration', 'caption', 'heart', 'diamond', 'hexagon', 'telepathy'].includes(shape)
+          ? 'none'
+          : 'bottom',
+    tailLength: shape === 'chat' ? 0.11 : 0.2,
+    tailWidth: shape === 'chat' ? 0.12 : 0.24,
+    tailPosition: shape === 'chat' ? 0.55 : 0,
+    flipX: false,
+    flipY: false,
+    fill:
+      shape === 'circleSpeech'
+        ? '#fff2b5'
+        : shape === 'chat'
+          ? '#bfe6ff'
+          : shape === 'telepathy'
+            ? '#f3eaff'
+            : shape === 'radio'
+              ? '#e9f5ff'
+              : '#ffffff',
+    stroke: shape === 'radio' ? '#16406c' : '#171717',
+    strokeWidth: isTextOnlyShape(shape) || shape === 'chat' || asset ? 0 : 3,
+    borderStyle: shape === 'whisper' ? 'dashed' : 'solid',
+    shadowBlur: 0,
+    shadowColor: '#555555',
+    opacity: 100,
+    fontFamily:
+      shape === 'circleSpeech' ? '"Malgun Gothic", sans-serif' : '"JalnanGothic", sans-serif',
+    fontSize:
+      shape === 'titleText'
+        ? 95
+        : shape === 'outlinedText'
+          ? 50
+          : shape === 'circleSpeech' || shape === 'emphasisText'
+            ? 42
+            : asset
+              ? 30
+              : 34,
+    fontWeight: shape === 'titleText' ? 900 : shape === 'circleSpeech' ? 500 : 700,
+    italic: shape === 'radio' || shape === 'telepathy',
+    textColor: shape === 'outlinedText' || shape === 'assetPink' ? '#ffffff' : '#171717',
+    textStrokeColor: shape === 'outlinedText' ? '#555555' : '#171717',
+    textStrokeWidth: shape === 'outlinedText' ? 7 : 0,
+    textAlign: 'center',
+    lineHeight: shape === 'titleText' ? 1.1 : 1.25,
+    letterSpacing: 0,
+  };
+}
 
 function polygon(ctx: CanvasRenderingContext2D, points: [number, number][]) {
   ctx.moveTo(points[0][0], points[0][1]);
@@ -565,6 +710,7 @@ export function drawWebtoonCanvas(
   bubbles.forEach((bubble) => {
     const w = bubble.width * width;
     const h = bubble.height * width;
+    const asset = getImageBubbleAsset(bubble.shape);
     ctx.save();
     ctx.translate(bubble.x * width, bubble.y * height);
     ctx.rotate((bubble.rotation * Math.PI) / 180);
@@ -580,7 +726,11 @@ export function drawWebtoonCanvas(
       ctx.shadowBlur = (bubble.shadowBlur * width) / 900;
       ctx.shadowOffsetY = (2 * width) / 900;
     }
-    if (isTextOnlyShape(bubble.shape)) {
+    if (asset) {
+      const assetImage = imageBubbleCache.get(asset.id);
+      if (assetImage?.complete && assetImage.naturalWidth > 0)
+        ctx.drawImage(assetImage, -w / 2, -h / 2, w, h);
+    } else if (isTextOnlyShape(bubble.shape)) {
       if (bubble.shape === 'emphasisText')
         drawEmphasisRays(ctx, w, h, bubble.textColor, (2 * width) / 900);
     } else {
@@ -601,16 +751,18 @@ export function drawWebtoonCanvas(
       : ['burst', 'spiky', 'star', 'diamond', 'heart'].includes(bubble.shape)
         ? 0.25
         : 0.14;
-    const maxWidth = w * (1 - padding * 2);
+    const maxWidth = w * (asset?.textWidth ?? 1 - padding * 2);
+    const textHeight = h * (asset?.textHeight ?? 0.86);
+    const textCenterY = h * (asset?.textY ?? 0);
     const lines = wrapText(ctx, bubble.text, maxWidth);
     const lineHeight = fontSize * bubble.lineHeight;
-    const visibleLines = lines.slice(0, Math.max(1, Math.floor((h * 0.82) / lineHeight)));
-    const startY = -((visibleLines.length - 1) * lineHeight) / 2;
+    const visibleLines = lines.slice(0, Math.max(1, Math.floor(textHeight / lineHeight)));
+    const startY = textCenterY - ((visibleLines.length - 1) * lineHeight) / 2;
     const textX =
       bubble.textAlign === 'left' ? -maxWidth / 2 : bubble.textAlign === 'right' ? maxWidth / 2 : 0;
     ctx.save();
     ctx.beginPath();
-    ctx.rect(-maxWidth / 2, -h * 0.43, maxWidth, h * 0.86);
+    ctx.rect(-maxWidth / 2, textCenterY - textHeight / 2, maxWidth, textHeight);
     ctx.clip();
     visibleLines.forEach((line, index) => {
       if (bubble.letterSpacing && 'letterSpacing' in ctx)

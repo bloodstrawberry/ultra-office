@@ -36,7 +36,10 @@ import {
   createBubble,
   BUBBLE_SHAPES,
   RESIZE_HANDLES,
+  IMAGE_BUBBLE_ASSETS,
   isTextOnlyShape,
+  getImageBubbleAsset,
+  preloadImageBubbleAssets,
   type BorderStyle,
   type BubbleShape,
   drawWebtoonCanvas,
@@ -187,9 +190,25 @@ export function WebtoonBubbleView() {
   const [selectedId, setSelectedId] = useState<string | null>(bubbles[0]?.id ?? null);
   const [settingsReady, setSettingsReady] = useState(false);
   const [fontRevision, setFontRevision] = useState(0);
+  const [assetRevision, setAssetRevision] = useState(0);
   const selected = bubbles.find((bubble) => bubble.id === selectedId) ?? null;
   const selectedFontFamily = selected?.fontFamily;
   const textOnlyShape = selected ? isTextOnlyShape(selected.shape) : false;
+  const imageAsset = selected ? getImageBubbleAsset(selected.shape) : undefined;
+
+  useEffect(() => {
+    let mounted = true;
+    preloadImageBubbleAssets()
+      .then(() => {
+        if (mounted) setAssetRevision((value) => value + 1);
+      })
+      .catch(() => {
+        if (mounted) toast.error('이미지 말풍선 일부를 불러오지 못했습니다.');
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     try {
@@ -270,7 +289,7 @@ export function WebtoonBubbleView() {
     canvas.width = canvasSize.width;
     canvas.height = canvasSize.height;
     drawWebtoonCanvas(canvas, image, background, bubbles, selectedId ?? undefined);
-  }, [canvasSize, image, background, bubbles, selectedId, fontRevision]);
+  }, [canvasSize, image, background, bubbles, selectedId, fontRevision, assetRevision]);
 
   const updateSelected = useCallback(
     (patch: Partial<Bubble>) => {
@@ -547,8 +566,9 @@ export function WebtoonBubbleView() {
     );
   };
 
-  const exportPng = () => {
+  const exportPng = async () => {
     try {
+      await preloadImageBubbleAssets();
       const canvas = document.createElement('canvas');
       canvas.width = canvasSize.width;
       canvas.height = canvasSize.height;
@@ -602,7 +622,7 @@ export function WebtoonBubbleView() {
               <Box
                 sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 1 }}
               >
-                {BUBBLE_SHAPES.map((shape) => (
+                {BUBBLE_SHAPES.filter((shape) => !getImageBubbleAsset(shape.id)).map((shape) => (
                   <Button
                     key={shape.id}
                     variant="outlined"
@@ -628,6 +648,43 @@ export function WebtoonBubbleView() {
                     >
                       {shape.label}
                     </Box>
+                  </Button>
+                ))}
+              </Box>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                무료 이미지 말풍선
+              </Typography>
+              <Box
+                sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 1 }}
+              >
+                {IMAGE_BUBBLE_ASSETS.map((asset) => (
+                  <Button
+                    key={asset.id}
+                    variant="outlined"
+                    title={asset.label}
+                    onClick={() => addBubble(asset.id)}
+                    sx={{
+                      minWidth: 0,
+                      height: 84,
+                      p: 0.5,
+                      display: 'flex',
+                      flexDirection: 'column',
+                    }}
+                  >
+                    <Box
+                      component="img"
+                      src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/webtoon/bubbles/${asset.file}`}
+                      alt=""
+                      sx={{ width: '100%', height: 55, objectFit: 'contain' }}
+                    />
+                    <Typography
+                      variant="caption"
+                      noWrap
+                      sx={{ width: '100%', lineHeight: 1.2, fontSize: '0.625rem' }}
+                    >
+                      {asset.label}
+                    </Typography>
                   </Button>
                 ))}
               </Box>
@@ -775,7 +832,13 @@ export function WebtoonBubbleView() {
                       ))}
                     </Select>
                   </FormControl>
-                  {!textOnlyShape && (
+                  {imageAsset && (
+                    <Typography variant="caption" color="text.secondary">
+                      이미지의 색과 꼭지는 원본 디자인입니다. 글자, 크기, 회전, 대칭, 투명도와
+                      그림자는 조절할 수 있습니다.
+                    </Typography>
+                  )}
+                  {!textOnlyShape && !imageAsset && (
                     <FormControl size="small" fullWidth>
                       <InputLabel>꼬리 방향</InputLabel>
                       <Select
@@ -795,7 +858,7 @@ export function WebtoonBubbleView() {
                       </Select>
                     </FormControl>
                   )}
-                  {!textOnlyShape && selected.tail !== 'none' && (
+                  {!textOnlyShape && !imageAsset && selected.tail !== 'none' && (
                     <>
                       <NumberSlider
                         label="꼭지 길이"
@@ -828,21 +891,21 @@ export function WebtoonBubbleView() {
                     </>
                   )}
                   <Divider />
-                  {!textOnlyShape && (
+                  {!textOnlyShape && !imageAsset && (
                     <ColorField
                       label="말풍선 배경색"
                       value={selected.fill}
                       onChange={(fill) => updateSelected({ fill })}
                     />
                   )}
-                  {!textOnlyShape && (
+                  {!textOnlyShape && !imageAsset && (
                     <ColorField
                       label="테두리 색"
                       value={selected.stroke}
                       onChange={(stroke) => updateSelected({ stroke })}
                     />
                   )}
-                  {!textOnlyShape && (
+                  {!textOnlyShape && !imageAsset && (
                     <NumberSlider
                       label="테두리 굵기"
                       value={selected.strokeWidth}
@@ -852,7 +915,7 @@ export function WebtoonBubbleView() {
                       suffix="px"
                     />
                   )}
-                  {!textOnlyShape && (
+                  {!textOnlyShape && !imageAsset && (
                     <FormControl size="small" fullWidth>
                       <InputLabel>테두리 스타일</InputLabel>
                       <Select
