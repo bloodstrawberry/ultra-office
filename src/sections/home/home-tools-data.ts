@@ -454,7 +454,6 @@ export const TOOLS_DATA: ToolItem[] = [
       'Visual Studio Code 스타일의 정통 IDE 환경에서 코드를 입력하고 재생 버튼을 누르면 실제 프로그래머처럼 한 글자씩 타이핑되는 효과와 타건음을 제공합니다.',
     category: 'dev',
     path: paths.devToolsIde,
-    tag: 'NEW',
     tagColor: 'primary',
     isFeatured: true,
     featuredRank: 7,

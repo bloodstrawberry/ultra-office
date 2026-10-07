@@ -22,6 +22,8 @@ interface SqldPaginationProps {
   onPageInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onPageInputBlur: () => void;
   onPageInputKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  canGoPrev?: boolean;
+  canGoNext?: boolean;
   variant?: 'header' | 'footer';
 }
 
@@ -34,6 +36,8 @@ export function SqldPagination({
   onPageInputChange,
   onPageInputBlur,
   onPageInputKeyDown,
+  canGoPrev = currentIndex > 0,
+  canGoNext = currentIndex < totalProblems - 1,
   variant = 'header',
 }: SqldPaginationProps) {
   if (variant === 'header') {
@@ -54,7 +58,7 @@ export function SqldPagination({
             <IconButton
               size="small"
               onClick={onPrev}
-              disabled={currentIndex === 0}
+              disabled={!canGoPrev}
               sx={{ color: 'text.primary' }}
             >
               <NavigateBeforeIcon />
@@ -106,7 +110,7 @@ export function SqldPagination({
             <IconButton
               size="small"
               onClick={onNext}
-              disabled={currentIndex === totalProblems - 1}
+              disabled={!canGoNext}
               sx={{ color: 'text.primary' }}
             >
               <NavigateNextIcon />
@@ -121,7 +125,7 @@ export function SqldPagination({
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
       <Button
         variant="outlined"
-        disabled={currentIndex === 0}
+        disabled={!canGoPrev}
         onClick={onPrev}
         startIcon={<NavigateBeforeIcon />}
         sx={{ fontWeight: 700 }}
@@ -164,7 +168,7 @@ export function SqldPagination({
 
       <Button
         variant="contained"
-        disabled={currentIndex === totalProblems - 1}
+        disabled={!canGoNext}
         onClick={onNext}
         endIcon={<NavigateNextIcon />}
         sx={{ fontWeight: 700 }}

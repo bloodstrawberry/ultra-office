@@ -6,6 +6,7 @@ import type {
   SqldProblemData,
   RoundStatistics,
   UserProblemRecord,
+  SqldNavigationFilter,
 } from './types';
 
 import { toast } from 'sonner';
@@ -97,6 +98,21 @@ const STORAGE_KEY_ROUND = 'sqld_selected_round_v1';
 const STORAGE_KEY_STUDY_MODE = 'sqld_study_mode_v1';
 const STORAGE_KEY_CUSTOM_DATA = 'sqld_custom_problem_data_v1';
 
+function getNavigationIndices(
+  problems: Problem[],
+  records: Record<number, UserProblemRecord>,
+  filter: SqldNavigationFilter
+): number[] {
+  return problems.flatMap((_, index) => {
+    const counts = getProblemAttemptCounts(records[index]);
+    if (filter === 'everWrong' && counts.wrongCount === 0) return [];
+    if (filter === 'wrongOrUnanswered' && counts.wrongCount === 0 && counts.totalAttempts > 0) {
+      return [];
+    }
+    return [index];
+  });
+}
+
 function isCurrentCustomData(custom: SqldProblemData, original: SqldProblemData): boolean {
   return (
     Array.isArray(custom.tree) &&
@@ -121,6 +137,7 @@ export function useSqldPractice() {
   const [pageInput, setPageInput] = useState<string>('1');
   const [showAllAnswers, setShowAllAnswers] = useState<boolean>(false);
   const [showMap, setShowMap] = useState<boolean>(false);
+  const [navigationFilter, setNavigationFilter] = useState<SqldNavigationFilter>('all');
 
   // Stored user answers: roundId -> problemIndex -> record
   const [userRecords, setUserRecords] = useState<Record<string, Record<number, UserProblemRecord>>>(
@@ -257,6 +274,12 @@ export function useSqldPractice() {
     [userRecords, selectedRoundId]
   );
   const currentRecord: UserProblemRecord | undefined = currentRoundRecords[currentIndex];
+  const navigationIndices = useMemo(
+    () => getNavigationIndices(currentProblems, currentRoundRecords, navigationFilter),
+    [currentProblems, currentRoundRecords, navigationFilter]
+  );
+  const canGoPrev = navigationIndices.some((index) => index < currentIndex);
+  const canGoNext = navigationIndices.some((index) => index > currentIndex);
 
   // Keep pageInput synced with currentIndex
   useEffect(() => {
@@ -264,21 +287,43 @@ export function useSqldPractice() {
   }, [currentIndex]);
 
   // 4. Round switch handler
-  const handleSelectRound = useCallback((roundId: string) => {
-    setSelectedRoundId(roundId);
-    setCurrentIndex(0);
-    setPageInput('1');
-  }, []);
+  const handleSelectRound = useCallback(
+    (roundId: string) => {
+      setSelectedRoundId(roundId);
+      const indices = getNavigationIndices(
+        data?.scripts[roundId]?.problems || [],
+        userRecords[roundId] || {},
+        navigationFilter
+      );
+      const firstIndex = indices[0] ?? 0;
+      setCurrentIndex(firstIndex);
+      setPageInput(String(firstIndex + 1));
+    },
+    [data, userRecords, navigationFilter]
+  );
+
+  const handleSelectNavigationFilter = useCallback(
+    (filter: SqldNavigationFilter) => {
+      setNavigationFilter(filter);
+      const indices = getNavigationIndices(currentProblems, currentRoundRecords, filter);
+      if (indices.length > 0) {
+        setCurrentIndex((index) => (indices.includes(index) ? index : indices[0]));
+      }
+    },
+    [currentProblems, currentRoundRecords]
+  );
 
   // 5. Navigation handlers
   const handlePrevProblem = useCallback(() => {
-    setCurrentIndex((prev) => Math.max(0, prev - 1));
-  }, []);
+    setCurrentIndex((prev) => {
+      const previous = navigationIndices.filter((index) => index < prev);
+      return previous[previous.length - 1] ?? prev;
+    });
+  }, [navigationIndices]);
 
   const handleNextProblem = useCallback(() => {
-    if (!currentProblems.length) return;
-    setCurrentIndex((prev) => Math.min(currentProblems.length - 1, prev + 1));
-  }, [currentProblems.length]);
+    setCurrentIndex((prev) => navigationIndices.find((index) => index > prev) ?? prev);
+  }, [navigationIndices]);
 
   const handleJumpTo = useCallback(
     (index: number) => {
@@ -294,13 +339,18 @@ export function useSqldPractice() {
   }, []);
 
   const handlePageInputBlur = useCallback(() => {
-    const num = parseInt(pageInput, 10);
-    if (!isNaN(num) && num >= 1 && num <= currentProblems.length) {
+    const num = Number(pageInput);
+    if (
+      Number.isInteger(num) &&
+      num >= 1 &&
+      num <= currentProblems.length &&
+      navigationIndices.includes(num - 1)
+    ) {
       setCurrentIndex(num - 1);
     } else {
       setPageInput(String(currentIndex + 1));
     }
-  }, [pageInput, currentProblems.length, currentIndex]);
+  }, [pageInput, currentProblems.length, currentIndex, navigationIndices]);
 
   const handlePageInputKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -314,7 +364,7 @@ export function useSqldPractice() {
   // 6. Choice Selection Handler
   const handleSelectChoice = useCallback(
     (choiceNum: number, isMultiple: boolean) => {
-      if (!selectedRoundId) return;
+      if (!selectedRoundId || !currentProblem) return;
 
       setUserRecords((prev) => {
         const roundMap = prev[selectedRoundId] || {};
@@ -338,6 +388,10 @@ export function useSqldPractice() {
           updatedSelections = [choiceNum];
         }
 
+        // A single-answer choice is a complete answer, so grade and reveal it immediately.
+        const isCorrect = !isMultiple && choiceNum === currentProblem.answer;
+        const counts = getProblemAttemptCounts(oldRecord);
+
         return {
           ...prev,
           [selectedRoundId]: {
@@ -345,12 +399,19 @@ export function useSqldPractice() {
             [currentIndex]: {
               ...oldRecord,
               selectedAnswers: updatedSelections,
+              isSubmitted: isMultiple ? oldRecord.isSubmitted : true,
+              isCorrect: isMultiple ? oldRecord.isCorrect : isCorrect,
+              isRevealed: isMultiple ? oldRecord.isRevealed : true,
+              correctCount: isMultiple
+                ? counts.correctCount
+                : counts.correctCount + (isCorrect ? 1 : 0),
+              wrongCount: isMultiple ? counts.wrongCount : counts.wrongCount + (isCorrect ? 0 : 1),
             },
           },
         };
       });
     },
-    [selectedRoundId, currentIndex]
+    [selectedRoundId, currentIndex, currentProblem]
   );
 
   // 7. Submit Answer (Grading)
@@ -814,6 +875,10 @@ export function useSqldPractice() {
     currentProblem,
     currentIndex,
     pageInput,
+    navigationFilter,
+    navigationCount: navigationIndices.length,
+    canGoPrev,
+    canGoNext,
     showAllAnswers,
     showMap,
     loading,
@@ -824,6 +889,7 @@ export function useSqldPractice() {
     viewMode,
     setViewMode,
     handleSelectRound,
+    handleSelectNavigationFilter,
     handlePrevProblem,
     handleNextProblem,
     handleJumpTo,

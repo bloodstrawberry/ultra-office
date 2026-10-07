@@ -10,14 +10,18 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
+import Tooltip from '@mui/material/Tooltip';
 import { alpha } from '@mui/material/styles';
 import TextField from '@mui/material/TextField';
 import Container from '@mui/material/Container';
+import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import InputAdornment from '@mui/material/InputAdornment';
+import StarRoundedIcon from '@mui/icons-material/StarRounded';
 import ClearRoundedIcon from '@mui/icons-material/ClearRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import SearchOffRoundedIcon from '@mui/icons-material/SearchOffRounded';
+import StarBorderRoundedIcon from '@mui/icons-material/StarBorderRounded';
 import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import DashboardCustomizeRoundedIcon from '@mui/icons-material/DashboardCustomizeRounded';
@@ -28,6 +32,8 @@ import { NavTime } from 'src/layouts/components/nav-time';
 
 export interface HomeToolsGridProps {
   tools: HubToolItem[];
+  favoritePaths: Set<string>;
+  onToggleFavorite: (path: string) => void;
   sectionGroups?: HubSectionGroup[] | null;
   selectedCategory: string;
   searchQuery: string;
@@ -40,6 +46,8 @@ export interface HomeToolsGridProps {
 
 export function HomeToolsGrid({
   tools,
+  favoritePaths,
+  onToggleFavorite,
   sectionGroups,
   selectedCategory,
   searchQuery,
@@ -53,8 +61,6 @@ export function HomeToolsGrid({
   const renderToolCard = (tool: HubToolItem) => (
     <Card
       key={tool.id}
-      component={Link}
-      href={tool.path}
       sx={{
         p: 2.75,
         borderRadius: 2,
@@ -87,6 +93,41 @@ export function HomeToolsGrid({
         },
       }}
     >
+      <Box
+        component={Link}
+        href={tool.path}
+        aria-label={`${tool.title} 열기`}
+        sx={{
+          position: 'absolute',
+          inset: 0,
+          zIndex: 1,
+          borderRadius: 'inherit',
+          '&:focus-visible': {
+            outline: '2px solid',
+            outlineColor: 'primary.main',
+            outlineOffset: -2,
+          },
+        }}
+      />
+      <Tooltip title={favoritePaths.has(tool.path) ? '즐겨찾기 해제' : '즐겨찾기 추가'}>
+        <IconButton
+          size="small"
+          aria-label={`${tool.title} ${favoritePaths.has(tool.path) ? '즐겨찾기 해제' : '즐겨찾기 추가'}`}
+          aria-pressed={favoritePaths.has(tool.path)}
+          onClick={() => onToggleFavorite(tool.path)}
+          sx={{
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            zIndex: 2,
+            color: favoritePaths.has(tool.path) ? 'warning.main' : 'text.disabled',
+            bgcolor: 'background.paper',
+            '&:hover': { color: 'warning.main', bgcolor: 'action.hover' },
+          }}
+        >
+          {favoritePaths.has(tool.path) ? <StarRoundedIcon /> : <StarBorderRoundedIcon />}
+        </IconButton>
+      </Tooltip>
       <Box>
         {/* 상단 아이콘 & 뱃지 */}
         <Box
@@ -115,7 +156,18 @@ export function HomeToolsGrid({
             {tool.icon || <DashboardCustomizeRoundedIcon sx={{ fontSize: 24 }} />}
           </Box>
 
-          <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'center', flexWrap: 'wrap' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flex: 1,
+              minWidth: 0,
+              gap: 0.75,
+              alignItems: 'center',
+              justifyContent: 'flex-end',
+              flexWrap: 'wrap',
+              pr: 4.5,
+            }}
+          >
             {tool.groupTitle && (
               <Chip
                 label={tool.groupTitle}
@@ -255,6 +307,8 @@ export function HomeToolsGrid({
                   </Box>
                   {' 🍓'}
                 </>
+              ) : selectedCategory === 'favorites' ? (
+                '⭐ 즐겨찾기'
               ) : (
                 selectedCategory
               )}
@@ -368,7 +422,11 @@ export function HomeToolsGrid({
             {categories.map((cat) => {
               const isSelected = selectedCategory === cat;
               const label =
-                cat === 'all' ? `전체 도구${totalToolsCount ? ` (${totalToolsCount})` : ''}` : cat;
+                cat === 'all'
+                  ? `전체 도구${totalToolsCount ? ` (${totalToolsCount})` : ''}`
+                  : cat === 'favorites'
+                    ? `⭐ 즐겨찾기 (${favoritePaths.size})`
+                    : cat;
 
               return (
                 <Chip
@@ -491,12 +549,15 @@ export function HomeToolsGrid({
                 />
 
                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
-                  일치하는 도구를 찾을 수 없습니다
+                  {selectedCategory === 'favorites' && !searchQuery
+                    ? '즐겨찾기한 도구가 없습니다'
+                    : '일치하는 도구를 찾을 수 없습니다'}
                 </Typography>
 
                 <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3, maxWidth: 400 }}>
-                  입력하신 검색어에 해당하는 도구를 찾을 수 없습니다. 검색어를 변경하거나 필터를
-                  초기화해 보세요.
+                  {selectedCategory === 'favorites' && !searchQuery
+                    ? '도구 카드의 별을 눌러 즐겨찾기에 추가해 보세요.'
+                    : '입력하신 검색어에 해당하는 도구를 찾을 수 없습니다. 검색어를 변경하거나 필터를 초기화해 보세요.'}
                 </Typography>
 
                 <Button

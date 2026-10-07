@@ -148,6 +148,8 @@ const NavRoot = styled('div', {
       },
       [`& .${navSectionClasses.item.icon}`]: { margin: 0 },
       '[data-group]': { display: 'none' },
+      '& .nav-favorite-toggle': { display: 'none' },
+      '& .nav-favorite-link': { paddingRight: '0 !important' },
     }),
     [theme.breakpoints.up(layoutQuery)]: { display: 'flex' },
   })

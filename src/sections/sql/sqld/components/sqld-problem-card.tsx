@@ -2,8 +2,6 @@
 
 import type { Problem, UserProblemRecord } from '../types';
 
-import { useState, useCallback } from 'react';
-
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
@@ -678,7 +676,7 @@ export function SqldProblemCard({
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            {!isSubmitted ? (
+            {!isSubmitted && isMultiple ? (
               <Button
                 variant="contained"
                 color="primary"
@@ -688,7 +686,7 @@ export function SqldProblemCard({
               >
                 정답 확인 (Enter)
               </Button>
-            ) : (
+            ) : isSubmitted ? (
               <Button
                 variant="outlined"
                 color="inherit"
@@ -698,7 +696,7 @@ export function SqldProblemCard({
               >
                 다시 풀기
               </Button>
-            )}
+            ) : null}
 
             {!isRevealed && (
               <Button

@@ -1,6 +1,6 @@
 'use client';
 
-import type { SqldRound } from '../types';
+import type { SqldRound, SqldNavigationFilter } from '../types';
 
 import React from 'react';
 
@@ -31,6 +31,11 @@ interface SqldHeaderProps {
   currentIndex: number;
   totalProblems: number;
   pageInput: string;
+  navigationFilter: SqldNavigationFilter;
+  navigationCount: number;
+  canGoPrev: boolean;
+  canGoNext: boolean;
+  onSelectNavigationFilter: (filter: SqldNavigationFilter) => void;
   onPrev: () => void;
   onNext: () => void;
   onPageInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -53,6 +58,11 @@ export function SqldHeader({
   currentIndex,
   totalProblems,
   pageInput,
+  navigationFilter,
+  navigationCount,
+  canGoPrev,
+  canGoNext,
+  onSelectNavigationFilter,
   onPrev,
   onNext,
   onPageInputChange,
@@ -148,7 +158,31 @@ export function SqldHeader({
             onPageInputChange={onPageInputChange}
             onPageInputBlur={onPageInputBlur}
             onPageInputKeyDown={onPageInputKeyDown}
+            canGoPrev={canGoPrev}
+            canGoNext={canGoNext}
           />
+
+          <FormControl size="small" sx={{ minWidth: 185 }}>
+            <InputLabel id="sqld-navigation-filter-label">이동 대상</InputLabel>
+            <Select
+              labelId="sqld-navigation-filter-label"
+              value={navigationFilter}
+              label="이동 대상"
+              onChange={(event) =>
+                onSelectNavigationFilter(event.target.value as SqldNavigationFilter)
+              }
+              sx={{ fontWeight: 700 }}
+            >
+              <MenuItem value="all">전체 문제</MenuItem>
+              <MenuItem value="everWrong">한 번이라도 틀린 문제</MenuItem>
+              <MenuItem value="wrongOrUnanswered">오답 이력 또는 미풀이</MenuItem>
+            </Select>
+          </FormControl>
+          {navigationFilter !== 'all' && (
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>
+              {navigationCount > 0 ? `이동 대상 ${navigationCount}문항` : '이동 대상 없음'}
+            </Typography>
+          )}
 
           <Button
             variant={showMap ? 'contained' : 'outlined'}

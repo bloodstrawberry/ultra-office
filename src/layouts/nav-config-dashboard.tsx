@@ -52,6 +52,7 @@ import QrCodeScannerRoundedIcon from '@mui/icons-material/QrCodeScannerRounded';
 import MovieCreationRoundedIcon from '@mui/icons-material/MovieCreationRounded';
 import SportsEsportsRoundedIcon from '@mui/icons-material/SportsEsportsRounded';
 import DocumentScannerRoundedIcon from '@mui/icons-material/DocumentScannerRounded';
+import ChatBubbleOutlineRoundedIcon from '@mui/icons-material/ChatBubbleOutlineRounded';
 import DashboardCustomizeRoundedIcon from '@mui/icons-material/DashboardCustomizeRounded';
 import SwapHorizontalCircleRoundedIcon from '@mui/icons-material/SwapHorizontalCircleRounded';
 
@@ -66,6 +67,7 @@ const ICONS = {
   search: <SearchRoundedIcon fontSize="small" />,
   text: <TextFieldsRoundedIcon fontSize="small" />,
   photo: <PhotoLibraryRoundedIcon fontSize="small" />,
+  webtoon: <ChatBubbleOutlineRoundedIcon fontSize="small" />,
   gif: <GifRoundedIcon fontSize="small" />,
   drawing: <CasinoRoundedIcon fontSize="small" />,
   boardGame: <SportsEsportsRoundedIcon fontSize="small" />,
@@ -131,22 +133,6 @@ const appsInTossBadge = (
   />
 );
 
-const newFeatureBadge = (
-  <Chip
-    size="small"
-    variant="soft"
-    color="primary"
-    label="NEW"
-    sx={{
-      height: 20,
-      fontSize: '0.6875rem',
-      fontWeight: 700,
-      pointerEvents: 'none',
-      '& .MuiChip-label': { px: 0.75 },
-    }}
-  />
-);
-
 // ----------------------------------------------------------------------
 
 /**
@@ -182,21 +168,30 @@ export const navData: NavSectionProps['data'] = [
         ],
       },
       {
+        title: '웹툰 편집 스튜디오',
+        path: paths.webtoon.bubble,
+        icon: ICONS.webtoon,
+        children: [
+          { title: '말풍선 추가', path: paths.webtoon.bubble },
+          { title: '싸인추가', path: paths.webtoon.sign },
+        ],
+      },
+      {
         title: '사진 편집 스튜디오',
         path: paths.photo.root,
         icon: ICONS.photo,
         children: [
-          { title: '갤럭시 & 아이폰 사진 편집', path: paths.photo.editor, info: newFeatureBadge },
-          { title: '뉴스 자막 스튜디오', path: paths.photo.newsCaption, info: newFeatureBadge },
+          { title: '갤럭시 & 아이폰 사진 편집', path: paths.photo.editor },
+          { title: '뉴스 자막 스튜디오', path: paths.photo.newsCaption },
           { title: '로고 만들기', path: paths.photo.logo, info: appsInTossBadge },
           { title: '배경색 변경', path: paths.photo.color, info: appsInTossBadge },
           { title: '세로 스크린샷', path: paths.photo.sero, info: appsInTossBadge },
           { title: '가로 스크린샷', path: paths.photo.garo, info: appsInTossBadge },
           { title: 'ogImage 크기 조절', path: paths.photo.ogImage, info: appsInTossBadge },
           { title: 'AI 배경 제거', path: paths.photo.bgRemove },
-          { title: '워터마크 제거', path: paths.photo.watermarkRemove, info: newFeatureBadge },
+          { title: '워터마크 제거', path: paths.photo.watermarkRemove },
           { title: '여백 조정', path: paths.photo.padding },
-          { title: '테두리 추가', path: paths.photo.outline, info: newFeatureBadge },
+          { title: '테두리 추가', path: paths.photo.outline },
           { title: '스마트 OCR', path: paths.ocr },
           { title: 'Color Picker', path: paths.photo.colorPicker },
           { title: '사진 용량 압축', path: paths.photo.compress },
@@ -239,12 +234,10 @@ export const navData: NavSectionProps['data'] = [
           {
             title: '동영상 자막 지우개',
             path: paths.videoMaster.subtitleRemover,
-            info: newFeatureBadge,
           },
           {
             title: '동영상 배경 제거',
             path: paths.videoMaster.bgRemove,
-            info: newFeatureBadge,
           },
         ],
       },
@@ -268,7 +261,7 @@ export const navData: NavSectionProps['data'] = [
         icon: ICONS.devTools,
         children: [
           { title: 'Online 컴파일러', path: paths.codeRunner },
-          { title: 'VS Code 타이핑 IDE', path: paths.devToolsIde, info: newFeatureBadge },
+          { title: 'VS Code 타이핑 IDE', path: paths.devToolsIde },
           { title: 'Diff Checker', path: paths.compare },
           { title: '정규표현식', path: paths.text.regex },
           { title: 'Math Lab', path: paths.matlab },
@@ -282,7 +275,6 @@ export const navData: NavSectionProps['data'] = [
         title: '머신러닝',
         path: paths.ml.root,
         icon: ICONS.ml,
-        info: newFeatureBadge,
         children: [
           { title: '머신러닝 허브 (전체)', path: paths.ml.root },
           { title: '선형 모델 (Linear)', path: paths.ml.linear },
@@ -316,7 +308,7 @@ export const navData: NavSectionProps['data'] = [
         children: [
           { title: '베리 하드 퍼즐', path: paths.game.veryHardPuzzle },
           { title: '택배 배송', path: paths.game.delivery },
-          { title: '푸시푸시 (Push Push)', path: paths.game.pushPush, info: newFeatureBadge },
+          { title: '푸시푸시 (Push Push)', path: paths.game.pushPush },
           { title: '턴제 사천성', path: paths.game.tileMatch },
           { title: '스네이크 퍼즐', path: paths.game.snakePuzzle },
           { title: '버블 슈터', path: paths.game.bubbleShooter },

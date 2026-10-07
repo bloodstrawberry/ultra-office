@@ -6,13 +6,15 @@ import type { MainSectionProps, HeaderSectionProps, LayoutSectionProps } from '.
 
 import { merge } from 'es-toolkit';
 import { useBoolean } from 'minimal-shared/hooks';
-import { useState, useEffect, useCallback } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import { useTheme } from '@mui/material/styles';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+
+import { useToolFavorites } from 'src/hooks/use-tool-favorites';
 
 import { CommandPalette } from 'src/components/command-palette';
 
@@ -58,6 +60,7 @@ export function DashboardLayout({
   const [commandOpen, setCommandOpen] = useState(false);
   const [isNavMini, setIsNavMini] = useState(false);
   const [navWidth, setNavWidth] = useState(300);
+  const { favorites } = useToolFavorites();
 
   useEffect(() => {
     const savedWidth = Number(window.localStorage.getItem(NAV_WIDTH_STORAGE_KEY));
@@ -79,7 +82,38 @@ export function DashboardLayout({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const navData = slotProps?.nav?.data ?? dashboardNavData;
+  const baseNavData = slotProps?.nav?.data ?? dashboardNavData;
+  const navData = useMemo(() => {
+    const favoritePaths = new Set(favorites);
+    const favoriteItems = new Map<string, NavSectionProps['data'][number]['items'][number]>();
+    const markItem = (
+      item: NavSectionProps['data'][number]['items'][number],
+      inheritedIcon?: React.ReactNode
+    ): NavSectionProps['data'][number]['items'][number] => {
+      if (item.children?.length) {
+        return {
+          ...item,
+          children: item.children.map((child) =>
+            markItem(child, child.icon ?? item.icon ?? inheritedIcon)
+          ),
+        };
+      }
+      const markedItem = { ...item, favoriteEnabled: true };
+      if (favoritePaths.has(item.path) && !favoriteItems.has(item.path)) {
+        favoriteItems.set(item.path, { ...markedItem, icon: item.icon ?? inheritedIcon });
+      }
+      return markedItem;
+    };
+    const sections = baseNavData.map((section) => ({
+      ...section,
+      items: section.subheader ? section.items.map((item) => markItem(item)) : section.items,
+    }));
+
+    if (favoriteItems.size) {
+      sections.splice(1, 0, { subheader: '⭐ 즐겨찾기', items: [...favoriteItems.values()] });
+    }
+    return sections;
+  }, [baseNavData, favorites]);
 
   const isNavVertical = true;
 

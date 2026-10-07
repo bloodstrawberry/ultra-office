@@ -4,7 +4,14 @@ import { useBoolean } from 'minimal-shared/hooks';
 import { useRef, useEffect, useCallback } from 'react';
 import { isActiveLink, isExternalLink } from 'minimal-shared/utils';
 
+import Tooltip from '@mui/material/Tooltip';
+import IconButton from '@mui/material/IconButton';
+import StarRoundedIcon from '@mui/icons-material/StarRounded';
+import StarBorderRoundedIcon from '@mui/icons-material/StarBorderRounded';
+
 import { usePathname } from 'src/routes/hooks';
+
+import { useToolFavorites } from 'src/hooks/use-tool-favorites';
 
 import { NavItem } from './nav-item';
 import { navSectionClasses } from '../styles';
@@ -34,6 +41,7 @@ export function NavList({
   enabledRootRedirect,
 }: NavListProps) {
   const pathname = usePathname();
+  const { favorites, toggleFavorite } = useToolFavorites();
   const navItemRef = useRef<HTMLButtonElement>(null);
 
   const hasActiveChild = data.children ? isChildActive(data.children, pathname) : false;
@@ -106,6 +114,7 @@ export function NavList({
     <NavLi
       disabled={data.disabled}
       sx={{
+        position: 'relative',
         ...(!!data.children && {
           [`& .${navSectionClasses.li}`]: {
             '&:first-of-type': { mt: 'var(--nav-item-gap)' },
@@ -113,7 +122,39 @@ export function NavList({
         }),
       }}
     >
-      {renderNavItem()}
+      {data.favoriteEnabled ? (
+        <>
+          <div className="nav-favorite-link" style={{ paddingRight: 30 }}>
+            {renderNavItem()}
+          </div>
+          <Tooltip title={favorites.includes(data.path) ? '즐겨찾기 해제' : '즐겨찾기 추가'}>
+            <IconButton
+              className="nav-favorite-toggle"
+              size="small"
+              aria-label={`${data.title} ${favorites.includes(data.path) ? '즐겨찾기 해제' : '즐겨찾기 추가'}`}
+              aria-pressed={favorites.includes(data.path)}
+              onClick={() => toggleFavorite(data.path)}
+              sx={{
+                position: 'absolute',
+                top: 4,
+                right: 0,
+                width: 28,
+                height: 28,
+                color: favorites.includes(data.path) ? 'warning.main' : 'text.disabled',
+                '&:hover': { color: 'warning.main' },
+              }}
+            >
+              {favorites.includes(data.path) ? (
+                <StarRoundedIcon sx={{ fontSize: 18 }} />
+              ) : (
+                <StarBorderRoundedIcon sx={{ fontSize: 18 }} />
+              )}
+            </IconButton>
+          </Tooltip>
+        </>
+      ) : (
+        renderNavItem()
+      )}
       {renderCollapse()}
     </NavLi>
   );

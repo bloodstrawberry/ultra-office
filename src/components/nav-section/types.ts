@@ -48,6 +48,7 @@ export type NavItemOptionsProps = {
 export type NavItemDataProps = Pick<NavItemStateProps, 'disabled'> & {
   path: string;
   title: string;
+  favoriteEnabled?: boolean;
   icon?: string | React.ReactNode;
   info?: string[] | React.ReactNode;
   caption?: string;

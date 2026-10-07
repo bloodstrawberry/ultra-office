@@ -30,6 +30,10 @@ export function SqldPracticeView() {
     currentProblem,
     currentIndex,
     pageInput,
+    navigationFilter,
+    navigationCount,
+    canGoPrev,
+    canGoNext,
     showAllAnswers,
     showMap,
     loading,
@@ -40,6 +44,7 @@ export function SqldPracticeView() {
     viewMode,
     setViewMode,
     handleSelectRound,
+    handleSelectNavigationFilter,
     handlePrevProblem,
     handleNextProblem,
     handleJumpTo,
@@ -265,6 +270,11 @@ export function SqldPracticeView() {
         currentIndex={currentIndex}
         totalProblems={currentProblems.length}
         pageInput={pageInput}
+        navigationFilter={navigationFilter}
+        navigationCount={navigationCount}
+        canGoPrev={canGoPrev}
+        canGoNext={canGoNext}
+        onSelectNavigationFilter={handleSelectNavigationFilter}
         onPrev={handlePrevProblem}
         onNext={handleNextProblem}
         onPageInputChange={handlePageInputChange}
@@ -276,7 +286,10 @@ export function SqldPracticeView() {
         onToggleMap={handleToggleMap}
         onCopyProblem={handleCopyProblem}
         onResetRound={handleResetRound}
-        onEnterEditor={() => setViewMode('editor')}
+        onEnterEditor={() => {
+          handleSelectNavigationFilter('all');
+          setViewMode('editor');
+        }}
       />
 
       {/* 2. 50 Question Map Collapsible Section */}
@@ -311,7 +324,10 @@ export function SqldPracticeView() {
           onSubmitAnswer={handleSubmitAnswer}
           onRevealAnswer={handleRevealAnswer}
           onResetProblem={handleResetProblem}
-          onEditProblem={() => setViewMode('editor')}
+          onEditProblem={() => {
+            handleSelectNavigationFilter('all');
+            setViewMode('editor');
+          }}
         />
       )}
 
@@ -327,6 +343,8 @@ export function SqldPracticeView() {
           onPageInputChange={handlePageInputChange}
           onPageInputBlur={handlePageInputBlur}
           onPageInputKeyDown={handlePageInputKeyDown}
+          canGoPrev={canGoPrev}
+          canGoNext={canGoNext}
         />
       </Box>
     </Box>

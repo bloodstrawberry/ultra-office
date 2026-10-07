@@ -27,6 +27,8 @@ export interface PhotoUploadWorkspaceProps {
   sampleImages?: SampleImageItem[];
   onSelectSample?: (url: string) => void;
   onFileSelect: (file: File) => void;
+  onFilesSelect?: (files: File[]) => void;
+  multiple?: boolean;
   title?: string;
   subtitle?: string;
   sampleTitle?: string;
@@ -42,6 +44,8 @@ export function PhotoUploadWorkspace({
   sampleImages,
   onSelectSample,
   onFileSelect,
+  onFilesSelect,
+  multiple = false,
   title = '이미지 업로드',
   subtitle = '이미지를 드래그하거나 클립보드(Ctrl+V)에서 붙여넣으세요.',
   sampleTitle = '⚡ 즉석 테스트 샘플 이미지',
@@ -55,19 +59,20 @@ export function PhotoUploadWorkspace({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { isDragActive, getRootProps } = useImageDropPaste({
+    multiple,
     onFiles: (files) => {
-      if (files[0]) {
-        onFileSelect(files[0]);
-      }
+      if (onFilesSelect) onFilesSelect(files);
+      else if (files[0]) onFileSelect(files[0]);
     },
   });
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      onFileSelect(file);
-      e.target.value = '';
+    const files = Array.from(e.target.files ?? []);
+    if (files.length) {
+      if (onFilesSelect) onFilesSelect(files);
+      else onFileSelect(files[0]);
     }
+    e.target.value = '';
   };
 
   return (
@@ -86,6 +91,7 @@ export function PhotoUploadWorkspace({
         ref={fileInputRef}
         type="file"
         accept={accept}
+        multiple={multiple}
         onChange={handleFileInputChange}
         style={{ display: 'none' }}
       />

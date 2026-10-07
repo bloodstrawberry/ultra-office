@@ -4,6 +4,8 @@ import { useMemo, useState, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 
+import { useToolFavorites } from 'src/hooks/use-tool-favorites';
+
 import { navData } from 'src/layouts/nav-config-dashboard';
 
 import { extractNavTools } from 'src/sections/photo/utils/nav-tools';
@@ -16,6 +18,8 @@ import { HomeToolsGrid } from '../home-tools-grid';
 export function HomeView() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const { favorites, toggleFavorite } = useToolFavorites();
+  const favoritePaths = useMemo(() => new Set(favorites), [favorites]);
 
   // navData로부터 동적으로 전체 도구 및 섹션 그룹 추출 (SSOT)
   // Fast Refresh 중 navData가 바뀌면 이전 목록을 재사용하지 않아야 SSR 결과와 일치한다.
@@ -38,33 +42,48 @@ export function HomeView() {
   const filteredTools = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
 
-    return tools.filter((tool) => {
-      // Category check
-      const matchesCategory = selectedCategory === 'all' || tool.section === selectedCategory;
+    return tools
+      .filter((tool) => {
+        // Category check
+        const matchesCategory =
+          selectedCategory === 'all' ||
+          (selectedCategory === 'favorites'
+            ? favoritePaths.has(tool.path)
+            : tool.section === selectedCategory);
 
-      if (!matchesCategory) return false;
+        if (!matchesCategory) return false;
 
-      // Query check
-      if (!query) return true;
+        // Query check
+        if (!query) return true;
 
-      return (
-        tool.title.toLowerCase().includes(query) ||
-        (tool.groupTitle && tool.groupTitle.toLowerCase().includes(query)) ||
-        tool.section.toLowerCase().includes(query) ||
-        tool.description.toLowerCase().includes(query) ||
-        (tool.tag && tool.tag.toLowerCase().includes(query)) ||
-        tool.path.toLowerCase().includes(query)
-      );
-    });
-  }, [tools, searchQuery, selectedCategory]);
+        return (
+          tool.title.toLowerCase().includes(query) ||
+          (tool.groupTitle && tool.groupTitle.toLowerCase().includes(query)) ||
+          tool.section.toLowerCase().includes(query) ||
+          tool.description.toLowerCase().includes(query) ||
+          (tool.tag && tool.tag.toLowerCase().includes(query)) ||
+          tool.path.toLowerCase().includes(query)
+        );
+      })
+      .sort((a, b) => Number(favoritePaths.has(b.path)) - Number(favoritePaths.has(a.path)));
+  }, [tools, searchQuery, selectedCategory, favoritePaths]);
 
   // 카테고리별 그룹화된 필터링 결과 (카테고리가 'all'이고 검색어가 없을 때 섹션별 헤더 표시용)
   const filteredSectionGroups = useMemo(() => {
     if (searchQuery.trim() || selectedCategory !== 'all') {
       return null;
     }
-    return sectionGroups;
-  }, [sectionGroups, searchQuery, selectedCategory]);
+    const favoriteTools = filteredTools.filter((tool) => favoritePaths.has(tool.path));
+    const otherGroups = sectionGroups
+      .map((group) => ({
+        ...group,
+        tools: group.tools.filter((tool) => !favoritePaths.has(tool.path)),
+      }))
+      .filter((group) => group.tools.length > 0);
+    return favoriteTools.length
+      ? [{ section: '⭐ 즐겨찾기', tools: favoriteTools }, ...otherGroups]
+      : otherGroups;
+  }, [sectionGroups, filteredTools, favoritePaths, searchQuery, selectedCategory]);
 
   return (
     <Box
@@ -82,12 +101,14 @@ export function HomeView() {
       {/* All Tools Hub with integrated search */}
       <HomeToolsGrid
         tools={filteredTools}
+        favoritePaths={favoritePaths}
+        onToggleFavorite={toggleFavorite}
         sectionGroups={filteredSectionGroups}
         selectedCategory={selectedCategory}
         searchQuery={searchQuery}
         onSearchChange={handleSearchChange}
         onSelectCategory={handleSelectCategory}
-        categories={categories}
+        categories={['all', 'favorites', ...categories.filter((category) => category !== 'all')]}
         totalToolsCount={tools.length}
         onResetFilters={handleResetFilters}
       />

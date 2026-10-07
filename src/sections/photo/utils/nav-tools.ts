@@ -36,6 +36,10 @@ export const TOOL_METADATA_MAP: Record<
     badgeColor?: 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success';
   }
 > = {
+  [paths.webtoon.sign]: {
+    description: '웹툰 이미지에 흰 여백, 둥근 모서리, 작가 싸인을 일괄 추가',
+    badgeColor: 'primary',
+  },
   [paths.photo.editor]: {
     description:
       '갤럭시 One UI & 아이폰 iOS 감성 보정, AI 편집, 8채널 HSL, 인물 리터칭 올인원 스튜디오',
@@ -77,7 +81,6 @@ export const TOOL_METADATA_MAP: Record<
   },
   [paths.photo.ascii]: {
     description: '사진을 텍스트 문자로 변환 (Dark, Matrix, Cyber, Full Color)',
-    tag: 'NEW',
     badgeColor: 'success',
   },
   [paths.photo.pixel]: {
@@ -92,7 +95,6 @@ export const TOOL_METADATA_MAP: Record<
   },
   [paths.photo.weathering]: {
     description: '세대 손실(Generation Loss), 짤방 열화, 카톡 무한 압축 시뮬레이터',
-    tag: 'NEW',
     badgeColor: 'success',
   },
   [paths.photo.memeLab]: {
@@ -110,7 +112,6 @@ export const TOOL_METADATA_MAP: Record<
   [paths.photo.newsCaption]: {
     description:
       'KBS 인간극장 명조체 다큐 인터뷰 자막부터 9시 뉴스, 긴급 속보 배너까지 1초 방송 자막 합성',
-    tag: 'NEW',
     badgeColor: 'primary',
   },
   [paths.photo.bgRemove]: {
@@ -120,12 +121,10 @@ export const TOOL_METADATA_MAP: Record<
   },
   [paths.photo.padding]: {
     description: '상하좌우 여백 확장, SNS 규격 자동 맞춤 & 스마트 그라데이션/블러 배경 채우기',
-    tag: 'NEW',
     badgeColor: 'success',
   },
   [paths.photo.outline]: {
     description: '배경색을 클릭해 투명화하고 글자·그림 윤곽에 원하는 색과 굵기의 테두리 추가',
-    tag: 'NEW',
     badgeColor: 'primary',
   },
   [paths.ocr]: {
@@ -145,7 +144,6 @@ export const TOOL_METADATA_MAP: Record<
   },
   [paths.photo.resize]: {
     description: '너비/높이 픽셀 지정, 비율 유지, 확대 방지, 25%/50%/75% 및 사용자 비율 조절',
-    tag: 'NEW',
     badgeColor: 'primary',
   },
   [paths.photo.convert]: {
@@ -155,12 +153,10 @@ export const TOOL_METADATA_MAP: Record<
   },
   [paths.photo.svg]: {
     description: '이미지(PNG/JPG)를 벡터 SVG로 변환 & SVG 파일/코드 래스터 고화질 렌더링',
-    tag: 'NEW',
     badgeColor: 'primary',
   },
   [paths.photo.flip]: {
     description: '정밀 거울 대칭 좌우/상하 반전, 90° 각도 회전 & 만화경 대칭 합성',
-    tag: 'NEW',
     badgeColor: 'success',
   },
   [paths.photo.shapeCrop]: {
@@ -185,7 +181,6 @@ export const TOOL_METADATA_MAP: Record<
   },
   [paths.photo.scan]: {
     description: '일반 스마트폰 촬영 문서를 선명한 평판 스캐너/복사기 룩으로 변환 & PDF 생성',
-    tag: 'NEW',
     badgeColor: 'success',
   },
   [paths.photo.pdf]: {

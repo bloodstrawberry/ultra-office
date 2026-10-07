@@ -3,6 +3,7 @@
 // ----------------------------------------------------------------------
 
 export type SqldViewMode = 'practice' | 'editor';
+export type SqldNavigationFilter = 'all' | 'everWrong' | 'wrongOrUnanswered';
 
 export interface ConceptLink {
   id: string;
