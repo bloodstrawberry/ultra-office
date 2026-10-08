@@ -36,15 +36,20 @@ import FormatAlignCenterRoundedIcon from '@mui/icons-material/FormatAlignCenterR
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { PhotoUploadWorkspace } from 'src/sections/photo/components';
+import { getElementBounds } from 'src/sections/photo/utils/news-caption-renderer';
 import { downloadDataUrl, shareToKakaoTalk } from 'src/sections/photo/utils/image-processor';
 import { STUDIO_FONTS, ensureStudioFontsLoaded } from 'src/sections/gif-studio/data/gif-fonts';
 
+import { IMAGE_BUBBLE_ASSETS } from './bubble-assets';
+import { getNewsStyle, NEWS_BUBBLE_STYLES } from './news-caption-bubbles';
+import { NewsCaptionBubbleControls } from './news-caption-bubble-controls';
 import { loadWebtoonSample, WEBTOON_SAMPLE_IMAGES } from './webtoon-samples';
 import {
   type Bubble,
   createBubble,
   BUBBLE_SHAPES,
   RESIZE_HANDLES,
+  isCaptionShape,
   isTextOnlyShape,
   type BorderStyle,
   type BubbleShape,
@@ -66,6 +71,9 @@ const LOCAL_FONTS = [
 const FONT_OPTIONS = [
   ...LOCAL_FONTS.map(({ label, family }) => ({ label, value: `"${family}", sans-serif` })),
   ...STUDIO_FONTS.map(({ name, family }) => ({ label: name, value: family })),
+  { label: '뉴스 명조', value: '"Nanum Myeongjo", "Batang", serif' },
+  { label: '뉴스 고딕', value: '"Malgun Gothic", "Noto Sans KR", sans-serif' },
+  { label: '속보 임팩트', value: 'Impact, "Arial Black", sans-serif' },
   { label: '맑은 고딕', value: '"Malgun Gothic", sans-serif' },
   { label: 'Arial', value: 'Arial, sans-serif' },
   { label: 'Georgia', value: 'Georgia, serif' },
@@ -86,6 +94,7 @@ const TEMPLATE_CATEGORIES = [
   { id: 'all', label: '전체' },
   { id: 'basic', label: '기본 모양' },
   { id: 'effect', label: '효과·강조' },
+  { id: 'caption', label: '자막 스타일' },
   { id: 'asset', label: '일러스트 에셋' },
 ] as const;
 
@@ -95,7 +104,7 @@ interface TemplateItemInfo {
   id: BubbleShape;
   label: string;
   desc: string;
-  category: 'basic' | 'effect' | 'asset';
+  category: 'basic' | 'effect' | 'caption' | 'asset';
   icon?: string;
   assetFile?: string;
 }
@@ -194,77 +203,61 @@ const TEMPLATE_LIST: TemplateItemInfo[] = [
     icon: '🏷️',
   },
 
-  // 일러스트 에셋 (Asset)
+  // 뉴스 자막 스튜디오에서 가져온 방송·영상 자막 스타일
   {
-    id: 'assetRetro',
-    label: '손그림 둥근',
-    desc: '고전 만화 감성 스케치',
-    category: 'asset',
-    assetFile: 'retro.png',
+    id: 'captionHuman',
+    label: 'KBS 인간극장',
+    desc: '명조체 다큐 인터뷰·방송 로고',
+    category: 'caption',
+    icon: '🎬',
+  },
+  ...NEWS_BUBBLE_STYLES.slice(1).map(({ shape }) => {
+    const style = getNewsStyle(shape)!;
+    return {
+      id: shape,
+      label: style.name,
+      desc: style.description,
+      category: 'caption' as const,
+      icon: '📺',
+    };
+  }),
+  {
+    id: 'captionNews',
+    label: '뉴스 하단 자막',
+    desc: '상단 강조선과 NEWS 배지',
+    category: 'caption',
+    icon: '📰',
   },
   {
-    id: 'assetComicCloud',
-    label: '손그림 각진',
-    desc: '만화풍 몽환 구름',
-    category: 'asset',
-    assetFile: 'comic-cloud.png',
+    id: 'captionBreaking',
+    label: '속보 배너',
+    desc: '붉은 강조선과 속보 배지',
+    category: 'caption',
+    icon: '🚨',
   },
   {
-    id: 'assetThought',
-    label: '동글 생각',
-    desc: '퐁퐁 방울 생각 거품',
-    category: 'asset',
-    assetFile: 'thought.png',
+    id: 'captionVariety',
+    label: '예능 강조 자막',
+    desc: '밝은 배경의 예능형 강조 문구',
+    category: 'caption',
+    icon: '✨',
   },
   {
-    id: 'assetPuffy',
-    label: '푹신 구름',
-    desc: '깔끔한 흰 구름 말풍선',
-    category: 'asset',
-    assetFile: 'blank-cloud.png',
+    id: 'captionYouTube',
+    label: '유튜브형 자막',
+    desc: '흰 글자·검은 반투명 배경',
+    category: 'caption',
+    icon: '▶️',
   },
-  {
-    id: 'assetBurst',
-    label: '번쩍 외침',
-    desc: '효과음 집중선 폭발',
-    category: 'asset',
-    assetFile: 'burst.png',
-  },
-  {
-    id: 'assetInk',
-    label: '잉크 번짐',
-    desc: '손그림 볼펜 스타일',
-    category: 'asset',
-    assetFile: 'round.png',
-  },
-  {
-    id: 'assetBoldCloud',
-    label: '진한 구름',
-    desc: '선명한 손그림 라운드',
-    category: 'asset',
-    assetFile: 'round-alt.png',
-  },
-  {
-    id: 'assetDashed',
-    label: '점선 그림자',
-    desc: '부드러운 점선 타원',
-    category: 'asset',
-    assetFile: 'oval.png',
-  },
-  {
-    id: 'assetCallout',
-    label: '손그림 네모',
-    desc: '시선 집중 손그림 박스',
-    category: 'asset',
-    assetFile: 'callout.png',
-  },
-  {
-    id: 'assetPink',
-    label: '핑크 광택',
-    desc: '광택 테두리 러블리 버블',
-    category: 'asset',
-    assetFile: 'pink-gloss.png',
-  },
+
+  // 이미지 에셋은 bubble-assets.ts의 목록에서 자동으로 가져옵니다.
+  ...IMAGE_BUBBLE_ASSETS.map(({ id, label, desc, file }) => ({
+    id,
+    label,
+    desc,
+    category: 'asset' as const,
+    assetFile: file,
+  })),
 ];
 
 function restoreBubbles(value: unknown): Bubble[] | null {
@@ -390,6 +383,18 @@ export function WebtoonBubbleView() {
   const loadedFontsRef = useRef(new Set<string>());
   const dragRef = useRef<
     | { mode: 'move'; id: string; dx: number; dy: number }
+    | { mode: 'news-element'; id: string; elementId: string; dx: number; dy: number }
+    | {
+        mode: 'news-resize';
+        id: string;
+        elementId: string;
+        fontSize: number;
+        centerX: number;
+        centerY: number;
+        halfWidth: number;
+        halfHeight: number;
+        handle: ResizeHandle;
+      }
     | {
         mode: 'resize';
         bubble: Bubble;
@@ -401,6 +406,15 @@ export function WebtoonBubbleView() {
   >(null);
 
   const [image, setImage] = useState<HTMLImageElement | null>(null);
+  const [originalPreview, setOriginalPreview] = useState('');
+  const [previewMode, setPreviewMode] = useState<'edit' | 'original' | 'compare'>('edit');
+  const [compareStart, setCompareStart] = useState(30);
+  const [compareEnd, setCompareEnd] = useState(70);
+  const [compareOrientation, setCompareOrientation] = useState<'left-right' | 'top-bottom'>(
+    'left-right'
+  );
+  const [compareOutside, setCompareOutside] = useState(false);
+  const [previewZoom, setPreviewZoom] = useState(1);
   const [canvasSize, setCanvasSize] = useState({ width: 900, height: 900 });
   const [background, setBackground] = useState('#ffffff');
   const [bubbles, setBubbles] = useState<Bubble[]>(() => [createBubble('oval', 0)]);
@@ -411,6 +425,7 @@ export function WebtoonBubbleView() {
 
   const [activeTab, setActiveTab] = useState<MainPanelTab>('templates');
   const [templateCategory, setTemplateCategory] = useState<TemplateCategory>('all');
+  const [templateSearch, setTemplateSearch] = useState('');
   const [rightPanelWidth, setRightPanelWidth] = useState<number>(390);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
@@ -419,8 +434,19 @@ export function WebtoonBubbleView() {
   const resizeStartWidthRef = useRef<number>(390);
 
   const selected = bubbles.find((bubble) => bubble.id === selectedId) ?? null;
+  const selectedNewsElement = selected?.newsConfig?.elements.find(
+    (element) => element.id === selected.newsConfig?.selectedElementId
+  );
+  const layerCount = bubbles.reduce(
+    (count, bubble) => count + 1 + (bubble.newsConfig?.elements.length ?? 0),
+    0
+  );
+  const activeAssetIds = [...new Set(bubbles.map(({ shape }) => shape).filter(getImageBubbleAsset))]
+    .sort()
+    .join('|');
   const selectedFontFamily = selected?.fontFamily;
   const textOnlyShape = selected ? isTextOnlyShape(selected.shape) : false;
+  const captionShape = selected ? isCaptionShape(selected.shape) : false;
   const imageAsset = selected ? getImageBubbleAsset(selected.shape) : undefined;
 
   const handleDividerPointerDown = (e: React.PointerEvent) => {
@@ -451,8 +477,9 @@ export function WebtoonBubbleView() {
   };
 
   useEffect(() => {
+    if (!activeAssetIds) return undefined;
     let mounted = true;
-    preloadImageBubbleAssets()
+    preloadImageBubbleAssets(activeAssetIds.split('|') as BubbleShape[])
       .then(() => {
         if (mounted) setAssetRevision((value) => value + 1);
       })
@@ -462,7 +489,7 @@ export function WebtoonBubbleView() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [activeAssetIds]);
 
   useEffect(() => {
     try {
@@ -540,8 +567,23 @@ export function WebtoonBubbleView() {
     if (!canvas) return;
     canvas.width = canvasSize.width;
     canvas.height = canvasSize.height;
-    drawWebtoonCanvas(canvas, image, background, bubbles, selectedId ?? undefined);
-  }, [canvasSize, image, background, bubbles, selectedId, fontRevision, assetRevision]);
+    drawWebtoonCanvas(
+      canvas,
+      image,
+      background,
+      bubbles,
+      previewMode === 'edit' ? (selectedId ?? undefined) : undefined
+    );
+  }, [
+    canvasSize,
+    image,
+    background,
+    bubbles,
+    selectedId,
+    fontRevision,
+    assetRevision,
+    previewMode,
+  ]);
 
   const updateSelected = useCallback(
     (patch: Partial<Bubble>) => {
@@ -555,6 +597,7 @@ export function WebtoonBubbleView() {
 
   const addBubble = (shape: BubbleShape) => {
     const bubble = createBubble(shape, bubbles.length);
+    if (bubble.newsConfig) bubble.height = canvasSize.height / canvasSize.width;
     setBubbles((items) => [...items, bubble]);
     setSelectedId(bubble.id);
     setActiveTab('edit');
@@ -563,10 +606,15 @@ export function WebtoonBubbleView() {
 
   const changeSelectedShape = (shape: BubbleShape) => {
     const preset = createBubble(shape, 0);
+    if (preset.newsConfig) preset.height = canvasSize.height / canvasSize.width;
     updateSelected({
       shape,
+      x: preset.x,
+      y: preset.y,
+      text: preset.newsConfig ? preset.text : (selected?.text ?? preset.text),
       width: preset.width,
       height: preset.height,
+      newsConfig: preset.newsConfig,
       tail: preset.tail,
       tailLength: preset.tailLength,
       fill: preset.fill,
@@ -579,6 +627,11 @@ export function WebtoonBubbleView() {
       flipY: preset.flipY,
       shadowBlur: preset.shadowBlur,
       shadowColor: preset.shadowColor,
+      backgroundOpacity: preset.backgroundOpacity,
+      cornerRadius: preset.cornerRadius,
+      accentColor: preset.accentColor,
+      badgeVisible: preset.badgeVisible,
+      badgeText: preset.badgeText,
       fontFamily: preset.fontFamily,
       fontSize: preset.fontSize,
       fontWeight: preset.fontWeight,
@@ -586,11 +639,25 @@ export function WebtoonBubbleView() {
       textColor: preset.textColor,
       textStrokeColor: preset.textStrokeColor,
       textStrokeWidth: preset.textStrokeWidth,
+      textShadowBlur: preset.textShadowBlur,
+      textShadowColor: preset.textShadowColor,
+      textAlign: preset.textAlign,
       lineHeight: preset.lineHeight,
     });
   };
 
   const removeSelected = () => {
+    if (selected?.newsConfig && selectedNewsElement && selectedNewsElement.isDeletable !== false) {
+      setBubbles((items) => items.map((item) => item.id === selected.id && item.newsConfig ? {
+        ...item,
+        newsConfig: {
+          ...item.newsConfig,
+          elements: item.newsConfig.elements.filter((element) => element.id !== selectedNewsElement.id),
+          selectedElementId: null,
+        },
+      } : item));
+      return;
+    }
     setBubbles((items) => items.filter((item) => item.id !== selectedId));
     setSelectedId(null);
   };
@@ -608,25 +675,59 @@ export function WebtoonBubbleView() {
       )
         return;
       event.preventDefault();
+      if (selected?.newsConfig && selectedNewsElement && selectedNewsElement.isDeletable !== false) {
+        setBubbles((items) => items.map((item) => item.id === selectedId && item.newsConfig ? {
+          ...item,
+          newsConfig: {
+            ...item.newsConfig,
+            elements: item.newsConfig.elements.filter((element) => element.id !== selectedNewsElement.id),
+            selectedElementId: null,
+          },
+        } : item));
+        dragRef.current = null;
+        return;
+      }
       setBubbles((items) => items.filter((item) => item.id !== selectedId));
       setSelectedId(null);
       dragRef.current = null;
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [selectedId]);
+  }, [selectedId, selectedNewsElement, selected]);
 
-  const duplicateSelected = () => {
-    if (!selected) return;
+  const duplicateBubble = (bubble: Bubble) => {
     const copy = {
-      ...selected,
+      ...bubble,
       id: crypto.randomUUID(),
-      x: Math.min(selected.x + 0.05, 0.9),
-      y: Math.min(selected.y + 0.05, 0.9),
+      x: bubble.newsConfig ? bubble.x : Math.min(bubble.x + 0.05, 0.9),
+      y: bubble.newsConfig ? bubble.y : Math.min(bubble.y + 0.05, 0.9),
+      newsConfig: bubble.newsConfig ? {
+        ...bubble.newsConfig,
+        selectedElementId: null,
+        elements: bubble.newsConfig.elements.map((element) => ({ ...element, id: crypto.randomUUID() })),
+      } : undefined,
     };
     setBubbles((items) => [...items, copy]);
     setSelectedId(copy.id);
-    toast.success('말풍선이 복제되었습니다.');
+    toast.success('레이어가 복제되었습니다.');
+  };
+
+  const duplicateSelected = () => {
+    if (!selected) return;
+    if (selected.newsConfig && selectedNewsElement) {
+      const id = crypto.randomUUID();
+      setBubbles((items) => items.map((item) => item.id === selected.id && item.newsConfig ? {
+        ...item,
+        newsConfig: {
+          ...item.newsConfig,
+          elements: [...item.newsConfig.elements, { ...selectedNewsElement, id, name: `${selectedNewsElement.name} 복사`, x: Math.min(1, selectedNewsElement.x + 0.025), y: Math.min(1, selectedNewsElement.y + 0.025), isDeletable: true }],
+          selectedElementId: id,
+        },
+      } : item));
+      toast.success('자막 요소가 복제되었습니다.');
+      return;
+    }
+    duplicateBubble(selected);
   };
 
   const moveLayer = (direction: -1 | 1) => {
@@ -654,6 +755,19 @@ export function WebtoonBubbleView() {
         width: Math.round(nextImage.naturalWidth * scale),
         height: Math.round(nextImage.naturalHeight * scale),
       });
+      const originalCanvas = document.createElement('canvas');
+      originalCanvas.width = Math.round(nextImage.naturalWidth * scale);
+      originalCanvas.height = Math.round(nextImage.naturalHeight * scale);
+      originalCanvas
+        .getContext('2d')
+        ?.drawImage(nextImage, 0, 0, originalCanvas.width, originalCanvas.height);
+      setOriginalPreview(originalCanvas.toDataURL('image/png'));
+      setBubbles((items) =>
+        items.map((item) =>
+          item.newsConfig ? { ...item, height: originalCanvas.height / originalCanvas.width } : item
+        )
+      );
+      setPreviewMode('edit');
       setImage(nextImage);
       if (bubbles.length === 0) {
         const initial = createBubble('oval', 0);
@@ -722,16 +836,80 @@ export function WebtoonBubbleView() {
       const w = (bubble.width * canvasSize.width) / 2;
       const h = (bubble.height * canvasSize.width) / 2;
       if (Math.abs(local.x) <= w && Math.abs(local.y) <= h) {
+        if (bubble.newsConfig && !newsElementAt(point, bubble)) continue;
         return bubble;
       }
     }
     return null;
   };
 
+  const newsElementAt = (point: { x: number; y: number }, bubble: Bubble) => {
+    if (!bubble.newsConfig) return null;
+    const w = bubble.width * canvasSize.width;
+    const h = bubble.height * canvasSize.width;
+    const local = toBubbleLocal(point, bubble);
+    const x = local.x + w / 2;
+    const y = local.y + h / 2;
+    const bounds = getElementBounds(w, h, bubble.newsConfig);
+    return (
+      [...bubble.newsConfig.elements].reverse().find((element) => {
+        const box = bounds[element.id];
+        return box && x >= box.x && x <= box.x + box.width && y >= box.y && y <= box.y + box.height;
+      }) || null
+    );
+  };
+
+  const newsElementHandleAt = (
+    point: { x: number; y: number },
+    bubble: Bubble,
+    canvas: HTMLCanvasElement
+  ) => {
+    const config = bubble.newsConfig;
+    const element = config?.elements.find((item) => item.id === config.selectedElementId);
+    if (!config || !element?.visible) return null;
+    const w = bubble.width * canvasSize.width;
+    const h = bubble.height * canvasSize.width;
+    const bounds = getElementBounds(w, h, config)[element.id];
+    if (!bounds) return null;
+    const local = toBubbleLocal(point, bubble);
+    const x = local.x + w / 2;
+    const y = local.y + h / 2;
+    const hitRadius = (14 * canvasSize.width) / canvas.getBoundingClientRect().width;
+    const handle = RESIZE_HANDLES.find(
+      (candidate) =>
+        Math.hypot(
+          x - (bounds.x + ((candidate.x + 1) * bounds.width) / 2),
+          y - (bounds.y + ((candidate.y + 1) * bounds.height) / 2)
+        ) <= hitRadius
+    );
+    return handle ? { handle, bounds, element } : null;
+  };
+
   const pointerDown = (event: React.PointerEvent<HTMLCanvasElement>) => {
     const point = pointFromEvent(event);
     if (selected) {
-      const handle = resizeHandleAt(point, selected, event.currentTarget);
+      const newsHandle = selected.newsConfig
+        ? newsElementHandleAt(point, selected, event.currentTarget)
+        : null;
+      if (newsHandle) {
+        const { handle, bounds, element } = newsHandle;
+        event.currentTarget.setPointerCapture(event.pointerId);
+        dragRef.current = {
+          mode: 'news-resize',
+          id: selected.id,
+          elementId: element.id,
+          fontSize: element.fontSize,
+          centerX: bounds.x + bounds.width / 2,
+          centerY: bounds.y + bounds.height / 2,
+          halfWidth: bounds.width / 2,
+          halfHeight: bounds.height / 2,
+          handle,
+        };
+        return;
+      }
+      const handle = selected.newsConfig
+        ? null
+        : resizeHandleAt(point, selected, event.currentTarget);
       if (handle) {
         event.currentTarget.setPointerCapture(event.pointerId);
         const local = toBubbleLocal(point, selected);
@@ -752,6 +930,31 @@ export function WebtoonBubbleView() {
       setSelectedId(hit.id);
       setActiveTab('edit');
       event.currentTarget.setPointerCapture(event.pointerId);
+      const newsElement = newsElementAt(point, hit);
+      if (newsElement && hit.newsConfig) {
+        const local = toBubbleLocal(point, hit);
+        const w = hit.width * canvasSize.width;
+        const h = hit.height * canvasSize.width;
+        setBubbles((items) =>
+          items.map((item) =>
+            item.id === hit.id && item.newsConfig
+              ? { ...item, newsConfig: { ...item.newsConfig, selectedElementId: newsElement.id } }
+              : item
+          )
+        );
+        dragRef.current = {
+          mode: 'news-element',
+          id: hit.id,
+          elementId: newsElement.id,
+          dx: (local.x + w / 2) / w - newsElement.x,
+          dy: (local.y + h / 2) / h - newsElement.y,
+        };
+        return;
+      }
+      if (hit.newsConfig) {
+        dragRef.current = null;
+        return;
+      }
       dragRef.current = {
         mode: 'move',
         id: hit.id,
@@ -770,7 +973,11 @@ export function WebtoonBubbleView() {
         event.currentTarget.style.cursor = 'default';
         return;
       }
-      const handle = resizeHandleAt(point, selected, event.currentTarget);
+      const newsHandle = selected.newsConfig
+        ? newsElementHandleAt(point, selected, event.currentTarget)
+        : null;
+      const handle = newsHandle?.handle ??
+        (selected.newsConfig ? null : resizeHandleAt(point, selected, event.currentTarget));
       if (handle) {
         event.currentTarget.style.cursor =
           handle.x === 0
@@ -782,8 +989,45 @@ export function WebtoonBubbleView() {
                 : 'nesw-resize';
       } else {
         const hit = bubbleAt(point);
-        event.currentTarget.style.cursor = hit ? 'move' : 'default';
+        event.currentTarget.style.cursor =
+          hit && newsElementAt(point, hit)
+            ? 'move'
+            : hit?.newsConfig
+              ? 'default'
+              : hit
+                ? 'move'
+                : 'default';
       }
+      return;
+    }
+
+    if (dragRef.current.mode === 'news-resize') {
+      const { id, elementId, fontSize, centerX, centerY, halfWidth, halfHeight, handle } =
+        dragRef.current;
+      const bubble = bubbles.find((item) => item.id === id);
+      if (!bubble?.newsConfig) return;
+      const local = toBubbleLocal(point, bubble);
+      const x = local.x + (bubble.width * canvasSize.width) / 2;
+      const y = local.y + (bubble.height * canvasSize.width) / 2;
+      const scaleX = handle.x ? Math.abs(x - centerX) / Math.max(1, halfWidth) : 1;
+      const scaleY = handle.y ? Math.abs(y - centerY) / Math.max(1, halfHeight) : 1;
+      const factor = handle.x && handle.y ? (scaleX + scaleY) / 2 : handle.x ? scaleX : scaleY;
+      const nextSize = Math.max(12, Math.min(140, Math.round(fontSize * factor)));
+      setBubbles((items) =>
+        items.map((item) =>
+          item.id === id && item.newsConfig
+            ? {
+                ...item,
+                newsConfig: {
+                  ...item.newsConfig,
+                  elements: item.newsConfig.elements.map((element) =>
+                    element.id === elementId ? { ...element, fontSize: nextSize } : element
+                  ),
+                },
+              }
+            : item
+        )
+      );
       return;
     }
 
@@ -808,7 +1052,7 @@ export function WebtoonBubbleView() {
           : Math.max(
               canvasSize.width * 0.08,
               Math.min(
-                canvasSize.width * 0.8,
+                bubble.newsConfig ? canvasSize.height : canvasSize.width * 0.8,
                 oldH + handle.y * (local.y - offsetY - handle.y * (oldH / 2 + RESIZE_HANDLE_OFFSET))
               )
             );
@@ -833,6 +1077,34 @@ export function WebtoonBubbleView() {
       return;
     }
 
+    if (dragRef.current.mode === 'news-element') {
+      const { id, elementId, dx, dy } = dragRef.current;
+      setBubbles((items) =>
+        items.map((item) => {
+          if (item.id !== id || !item.newsConfig) return item;
+          const local = toBubbleLocal(point, item);
+          const w = item.width * canvasSize.width;
+          const h = item.height * canvasSize.width;
+          return {
+            ...item,
+            newsConfig: {
+              ...item.newsConfig,
+              elements: item.newsConfig.elements.map((element) =>
+                element.id === elementId
+                  ? {
+                      ...element,
+                      x: Math.max(0, Math.min(1, (local.x + w / 2) / w - dx)),
+                      y: Math.max(0, Math.min(1, (local.y + h / 2) / h - dy)),
+                    }
+                  : element
+              ),
+            },
+          };
+        })
+      );
+      return;
+    }
+
     const { id, dx, dy } = dragRef.current;
     setBubbles((items) =>
       items.map((item) =>
@@ -850,7 +1122,7 @@ export function WebtoonBubbleView() {
   const handleSaveResult = async () => {
     setIsProcessing(true);
     try {
-      await preloadImageBubbleAssets();
+      await preloadImageBubbleAssets(bubbles.map(({ shape }) => shape));
       const canvas = document.createElement('canvas');
       canvas.width = canvasSize.width;
       canvas.height = canvasSize.height;
@@ -865,10 +1137,33 @@ export function WebtoonBubbleView() {
     }
   };
 
+  const handleCopyResult = async () => {
+    setIsProcessing(true);
+    try {
+      await preloadImageBubbleAssets(bubbles.map(({ shape }) => shape));
+      const canvas = document.createElement('canvas');
+      canvas.width = canvasSize.width;
+      canvas.height = canvasSize.height;
+      drawWebtoonCanvas(canvas, image, background, bubbles);
+      const blob = await new Promise<Blob>((resolve, reject) =>
+        canvas.toBlob(
+          (result) => (result ? resolve(result) : reject(new Error('PNG 생성 실패'))),
+          'image/png'
+        )
+      );
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      toast.success('결과 이미지가 클립보드에 복사되었습니다.');
+    } catch {
+      toast.error('이미지 복사에 실패했습니다. 브라우저의 클립보드 권한을 확인해 주세요.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const handleShare = async () => {
     setIsProcessing(true);
     try {
-      await preloadImageBubbleAssets();
+      await preloadImageBubbleAssets(bubbles.map(({ shape }) => shape));
       const canvas = document.createElement('canvas');
       canvas.width = canvasSize.width;
       canvas.height = canvasSize.height;
@@ -887,10 +1182,13 @@ export function WebtoonBubbleView() {
     }
   };
 
-  const filteredTemplates =
-    templateCategory === 'all'
-      ? TEMPLATE_LIST
-      : TEMPLATE_LIST.filter((t) => t.category === templateCategory);
+  const templateKeyword = templateSearch.trim().toLocaleLowerCase();
+  const filteredTemplates = TEMPLATE_LIST.filter(
+    (item) =>
+      (templateCategory === 'all' || item.category === templateCategory) &&
+      (!templateKeyword ||
+        `${item.label} ${item.desc}`.toLocaleLowerCase().includes(templateKeyword))
+  );
 
   return (
     <DashboardContent
@@ -1008,11 +1306,87 @@ export function WebtoonBubbleView() {
                     size="small"
                     color="primary"
                     variant="soft"
-                    label={`레이어 ${bubbles.length}개`}
+                    label={`레이어 ${layerCount}개`}
                     sx={{ fontWeight: 700, fontSize: '0.72rem' }}
                   />
                 </Box>
               </Box>
+
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.75,
+                  flexWrap: 'wrap',
+                  mb: 1,
+                  flexShrink: 0,
+                }}
+              >
+                {(['edit', 'original', 'compare'] as const).map((mode) => (
+                  <Chip
+                    key={mode}
+                    size="small"
+                    clickable
+                    label={{ edit: '편집 결과', original: '원본', compare: '전후 비교' }[mode]}
+                    color={previewMode === mode ? 'primary' : 'default'}
+                    variant={previewMode === mode ? 'filled' : 'outlined'}
+                    onClick={() => setPreviewMode(mode)}
+                  />
+                ))}
+                <Typography variant="caption" sx={{ ml: 'auto' }}>
+                  확대 {Math.round(previewZoom * 100)}%
+                </Typography>
+                <Slider
+                  size="small"
+                  aria-label="미리보기 확대"
+                  min={0.5}
+                  max={2}
+                  step={0.1}
+                  value={previewZoom}
+                  onChange={(_, value) => setPreviewZoom(value as number)}
+                  sx={{ width: 85 }}
+                />
+              </Box>
+              {previewMode === 'compare' && (
+                <Box
+                  sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, flexWrap: 'wrap' }}
+                >
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() =>
+                      setCompareOrientation(
+                        compareOrientation === 'left-right' ? 'top-bottom' : 'left-right'
+                      )
+                    }
+                  >
+                    {compareOrientation === 'left-right' ? '좌우 분할' : '상하 분할'}
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => setCompareOutside(!compareOutside)}
+                  >
+                    {compareOutside ? '구간 바깥 원본' : '구간 안쪽 원본'}
+                  </Button>
+                  <Typography variant="caption" sx={{ whiteSpace: 'nowrap' }}>
+                    비교 구간 {compareStart}–{compareEnd}%
+                  </Typography>
+                  <Slider
+                    size="small"
+                    aria-label="원본 비교 구간"
+                    min={0}
+                    max={100}
+                    value={[compareStart, compareEnd]}
+                    onChange={(_, value) => {
+                      const [start, end] = value as number[];
+                      setCompareStart(start);
+                      setCompareEnd(end);
+                    }}
+                    sx={{ minWidth: 100, flex: 1 }}
+                  />
+                </Box>
+              )}
 
               {/* Canvas Center Area */}
               <Box
@@ -1031,6 +1405,7 @@ export function WebtoonBubbleView() {
                   sx={{
                     position: 'relative',
                     display: 'inline-block',
+                    zoom: previewZoom,
                     boxShadow: 4,
                     borderRadius: 1,
                     overflow: 'hidden',
@@ -1046,8 +1421,8 @@ export function WebtoonBubbleView() {
                   <canvas
                     ref={previewRef}
                     tabIndex={0}
-                    onPointerDown={pointerDown}
-                    onPointerMove={pointerMove}
+                    onPointerDown={previewMode === 'edit' ? pointerDown : undefined}
+                    onPointerMove={previewMode === 'edit' ? pointerMove : undefined}
                     onPointerUp={() => {
                       dragRef.current = null;
                     }}
@@ -1065,6 +1440,30 @@ export function WebtoonBubbleView() {
                     }}
                     aria-label="웹툰 말풍선 캔버스"
                   />
+                  {previewMode !== 'edit' && originalPreview && (
+                    <Box
+                      component="img"
+                      src={originalPreview}
+                      alt="원본 이미지"
+                      sx={{
+                        position: 'absolute',
+                        inset: 0,
+                        width: '100%',
+                        height: '100%',
+                        pointerEvents: 'none',
+                        clipPath:
+                          previewMode === 'compare' && !compareOutside
+                            ? compareOrientation === 'left-right'
+                              ? `inset(0 ${100 - compareEnd}% 0 ${compareStart}%)`
+                              : `inset(${compareStart}% 0 ${100 - compareEnd}% 0)`
+                            : 'none',
+                        maskImage:
+                          previewMode === 'compare' && compareOutside
+                            ? `linear-gradient(to ${compareOrientation === 'left-right' ? 'right' : 'bottom'}, black 0 ${compareStart}%, transparent ${compareStart}% ${compareEnd}%, black ${compareEnd}% 100%)`
+                            : 'none',
+                      }}
+                    />
+                  )}
                 </Box>
               </Box>
 
@@ -1200,6 +1599,17 @@ export function WebtoonBubbleView() {
                       ))}
                     </Box>
 
+                    <TextField
+                      size="small"
+                      placeholder="말풍선 이름·스타일 검색"
+                      value={templateSearch}
+                      onChange={(event) => setTemplateSearch(event.target.value)}
+                      inputProps={{ 'aria-label': '말풍선 검색' }}
+                    />
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      {filteredTemplates.length}개 말풍선
+                    </Typography>
+
                     <ToggleButtonGroup
                       orientation="vertical"
                       value={selected?.shape || ''}
@@ -1261,6 +1671,8 @@ export function WebtoonBubbleView() {
                                   component="img"
                                   src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/webtoon/bubbles/${item.assetFile}`}
                                   alt=""
+                                  loading="lazy"
+                                  decoding="async"
                                   sx={{ width: '85%', height: '85%', objectFit: 'contain' }}
                                 />
                               ) : (
@@ -1372,166 +1784,314 @@ export function WebtoonBubbleView() {
                           </Box>
                         </Box>
 
-                        {/* Dialogue Text */}
-                        <TextField
-                          multiline
-                          minRows={3}
-                          label="대사 입력"
-                          value={selected.text}
-                          onChange={(e) => updateSelected({ text: e.target.value })}
-                          fullWidth
-                          size="small"
-                        />
-
-                        {/* Font Selection */}
-                        <FormControl size="small" fullWidth>
-                          <InputLabel>폰트 서체</InputLabel>
-                          <Select
-                            label="폰트 서체"
-                            value={selected.fontFamily}
-                            onChange={(e) => updateSelected({ fontFamily: e.target.value })}
-                          >
-                            {FONT_OPTIONS.map((f) => (
-                              <MenuItem key={f.label} value={f.value}>
-                                {f.label}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-
-                        {/* Text Formatting Controls */}
-                        <Box sx={{ display: 'flex', gap: 0.75 }}>
-                          <ToggleButtonGroup
-                            size="small"
-                            fullWidth
-                            value={selected.textAlign}
-                            exclusive
-                            onChange={(_, v) => v && updateSelected({ textAlign: v })}
-                          >
-                            <ToggleButton value="left" aria-label="왼쪽 정렬">
-                              <FormatAlignLeftRoundedIcon fontSize="small" />
-                            </ToggleButton>
-                            <ToggleButton value="center" aria-label="가운데 정렬">
-                              <FormatAlignCenterRoundedIcon fontSize="small" />
-                            </ToggleButton>
-                            <ToggleButton value="right" aria-label="오른쪽 정렬">
-                              <FormatAlignRightRoundedIcon fontSize="small" />
-                            </ToggleButton>
-                          </ToggleButtonGroup>
-
-                          <ToggleButton
-                            size="small"
-                            value="italic"
-                            selected={Boolean(selected.italic)}
-                            onChange={() => updateSelected({ italic: !selected.italic })}
-                            aria-label="기울임"
-                            sx={{ px: 1.5 }}
-                          >
-                            <FormatItalicRoundedIcon fontSize="small" />
-                          </ToggleButton>
-                        </Box>
-
-                        {/* Tail Direction for non-image shapes */}
-                        {!textOnlyShape && !imageAsset && (
-                          <FormControl size="small" fullWidth>
-                            <InputLabel>꼬리 방향</InputLabel>
-                            <Select
-                              label="꼬리 방향"
-                              value={selected.tail}
-                              onChange={(e) =>
-                                updateSelected({ tail: e.target.value as TailDirection })
-                              }
-                            >
-                              {(['bottom', 'top', 'left', 'right', 'none'] as const).map(
-                                (value, index) => (
-                                  <MenuItem key={value} value={value}>
-                                    {['아래', '위', '왼쪽', '오른쪽', '없음 (꼬리 없음)'][index]}
-                                  </MenuItem>
-                                )
-                              )}
-                            </Select>
-                          </FormControl>
+                        {selected.newsConfig && (
+                          <NewsCaptionBubbleControls
+                            config={selected.newsConfig}
+                            onChange={(newsConfig) =>
+                              updateSelected({
+                                newsConfig,
+                                text:
+                                  newsConfig.elements.find((element) => element.type === 'headline')
+                                    ?.text || selected.text,
+                              })
+                            }
+                          />
                         )}
-
-                        {/* Flip Buttons */}
-                        {!textOnlyShape && (
-                          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0.75 }}>
-                            <Button
-                              size="small"
-                              variant={selected.flipX ? 'contained' : 'outlined'}
-                              onClick={() => updateSelected({ flipX: !selected.flipX })}
-                              sx={{ fontSize: '0.75rem' }}
-                            >
-                              좌우 반전
-                            </Button>
-                            <Button
-                              size="small"
-                              variant={selected.flipY ? 'contained' : 'outlined'}
-                              onClick={() => updateSelected({ flipY: !selected.flipY })}
-                              sx={{ fontSize: '0.75rem' }}
-                            >
-                              상하 반전
-                            </Button>
-                          </Box>
-                        )}
-
-                        <Divider sx={{ my: 0.5 }} />
-
-                        {/* Colors Section */}
-                        <Typography
-                          variant="caption"
-                          sx={{ fontWeight: 700, color: 'text.secondary' }}
-                        >
-                          색상 및 스타일
-                        </Typography>
-
-                        <ColorField
-                          label="글자색"
-                          value={selected.textColor}
-                          onChange={(textColor) => updateSelected({ textColor })}
-                        />
-
-                        <ColorField
-                          label="글자 외곽선색"
-                          value={selected.textStrokeColor ?? '#171717'}
-                          onChange={(textStrokeColor) => updateSelected({ textStrokeColor })}
-                        />
-
-                        {!textOnlyShape && !imageAsset && (
+                        {!selected.newsConfig && (
                           <>
-                            <ColorField
-                              label="말풍선 배경색"
-                              value={selected.fill}
-                              onChange={(fill) => updateSelected({ fill })}
+                            {/* Dialogue Text */}
+                            <TextField
+                              multiline
+                              minRows={3}
+                              label="대사 입력"
+                              value={selected.text}
+                              onChange={(e) => updateSelected({ text: e.target.value })}
+                              fullWidth
+                              size="small"
                             />
-                            <ColorField
-                              label="테두리 색상"
-                              value={selected.stroke}
-                              onChange={(stroke) => updateSelected({ stroke })}
-                            />
+
+                            {/* Font Selection */}
                             <FormControl size="small" fullWidth>
-                              <InputLabel>테두리 스타일</InputLabel>
+                              <InputLabel>폰트 서체</InputLabel>
                               <Select
-                                label="테두리 스타일"
-                                value={selected.borderStyle ?? 'solid'}
-                                onChange={(e) =>
-                                  updateSelected({ borderStyle: e.target.value as BorderStyle })
-                                }
+                                label="폰트 서체"
+                                value={selected.fontFamily}
+                                onChange={(e) => updateSelected({ fontFamily: e.target.value })}
                               >
-                                <MenuItem value="solid">실선</MenuItem>
-                                <MenuItem value="dashed">점선 (대시)</MenuItem>
-                                <MenuItem value="dotted">작은 점선</MenuItem>
+                                {FONT_OPTIONS.map((f) => (
+                                  <MenuItem key={f.label} value={f.value}>
+                                    {f.label}
+                                  </MenuItem>
+                                ))}
                               </Select>
                             </FormControl>
-                          </>
-                        )}
 
-                        {!textOnlyShape && (
-                          <ColorField
-                            label="그림자 색상"
-                            value={selected.shadowColor ?? '#555555'}
-                            onChange={(shadowColor) => updateSelected({ shadowColor })}
-                          />
+                            {/* Text Formatting Controls */}
+                            <Box sx={{ display: 'flex', gap: 0.75 }}>
+                              <ToggleButtonGroup
+                                size="small"
+                                fullWidth
+                                value={selected.textAlign}
+                                exclusive
+                                onChange={(_, v) => v && updateSelected({ textAlign: v })}
+                              >
+                                <ToggleButton value="left" aria-label="왼쪽 정렬">
+                                  <FormatAlignLeftRoundedIcon fontSize="small" />
+                                </ToggleButton>
+                                <ToggleButton value="center" aria-label="가운데 정렬">
+                                  <FormatAlignCenterRoundedIcon fontSize="small" />
+                                </ToggleButton>
+                                <ToggleButton value="right" aria-label="오른쪽 정렬">
+                                  <FormatAlignRightRoundedIcon fontSize="small" />
+                                </ToggleButton>
+                              </ToggleButtonGroup>
+
+                              <ToggleButton
+                                size="small"
+                                value="italic"
+                                selected={Boolean(selected.italic)}
+                                onChange={() => updateSelected({ italic: !selected.italic })}
+                                aria-label="기울임"
+                                sx={{ px: 1.5 }}
+                              >
+                                <FormatItalicRoundedIcon fontSize="small" />
+                              </ToggleButton>
+                            </Box>
+
+                            <ToggleButtonGroup
+                              size="small"
+                              fullWidth
+                              exclusive
+                              value={selected.fontWeight}
+                              onChange={(_, fontWeight) =>
+                                fontWeight && updateSelected({ fontWeight })
+                              }
+                              aria-label="글자 굵기"
+                            >
+                              <ToggleButton value={500}>보통</ToggleButton>
+                              <ToggleButton value={700}>굵게</ToggleButton>
+                              <ToggleButton value={900}>아주 굵게</ToggleButton>
+                            </ToggleButtonGroup>
+
+                            {/* Tail Direction for non-image shapes */}
+                            {!textOnlyShape && !imageAsset && !captionShape && (
+                              <FormControl size="small" fullWidth>
+                                <InputLabel>꼬리 방향</InputLabel>
+                                <Select
+                                  label="꼬리 방향"
+                                  value={selected.tail}
+                                  onChange={(e) =>
+                                    updateSelected({ tail: e.target.value as TailDirection })
+                                  }
+                                >
+                                  {(['bottom', 'top', 'left', 'right', 'none'] as const).map(
+                                    (value, index) => (
+                                      <MenuItem key={value} value={value}>
+                                        {
+                                          ['아래', '위', '왼쪽', '오른쪽', '없음 (꼬리 없음)'][
+                                            index
+                                          ]
+                                        }
+                                      </MenuItem>
+                                    )
+                                  )}
+                                </Select>
+                              </FormControl>
+                            )}
+
+                            {/* Flip Buttons */}
+                            {!textOnlyShape && !captionShape && (
+                              <Box
+                                sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0.75 }}
+                              >
+                                <Button
+                                  size="small"
+                                  variant={selected.flipX ? 'contained' : 'outlined'}
+                                  onClick={() => updateSelected({ flipX: !selected.flipX })}
+                                  sx={{ fontSize: '0.75rem' }}
+                                >
+                                  좌우 반전
+                                </Button>
+                                <Button
+                                  size="small"
+                                  variant={selected.flipY ? 'contained' : 'outlined'}
+                                  onClick={() => updateSelected({ flipY: !selected.flipY })}
+                                  sx={{ fontSize: '0.75rem' }}
+                                >
+                                  상하 반전
+                                </Button>
+                              </Box>
+                            )}
+
+                            <Divider sx={{ my: 0.5 }} />
+
+                            {/* Colors Section */}
+                            <Typography
+                              variant="caption"
+                              sx={{ fontWeight: 700, color: 'text.secondary' }}
+                            >
+                              색상 및 스타일
+                            </Typography>
+
+                            <ColorField
+                              label="글자색"
+                              value={selected.textColor}
+                              onChange={(textColor) => updateSelected({ textColor })}
+                            />
+
+                            <ColorField
+                              label="글자 외곽선색"
+                              value={selected.textStrokeColor ?? '#171717'}
+                              onChange={(textStrokeColor) => updateSelected({ textStrokeColor })}
+                            />
+
+                            <ColorField
+                              label="글자 그림자색"
+                              value={selected.textShadowColor}
+                              onChange={(textShadowColor) => updateSelected({ textShadowColor })}
+                            />
+
+                            {!textOnlyShape && !imageAsset && (
+                              <>
+                                <ColorField
+                                  label={captionShape ? '자막 배경색' : '말풍선 배경색'}
+                                  value={selected.fill}
+                                  onChange={(fill) => updateSelected({ fill })}
+                                />
+                                <ColorField
+                                  label="테두리 색상"
+                                  value={selected.stroke}
+                                  onChange={(stroke) => updateSelected({ stroke })}
+                                />
+                                <FormControl size="small" fullWidth>
+                                  <InputLabel>테두리 스타일</InputLabel>
+                                  <Select
+                                    label="테두리 스타일"
+                                    value={selected.borderStyle ?? 'solid'}
+                                    onChange={(e) =>
+                                      updateSelected({ borderStyle: e.target.value as BorderStyle })
+                                    }
+                                  >
+                                    <MenuItem value="solid">실선</MenuItem>
+                                    <MenuItem value="dashed">점선 (대시)</MenuItem>
+                                    <MenuItem value="dotted">작은 점선</MenuItem>
+                                  </Select>
+                                </FormControl>
+                              </>
+                            )}
+
+                            {captionShape &&
+                              selected.shape !== 'captionYouTube' &&
+                              selected.shape !== 'captionHuman' && (
+                                <ColorField
+                                  label="강조색"
+                                  value={selected.accentColor}
+                                  onChange={(accentColor) => updateSelected({ accentColor })}
+                                />
+                              )}
+
+                            {(selected.shape === 'captionNews' ||
+                              selected.shape === 'captionBreaking') && (
+                              <>
+                                <Button
+                                  size="small"
+                                  variant={selected.badgeVisible ? 'contained' : 'outlined'}
+                                  onClick={() =>
+                                    updateSelected({ badgeVisible: !selected.badgeVisible })
+                                  }
+                                >
+                                  배지 {selected.badgeVisible ? '표시 중' : '숨김'}
+                                </Button>
+                                {selected.badgeVisible && (
+                                  <TextField
+                                    size="small"
+                                    label="배지 문구"
+                                    value={selected.badgeText}
+                                    onChange={(event) =>
+                                      updateSelected({ badgeText: event.target.value.slice(0, 12) })
+                                    }
+                                  />
+                                )}
+                              </>
+                            )}
+
+                            {!textOnlyShape && (
+                              <ColorField
+                                label="그림자 색상"
+                                value={selected.shadowColor ?? '#555555'}
+                                onChange={(shadowColor) => updateSelected({ shadowColor })}
+                              />
+                            )}
+
+                            <CompactSlider
+                              label="글자 외곽선 굵기"
+                              value={selected.textStrokeWidth}
+                              min={0}
+                              max={12}
+                              step={0.5}
+                              onChange={(textStrokeWidth) => updateSelected({ textStrokeWidth })}
+                              suffix="px"
+                            />
+                            <CompactSlider
+                              label="글자 그림자 흐림"
+                              value={selected.textShadowBlur}
+                              min={0}
+                              max={25}
+                              onChange={(textShadowBlur) => updateSelected({ textShadowBlur })}
+                              suffix="px"
+                            />
+                            <CompactSlider
+                              label="줄 간격"
+                              value={selected.lineHeight}
+                              min={0.8}
+                              max={2}
+                              step={0.05}
+                              onChange={(lineHeight) => updateSelected({ lineHeight })}
+                            />
+                            <CompactSlider
+                              label="자간"
+                              value={selected.letterSpacing}
+                              min={-4}
+                              max={12}
+                              step={0.5}
+                              onChange={(letterSpacing) => updateSelected({ letterSpacing })}
+                              suffix="px"
+                            />
+
+                            {captionShape && selected.shape !== 'captionHuman' && (
+                              <>
+                                <CompactSlider
+                                  label="배경 불투명도 (0=투명)"
+                                  value={selected.backgroundOpacity}
+                                  min={0}
+                                  max={100}
+                                  onChange={(backgroundOpacity) =>
+                                    updateSelected({ backgroundOpacity })
+                                  }
+                                  suffix="%"
+                                />
+                                <CompactSlider
+                                  label="배경 모서리 둥글기"
+                                  value={selected.cornerRadius}
+                                  min={0}
+                                  max={50}
+                                  onChange={(cornerRadius) => updateSelected({ cornerRadius })}
+                                  suffix="px"
+                                />
+                              </>
+                            )}
+
+                            {captionShape && selected.shape !== 'captionHuman' && (
+                              <CompactSlider
+                                label="배경 그림자 흐림"
+                                value={selected.shadowBlur}
+                                min={0}
+                                max={25}
+                                onChange={(shadowBlur) => updateSelected({ shadowBlur })}
+                                suffix="px"
+                              />
+                            )}
+                          </>
                         )}
                       </Box>
                     )}
@@ -1553,7 +2113,7 @@ export function WebtoonBubbleView() {
                         variant="caption"
                         sx={{ fontWeight: 700, color: 'text.secondary' }}
                       >
-                        레이어 목록 ({bubbles.length})
+                        레이어 목록 ({layerCount})
                       </Typography>
                       <Button
                         size="small"
@@ -1567,12 +2127,15 @@ export function WebtoonBubbleView() {
 
                     {[...bubbles].reverse().map((b, idx) => {
                       const shapeInfo = BUBBLE_SHAPES.find((s) => s.id === b.shape);
-                      const isCur = b.id === selectedId;
+                      const isCur = b.id === selectedId && !b.newsConfig?.selectedElementId;
                       return (
+                        <React.Fragment key={b.id}>
                         <Box
-                          key={b.id}
                           onClick={() => {
                             setSelectedId(b.id);
+                            if (b.newsConfig) {
+                              setBubbles((items) => items.map((item) => item.id === b.id && item.newsConfig ? { ...item, newsConfig: { ...item.newsConfig, selectedElementId: null } } : item));
+                            }
                             setActiveTab('edit');
                           }}
                           sx={{
@@ -1606,7 +2169,7 @@ export function WebtoonBubbleView() {
                                   color: isCur ? 'primary.darker' : 'text.primary',
                                 }}
                               >
-                                {shapeInfo?.label || '말풍선'}
+                                {shapeInfo?.label || '말풍선'}{b.newsConfig ? ' · 배경/효과' : ''}
                               </Typography>
                             </Box>
                             <Typography
@@ -1621,7 +2184,7 @@ export function WebtoonBubbleView() {
                                 mt: 0.25,
                               }}
                             >
-                              {b.text ? b.text.replace(/\s+/g, ' ') : '(대사 없음)'}
+                              {b.newsConfig ? '방송 배너·레터박스·비네팅' : b.text ? b.text.replace(/\s+/g, ' ') : '(대사 없음)'}
                             </Typography>
                           </Box>
 
@@ -1652,6 +2215,36 @@ export function WebtoonBubbleView() {
                             </IconButton>
                           </Box>
                         </Box>
+                        {b.newsConfig && [...b.newsConfig.elements].reverse().map((element) => {
+                          const elementSelected = b.id === selectedId && b.newsConfig?.selectedElementId === element.id;
+                          return (
+                            <Box
+                              key={element.id}
+                              onClick={() => {
+                                setSelectedId(b.id);
+                                setBubbles((items) => items.map((item) => item.id === b.id && item.newsConfig ? { ...item, newsConfig: { ...item.newsConfig, selectedElementId: element.id } } : item));
+                                setActiveTab('edit');
+                              }}
+                              sx={{ display: 'flex', alignItems: 'center', gap: 0.5, ml: 2, px: 1, py: 0.6, border: '1px solid', borderColor: elementSelected ? 'primary.main' : 'divider', borderRadius: 1, bgcolor: elementSelected ? 'primary.lighter' : 'background.paper', opacity: element.visible ? 1 : 0.5, cursor: 'pointer' }}
+                            >
+                              <Box sx={{ flex: 1, minWidth: 0 }}>
+                                <Typography variant="caption" sx={{ fontWeight: 700, display: 'block' }}>{element.name}</Typography>
+                                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{element.text || '(문구 없음)'}</Typography>
+                              </Box>
+                              <Box onClick={(event) => event.stopPropagation()} sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Button size="small" sx={{ minWidth: 0, px: 0.5 }} onClick={() => setBubbles((items) => items.map((item) => item.id === b.id && item.newsConfig ? { ...item, newsConfig: { ...item.newsConfig, elements: item.newsConfig.elements.map((part) => part.id === element.id ? { ...part, visible: !part.visible } : part) } } : item))}>{element.visible ? '숨김' : '표시'}</Button>
+                                <IconButton size="small" title={`${element.name} 복제`} onClick={() => {
+                                  const id = crypto.randomUUID();
+                                  setBubbles((items) => items.map((item) => item.id === b.id && item.newsConfig ? { ...item, newsConfig: { ...item.newsConfig, elements: [...item.newsConfig.elements, { ...element, id, name: `${element.name} 복사`, x: Math.min(1, element.x + 0.025), y: Math.min(1, element.y + 0.025), isDeletable: true }], selectedElementId: id } } : item));
+                                  setSelectedId(b.id);
+                                  setActiveTab('edit');
+                                }}><ContentCopyRoundedIcon sx={{ fontSize: 16 }} /></IconButton>
+                                {element.isDeletable !== false && <IconButton size="small" color="error" title={`${element.name} 삭제`} onClick={() => setBubbles((items) => items.map((item) => item.id === b.id && item.newsConfig ? { ...item, newsConfig: { ...item.newsConfig, elements: item.newsConfig.elements.filter((part) => part.id !== element.id), selectedElementId: item.newsConfig.selectedElementId === element.id ? null : item.newsConfig.selectedElementId } } : item))}><DeleteRoundedIcon sx={{ fontSize: 16 }} /></IconButton>}
+                              </Box>
+                            </Box>
+                          );
+                        })}
+                        </React.Fragment>
                       );
                     })}
                   </Box>
@@ -1661,16 +2254,18 @@ export function WebtoonBubbleView() {
               {/* Sliders in compact container (Photo Art Style Pattern) */}
               {selected && (
                 <Box sx={{ pt: 1, borderTop: '1px solid', borderColor: 'divider', flexShrink: 0 }}>
-                  <CompactSlider
-                    label="글자 크기 (Font Size)"
-                    value={selected.fontSize}
-                    min={12}
-                    max={100}
-                    onChange={(fontSize) => updateSelected({ fontSize })}
-                    suffix="px"
-                  />
+                  {!selected.newsConfig && (
+                    <CompactSlider
+                      label="글자 크기 (Font Size)"
+                      value={selected.fontSize}
+                      min={12}
+                      max={100}
+                      onChange={(fontSize) => updateSelected({ fontSize })}
+                      suffix="px"
+                    />
+                  )}
 
-                  {!textOnlyShape && !imageAsset && (
+                  {!selected.newsConfig && !textOnlyShape && !imageAsset && (
                     <CompactSlider
                       label="테두리 굵기 (Stroke Width)"
                       value={selected.strokeWidth}
@@ -1682,7 +2277,7 @@ export function WebtoonBubbleView() {
                   )}
 
                   <CompactSlider
-                    label="투명도 (Opacity)"
+                    label="전체 불투명도"
                     value={selected.opacity}
                     min={10}
                     max={100}
@@ -1737,6 +2332,17 @@ export function WebtoonBubbleView() {
                   공유
                 </Button>
               </Box>
+
+              <Button
+                fullWidth
+                variant="outlined"
+                size="small"
+                onClick={handleCopyResult}
+                disabled={isProcessing}
+                startIcon={<ContentCopyRoundedIcon />}
+              >
+                결과 이미지 복사
+              </Button>
 
               {/* Main: Clean Result Save */}
               <Button

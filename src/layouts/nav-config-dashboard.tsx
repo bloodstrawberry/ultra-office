@@ -174,6 +174,7 @@ export const navData: NavSectionProps['data'] = [
         children: [
           { title: '말풍선 추가', path: paths.webtoon.bubble },
           { title: '싸인추가', path: paths.webtoon.sign },
+          { title: '이미지 합치기', path: paths.webtoon.merge },
         ],
       },
       {
@@ -374,6 +375,7 @@ export const navData: NavSectionProps['data'] = [
         icon: ICONS.etc,
         children: [
           { title: '클래식 검색', path: paths.classicSearch },
+          { title: '주식 차트', path: paths.stockChart },
           { title: '모스 부호 변환기', path: paths.morse },
           { title: '점자(Braille) 스튜디오', path: paths.braille },
           { title: 'NATO 무선 통화표', path: paths.natoPhonetic },

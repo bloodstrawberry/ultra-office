@@ -8,6 +8,7 @@ import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
 import Select from '@mui/material/Select';
+import { alpha } from '@mui/material/styles';
 import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
 import InputLabel from '@mui/material/InputLabel';
@@ -262,6 +263,7 @@ export function VideoMasterMp4ToMp3View() {
   return (
     <DashboardContent
       maxWidth={false}
+      {...getRootProps()}
       sx={{
         flex: '1 1 auto',
         display: 'flex',
@@ -269,9 +271,29 @@ export function VideoMasterMp4ToMp3View() {
         height: '100%',
         minHeight: 0,
         overflow: 'hidden',
+        position: 'relative',
         pb: { xs: 1.5, sm: 2 },
+        transition: 'background-color 0.2s ease',
+        ...(isDragActive && {
+          bgcolor: (theme) => alpha(theme.palette.primary.main, 0.03),
+        }),
       }}
     >
+      {/* Hidden file input for file selection */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        hidden
+        multiple
+        accept="video/*,.mp4,.webm,.mov,.mkv,.avi,.m4v,.flv,.wmv,.ts"
+        onChange={(e) => {
+          if (e.target.files && e.target.files.length > 0) {
+            handleAddFiles(Array.from(e.target.files));
+            e.target.value = '';
+          }
+        }}
+      />
+
       {/* ─── 1. Header (Compact, No Overflow) ─── */}
       <Box
         sx={{
@@ -344,24 +366,11 @@ export function VideoMasterMp4ToMp3View() {
           <Button
             size="small"
             variant="contained"
-            component="label"
             startIcon={<AddRoundedIcon />}
+            onClick={() => fileInputRef.current?.click()}
             sx={{ fontWeight: 700, height: 36 }}
           >
             영상 추가
-            <input
-              ref={fileInputRef}
-              type="file"
-              hidden
-              multiple
-              accept="video/*,.mp4,.webm,.mov,.mkv,.avi,.m4v,.flv,.wmv,.ts"
-              onChange={(e) => {
-                if (e.target.files) {
-                  handleAddFiles(Array.from(e.target.files));
-                  e.target.value = '';
-                }
-              }}
-            />
           </Button>
 
           {items.length > 0 && (
@@ -390,12 +399,13 @@ export function VideoMasterMp4ToMp3View() {
           flexDirection: 'column',
           overflow: 'hidden',
           gap: 1.5,
+          position: 'relative',
         }}
       >
         {items.length === 0 ? (
           /* ── Empty State: Fills 100% of the Remaining Screen Height ── */
           <Box
-            {...getRootProps()}
+            onClick={() => fileInputRef.current?.click()}
             sx={{
               flex: '1 1 auto',
               minHeight: 0,
@@ -403,7 +413,9 @@ export function VideoMasterMp4ToMp3View() {
               borderRadius: 2,
               border: '2px dashed',
               borderColor: isDragActive ? 'primary.main' : 'divider',
-              bgcolor: isDragActive ? 'action.hover' : 'background.paper',
+              bgcolor: isDragActive
+                ? (theme) => alpha(theme.palette.primary.main, 0.08)
+                : 'background.paper',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
@@ -576,6 +588,11 @@ export function VideoMasterMp4ToMp3View() {
                 flexDirection: 'column',
                 gap: 1.25,
                 pr: 0.5,
+                borderRadius: 2,
+                transition: 'all 0.2s ease',
+                ...(isDragActive && {
+                  bgcolor: (theme) => alpha(theme.palette.primary.main, 0.04),
+                }),
               }}
             >
               {items.map((item, index) => (
@@ -761,6 +778,79 @@ export function VideoMasterMp4ToMp3View() {
                   </Box>
                 </Card>
               ))}
+
+              {/* ── Empty Row: Drag & Drop Dropzone for Adding More Videos ── */}
+              <Box
+                onClick={() => fileInputRef.current?.click()}
+                sx={{
+                  py: 1.5,
+                  px: 2,
+                  borderRadius: 2,
+                  border: '2px dashed',
+                  borderColor: isDragActive ? 'primary.main' : 'divider',
+                  bgcolor: isDragActive
+                    ? (theme) => alpha(theme.palette.primary.main, 0.08)
+                    : (theme) => alpha(theme.palette.background.neutral, 0.6),
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 1.5,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease-in-out',
+                  flexShrink: 0,
+                  '&:hover': {
+                    borderColor: 'primary.main',
+                    bgcolor: (theme) => alpha(theme.palette.primary.main, 0.04),
+                  },
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 1.5,
+                    bgcolor: isDragActive ? 'primary.main' : 'primary.lighter',
+                    color: isDragActive ? '#fff' : 'primary.main',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  <CloudUploadRoundedIcon fontSize="small" />
+                </Box>
+
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                  <Typography
+                    variant="subtitle2"
+                    sx={{
+                      fontWeight: 700,
+                      color: isDragActive ? 'primary.main' : 'text.primary',
+                    }}
+                  >
+                    {isDragActive
+                      ? '여기에 동영상(MP4) 파일을 놓아주세요'
+                      : '+ 여기에 MP4 동영상을 끌어다 놓거나 클릭하여 추가'}
+                  </Typography>
+                  <Chip
+                    size="small"
+                    label="Drag & Drop"
+                    variant="soft"
+                    color={isDragActive ? 'primary' : 'default'}
+                    sx={{ height: 20, fontSize: '0.68rem', fontWeight: 700 }}
+                  />
+                </Box>
+              </Box>
+
+              {/* 남는 빈 영역 클릭 시에도 업로드 지원 */}
+              <Box
+                onClick={() => fileInputRef.current?.click()}
+                sx={{
+                  flex: '1 1 auto',
+                  minHeight: 24,
+                  cursor: 'pointer',
+                }}
+              />
             </Box>
 
             {/* 3) Pinned Bottom Action Bar (Fixed at bottom of workspace, no scrolling needed) */}

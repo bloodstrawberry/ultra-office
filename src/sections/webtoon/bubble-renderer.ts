@@ -1,105 +1,12 @@
-export const IMAGE_BUBBLE_ASSETS = [
-  {
-    id: 'assetRetro',
-    label: '손그림 둥근',
-    file: 'retro.png',
-    aspect: 1.43,
-    width: 0.46,
-    textWidth: 0.68,
-    textHeight: 0.5,
-    textY: -0.12,
-  },
-  {
-    id: 'assetComicCloud',
-    label: '손그림 각진',
-    file: 'comic-cloud.png',
-    aspect: 1.09,
-    width: 0.42,
-    textWidth: 0.68,
-    textHeight: 0.47,
-    textY: -0.12,
-  },
-  {
-    id: 'assetThought',
-    label: '동글 생각',
-    file: 'thought.png',
-    aspect: 1.05,
-    width: 0.42,
-    textWidth: 0.62,
-    textHeight: 0.48,
-    textY: -0.18,
-  },
-  {
-    id: 'assetPuffy',
-    label: '푹신 구름',
-    file: 'blank-cloud.png',
-    aspect: 1.34,
-    width: 0.46,
-    textWidth: 0.65,
-    textHeight: 0.54,
-    textY: 0,
-  },
-  {
-    id: 'assetBurst',
-    label: '번쩍 외침',
-    file: 'burst.png',
-    aspect: 1.01,
-    width: 0.42,
-    textWidth: 0.52,
-    textHeight: 0.46,
-    textY: -0.07,
-  },
-  {
-    id: 'assetInk',
-    label: '잉크 번짐',
-    file: 'round.png',
-    aspect: 1,
-    width: 0.42,
-    textWidth: 0.58,
-    textHeight: 0.45,
-    textY: -0.1,
-  },
-  {
-    id: 'assetBoldCloud',
-    label: '진한 구름',
-    file: 'round-alt.png',
-    aspect: 1,
-    width: 0.42,
-    textWidth: 0.56,
-    textHeight: 0.45,
-    textY: -0.12,
-  },
-  {
-    id: 'assetDashed',
-    label: '점선 그림자',
-    file: 'oval.png',
-    aspect: 1.15,
-    width: 0.44,
-    textWidth: 0.6,
-    textHeight: 0.48,
-    textY: -0.1,
-  },
-  {
-    id: 'assetCallout',
-    label: '손그림 네모',
-    file: 'callout.png',
-    aspect: 1.14,
-    width: 0.43,
-    textWidth: 0.62,
-    textHeight: 0.48,
-    textY: -0.11,
-  },
-  {
-    id: 'assetPink',
-    label: '핑크 광택',
-    file: 'pink-gloss.png',
-    aspect: 1.42,
-    width: 0.46,
-    textWidth: 0.7,
-    textHeight: 0.5,
-    textY: -0.12,
-  },
-] as const;
+import type { NewsCaptionConfig } from 'src/sections/photo/utils/news-caption-presets';
+
+import {
+  getElementBounds,
+  renderNewsCaptionOverlay,
+} from 'src/sections/photo/utils/news-caption-renderer';
+
+import { IMAGE_BUBBLE_ASSETS } from './bubble-assets';
+import { NEWS_BUBBLE_STYLES, createNewsBubbleConfig } from './news-caption-bubbles';
 
 export const BUBBLE_SHAPES = [
   { id: 'titleText', label: '큰 제목 글자' },
@@ -129,6 +36,19 @@ export const BUBBLE_SHAPES = [
   { id: 'chat', label: '메신저 대화' },
   { id: 'telepathy', label: '텔레파시' },
   { id: 'speed', label: '속도선 대사' },
+  { id: 'captionHuman', label: '다큐 자막' },
+  { id: 'captionKbs', label: 'KBS 9시 뉴스' },
+  { id: 'captionMbc', label: 'MBC 뉴스데스크' },
+  { id: 'captionSbs', label: 'SBS 8 뉴스' },
+  { id: 'captionJtbc', label: 'JTBC 뉴스룸' },
+  { id: 'captionYtn', label: 'YTN 24시 속보' },
+  { id: 'captionCnn', label: 'CNN 글로벌 속보' },
+  { id: 'captionInvestigative', label: '시사 탐사 다큐' },
+  { id: 'captionVarietyNews', label: '예능 인터뷰 밈' },
+  { id: 'captionNews', label: '뉴스 하단 자막' },
+  { id: 'captionBreaking', label: '속보 배너' },
+  { id: 'captionVariety', label: '예능 강조 자막' },
+  { id: 'captionYouTube', label: '유튜브형 자막' },
   ...IMAGE_BUBBLE_ASSETS,
 ] as const;
 
@@ -136,7 +56,24 @@ export type BubbleShape = (typeof BUBBLE_SHAPES)[number]['id'];
 export type ImageBubbleAsset = (typeof IMAGE_BUBBLE_ASSETS)[number];
 export type TailDirection = 'bottom' | 'top' | 'left' | 'right' | 'none';
 export type BorderStyle = 'solid' | 'dashed' | 'dotted';
-export const TEXT_ONLY_SHAPES: BubbleShape[] = ['titleText', 'emphasisText', 'outlinedText'];
+export const CAPTION_SHAPES = [
+  'captionHuman',
+  ...NEWS_BUBBLE_STYLES.slice(1).map(({ shape }) => shape),
+  'captionNews',
+  'captionBreaking',
+  'captionVariety',
+  'captionYouTube',
+] as const;
+export const TEXT_ONLY_SHAPES: BubbleShape[] = [
+  'titleText',
+  'emphasisText',
+  'outlinedText',
+  'captionHuman',
+];
+
+export function isCaptionShape(shape: BubbleShape) {
+  return CAPTION_SHAPES.some((captionShape) => captionShape === shape);
+}
 
 export function isTextOnlyShape(shape: BubbleShape) {
   return TEXT_ONLY_SHAPES.includes(shape);
@@ -149,9 +86,9 @@ export function getImageBubbleAsset(shape: BubbleShape): ImageBubbleAsset | unde
 const imageBubbleCache = new Map<string, HTMLImageElement>();
 const imageBubbleLoads = new Map<string, Promise<void>>();
 
-export async function preloadImageBubbleAssets(): Promise<void> {
+export async function preloadImageBubbleAssets(shapes: readonly BubbleShape[]): Promise<void> {
   await Promise.all(
-    IMAGE_BUBBLE_ASSETS.map((asset) => {
+    IMAGE_BUBBLE_ASSETS.filter((asset) => shapes.includes(asset.id)).map((asset) => {
       const pending = imageBubbleLoads.get(asset.id);
       if (pending) return pending;
       const loading = new Promise<void>((resolve, reject) => {
@@ -160,7 +97,10 @@ export async function preloadImageBubbleAssets(): Promise<void> {
           imageBubbleCache.set(asset.id, image);
           resolve();
         };
-        image.onerror = () => reject(new Error(`${asset.file} 파일을 불러오지 못했습니다.`));
+        image.onerror = () => {
+          imageBubbleLoads.delete(asset.id);
+          reject(new Error(`${asset.file} 파일을 불러오지 못했습니다.`));
+        };
         image.src = `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/webtoon/bubbles/${asset.file}`;
       });
       imageBubbleLoads.set(asset.id, loading);
@@ -205,6 +145,11 @@ export interface Bubble {
   shadowBlur: number;
   shadowColor: string;
   opacity: number;
+  backgroundOpacity: number;
+  cornerRadius: number;
+  accentColor: string;
+  badgeVisible: boolean;
+  badgeText: string;
   fontFamily: string;
   fontSize: number;
   fontWeight: number;
@@ -212,32 +157,48 @@ export interface Bubble {
   textColor: string;
   textStrokeColor: string;
   textStrokeWidth: number;
+  textShadowBlur: number;
+  textShadowColor: string;
   textAlign: CanvasTextAlign;
   lineHeight: number;
   letterSpacing: number;
+  newsConfig?: NewsCaptionConfig;
 }
 
 export function createBubble(shape: BubbleShape, count: number): Bubble {
   const asset = getImageBubbleAsset(shape);
-  return {
+  const caption = isCaptionShape(shape);
+  const base: Bubble = {
     id: crypto.randomUUID(),
     shape,
     text:
-      shape === 'thought'
-        ? '무슨 생각을 하지?'
-        : shape === 'titleText'
-          ? '제목을\n입력하세요'
-          : shape === 'emphasisText'
-            ? '강조 대사'
-            : shape === 'outlinedText'
-              ? '윤곽선 대사'
-              : shape === 'circleSpeech'
-                ? '대사를\n입력하세요'
-                : '대사를 입력하세요',
-    x: Math.min(0.5 + (count % 4) * 0.055, 0.75),
-    y: Math.min((shape === 'titleText' ? 0.16 : 0.3) + (count % 4) * 0.055, 0.75),
+      shape === 'captionNews'
+        ? '오늘의 주요 소식'
+        : shape === 'captionBreaking'
+          ? '긴급 속보를 입력하세요'
+          : shape === 'captionYouTube'
+            ? '자막을 입력하세요'
+            : shape === 'captionHuman'
+              ? '그날의 이야기가 시작됐다'
+              : shape === 'captionVariety'
+                ? '지금 이 순간!'
+                : shape === 'thought'
+                  ? '무슨 생각을 하지?'
+                  : shape === 'titleText'
+                    ? '제목을\n입력하세요'
+                    : shape === 'emphasisText'
+                      ? '강조 대사'
+                      : shape === 'outlinedText'
+                        ? '윤곽선 대사'
+                        : shape === 'circleSpeech'
+                          ? '대사를\n입력하세요'
+                          : '대사를 입력하세요',
+    x: caption ? 0.5 : Math.min(0.5 + (count % 4) * 0.055, 0.75),
+    y: caption
+      ? Math.min(0.78 + (count % 4) * 0.025, 0.88)
+      : Math.min((shape === 'titleText' ? 0.16 : 0.3) + (count % 4) * 0.055, 0.75),
     width:
-      asset?.width ??
+      (caption ? (shape === 'captionYouTube' ? 0.66 : 0.82) : asset?.width) ??
       (shape === 'titleText'
         ? 0.9
         : shape === 'outlinedText'
@@ -245,47 +206,76 @@ export function createBubble(shape: BubbleShape, count: number): Bubble {
           : shape === 'circleSpeech'
             ? 0.33
             : 0.42),
-    height: asset
-      ? asset.width / asset.aspect
-      : shape === 'titleText'
-        ? 0.3
-        : shape === 'circleSpeech'
-          ? 0.33
-          : 0.25,
+    height: caption
+      ? shape === 'captionHuman'
+        ? 0.17
+        : 0.14
+      : asset
+        ? asset.width / asset.aspect
+        : shape === 'titleText'
+          ? 0.3
+          : shape === 'circleSpeech'
+            ? 0.33
+            : 0.25,
     rotation: 0,
-    tail: asset
+    tail: caption
       ? 'none'
-      : shape === 'circleSpeech'
-        ? 'right'
-        : isTextOnlyShape(shape) ||
-            ['narration', 'caption', 'heart', 'diamond', 'hexagon', 'telepathy'].includes(shape)
-          ? 'none'
-          : 'bottom',
+      : asset
+        ? 'none'
+        : shape === 'circleSpeech'
+          ? 'right'
+          : isTextOnlyShape(shape) ||
+              ['narration', 'caption', 'heart', 'diamond', 'hexagon', 'telepathy'].includes(shape)
+            ? 'none'
+            : 'bottom',
     tailLength: shape === 'chat' ? 0.11 : 0.2,
     tailWidth: shape === 'chat' ? 0.12 : 0.24,
     tailPosition: shape === 'chat' ? 0.55 : 0,
     flipX: false,
     flipY: false,
     fill:
-      shape === 'circleSpeech'
-        ? '#fff2b5'
-        : shape === 'chat'
-          ? '#bfe6ff'
-          : shape === 'telepathy'
-            ? '#f3eaff'
-            : shape === 'radio'
-              ? '#e9f5ff'
-              : '#ffffff',
+      shape === 'captionNews'
+        ? '#102849'
+        : shape === 'captionBreaking'
+          ? '#111827'
+          : shape === 'captionVariety'
+            ? '#ffe14a'
+            : shape === 'captionYouTube'
+              ? '#000000'
+              : shape === 'circleSpeech'
+                ? '#fff2b5'
+                : shape === 'chat'
+                  ? '#bfe6ff'
+                  : shape === 'telepathy'
+                    ? '#f3eaff'
+                    : shape === 'radio'
+                      ? '#e9f5ff'
+                      : '#ffffff',
     stroke: shape === 'radio' ? '#16406c' : '#171717',
-    strokeWidth: isTextOnlyShape(shape) || shape === 'chat' || asset ? 0 : 3,
+    strokeWidth: isTextOnlyShape(shape) || caption || shape === 'chat' || asset ? 0 : 3,
     borderStyle: shape === 'whisper' ? 'dashed' : 'solid',
     shadowBlur: 0,
     shadowColor: '#555555',
     opacity: 100,
+    backgroundOpacity:
+      shape === 'captionYouTube' ? 78 : shape === 'captionHuman' ? 0 : caption ? 96 : 100,
+    cornerRadius: shape === 'captionYouTube' ? 14 : shape === 'captionVariety' ? 18 : 0,
+    accentColor: shape === 'captionBreaking' ? '#ef4444' : '#e53935',
+    badgeVisible: shape === 'captionNews' || shape === 'captionBreaking',
+    badgeText: shape === 'captionBreaking' ? '속보' : 'NEWS',
     fontFamily:
-      shape === 'circleSpeech' ? '"Malgun Gothic", sans-serif' : '"JalnanGothic", sans-serif',
-    fontSize:
-      shape === 'titleText'
+      shape === 'captionHuman'
+        ? '"Nanum Myeongjo", "Batang", serif'
+        : caption
+          ? '"Malgun Gothic", "Noto Sans KR", sans-serif'
+          : shape === 'circleSpeech'
+            ? '"Malgun Gothic", sans-serif'
+            : '"JalnanGothic", sans-serif',
+    fontSize: caption
+      ? shape === 'captionHuman'
+        ? 43
+        : 39
+      : shape === 'titleText'
         ? 95
         : shape === 'outlinedText'
           ? 50
@@ -294,14 +284,37 @@ export function createBubble(shape: BubbleShape, count: number): Bubble {
             : asset
               ? 30
               : 34,
-    fontWeight: shape === 'titleText' ? 900 : shape === 'circleSpeech' ? 500 : 700,
+    fontWeight:
+      shape === 'captionYouTube' || shape === 'captionHuman'
+        ? 700
+        : caption || shape === 'titleText'
+          ? 900
+          : shape === 'circleSpeech'
+            ? 500
+            : 700,
     italic: shape === 'radio' || shape === 'telepathy',
-    textColor: shape === 'outlinedText' || shape === 'assetPink' ? '#ffffff' : '#171717',
-    textStrokeColor: shape === 'outlinedText' ? '#555555' : '#171717',
-    textStrokeWidth: shape === 'outlinedText' ? 7 : 0,
+    textColor:
+      shape === 'outlinedText' || shape === 'assetPink' || (caption && shape !== 'captionVariety')
+        ? '#ffffff'
+        : '#171717',
+    textStrokeColor: shape === 'outlinedText' ? '#555555' : '#000000',
+    textStrokeWidth: shape === 'outlinedText' ? 7 : shape === 'captionHuman' ? 5 : 0,
+    textShadowBlur: shape === 'captionHuman' ? 5 : 0,
+    textShadowColor: '#000000',
     textAlign: 'center',
     lineHeight: shape === 'titleText' ? 1.1 : 1.25,
     letterSpacing: 0,
+  };
+  const newsConfig = createNewsBubbleConfig(shape);
+  if (!newsConfig) return base;
+  return {
+    ...base,
+    text: newsConfig.headline || base.text,
+    x: 0.5,
+    y: 0.5,
+    width: 1,
+    height: 1,
+    newsConfig,
   };
 }
 
@@ -693,6 +706,53 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
   return lines;
 }
 
+function drawCaptionBackground(
+  ctx: CanvasRenderingContext2D,
+  bubble: Bubble,
+  w: number,
+  h: number,
+  scale: number
+) {
+  if (bubble.shape === 'captionHuman') return;
+
+  const radius = Math.min(Math.max(0, bubble.cornerRadius) * scale, h / 2);
+  ctx.save();
+  ctx.globalAlpha *= Math.max(0, Math.min(100, bubble.backgroundOpacity)) / 100;
+  ctx.beginPath();
+  ctx.roundRect(-w / 2, -h / 2, w, h, radius);
+  ctx.fill();
+  if (bubble.strokeWidth > 0) ctx.stroke();
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetY = 0;
+  ctx.fillStyle = bubble.accentColor;
+  if (bubble.shape === 'captionNews') {
+    ctx.fillRect(-w / 2, -h / 2, w, Math.max(3 * scale, h * 0.055));
+  } else if (bubble.shape === 'captionBreaking') {
+    ctx.fillRect(-w / 2, -h / 2, w, Math.max(5 * scale, h * 0.1));
+  } else if (bubble.shape === 'captionVariety') {
+    ctx.fillRect(-w / 2, -h / 2, Math.max(5 * scale, w * 0.015), h);
+  }
+
+  if (
+    (bubble.shape === 'captionNews' || bubble.shape === 'captionBreaking') &&
+    bubble.badgeVisible &&
+    bubble.badgeText.trim()
+  ) {
+    const badgeW = w * 0.19;
+    const badgeH = h * 0.58;
+    const badgeX = -w / 2 + w * 0.025;
+    ctx.beginPath();
+    ctx.roundRect(badgeX, -badgeH / 2, badgeW, badgeH, Math.min(7 * scale, badgeH / 4));
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.font = `800 ${Math.max(11, Math.min(badgeH * 0.46, 22 * scale))}px "Malgun Gothic", sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(bubble.badgeText, badgeX + badgeW / 2, 0, badgeW * 0.86);
+  }
+  ctx.restore();
+}
+
 export function drawWebtoonCanvas(
   canvas: HTMLCanvasElement,
   image: HTMLImageElement | null,
@@ -715,6 +775,42 @@ export function drawWebtoonCanvas(
     ctx.translate(bubble.x * width, bubble.y * height);
     ctx.rotate((bubble.rotation * Math.PI) / 180);
     ctx.globalAlpha = bubble.opacity / 100;
+    if (bubble.newsConfig) {
+      ctx.translate(-w / 2, -h / 2);
+      renderNewsCaptionOverlay(ctx, w, h, bubble.newsConfig);
+      if (selectedId === bubble.id && bubble.newsConfig.selectedElementId) {
+        const bounds = getElementBounds(w, h, bubble.newsConfig)[
+          bubble.newsConfig.selectedElementId
+        ];
+        if (bounds) {
+          const handleSize = Math.max(10, width * 0.018);
+          ctx.strokeStyle = '#2f80ed';
+          ctx.lineWidth = Math.max(2, width / 450);
+          ctx.setLineDash([6, 4]);
+          ctx.strokeRect(bounds.x, bounds.y, bounds.width, bounds.height);
+          ctx.setLineDash([]);
+          RESIZE_HANDLES.forEach(({ x, y }) => {
+            const handleX = bounds.x + ((x + 1) * bounds.width) / 2;
+            const handleY = bounds.y + ((y + 1) * bounds.height) / 2;
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(
+              handleX - handleSize / 2,
+              handleY - handleSize / 2,
+              handleSize,
+              handleSize
+            );
+            ctx.strokeRect(
+              handleX - handleSize / 2,
+              handleY - handleSize / 2,
+              handleSize,
+              handleSize
+            );
+          });
+        }
+      }
+      ctx.restore();
+      return;
+    }
     ctx.save();
     ctx.scale(bubble.flipX ? -1 : 1, bubble.flipY ? -1 : 1);
     ctx.fillStyle = bubble.fill;
@@ -730,6 +826,8 @@ export function drawWebtoonCanvas(
       const assetImage = imageBubbleCache.get(asset.id);
       if (assetImage?.complete && assetImage.naturalWidth > 0)
         ctx.drawImage(assetImage, -w / 2, -h / 2, w, h);
+    } else if (isCaptionShape(bubble.shape)) {
+      drawCaptionBackground(ctx, bubble, w, h, width / 900);
     } else if (isTextOnlyShape(bubble.shape)) {
       if (bubble.shape === 'emphasisText')
         drawEmphasisRays(ctx, w, h, bubble.textColor, (2 * width) / 900);
@@ -746,24 +844,43 @@ export function drawWebtoonCanvas(
     ctx.fillStyle = bubble.textColor;
     ctx.textAlign = bubble.textAlign;
     ctx.textBaseline = 'middle';
+    const caption = isCaptionShape(bubble.shape);
+    const hasBadge =
+      caption &&
+      (bubble.shape === 'captionNews' || bubble.shape === 'captionBreaking') &&
+      bubble.badgeVisible &&
+      bubble.badgeText.trim();
     const padding = isTextOnlyShape(bubble.shape)
       ? 0.04
       : ['burst', 'spiky', 'star', 'diamond', 'heart'].includes(bubble.shape)
         ? 0.25
         : 0.14;
-    const maxWidth = w * (asset?.textWidth ?? 1 - padding * 2);
-    const textHeight = h * (asset?.textHeight ?? 0.86);
+    const textLeft = hasBadge ? -w * 0.265 : -w * (caption ? 0.43 : 0.5 - padding);
+    const textRight = w * (caption ? 0.43 : 0.5 - padding);
+    const textBoxX = caption ? (textLeft + textRight) / 2 : 0;
+    const maxWidth = caption ? textRight - textLeft : w * (asset?.textWidth ?? 1 - padding * 2);
+    const textHeight = h * (caption ? 0.8 : (asset?.textHeight ?? 0.86));
     const textCenterY = h * (asset?.textY ?? 0);
     const lines = wrapText(ctx, bubble.text, maxWidth);
     const lineHeight = fontSize * bubble.lineHeight;
     const visibleLines = lines.slice(0, Math.max(1, Math.floor(textHeight / lineHeight)));
     const startY = textCenterY - ((visibleLines.length - 1) * lineHeight) / 2;
     const textX =
-      bubble.textAlign === 'left' ? -maxWidth / 2 : bubble.textAlign === 'right' ? maxWidth / 2 : 0;
+      textBoxX +
+      (bubble.textAlign === 'left'
+        ? -maxWidth / 2
+        : bubble.textAlign === 'right'
+          ? maxWidth / 2
+          : 0);
     ctx.save();
     ctx.beginPath();
-    ctx.rect(-maxWidth / 2, textCenterY - textHeight / 2, maxWidth, textHeight);
+    ctx.rect(textBoxX - maxWidth / 2, textCenterY - textHeight / 2, maxWidth, textHeight);
     ctx.clip();
+    if (bubble.textShadowBlur > 0) {
+      ctx.shadowColor = bubble.textShadowColor;
+      ctx.shadowBlur = (bubble.textShadowBlur * width) / 900;
+      ctx.shadowOffsetY = (2 * width) / 900;
+    }
     visibleLines.forEach((line, index) => {
       if (bubble.letterSpacing && 'letterSpacing' in ctx)
         ctx.letterSpacing = `${(bubble.letterSpacing * width) / 900}px`;
@@ -782,6 +899,7 @@ export function drawWebtoonCanvas(
 
   const selected = bubbles.find((bubble) => bubble.id === selectedId);
   if (!selected) return;
+  if (selected.newsConfig) return;
 
   const w = selected.width * width;
   const h = selected.height * width;

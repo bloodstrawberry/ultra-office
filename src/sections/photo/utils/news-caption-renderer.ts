@@ -132,6 +132,8 @@ export function getElementBounds(
 
   for (const el of config.elements) {
     if (!el.visible || !el.text) continue;
+    if (el.type === 'titleBadge' && !config.showStationLogo) continue;
+    if (el.type === 'liveBadge' && !config.showLiveBadge) continue;
 
     const fontStack = getFontFamilyStack(el.fontFamily);
     const fontSize = Math.round(el.fontSize * scale);
@@ -203,6 +205,16 @@ export function renderNewsCaption(
   // 1. Draw base original image
   ctx.drawImage(image, 0, 0, width, height);
 
+  renderNewsCaptionOverlay(ctx, width, height, config);
+}
+
+/** Draw the broadcast graphics over an existing canvas, for reuse in other studios. */
+export function renderNewsCaptionOverlay(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  config: NewsCaptionConfig
+): void {
   // 2. Base scaling factor calibrated to 1200px width
   const scale = (width / 1200) * (config.fontSizeScale || 1.0);
 
@@ -249,6 +261,8 @@ function renderCaptionElements(
 
   for (const el of config.elements) {
     if (!el.visible || !el.text) continue;
+    if (el.type === 'titleBadge' && !config.showStationLogo) continue;
+    if (el.type === 'liveBadge' && !config.showLiveBadge) continue;
 
     const fontStack = getFontFamilyStack(el.fontFamily);
     const fontSize = Math.round(el.fontSize * scale);
@@ -339,7 +353,7 @@ function drawStyleBackgroundBanners(
       const bannerH = Math.round(90 * scale);
       const bannerY = headlineY - bannerH + Math.round(20 * scale);
 
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
+      ctx.fillStyle = config.bannerColor || 'rgba(15, 23, 42, 0.95)';
       ctx.fillRect(0, bannerY, width, bannerH);
 
       ctx.fillStyle = config.accentColor || '#38bdf8';
@@ -354,7 +368,7 @@ function drawStyleBackgroundBanners(
       const cardY = headlineY - cardH + Math.round(18 * scale);
 
       ctx.save();
-      ctx.fillStyle = 'rgba(30, 41, 59, 0.94)';
+      ctx.fillStyle = config.bannerColor || 'rgba(30, 41, 59, 0.94)';
       drawRoundedRect(ctx, cardX, cardY, cardW, cardH, 8 * scale);
       ctx.fill();
 
@@ -409,7 +423,7 @@ function drawStyleBackgroundBanners(
     case 'investigative': {
       const bannerH = Math.round(100 * scale);
       const bannerY = headlineY - bannerH + Math.round(18 * scale);
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+      ctx.fillStyle = config.bannerColor || 'rgba(0, 0, 0, 0.65)';
       ctx.fillRect(0, bannerY, width, bannerH);
       break;
     }

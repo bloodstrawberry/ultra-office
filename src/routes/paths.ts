@@ -46,6 +46,7 @@ export const paths = {
   },
   morse: '/morse',
   classicSearch: '/classic-search',
+  stockChart: '/stock-chart',
   braille: '/braille',
   natoPhonetic: '/nato-phonetic',
   cipher: '/cipher',
@@ -195,5 +196,6 @@ export const paths = {
   webtoon: {
     bubble: `/webtoon/bubble`,
     sign: `/webtoon/sign`,
+    merge: `/webtoon/merge`,
   },
 };
