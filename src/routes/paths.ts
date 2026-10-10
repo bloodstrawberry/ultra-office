@@ -197,5 +197,6 @@ export const paths = {
     bubble: `/webtoon/bubble`,
     sign: `/webtoon/sign`,
     merge: `/webtoon/merge`,
+    logoRemove: `/webtoon/logo-remove`,
   },
 };

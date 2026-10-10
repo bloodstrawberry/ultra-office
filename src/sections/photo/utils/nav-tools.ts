@@ -40,6 +40,10 @@ export const TOOL_METADATA_MAP: Record<
     description: '웹툰 이미지에 흰 여백, 둥근 모서리, 작가 싸인을 일괄 추가',
     badgeColor: 'primary',
   },
+  [paths.webtoon.logoRemove]: {
+    description: '오른쪽 아래 로고 자동 제거와 스팟 복구 브러시',
+    badgeColor: 'primary',
+  },
   [paths.photo.editor]: {
     description:
       '갤럭시 One UI & 아이폰 iOS 감성 보정, AI 편집, 8채널 HSL, 인물 리터칭 올인원 스튜디오',

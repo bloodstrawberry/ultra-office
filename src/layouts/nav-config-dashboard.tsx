@@ -175,6 +175,7 @@ export const navData: NavSectionProps['data'] = [
           { title: '말풍선 추가', path: paths.webtoon.bubble },
           { title: '싸인추가', path: paths.webtoon.sign },
           { title: '이미지 합치기', path: paths.webtoon.merge },
+          { title: '로고 지우기', path: paths.webtoon.logoRemove },
         ],
       },
       {
