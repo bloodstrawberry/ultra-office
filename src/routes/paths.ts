@@ -194,6 +194,7 @@ export const paths = {
     newsCaption: `/photo/news-caption`,
   },
   webtoon: {
+    photoshop: `/webtoon/photoshop`,
     bubble: `/webtoon/bubble`,
     sign: `/webtoon/sign`,
     merge: `/webtoon/merge`,

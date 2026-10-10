@@ -648,14 +648,22 @@ export function WebtoonBubbleView() {
 
   const removeSelected = () => {
     if (selected?.newsConfig && selectedNewsElement && selectedNewsElement.isDeletable !== false) {
-      setBubbles((items) => items.map((item) => item.id === selected.id && item.newsConfig ? {
-        ...item,
-        newsConfig: {
-          ...item.newsConfig,
-          elements: item.newsConfig.elements.filter((element) => element.id !== selectedNewsElement.id),
-          selectedElementId: null,
-        },
-      } : item));
+      setBubbles((items) =>
+        items.map((item) =>
+          item.id === selected.id && item.newsConfig
+            ? {
+                ...item,
+                newsConfig: {
+                  ...item.newsConfig,
+                  elements: item.newsConfig.elements.filter(
+                    (element) => element.id !== selectedNewsElement.id
+                  ),
+                  selectedElementId: null,
+                },
+              }
+            : item
+        )
+      );
       return;
     }
     setBubbles((items) => items.filter((item) => item.id !== selectedId));
@@ -675,15 +683,27 @@ export function WebtoonBubbleView() {
       )
         return;
       event.preventDefault();
-      if (selected?.newsConfig && selectedNewsElement && selectedNewsElement.isDeletable !== false) {
-        setBubbles((items) => items.map((item) => item.id === selectedId && item.newsConfig ? {
-          ...item,
-          newsConfig: {
-            ...item.newsConfig,
-            elements: item.newsConfig.elements.filter((element) => element.id !== selectedNewsElement.id),
-            selectedElementId: null,
-          },
-        } : item));
+      if (
+        selected?.newsConfig &&
+        selectedNewsElement &&
+        selectedNewsElement.isDeletable !== false
+      ) {
+        setBubbles((items) =>
+          items.map((item) =>
+            item.id === selectedId && item.newsConfig
+              ? {
+                  ...item,
+                  newsConfig: {
+                    ...item.newsConfig,
+                    elements: item.newsConfig.elements.filter(
+                      (element) => element.id !== selectedNewsElement.id
+                    ),
+                    selectedElementId: null,
+                  },
+                }
+              : item
+          )
+        );
         dragRef.current = null;
         return;
       }
@@ -701,11 +721,16 @@ export function WebtoonBubbleView() {
       id: crypto.randomUUID(),
       x: bubble.newsConfig ? bubble.x : Math.min(bubble.x + 0.05, 0.9),
       y: bubble.newsConfig ? bubble.y : Math.min(bubble.y + 0.05, 0.9),
-      newsConfig: bubble.newsConfig ? {
-        ...bubble.newsConfig,
-        selectedElementId: null,
-        elements: bubble.newsConfig.elements.map((element) => ({ ...element, id: crypto.randomUUID() })),
-      } : undefined,
+      newsConfig: bubble.newsConfig
+        ? {
+            ...bubble.newsConfig,
+            selectedElementId: null,
+            elements: bubble.newsConfig.elements.map((element) => ({
+              ...element,
+              id: crypto.randomUUID(),
+            })),
+          }
+        : undefined,
     };
     setBubbles((items) => [...items, copy]);
     setSelectedId(copy.id);
@@ -716,14 +741,30 @@ export function WebtoonBubbleView() {
     if (!selected) return;
     if (selected.newsConfig && selectedNewsElement) {
       const id = crypto.randomUUID();
-      setBubbles((items) => items.map((item) => item.id === selected.id && item.newsConfig ? {
-        ...item,
-        newsConfig: {
-          ...item.newsConfig,
-          elements: [...item.newsConfig.elements, { ...selectedNewsElement, id, name: `${selectedNewsElement.name} 복사`, x: Math.min(1, selectedNewsElement.x + 0.025), y: Math.min(1, selectedNewsElement.y + 0.025), isDeletable: true }],
-          selectedElementId: id,
-        },
-      } : item));
+      setBubbles((items) =>
+        items.map((item) =>
+          item.id === selected.id && item.newsConfig
+            ? {
+                ...item,
+                newsConfig: {
+                  ...item.newsConfig,
+                  elements: [
+                    ...item.newsConfig.elements,
+                    {
+                      ...selectedNewsElement,
+                      id,
+                      name: `${selectedNewsElement.name} 복사`,
+                      x: Math.min(1, selectedNewsElement.x + 0.025),
+                      y: Math.min(1, selectedNewsElement.y + 0.025),
+                      isDeletable: true,
+                    },
+                  ],
+                  selectedElementId: id,
+                },
+              }
+            : item
+        )
+      );
       toast.success('자막 요소가 복제되었습니다.');
       return;
     }
@@ -976,7 +1017,8 @@ export function WebtoonBubbleView() {
       const newsHandle = selected.newsConfig
         ? newsElementHandleAt(point, selected, event.currentTarget)
         : null;
-      const handle = newsHandle?.handle ??
+      const handle =
+        newsHandle?.handle ??
         (selected.newsConfig ? null : resizeHandleAt(point, selected, event.currentTarget));
       if (handle) {
         event.currentTarget.style.cursor =
@@ -2130,120 +2172,270 @@ export function WebtoonBubbleView() {
                       const isCur = b.id === selectedId && !b.newsConfig?.selectedElementId;
                       return (
                         <React.Fragment key={b.id}>
-                        <Box
-                          onClick={() => {
-                            setSelectedId(b.id);
-                            if (b.newsConfig) {
-                              setBubbles((items) => items.map((item) => item.id === b.id && item.newsConfig ? { ...item, newsConfig: { ...item.newsConfig, selectedElementId: null } } : item));
-                            }
-                            setActiveTab('edit');
-                          }}
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            p: '8px 10px',
-                            borderRadius: 1.5,
-                            border: '1px solid',
-                            borderColor: isCur ? 'primary.main' : 'divider',
-                            bgcolor: isCur ? 'primary.lighter' : 'background.paper',
-                            cursor: 'pointer',
-                            transition: 'all 0.15s ease',
-                            '&:hover': {
-                              bgcolor: isCur ? 'primary.lighter' : 'action.hover',
-                            },
-                          }}
-                        >
-                          <Box sx={{ minWidth: 0, flex: 1, pr: 1 }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                              <Chip
-                                size="small"
-                                label={`#${bubbles.length - idx}`}
-                                sx={{ height: 18, fontSize: '0.62rem', fontWeight: 700 }}
-                              />
+                          <Box
+                            onClick={() => {
+                              setSelectedId(b.id);
+                              if (b.newsConfig) {
+                                setBubbles((items) =>
+                                  items.map((item) =>
+                                    item.id === b.id && item.newsConfig
+                                      ? {
+                                          ...item,
+                                          newsConfig: {
+                                            ...item.newsConfig,
+                                            selectedElementId: null,
+                                          },
+                                        }
+                                      : item
+                                  )
+                                );
+                              }
+                              setActiveTab('edit');
+                            }}
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              p: '8px 10px',
+                              borderRadius: 1.5,
+                              border: '1px solid',
+                              borderColor: isCur ? 'primary.main' : 'divider',
+                              bgcolor: isCur ? 'primary.lighter' : 'background.paper',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease',
+                              '&:hover': {
+                                bgcolor: isCur ? 'primary.lighter' : 'action.hover',
+                              },
+                            }}
+                          >
+                            <Box sx={{ minWidth: 0, flex: 1, pr: 1 }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <Chip
+                                  size="small"
+                                  label={`#${bubbles.length - idx}`}
+                                  sx={{ height: 18, fontSize: '0.62rem', fontWeight: 700 }}
+                                />
+                                <Typography
+                                  variant="subtitle2"
+                                  sx={{
+                                    fontWeight: 700,
+                                    fontSize: '0.78rem',
+                                    color: isCur ? 'primary.darker' : 'text.primary',
+                                  }}
+                                >
+                                  {shapeInfo?.label || '말풍선'}
+                                  {b.newsConfig ? ' · 배경/효과' : ''}
+                                </Typography>
+                              </Box>
                               <Typography
-                                variant="subtitle2"
+                                variant="caption"
                                 sx={{
-                                  fontWeight: 700,
-                                  fontSize: '0.78rem',
-                                  color: isCur ? 'primary.darker' : 'text.primary',
+                                  color: 'text.secondary',
+                                  fontSize: '0.7rem',
+                                  display: '-webkit-box',
+                                  WebkitLineClamp: 1,
+                                  WebkitBoxOrient: 'vertical',
+                                  overflow: 'hidden',
+                                  mt: 0.25,
                                 }}
                               >
-                                {shapeInfo?.label || '말풍선'}{b.newsConfig ? ' · 배경/효과' : ''}
+                                {b.newsConfig
+                                  ? '방송 배너·레터박스·비네팅'
+                                  : b.text
+                                    ? b.text.replace(/\s+/g, ' ')
+                                    : '(대사 없음)'}
                               </Typography>
                             </Box>
-                            <Typography
-                              variant="caption"
-                              sx={{
-                                color: 'text.secondary',
-                                fontSize: '0.7rem',
-                                display: '-webkit-box',
-                                WebkitLineClamp: 1,
-                                WebkitBoxOrient: 'vertical',
-                                overflow: 'hidden',
-                                mt: 0.25,
-                              }}
-                            >
-                              {b.newsConfig ? '방송 배너·레터박스·비네팅' : b.text ? b.text.replace(/\s+/g, ' ') : '(대사 없음)'}
-                            </Typography>
-                          </Box>
 
-                          <Box
-                            sx={{ display: 'flex', alignItems: 'center' }}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <IconButton
-                              size="small"
-                              title="복제"
-                              onClick={() => {
-                                setSelectedId(b.id);
-                                duplicateSelected();
-                              }}
-                            >
-                              <ContentCopyRoundedIcon sx={{ fontSize: 16 }} />
-                            </IconButton>
-                            <IconButton
-                              size="small"
-                              color="error"
-                              title="삭제"
-                              onClick={() => {
-                                setBubbles((items) => items.filter((item) => item.id !== b.id));
-                                if (selectedId === b.id) setSelectedId(null);
-                              }}
-                            >
-                              <DeleteRoundedIcon sx={{ fontSize: 16 }} />
-                            </IconButton>
-                          </Box>
-                        </Box>
-                        {b.newsConfig && [...b.newsConfig.elements].reverse().map((element) => {
-                          const elementSelected = b.id === selectedId && b.newsConfig?.selectedElementId === element.id;
-                          return (
                             <Box
-                              key={element.id}
-                              onClick={() => {
-                                setSelectedId(b.id);
-                                setBubbles((items) => items.map((item) => item.id === b.id && item.newsConfig ? { ...item, newsConfig: { ...item.newsConfig, selectedElementId: element.id } } : item));
-                                setActiveTab('edit');
-                              }}
-                              sx={{ display: 'flex', alignItems: 'center', gap: 0.5, ml: 2, px: 1, py: 0.6, border: '1px solid', borderColor: elementSelected ? 'primary.main' : 'divider', borderRadius: 1, bgcolor: elementSelected ? 'primary.lighter' : 'background.paper', opacity: element.visible ? 1 : 0.5, cursor: 'pointer' }}
+                              sx={{ display: 'flex', alignItems: 'center' }}
+                              onClick={(e) => e.stopPropagation()}
                             >
-                              <Box sx={{ flex: 1, minWidth: 0 }}>
-                                <Typography variant="caption" sx={{ fontWeight: 700, display: 'block' }}>{element.name}</Typography>
-                                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{element.text || '(문구 없음)'}</Typography>
-                              </Box>
-                              <Box onClick={(event) => event.stopPropagation()} sx={{ display: 'flex', alignItems: 'center' }}>
-                                <Button size="small" sx={{ minWidth: 0, px: 0.5 }} onClick={() => setBubbles((items) => items.map((item) => item.id === b.id && item.newsConfig ? { ...item, newsConfig: { ...item.newsConfig, elements: item.newsConfig.elements.map((part) => part.id === element.id ? { ...part, visible: !part.visible } : part) } } : item))}>{element.visible ? '숨김' : '표시'}</Button>
-                                <IconButton size="small" title={`${element.name} 복제`} onClick={() => {
-                                  const id = crypto.randomUUID();
-                                  setBubbles((items) => items.map((item) => item.id === b.id && item.newsConfig ? { ...item, newsConfig: { ...item.newsConfig, elements: [...item.newsConfig.elements, { ...element, id, name: `${element.name} 복사`, x: Math.min(1, element.x + 0.025), y: Math.min(1, element.y + 0.025), isDeletable: true }], selectedElementId: id } } : item));
+                              <IconButton
+                                size="small"
+                                title="복제"
+                                onClick={() => {
                                   setSelectedId(b.id);
-                                  setActiveTab('edit');
-                                }}><ContentCopyRoundedIcon sx={{ fontSize: 16 }} /></IconButton>
-                                {element.isDeletable !== false && <IconButton size="small" color="error" title={`${element.name} 삭제`} onClick={() => setBubbles((items) => items.map((item) => item.id === b.id && item.newsConfig ? { ...item, newsConfig: { ...item.newsConfig, elements: item.newsConfig.elements.filter((part) => part.id !== element.id), selectedElementId: item.newsConfig.selectedElementId === element.id ? null : item.newsConfig.selectedElementId } } : item))}><DeleteRoundedIcon sx={{ fontSize: 16 }} /></IconButton>}
-                              </Box>
+                                  duplicateSelected();
+                                }}
+                              >
+                                <ContentCopyRoundedIcon sx={{ fontSize: 16 }} />
+                              </IconButton>
+                              <IconButton
+                                size="small"
+                                color="error"
+                                title="삭제"
+                                onClick={() => {
+                                  setBubbles((items) => items.filter((item) => item.id !== b.id));
+                                  if (selectedId === b.id) setSelectedId(null);
+                                }}
+                              >
+                                <DeleteRoundedIcon sx={{ fontSize: 16 }} />
+                              </IconButton>
                             </Box>
-                          );
-                        })}
+                          </Box>
+                          {b.newsConfig &&
+                            [...b.newsConfig.elements].reverse().map((element) => {
+                              const elementSelected =
+                                b.id === selectedId &&
+                                b.newsConfig?.selectedElementId === element.id;
+                              return (
+                                <Box
+                                  key={element.id}
+                                  onClick={() => {
+                                    setSelectedId(b.id);
+                                    setBubbles((items) =>
+                                      items.map((item) =>
+                                        item.id === b.id && item.newsConfig
+                                          ? {
+                                              ...item,
+                                              newsConfig: {
+                                                ...item.newsConfig,
+                                                selectedElementId: element.id,
+                                              },
+                                            }
+                                          : item
+                                      )
+                                    );
+                                    setActiveTab('edit');
+                                  }}
+                                  sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 0.5,
+                                    ml: 2,
+                                    px: 1,
+                                    py: 0.6,
+                                    border: '1px solid',
+                                    borderColor: elementSelected ? 'primary.main' : 'divider',
+                                    borderRadius: 1,
+                                    bgcolor: elementSelected
+                                      ? 'primary.lighter'
+                                      : 'background.paper',
+                                    opacity: element.visible ? 1 : 0.5,
+                                    cursor: 'pointer',
+                                  }}
+                                >
+                                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                                    <Typography
+                                      variant="caption"
+                                      sx={{ fontWeight: 700, display: 'block' }}
+                                    >
+                                      {element.name}
+                                    </Typography>
+                                    <Typography
+                                      variant="caption"
+                                      sx={{
+                                        color: 'text.secondary',
+                                        display: 'block',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace: 'nowrap',
+                                      }}
+                                    >
+                                      {element.text || '(문구 없음)'}
+                                    </Typography>
+                                  </Box>
+                                  <Box
+                                    onClick={(event) => event.stopPropagation()}
+                                    sx={{ display: 'flex', alignItems: 'center' }}
+                                  >
+                                    <Button
+                                      size="small"
+                                      sx={{ minWidth: 0, px: 0.5 }}
+                                      onClick={() =>
+                                        setBubbles((items) =>
+                                          items.map((item) =>
+                                            item.id === b.id && item.newsConfig
+                                              ? {
+                                                  ...item,
+                                                  newsConfig: {
+                                                    ...item.newsConfig,
+                                                    elements: item.newsConfig.elements.map(
+                                                      (part) =>
+                                                        part.id === element.id
+                                                          ? { ...part, visible: !part.visible }
+                                                          : part
+                                                    ),
+                                                  },
+                                                }
+                                              : item
+                                          )
+                                        )
+                                      }
+                                    >
+                                      {element.visible ? '숨김' : '표시'}
+                                    </Button>
+                                    <IconButton
+                                      size="small"
+                                      title={`${element.name} 복제`}
+                                      onClick={() => {
+                                        const id = crypto.randomUUID();
+                                        setBubbles((items) =>
+                                          items.map((item) =>
+                                            item.id === b.id && item.newsConfig
+                                              ? {
+                                                  ...item,
+                                                  newsConfig: {
+                                                    ...item.newsConfig,
+                                                    elements: [
+                                                      ...item.newsConfig.elements,
+                                                      {
+                                                        ...element,
+                                                        id,
+                                                        name: `${element.name} 복사`,
+                                                        x: Math.min(1, element.x + 0.025),
+                                                        y: Math.min(1, element.y + 0.025),
+                                                        isDeletable: true,
+                                                      },
+                                                    ],
+                                                    selectedElementId: id,
+                                                  },
+                                                }
+                                              : item
+                                          )
+                                        );
+                                        setSelectedId(b.id);
+                                        setActiveTab('edit');
+                                      }}
+                                    >
+                                      <ContentCopyRoundedIcon sx={{ fontSize: 16 }} />
+                                    </IconButton>
+                                    {element.isDeletable !== false && (
+                                      <IconButton
+                                        size="small"
+                                        color="error"
+                                        title={`${element.name} 삭제`}
+                                        onClick={() =>
+                                          setBubbles((items) =>
+                                            items.map((item) =>
+                                              item.id === b.id && item.newsConfig
+                                                ? {
+                                                    ...item,
+                                                    newsConfig: {
+                                                      ...item.newsConfig,
+                                                      elements: item.newsConfig.elements.filter(
+                                                        (part) => part.id !== element.id
+                                                      ),
+                                                      selectedElementId:
+                                                        item.newsConfig.selectedElementId ===
+                                                        element.id
+                                                          ? null
+                                                          : item.newsConfig.selectedElementId,
+                                                    },
+                                                  }
+                                                : item
+                                            )
+                                          )
+                                        }
+                                      >
+                                        <DeleteRoundedIcon sx={{ fontSize: 16 }} />
+                                      </IconButton>
+                                    )}
+                                  </Box>
+                                </Box>
+                              );
+                            })}
                         </React.Fragment>
                       );
                     })}

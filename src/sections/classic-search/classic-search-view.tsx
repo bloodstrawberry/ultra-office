@@ -136,7 +136,10 @@ export function ClassicSearchView({ classics }: { classics: Classic[] }) {
   const [memos, setMemos] = useState<Record<string, string>>({});
   const [storageError, setStorageError] = useState('');
   const categoryOptions = useMemo(
-    () => [...new Set(classics.flatMap((classic) => classic.categories))].sort((a, b) => a.localeCompare(b, 'ko')),
+    () =>
+      [...new Set(classics.flatMap((classic) => classic.categories))].sort((a, b) =>
+        a.localeCompare(b, 'ko')
+      ),
     [classics]
   );
 
@@ -150,7 +153,9 @@ export function ClassicSearchView({ classics }: { classics: Classic[] }) {
         }
         setMemos(
           Object.fromEntries(
-            Object.entries(parsed).filter((entry): entry is [string, string] => typeof entry[1] === 'string')
+            Object.entries(parsed).filter(
+              (entry): entry is [string, string] => typeof entry[1] === 'string'
+            )
           )
         );
       }
@@ -175,37 +180,34 @@ export function ClassicSearchView({ classics }: { classics: Classic[] }) {
     }
   };
 
-  const results = useMemo(
-    () => {
-      const trimmedQuery = query.trim();
-      const numberQuery = /^\d{1,3}$/.test(trimmedQuery) ? Number(trimmedQuery) : null;
+  const results = useMemo(() => {
+    const trimmedQuery = query.trim();
+    const numberQuery = /^\d{1,3}$/.test(trimmedQuery) ? Number(trimmedQuery) : null;
 
-      return classics.filter(
-        (classic) =>
-          (numberQuery !== null
-            ? classic.position === numberQuery
-            : matchesTerms(
-                [
-                  classic.title,
-                  ...classic.categories,
-                  ...classic.features,
-                  ...classic.ost.map((use) => use.작품),
-                  memos[classic.title] ?? '',
-                ],
-                query
-              )) &&
-          (selectedCategories.length === 0 ||
-            selectedCategories.some((category) => classic.categories.includes(category))) &&
-          matchesTerms(classic.features, featureQuery) &&
-          matchesTerms(
-            classic.ost.map((use) => use.작품),
-            ostQuery
-          ) &&
-          matchesTerms([memos[classic.title] ?? ''], memoQuery)
-      );
-    },
-    [classics, query, selectedCategories, featureQuery, ostQuery, memoQuery, memos]
-  );
+    return classics.filter(
+      (classic) =>
+        (numberQuery !== null
+          ? classic.position === numberQuery
+          : matchesTerms(
+              [
+                classic.title,
+                ...classic.categories,
+                ...classic.features,
+                ...classic.ost.map((use) => use.작품),
+                memos[classic.title] ?? '',
+              ],
+              query
+            )) &&
+        (selectedCategories.length === 0 ||
+          selectedCategories.some((category) => classic.categories.includes(category))) &&
+        matchesTerms(classic.features, featureQuery) &&
+        matchesTerms(
+          classic.ost.map((use) => use.작품),
+          ostQuery
+        ) &&
+        matchesTerms([memos[classic.title] ?? ''], memoQuery)
+    );
+  }, [classics, query, selectedCategories, featureQuery, ostQuery, memoQuery, memos]);
 
   return (
     <DashboardContent sx={{ pb: 5, overflowY: { lg: 'auto' } }}>
@@ -214,10 +216,9 @@ export function ClassicSearchView({ classics }: { classics: Classic[] }) {
           클래식 검색
         </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          클래식 400곡을 번호, 곡명, 카테고리, 특징, OST, 메모로 검색하세요. 여러 필터를 함께
-          사용할 수 있습니다. 카테고리는 여러 개 선택할 수 있으며, 선택한 카테고리 중 하나라도
-          포함된 곡이 나옵니다. OST에는 사용 근거를 확인한 작품만 표시합니다. 메모는 이 브라우저에
-          저장됩니다.
+          클래식 400곡을 번호, 곡명, 카테고리, 특징, OST, 메모로 검색하세요. 여러 필터를 함께 사용할
+          수 있습니다. 카테고리는 여러 개 선택할 수 있으며, 선택한 카테고리 중 하나라도 포함된 곡이
+          나옵니다. OST에는 사용 근거를 확인한 작품만 표시합니다. 메모는 이 브라우저에 저장됩니다.
         </Typography>
       </Box>
 

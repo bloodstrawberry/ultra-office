@@ -203,25 +203,29 @@ export function LogoView() {
     }
   };
 
-  const generateLogo = useCallback(async (
-    src: string,
-    cropArea: CropRect,
-    targetWidth: number,
-    targetHeight: number
-  ) => {
-    const request = ++renderRequestRef.current;
-    setResultDataUrl('');
-    try {
-      const settings: LogoShapeSettings = { shape, rotation: shapeRotation, polygonSides, roundness, starPoints };
-      const outUrl = await renderShapedLogo(src, cropArea, targetWidth, targetHeight, settings);
-      if (request === renderRequestRef.current) setResultDataUrl(outUrl);
-    } catch {
-      if (request === renderRequestRef.current) {
-        setResultDataUrl('');
-        toast.error('로고 미리보기를 만들지 못했습니다.');
+  const generateLogo = useCallback(
+    async (src: string, cropArea: CropRect, targetWidth: number, targetHeight: number) => {
+      const request = ++renderRequestRef.current;
+      setResultDataUrl('');
+      try {
+        const settings: LogoShapeSettings = {
+          shape,
+          rotation: shapeRotation,
+          polygonSides,
+          roundness,
+          starPoints,
+        };
+        const outUrl = await renderShapedLogo(src, cropArea, targetWidth, targetHeight, settings);
+        if (request === renderRequestRef.current) setResultDataUrl(outUrl);
+      } catch {
+        if (request === renderRequestRef.current) {
+          setResultDataUrl('');
+          toast.error('로고 미리보기를 만들지 못했습니다.');
+        }
       }
-    }
-  }, [shape, shapeRotation, polygonSides, roundness, starPoints]);
+    },
+    [shape, shapeRotation, polygonSides, roundness, starPoints]
+  );
 
   useEffect(() => {
     if (imageSrc) generateLogo(imageSrc, crop, outputWidth, outputHeight);
@@ -523,7 +527,13 @@ export function LogoView() {
                   naturalWidth={imageDimensions.width}
                   naturalHeight={imageDimensions.height}
                   aspectRatio={outputWidth / (outputHeight || 1)}
-                  shapeSettings={{ shape, rotation: shapeRotation, polygonSides, roundness, starPoints }}
+                  shapeSettings={{
+                    shape,
+                    rotation: shapeRotation,
+                    polygonSides,
+                    roundness,
+                    starPoints,
+                  }}
                   crop={crop}
                   onChange={handleCropChange}
                 />
@@ -691,7 +701,10 @@ export function LogoView() {
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.25 }}>
                 도형 로고 만들기
               </Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 1.5 }}>
+              <Typography
+                variant="caption"
+                sx={{ color: 'text.secondary', display: 'block', mb: 1.5 }}
+              >
                 도형을 드래그·조절하면 바깥은 투명해집니다.
               </Typography>
               <Box
@@ -712,7 +725,9 @@ export function LogoView() {
                     onChange={(event) => setShape(event.target.value as LogoShape)}
                   >
                     {LOGO_SHAPES.map((item) => (
-                      <MenuItem key={item.value} value={item.value}>{item.label}</MenuItem>
+                      <MenuItem key={item.value} value={item.value}>
+                        {item.label}
+                      </MenuItem>
                     ))}
                   </Select>
                 </FormControl>
@@ -740,8 +755,18 @@ export function LogoView() {
                 )}
               </Box>
               {shape === 'polygon' && (
-                <Box sx={{ display: 'grid', gridTemplateColumns: '62px minmax(0, 1fr) 38px', gap: 1, alignItems: 'center', minHeight: 38 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>둥글기</Typography>
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: '62px minmax(0, 1fr) 38px',
+                    gap: 1,
+                    alignItems: 'center',
+                    minHeight: 38,
+                  }}
+                >
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    둥글기
+                  </Typography>
                   <Slider
                     value={roundness}
                     min={0}
@@ -757,8 +782,18 @@ export function LogoView() {
                 </Box>
               )}
               {shape === 'star' && (
-                <Box sx={{ display: 'grid', gridTemplateColumns: '62px minmax(0, 1fr) 38px', gap: 1, alignItems: 'center', minHeight: 38 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>꼭짓점</Typography>
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: '62px minmax(0, 1fr) 38px',
+                    gap: 1,
+                    alignItems: 'center',
+                    minHeight: 38,
+                  }}
+                >
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    꼭짓점
+                  </Typography>
                   <Slider
                     value={starPoints}
                     min={4}
@@ -774,8 +809,19 @@ export function LogoView() {
                 </Box>
               )}
               {shape !== 'none' && (
-                <Box sx={{ display: 'grid', gridTemplateColumns: '38px minmax(0, 1fr) 36px 44px', gap: 1, alignItems: 'center', minHeight: 38, mt: shape === 'polygon' || shape === 'star' ? 0.5 : 0 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>회전</Typography>
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: '38px minmax(0, 1fr) 36px 44px',
+                    gap: 1,
+                    alignItems: 'center',
+                    minHeight: 38,
+                    mt: shape === 'polygon' || shape === 'star' ? 0.5 : 0,
+                  }}
+                >
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    회전
+                  </Typography>
                   <Slider
                     value={shapeRotation}
                     min={-180}
@@ -789,7 +835,12 @@ export function LogoView() {
                   <Typography variant="caption" sx={{ textAlign: 'right', fontWeight: 700 }}>
                     {shapeRotation}°
                   </Typography>
-                  <Button size="small" disabled={shapeRotation === 0} onClick={() => setShapeRotation(0)} sx={{ minWidth: 0, px: 0, fontSize: '0.7rem' }}>
+                  <Button
+                    size="small"
+                    disabled={shapeRotation === 0}
+                    onClick={() => setShapeRotation(0)}
+                    sx={{ minWidth: 0, px: 0, fontSize: '0.7rem' }}
+                  >
                     초기화
                   </Button>
                 </Box>
@@ -834,7 +885,8 @@ export function LogoView() {
                   borderRadius: 0,
                   overflow: 'hidden',
                   bgcolor: '#f8fafc',
-                  backgroundImage: 'linear-gradient(45deg, #e2e8f0 25%, transparent 25%), linear-gradient(-45deg, #e2e8f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e2e8f0 75%), linear-gradient(-45deg, transparent 75%, #e2e8f0 75%)',
+                  backgroundImage:
+                    'linear-gradient(45deg, #e2e8f0 25%, transparent 25%), linear-gradient(-45deg, #e2e8f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e2e8f0 75%), linear-gradient(-45deg, transparent 75%, #e2e8f0 75%)',
                   backgroundSize: '20px 20px',
                   backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0',
                   boxShadow: '0 10px 25px -5px rgba(0,0,0,0.3)',
@@ -868,7 +920,16 @@ export function LogoView() {
             </Card>
 
             {/* Action Buttons */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25, mt: 'auto', pt: 0.5, flexShrink: 0 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1.25,
+                mt: 'auto',
+                pt: 0.5,
+                flexShrink: 0,
+              }}
+            >
               <Button
                 fullWidth
                 variant="outlined"

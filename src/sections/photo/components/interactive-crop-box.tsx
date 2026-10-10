@@ -510,8 +510,19 @@ export function InteractiveCropBox({
                   <path d={shapePath} fill="black" transform={shapeTransform} />
                 </mask>
               </defs>
-              <rect width={boxWidth} height={boxHeight} fill="rgba(0, 0, 0, 0.65)" mask={`url(#${shapeMaskId})`} />
-              <path d={shapePath} fill="none" stroke="#38bdf8" strokeWidth={2} transform={shapeTransform} />
+              <rect
+                width={boxWidth}
+                height={boxHeight}
+                fill="rgba(0, 0, 0, 0.65)"
+                mask={`url(#${shapeMaskId})`}
+              />
+              <path
+                d={shapePath}
+                fill="none"
+                stroke="#38bdf8"
+                strokeWidth={2}
+                transform={shapeTransform}
+              />
             </svg>
           )}
           {shape === 'none' && showGrid && (

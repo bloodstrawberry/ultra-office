@@ -223,7 +223,16 @@ export function ChatBottomInputBar({ config, onSendMessage }: ChatBottomInputBar
   // 카카오톡 PC 채팅창의 흰색 입력 영역과 하단 도구 모음
   if (isKakao) {
     return (
-      <Box sx={{ height: 118, flexShrink: 0, bgcolor: '#FFFFFF', borderTop: '1px solid #DEE2E5', display: 'flex', flexDirection: 'column' }}>
+      <Box
+        sx={{
+          height: 118,
+          flexShrink: 0,
+          bgcolor: '#FFFFFF',
+          borderTop: '1px solid #DEE2E5',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
         <InputBase
           multiline
           fullWidth
@@ -231,19 +240,75 @@ export function ChatBottomInputBar({ config, onSendMessage }: ChatBottomInputBar
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           onKeyDown={handleKeyDown}
-          sx={{ flex: 1, alignItems: 'flex-start', px: 1.5, pt: 1.1, fontSize: 12, color: '#1D2328', '& textarea::placeholder': { color: '#A3ACB4', opacity: 1 } }}
+          sx={{
+            flex: 1,
+            alignItems: 'flex-start',
+            px: 1.5,
+            pt: 1.1,
+            fontSize: 12,
+            color: '#1D2328',
+            '& textarea::placeholder': { color: '#A3ACB4', opacity: 1 },
+          }}
         />
-        <Box sx={{ height: 40, display: 'flex', alignItems: 'center', px: 1.2, pb: 0.5, gap: 1.2, color: '#555B60' }}>
+        <Box
+          sx={{
+            height: 40,
+            display: 'flex',
+            alignItems: 'center',
+            px: 1.2,
+            pb: 0.5,
+            gap: 1.2,
+            color: '#555B60',
+          }}
+        >
           <AddRoundedIcon sx={{ fontSize: 24, cursor: 'pointer' }} />
           <SentimentSatisfiedAltRoundedIcon sx={{ fontSize: 20, cursor: 'pointer' }} />
           <InsertDriveFileOutlinedIcon sx={{ fontSize: 19, cursor: 'pointer' }} />
           <Box sx={{ flex: 1 }} />
-          <Box sx={{ width: 48, height: '1px', bgcolor: '#C7C7C7', position: 'relative', mr: 0.4, flexShrink: 0 }}>
-            <Box sx={{ width: 10, height: 10, border: '1px solid #C7C7C7', borderRadius: '50%', bgcolor: '#FFFFFF', position: 'absolute', top: -5, right: 0 }} />
+          <Box
+            sx={{
+              width: 48,
+              height: '1px',
+              bgcolor: '#C7C7C7',
+              position: 'relative',
+              mr: 0.4,
+              flexShrink: 0,
+            }}
+          >
+            <Box
+              sx={{
+                width: 10,
+                height: 10,
+                border: '1px solid #C7C7C7',
+                borderRadius: '50%',
+                bgcolor: '#FFFFFF',
+                position: 'absolute',
+                top: -5,
+                right: 0,
+              }}
+            />
           </Box>
-          <Box onClick={handleSend} sx={{ height: 30, minWidth: 73, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', whiteSpace: 'nowrap', bgcolor: inputText.trim() ? '#FEE500' : '#F6F6F6', color: inputText.trim() ? '#1A1A1A' : '#B9BFC4', borderRadius: '3px', fontSize: 12, cursor: inputText.trim() ? 'pointer' : 'default' }}>
+          <Box
+            onClick={handleSend}
+            sx={{
+              height: 30,
+              minWidth: 73,
+              flexShrink: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              whiteSpace: 'nowrap',
+              bgcolor: inputText.trim() ? '#FEE500' : '#F6F6F6',
+              color: inputText.trim() ? '#1A1A1A' : '#B9BFC4',
+              borderRadius: '3px',
+              fontSize: 12,
+              cursor: inputText.trim() ? 'pointer' : 'default',
+            }}
+          >
             전송
-            <Box sx={{ width: '1px', height: 18, flexShrink: 0, bgcolor: '#E7E7E7', ml: 1.3, mr: 0.7 }} />
+            <Box
+              sx={{ width: '1px', height: 18, flexShrink: 0, bgcolor: '#E7E7E7', ml: 1.3, mr: 0.7 }}
+            />
             <KeyboardArrowDownRoundedIcon sx={{ fontSize: 15 }} />
           </Box>
         </Box>

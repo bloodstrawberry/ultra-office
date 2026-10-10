@@ -591,7 +591,9 @@ export function ChatPreviewCanvas({
         >
           <ChatDeviceFrame
             config={data.config}
-            kakaoRoom={category === 'messenger' && viewMode === 'room' && data.config.themeId === 'kakaotalk'}
+            kakaoRoom={
+              category === 'messenger' && viewMode === 'room' && data.config.themeId === 'kakaotalk'
+            }
           >
             {/* 메신저 카테고리 & 목록 화면 모드일 때는 대화방 목록 뷰 렌더링 */}
             {category === 'messenger' && viewMode === 'list' ? (

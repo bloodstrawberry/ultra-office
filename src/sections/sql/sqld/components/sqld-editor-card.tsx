@@ -77,7 +77,9 @@ export const SqldEditorCard = memo(function SqldEditorCard({
   onRemoveProblem,
 }: SqldEditorCardProps) {
   const [hashtagInput, setHashtagInput] = useState('');
-  const [userExpandedState, setUserExpandedState] = useState<Record<SectionKey, boolean | undefined>>({
+  const [userExpandedState, setUserExpandedState] = useState<
+    Record<SectionKey, boolean | undefined>
+  >({
     description: undefined,
     formulas: undefined,
     erds: undefined,
@@ -269,7 +271,9 @@ export const SqldEditorCard = memo(function SqldEditorCard({
   const handleRemoveExplanationFormula = useCallback(
     (formulaIndex: number) => {
       onUpdateProblem({
-        explanationFormulas: (problem.explanationFormulas || []).filter((_, i) => i !== formulaIndex),
+        explanationFormulas: (problem.explanationFormulas || []).filter(
+          (_, i) => i !== formulaIndex
+        ),
       });
     },
     [onUpdateProblem, problem.explanationFormulas]
@@ -288,7 +292,10 @@ export const SqldEditorCard = memo(function SqldEditorCard({
   // 4. ERDs Handlers
   const handleAddErd = useCallback(() => {
     onUpdateProblem({
-      erds: [...(problem.erds || []), 'erDiagram\n  CUSTOMER ||--o{ ORDER : places\n  ORDER ||--|{ LINE-ITEM : contains'],
+      erds: [
+        ...(problem.erds || []),
+        'erDiagram\n  CUSTOMER ||--o{ ORDER : places\n  ORDER ||--|{ LINE-ITEM : contains',
+      ],
     });
   }, [onUpdateProblem, problem.erds]);
 
@@ -358,7 +365,10 @@ export const SqldEditorCard = memo(function SqldEditorCard({
   // 6. Charts Handlers
   const handleAddChart = useCallback(() => {
     onUpdateProblem({
-      charts: [...(problem.charts || []), '```mermaid\npie title SQLD 점수 분포\n  "1과목" : 20\n  "2과목" : 80\n```'],
+      charts: [
+        ...(problem.charts || []),
+        '```mermaid\npie title SQLD 점수 분포\n  "1과목" : 20\n  "2과목" : 80\n```',
+      ],
     });
   }, [onUpdateProblem, problem.charts]);
 
@@ -520,10 +530,7 @@ export const SqldEditorCard = memo(function SqldEditorCard({
         newIndex
       );
       const nextExpDescs = arrayMove(
-        [
-          ...(problem.choiceExplanationDescriptions ||
-            Array(problem.choices.length).fill('')),
-        ],
+        [...(problem.choiceExplanationDescriptions || Array(problem.choices.length).fill(''))],
         oldIndex,
         newIndex
       );
@@ -567,7 +574,9 @@ export const SqldEditorCard = memo(function SqldEditorCard({
       };
 
       const nextAnswer = mapNum(problem.answer || 1);
-      const nextAnswers = (problem.answers || [problem.answer || 1]).map(mapNum).sort((a, b) => a - b);
+      const nextAnswers = (problem.answers || [problem.answer || 1])
+        .map(mapNum)
+        .sort((a, b) => a - b);
 
       onUpdateProblem({
         choices: nextChoices,
@@ -598,9 +607,7 @@ export const SqldEditorCard = memo(function SqldEditorCard({
 
   const handleChangeChoiceDescription = useCallback(
     (choiceIndex: number, value: string) => {
-      const current = [
-        ...(problem.choiceDescriptions || Array(problem.choices.length).fill('')),
-      ];
+      const current = [...(problem.choiceDescriptions || Array(problem.choices.length).fill(''))];
       current[choiceIndex] = value;
       onUpdateProblem({ choiceDescriptions: current });
     },
@@ -760,9 +767,7 @@ export const SqldEditorCard = memo(function SqldEditorCard({
   // 9. Choice Explanations Handlers
   const handleChangeChoiceExplanation = useCallback(
     (choiceIndex: number, value: string) => {
-      const current = [
-        ...(problem.choiceExplanations || Array(problem.choices.length).fill('')),
-      ];
+      const current = [...(problem.choiceExplanations || Array(problem.choices.length).fill(''))];
       current[choiceIndex] = value;
       onUpdateProblem({ choiceExplanations: current });
     },
@@ -772,8 +777,7 @@ export const SqldEditorCard = memo(function SqldEditorCard({
   const handleChangeChoiceExplanationDescription = useCallback(
     (choiceIndex: number, value: string) => {
       const current = [
-        ...(problem.choiceExplanationDescriptions ||
-          Array(problem.choices.length).fill('')),
+        ...(problem.choiceExplanationDescriptions || Array(problem.choices.length).fill('')),
       ];
       current[choiceIndex] = value;
       onUpdateProblem({ choiceExplanationDescriptions: current });
@@ -1088,7 +1092,11 @@ export const SqldEditorCard = memo(function SqldEditorCard({
 
           {onDuplicateProblem && (
             <Tooltip title="문제 복제">
-              <IconButton size="small" tabIndex={-1} onClick={() => onDuplicateProblem(problemIndex)}>
+              <IconButton
+                size="small"
+                tabIndex={-1}
+                onClick={() => onDuplicateProblem(problemIndex)}
+              >
                 <ContentCopyIcon fontSize="small" />
               </IconButton>
             </Tooltip>
@@ -1452,7 +1460,9 @@ export const SqldEditorCard = memo(function SqldEditorCard({
             hideHeader
             title="해설 수식 (KaTeX)"
             formulas={problem.explanationFormulas || []}
-            onAddFormula={() => handleExpandAndAdd('explanationFormulas', handleAddExplanationFormula)}
+            onAddFormula={() =>
+              handleExpandAndAdd('explanationFormulas', handleAddExplanationFormula)
+            }
             onChangeFormula={handleChangeExplanationFormula}
             onRemoveFormula={handleRemoveExplanationFormula}
             onInsertSymbol={handleInsertExplanationSymbol}
@@ -1514,10 +1524,7 @@ export const SqldEditorCard = memo(function SqldEditorCard({
             (problem.explanationCharts?.length || 0) > 0
           )}
           onToggle={() =>
-            handleToggleSection(
-              'explanationCharts',
-              (problem.explanationCharts?.length || 0) > 0
-            )
+            handleToggleSection('explanationCharts', (problem.explanationCharts?.length || 0) > 0)
           }
           action={
             <Button
@@ -1860,9 +1867,7 @@ export const SqldEditorCard = memo(function SqldEditorCard({
                         onChangeErd={(erdIdx, val) =>
                           handleChangeChoiceExplanationErd(cIndex, erdIdx, val)
                         }
-                        onRemoveErd={(erdIdx) =>
-                          handleRemoveChoiceExplanationErd(cIndex, erdIdx)
-                        }
+                        onRemoveErd={(erdIdx) => handleRemoveChoiceExplanationErd(cIndex, erdIdx)}
                         onInsertTemplate={(erdIdx, tmpl) =>
                           handleInsertChoiceExplanationErdTemplate(cIndex, erdIdx, tmpl)
                         }

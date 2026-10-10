@@ -41,10 +41,38 @@ export function ChatHeaderBar({ config, partner, onBackToList }: ChatHeaderBarPr
 
   if (themeId === 'kakaotalk') {
     return (
-      <Box sx={{ position: 'relative', height: 98, flexShrink: 0, bgcolor: '#BACEE0', color: '#111820', userSelect: 'none' }}>
-        <Box sx={{ height: 28, display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-start', pr: 0.5 }}>
+      <Box
+        sx={{
+          position: 'relative',
+          height: 98,
+          flexShrink: 0,
+          bgcolor: '#BACEE0',
+          color: '#111820',
+          userSelect: 'none',
+        }}
+      >
+        <Box
+          sx={{
+            height: 28,
+            display: 'flex',
+            justifyContent: 'flex-end',
+            alignItems: 'flex-start',
+            pr: 0.5,
+          }}
+        >
           {['−', '□', '×'].map((symbol) => (
-            <Box key={symbol} sx={{ width: 23, height: 27, display: 'grid', placeItems: 'center', fontSize: symbol === '□' ? 14 : 18, lineHeight: 1, color: '#576672' }}>
+            <Box
+              key={symbol}
+              sx={{
+                width: 23,
+                height: 27,
+                display: 'grid',
+                placeItems: 'center',
+                fontSize: symbol === '□' ? 14 : 18,
+                lineHeight: 1,
+                color: '#576672',
+              }}
+            >
               {symbol}
             </Box>
           ))}
@@ -54,10 +82,23 @@ export function ChatHeaderBar({ config, partner, onBackToList }: ChatHeaderBarPr
             src={displayAvatar}
             alt={displayName}
             onClick={onBackToList}
-            sx={{ width: 40, height: 40, borderRadius: '15px', cursor: onBackToList ? 'pointer' : 'default' }}
+            sx={{
+              width: 40,
+              height: 40,
+              borderRadius: '15px',
+              cursor: onBackToList ? 'pointer' : 'default',
+            }}
           />
-          <Box sx={{ ml: 1.4, minWidth: 0, flex: 1, cursor: onBackToList ? 'pointer' : 'default' }} onClick={onBackToList}>
-            <Typography noWrap sx={{ fontSize: 15, lineHeight: '21px', fontWeight: 400, color: '#101820' }}>{displayName}</Typography>
+          <Box
+            sx={{ ml: 1.4, minWidth: 0, flex: 1, cursor: onBackToList ? 'pointer' : 'default' }}
+            onClick={onBackToList}
+          >
+            <Typography
+              noWrap
+              sx={{ fontSize: 15, lineHeight: '21px', fontWeight: 400, color: '#101820' }}
+            >
+              {displayName}
+            </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', color: '#667785', mt: 0.1 }}>
               <PersonRoundedIcon sx={{ fontSize: 13 }} />
               <Typography sx={{ fontSize: 11, lineHeight: '14px' }}>{memberCount || 2}</Typography>
@@ -70,8 +111,31 @@ export function ChatHeaderBar({ config, partner, onBackToList }: ChatHeaderBarPr
             <MenuRoundedIcon sx={{ fontSize: 20 }} />
           </Box>
         </Box>
-        <Box sx={{ position: 'absolute', right: 26, bottom: 5, width: 136, height: 4, bgcolor: '#FFE500' }} />
-        <Box sx={{ position: 'absolute', right: 17, bottom: -35, width: 38, height: 38, borderRadius: '50%', bgcolor: '#FFFFFF', display: 'grid', placeItems: 'center', zIndex: 3, boxShadow: '0 1px 2px rgba(0,0,0,0.16)' }}>
+        <Box
+          sx={{
+            position: 'absolute',
+            right: 26,
+            bottom: 5,
+            width: 136,
+            height: 4,
+            bgcolor: '#FFE500',
+          }}
+        />
+        <Box
+          sx={{
+            position: 'absolute',
+            right: 17,
+            bottom: -35,
+            width: 38,
+            height: 38,
+            borderRadius: '50%',
+            bgcolor: '#FFFFFF',
+            display: 'grid',
+            placeItems: 'center',
+            zIndex: 3,
+            boxShadow: '0 1px 2px rgba(0,0,0,0.16)',
+          }}
+        >
           <VolumeUpRoundedIcon sx={{ color: '#2A83ED', fontSize: 21 }} />
         </Box>
       </Box>

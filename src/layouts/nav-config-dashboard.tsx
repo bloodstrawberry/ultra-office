@@ -169,9 +169,10 @@ export const navData: NavSectionProps['data'] = [
       },
       {
         title: '웹툰 편집 스튜디오',
-        path: paths.webtoon.bubble,
+        path: paths.webtoon.photoshop,
         icon: ICONS.webtoon,
         children: [
+          { title: '웹툰 포토샵', path: paths.webtoon.photoshop },
           { title: '말풍선 추가', path: paths.webtoon.bubble },
           { title: '싸인추가', path: paths.webtoon.sign },
           { title: '이미지 합치기', path: paths.webtoon.merge },

@@ -35,7 +35,10 @@ function fitPoints(points: Point[], width: number, height: number): Point[] {
 
 function polygonPath(points: Point[], roundness: number = 0): string {
   if (roundness <= 0) {
-    return `M ${points[0].x} ${points[0].y} ${points.slice(1).map((point) => `L ${point.x} ${point.y}`).join(' ')} Z`;
+    return `M ${points[0].x} ${points[0].y} ${points
+      .slice(1)
+      .map((point) => `L ${point.x} ${point.y}`)
+      .join(' ')} Z`;
   }
 
   const factor = Math.min(100, Math.max(0, roundness)) / 200;
@@ -47,13 +50,25 @@ function polygonPath(points: Point[], roundness: number = 0): string {
     const cut = Math.min(previousLength, nextLength) * factor;
     return {
       point,
-      entry: { x: point.x + ((previous.x - point.x) / previousLength) * cut, y: point.y + ((previous.y - point.y) / previousLength) * cut },
-      exit: { x: point.x + ((next.x - point.x) / nextLength) * cut, y: point.y + ((next.y - point.y) / nextLength) * cut },
+      entry: {
+        x: point.x + ((previous.x - point.x) / previousLength) * cut,
+        y: point.y + ((previous.y - point.y) / previousLength) * cut,
+      },
+      exit: {
+        x: point.x + ((next.x - point.x) / nextLength) * cut,
+        y: point.y + ((next.y - point.y) / nextLength) * cut,
+      },
     };
   });
-  return `M ${corners[0].exit.x} ${corners[0].exit.y} ${corners.slice(1).map(({ point, entry, exit }) =>
-    `L ${entry.x} ${entry.y} Q ${point.x} ${point.y} ${exit.x} ${exit.y}`
-  ).join(' ')} L ${corners[0].entry.x} ${corners[0].entry.y} Q ${corners[0].point.x} ${corners[0].point.y} ${corners[0].exit.x} ${corners[0].exit.y} Z`;
+  return `M ${corners[0].exit.x} ${corners[0].exit.y} ${corners
+    .slice(1)
+    .map(
+      ({ point, entry, exit }) =>
+        `L ${entry.x} ${entry.y} Q ${point.x} ${point.y} ${exit.x} ${exit.y}`
+    )
+    .join(
+      ' '
+    )} L ${corners[0].entry.x} ${corners[0].entry.y} Q ${corners[0].point.x} ${corners[0].point.y} ${corners[0].exit.x} ${corners[0].exit.y} Z`;
 }
 
 export function getLogoShapePath(
@@ -126,7 +141,12 @@ export function getLogoShapePath(
   return `M 0 0 H ${w} V ${h} H 0 Z`;
 }
 
-export function getShapeFitScale(shape: LogoShape, width: number, height: number, rotation: number): number {
+export function getShapeFitScale(
+  shape: LogoShape,
+  width: number,
+  height: number,
+  rotation: number
+): number {
   const radians = (rotation * Math.PI) / 180;
   const cos = Math.abs(Math.cos(radians));
   const sin = Math.abs(Math.sin(radians));

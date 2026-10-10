@@ -44,7 +44,8 @@ export function ChatDeviceFrame({ config, children, kakaoRoom = false }: ChatDev
           overflow: 'hidden',
           bgcolor: '#BACEE0',
           border: showDeviceFrame ? '1px solid #AAB7C2' : 'none',
-          boxShadow: isFullViewport || !showDeviceFrame ? 'none' : '0 18px 42px rgba(30, 49, 69, 0.2)',
+          boxShadow:
+            isFullViewport || !showDeviceFrame ? 'none' : '0 18px 42px rgba(30, 49, 69, 0.2)',
         }}
       >
         {children}

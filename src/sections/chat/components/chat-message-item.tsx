@@ -476,7 +476,15 @@ export function ChatMessageItem({
     >
       {/* 상대방 프로필 & 이름 (연속 메시지일 경우 첫 메시지에만 표시) */}
       {!isMe && !isConsecutive && (
-        <Box sx={{ display: 'flex', alignItems: isKakao ? 'flex-start' : 'center', gap: isKakao ? 1.5 : 1, mb: 0.4, ...(isKakao && { height: 18, pl: 6.5 }) }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: isKakao ? 'flex-start' : 'center',
+            gap: isKakao ? 1.5 : 1,
+            mb: 0.4,
+            ...(isKakao && { height: 18, pl: 6.5 }),
+          }}
+        >
           {isKakao && !partnerAvatar ? (
             <Avatar
               sx={{
@@ -576,11 +584,12 @@ export function ChatMessageItem({
               px: !message.text && message.mediaUrl ? 0 : isKakao ? 1 : 1.4,
               py: !message.text && message.mediaUrl ? 0 : isKakao ? 0.6 : 0.85,
               borderRadius: getBorderRadius(),
-              boxShadow: isKakao || isKnox
-                ? 'none'
-                : !message.text && message.mediaUrl
+              boxShadow:
+                isKakao || isKnox
                   ? 'none'
-                  : '0 1px 2px rgba(0,0,0,0.1)',
+                  : !message.text && message.mediaUrl
+                    ? 'none'
+                    : '0 1px 2px rgba(0,0,0,0.1)',
               border:
                 (isKnox || (isGalaxy && !isMe)) && !message.mediaUrl ? '1px solid #E2E8F0' : 'none',
               fontSize: isKakao ? 13 : 13.5,
@@ -667,7 +676,20 @@ export function ChatMessageItem({
               }}
             >
               {Object.entries(message.reactions).map(([emoji, count]) => (
-                <Box key={emoji} sx={{ display: 'flex', alignItems: 'center', gap: 0.3, ...(isKakao && { height: 22, px: 0.6, borderRadius: '12px', bgcolor: '#FFFFFF' }) }}>
+                <Box
+                  key={emoji}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.3,
+                    ...(isKakao && {
+                      height: 22,
+                      px: 0.6,
+                      borderRadius: '12px',
+                      bgcolor: '#FFFFFF',
+                    }),
+                  }}
+                >
                   <span>{emoji}</span>
                   <Typography sx={{ fontSize: 11, fontWeight: 700, color: '#444444' }}>
                     {count}
@@ -675,12 +697,30 @@ export function ChatMessageItem({
                 </Box>
               ))}
               {isKakao && (
-                <Box sx={{ width: 21, height: 21, borderRadius: '50%', bgcolor: '#DCE8F2', display: 'grid', placeItems: 'center' }}>
+                <Box
+                  sx={{
+                    width: 21,
+                    height: 21,
+                    borderRadius: '50%',
+                    bgcolor: '#DCE8F2',
+                    display: 'grid',
+                    placeItems: 'center',
+                  }}
+                >
                   <AddReactionRoundedIcon sx={{ fontSize: 14, color: '#6E8292' }} />
                 </Box>
               )}
               {isKakao && (
-                <Box sx={{ width: 21, height: 21, borderRadius: '50%', bgcolor: '#DCE8F2', display: 'grid', placeItems: 'center' }}>
+                <Box
+                  sx={{
+                    width: 21,
+                    height: 21,
+                    borderRadius: '50%',
+                    bgcolor: '#DCE8F2',
+                    display: 'grid',
+                    placeItems: 'center',
+                  }}
+                >
                   <PersonOutlineRoundedIcon sx={{ fontSize: 14, color: '#6E8292' }} />
                 </Box>
               )}
@@ -695,7 +735,8 @@ export function ChatMessageItem({
             flexDirection: 'column',
             alignItems: isMe ? 'flex-end' : 'flex-start',
             flexShrink: 0,
-            mb: isKakao && message.reactions && Object.keys(message.reactions).length > 0 ? 3.4 : 0.2,
+            mb:
+              isKakao && message.reactions && Object.keys(message.reactions).length > 0 ? 3.4 : 0.2,
           }}
         >
           {/* 카카오톡 특유의 노란 숫자 '1' (안읽음 카운트) */}
