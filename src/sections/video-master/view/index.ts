@@ -1,4 +1,5 @@
 export * from './video-master-view';
+export * from './video-master-compress-view';
 export * from './video-master-trim-view';
 export * from './video-master-batch-view';
 export * from './video-master-merge-view';

@@ -229,6 +229,7 @@ export const navData: NavSectionProps['data'] = [
         icon: ICONS.videoMaster,
         children: [
           { title: '동영상 편집기', path: paths.videoMaster.root },
+          { title: '동영상 압축', path: paths.videoMaster.compress },
           { title: '자막 편집기', path: paths.videoMaster.subtitle },
           { title: 'MP4 → MP3 변환', path: paths.videoMaster.mp4ToMp3 },
           { title: '동영상 일괄 변환기', path: paths.videoMaster.batch },

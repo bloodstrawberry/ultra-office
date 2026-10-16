@@ -131,6 +131,7 @@ export const paths = {
     subtitle: '/video-master/subtitle',
     mp4ToMp3: '/video-master/mp4-to-mp3',
     batch: '/video-master/batch',
+    compress: '/video-master/compress',
     aiWatermark: '/video-master/ai-watermark',
     voiceRecord: '/video-master/voice-record',
     subtitleRemover: '/video-master/subtitle-remover',

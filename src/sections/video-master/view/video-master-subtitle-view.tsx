@@ -1198,132 +1198,6 @@ export function VideoMasterSubtitleView() {
             </Button>
           </Card>
 
-          {/* 1. Subtitle Samples Section - Pinned to Top (다른 업로드 UI 참고) */}
-          <Card sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 2, flexShrink: 0 }}>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                mb: 0.5,
-              }}
-            >
-              <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
-                ⚡ 즉석 테스트 자막 예제 (3종 프리셋)
-              </Typography>
-              <Chip
-                size="small"
-                label="3개 예제 지원"
-                color="primary"
-                variant="soft"
-                sx={{ fontWeight: 700, fontSize: '0.725rem', height: 22 }}
-              />
-            </Box>
-
-            <Typography variant="caption" sx={{ color: 'text.secondary', mb: 2, display: 'block' }}>
-              클릭 한 번으로 포맷별(SRT, VTT, SMI) 검증된 자막 예제를 불러와 즉시 편집을
-              시작해보세요.
-            </Typography>
-
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
-                gap: 1.5,
-              }}
-            >
-              {SUBTITLE_SAMPLE_PRESETS.map((sample) => (
-                <Card
-                  key={sample.id}
-                  onClick={() => handleSelectSample(sample)}
-                  sx={{
-                    p: 2,
-                    borderRadius: 2,
-                    cursor: 'pointer',
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: 1.5,
-                    position: 'relative',
-                    overflow: 'hidden',
-                    transition: 'all 0.2s',
-                    '&:hover': {
-                      borderColor: 'primary.main',
-                      bgcolor: 'action.hover',
-                      transform: 'translateY(-2px)',
-                      boxShadow: 2,
-                    },
-                  }}
-                >
-                  {/* Icon Poster */}
-                  <Box
-                    sx={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: 1.5,
-                      flexShrink: 0,
-                      bgcolor: 'primary.lighter',
-                      color: 'primary.main',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    {sample.icon}
-                  </Box>
-
-                  {/* Info */}
-                  <Box sx={{ minWidth: 0, flex: 1 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.3 }}>
-                      <Chip
-                        label={sample.format}
-                        size="small"
-                        color="primary"
-                        sx={{ height: 18, fontSize: '0.625rem', fontWeight: 800 }}
-                      />
-                      <Typography
-                        variant="subtitle2"
-                        sx={{ fontWeight: 800, fontSize: '0.875rem' }}
-                        noWrap
-                      >
-                        {sample.title}
-                      </Typography>
-                    </Box>
-
-                    <Typography
-                      variant="caption"
-                      sx={{ color: 'text.secondary', display: 'block', mb: 1, lineHeight: 1.3 }}
-                    >
-                      {sample.description}
-                    </Typography>
-
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                      }}
-                    >
-                      <Typography
-                        variant="caption"
-                        sx={{ color: 'text.disabled', fontSize: '0.6875rem', fontWeight: 600 }}
-                      >
-                        {sample.count}개 자막 ({sample.duration})
-                      </Typography>
-                      <Typography
-                        variant="caption"
-                        sx={{ color: 'primary.main', fontWeight: 800, fontSize: '0.75rem' }}
-                      >
-                        체험하기 ➜
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Card>
-              ))}
-            </Box>
-          </Card>
-
           {/* 2. Drag & Drop Upload Zone - Fills Remaining Height (다른 업로드 UI 참고) */}
           <Card
             {...getRootProps({
@@ -1533,7 +1407,7 @@ export function VideoMasterSubtitleView() {
                 startIcon={<CloudUploadRoundedIcon />}
                 onClick={() => setIsEditing(false)}
               >
-                다른 자막 열기 / 예제
+                다른 자막 열기
               </Button>
 
               <Tooltip

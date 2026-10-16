@@ -469,25 +469,6 @@ export function VideoMasterMp4ToMp3View() {
                 동영상 파일 선택하기 (다중 선택 가능)
               </Button>
 
-              <Button
-                variant="outlined"
-                color="inherit"
-                startIcon={
-                  isLoadingSamples ? (
-                    <CircularProgress size={16} color="inherit" />
-                  ) : (
-                    <AutoAwesomeRoundedIcon />
-                  )
-                }
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleLoadSamples();
-                }}
-                disabled={isLoadingSamples}
-                sx={{ fontWeight: 700, px: 2.5 }}
-              >
-                샘플 영상 불러오기 (2개)
-              </Button>
             </Box>
           </Box>
         ) : (

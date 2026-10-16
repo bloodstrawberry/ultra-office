@@ -467,7 +467,7 @@ export function VideoMasterMergeView() {
       {clips.length === 0 ? (
         <VideoUploadWorkspace
           multiple
-          sampleVideos={mergeSamplePresets}
+          sampleVideos={[]}
           onSelectSample={handleSelectSample}
           onFileSelect={(f) => handleAddFiles([f])}
           onMultipleFilesSelect={handleAddFiles}

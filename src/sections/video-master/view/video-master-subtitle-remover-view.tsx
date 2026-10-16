@@ -1107,7 +1107,7 @@ export function VideoMasterSubtitleRemoverView() {
           subtitle="MP4, WebM, MOV 등 동영상 파일을 드래그하거나 선택하세요. 모든 작업은 브라우저 로컬에서 안전하게 처리됩니다."
           sampleTitle="⚡ 즉석 테스트 샘플 자막 동영상"
           sampleSubtitle="클릭 한 번으로 하단 뉴스 자막이나 영화 시네마 자막이 각인된 샘플 영상을 즉시 테스트해 보세요."
-          sampleVideos={SUBTITLE_REMOVER_VIDEO_SAMPLES}
+          sampleVideos={[]}
           onFileSelect={handleFileSelect}
           icon={<CleaningServicesRoundedIcon sx={{ fontSize: 44, color: 'primary.main' }} />}
           buttonText="동영상 파일 선택하기"

@@ -1,8 +1,9 @@
 'use client';
 
 import type { Theme, SxProps } from '@mui/material/styles';
+import type { SampleVideoItem } from '../data/video-samples';
 
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useMemo, useState, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -14,8 +15,6 @@ import MovieRoundedIcon from '@mui/icons-material/MovieRounded';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 
 import { useImageDropPaste } from 'src/hooks/use-image-drop-paste';
-
-import { type SampleVideoItem, DEFAULT_VIDEO_SAMPLES } from '../data/video-samples';
 
 // ----------------------------------------------------------------------
 
@@ -37,7 +36,7 @@ export interface VideoUploadWorkspaceProps {
 }
 
 export function VideoUploadWorkspace({
-  sampleVideos = DEFAULT_VIDEO_SAMPLES,
+  sampleVideos = [],
   onSelectSample,
   onFileSelect,
   onMultipleFilesSelect,
@@ -54,12 +53,33 @@ export function VideoUploadWorkspace({
 }: VideoUploadWorkspaceProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loadingSampleId, setLoadingSampleId] = useState<string | null>(null);
+  const acceptedExtensions = useMemo(
+    () =>
+      Array.from(
+        new Set([
+          '.mp4',
+          '.webm',
+          '.mov',
+          '.mkv',
+          '.avi',
+          '.m4v',
+          '.flv',
+          ...accept
+            .split(',')
+            .map((entry) => entry.trim().toLowerCase())
+            .filter((entry) => entry.startsWith('.')),
+        ])
+      ),
+    [accept]
+  );
 
   const handleFiles = useCallback(
     (files: File[]) => {
       if (files.length === 0) return;
       const videoFiles = files.filter(
-        (f) => f.type.startsWith('video/') || /\.(mp4|webm|mov|mkv|avi|m4v|flv)$/i.test(f.name)
+        (f) =>
+          f.type.startsWith('video/') ||
+          acceptedExtensions.some((extension) => f.name.toLowerCase().endsWith(extension))
       );
       if (videoFiles.length === 0) return;
 
@@ -69,13 +89,13 @@ export function VideoUploadWorkspace({
         onFileSelect(videoFiles[0]);
       }
     },
-    [multiple, onFileSelect, onMultipleFilesSelect]
+    [acceptedExtensions, multiple, onFileSelect, onMultipleFilesSelect]
   );
 
   const { isDragActive, getRootProps } = useImageDropPaste({
     onFiles: handleFiles,
     multiple,
-    accept: ['video/*', '.mp4', '.webm', '.mov', '.mkv', '.avi', '.m4v', '.flv'],
+    accept: ['video/*', ...acceptedExtensions],
   });
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

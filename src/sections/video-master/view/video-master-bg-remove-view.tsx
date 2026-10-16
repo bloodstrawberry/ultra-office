@@ -643,16 +643,6 @@ export function VideoMasterBgRemoveView() {
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Button
-            variant="outlined"
-            size="small"
-            startIcon={<AutoAwesomeRoundedIcon />}
-            onClick={() => setSampleModalOpen(true)}
-            sx={{ fontWeight: 700 }}
-          >
-            샘플 영상 테스트
-          </Button>
-
           {videoUrl && (
             <Button
               variant="soft"
@@ -684,7 +674,7 @@ export function VideoMasterBgRemoveView() {
           }}
         >
           <VideoUploadWorkspace
-            sampleVideos={BG_REMOVE_VIDEO_SAMPLES}
+            sampleVideos={[]}
             onSelectSample={handleSelectSample}
             onFileSelect={handleSelectFile}
             title="동영상 파일 선택 또는 드래그"

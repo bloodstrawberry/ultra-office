@@ -517,16 +517,6 @@ export function VideoMasterBatchView() {
             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
               <Button
                 size="small"
-                variant="outlined"
-                color="primary"
-                startIcon={<AutoAwesomeRoundedIcon />}
-                onClick={handleAddSamples}
-              >
-                테스트 샘플 3종 추가
-              </Button>
-
-              <Button
-                size="small"
                 variant="contained"
                 color="primary"
                 startIcon={<CloudUploadRoundedIcon />}

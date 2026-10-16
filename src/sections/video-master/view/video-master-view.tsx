@@ -1,6 +1,5 @@
 'use client';
 
-import type { SampleVideoItem } from '../data/video-samples';
 import type {
   VideoStudioClipItem,
   VideoStudioTextItem,
@@ -292,15 +291,6 @@ export function VideoMasterView() {
     },
     [selectedClipId, textClips, pushHistory]
   );
-
-  const handleSelectSample = async (sample: SampleVideoItem) => {
-    try {
-      const file = await sample.generate();
-      await handleAddFiles([file]);
-    } catch {
-      toast.error('샘플 비디오 생성에 실패했습니다.');
-    }
-  };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -803,7 +793,7 @@ export function VideoMasterView() {
       {/* ─── 2. Main Workspace ─── */}
       {clips.length === 0 ? (
         <VideoUploadWorkspace
-          onSelectSample={handleSelectSample}
+          sampleVideos={[]}
           onFileSelect={(file) => handleAddFiles([file])}
           title="편집할 동영상 또는 이미지를 추가하세요"
           subtitle="여러 개의 동영상/이미지 파일을 드래그하여 타임라인에서 손쉽게 자르고, 이어붙이고, 자막을 추가하세요."

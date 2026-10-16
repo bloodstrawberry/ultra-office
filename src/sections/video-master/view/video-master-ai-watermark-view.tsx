@@ -959,17 +959,6 @@ export function VideoMasterAiWatermarkView() {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Button
             size="small"
-            variant="soft"
-            color="primary"
-            startIcon={<AutoAwesomeRoundedIcon />}
-            onClick={handleLoadSampleVideo}
-            disabled={isLoadingSample || isExporting}
-          >
-            {isLoadingSample ? '생성 중...' : '테스트 샘플 영상'}
-          </Button>
-
-          <Button
-            size="small"
             variant="contained"
             component="label"
             startIcon={<CloudUploadRoundedIcon />}
@@ -994,6 +983,7 @@ export function VideoMasterAiWatermarkView() {
       {/* 2. Main Content Viewport */}
       {!videoUrl ? (
         <VideoUploadWorkspace
+          sampleVideos={[]}
           onSelectSample={handleSelectSample}
           onFileSelect={handleLoadVideoFile}
           title="AI 워터마크를 각인할 동영상을 업로드하세요"
