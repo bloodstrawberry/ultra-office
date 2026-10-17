@@ -310,6 +310,7 @@ export const navData: NavSectionProps['data'] = [
         path: paths.game.veryHardPuzzle,
         icon: ICONS.boardGame,
         children: [
+          { title: '환상서유기', path: paths.game.fantasyWestwardJourney },
           { title: '베리 하드 퍼즐', path: paths.game.veryHardPuzzle },
           { title: '택배 배송', path: paths.game.delivery },
           { title: '푸시푸시 (Push Push)', path: paths.game.pushPush },

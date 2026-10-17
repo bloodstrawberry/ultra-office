@@ -24,6 +24,7 @@ export const paths = {
     roulette: `/drawing/roulette`,
   },
   game: {
+    fantasyWestwardJourney: `/game/fantasy-westward-journey`,
     veryHardPuzzle: `/game/very-hard-puzzle`,
     delivery: `/game/delivery`,
     pushPush: `/game/push-push`,
