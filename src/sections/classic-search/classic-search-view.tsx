@@ -1,5 +1,6 @@
 'use client';
 
+import { toast } from 'sonner';
 import { useMemo, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
@@ -13,6 +14,7 @@ import Typography from '@mui/material/Typography';
 import Autocomplete from '@mui/material/Autocomplete';
 import InputAdornment from '@mui/material/InputAdornment';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
@@ -209,6 +211,19 @@ export function ClassicSearchView({ classics }: { classics: Classic[] }) {
     );
   }, [classics, query, selectedCategories, featureQuery, ostQuery, memoQuery, memos]);
 
+  const copyResults = async () => {
+    const text = results
+      .map((classic) => `**${String(classic.position).padStart(3, '0')}. ${classic.title}**  `)
+      .join('\n');
+
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success(`검색 결과 ${results.length}곡을 복사했습니다.`);
+    } catch {
+      toast.error('검색 결과를 복사하지 못했습니다. 클립보드 권한을 확인해 주세요.');
+    }
+  };
+
   return (
     <DashboardContent sx={{ pb: 5, overflowY: { lg: 'auto' } }}>
       <Box sx={{ mb: 3 }}>
@@ -298,9 +313,21 @@ export function ClassicSearchView({ classics }: { classics: Classic[] }) {
         </Typography>
       )}
 
-      <Typography variant="body2" sx={{ mb: 1.5, color: 'text.secondary' }} aria-live="polite">
-        검색 결과 {results.length}곡
-      </Typography>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
+        <Typography variant="body2" sx={{ color: 'text.secondary' }} aria-live="polite">
+          검색 결과 {results.length}곡
+        </Typography>
+        <Button
+          size="small"
+          variant="outlined"
+          startIcon={<ContentCopyRoundedIcon />}
+          disabled={results.length === 0}
+          onClick={copyResults}
+          aria-label="현재 필터링된 클래식 목록 전체 복사"
+        >
+          Copy
+        </Button>
+      </Stack>
 
       {results.length === 0 ? (
         <Card variant="outlined" sx={{ py: 6, textAlign: 'center' }}>
