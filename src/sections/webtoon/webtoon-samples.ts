@@ -21,7 +21,7 @@ export const WEBTOON_SAMPLE_IMAGES: SampleImageItem[] = [
     url: `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/webtoon/sample-office-couple.jpg`,
     subLabel: '오피스 일상 컷 만화',
   },
-  ...NEWS_SAMPLE_IMAGES,
+  ...NEWS_SAMPLE_IMAGES.filter((sample) => sample.id !== 'sample-transparent-caption'),
 ];
 
 export async function loadWebtoonSample(url: string): Promise<File> {

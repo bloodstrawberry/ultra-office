@@ -70,6 +70,7 @@ import {
   type CaptionFontWeight,
   DEFAULT_NEWS_CAPTION_CONFIG,
   createDefaultElementsForStyle,
+  TRANSPARENT_CAPTION_SAMPLE_URL,
 } from '../utils/news-caption-presets';
 
 // ----------------------------------------------------------------------
@@ -125,14 +126,19 @@ export function PhotoNewsCaptionView() {
   // 2. Real-time render pipeline
   const updateRender = useCallback(() => {
     if (!originalImage || !canvasRef.current) return;
-    renderNewsCaption(canvasRef.current, originalImage, config);
+    renderNewsCaption(
+      canvasRef.current,
+      originalImage,
+      config,
+      imageSrc === TRANSPARENT_CAPTION_SAMPLE_URL
+    );
 
     // Compute bounding boxes for hit-testing & interactive overlays
     const bounds = getElementBounds(canvasRef.current.width, canvasRef.current.height, config);
     setElementBounds(bounds);
 
     setResultDataUrl(canvasRef.current.toDataURL('image/png'));
-  }, [originalImage, config]);
+  }, [originalImage, config, imageSrc]);
 
   useEffect(() => {
     updateRender();
@@ -278,9 +284,9 @@ export function PhotoNewsCaptionView() {
       x: 0.5,
       y: 0.72,
       align: 'center',
-      fontSize: 34,
-      fontWeight: 'bold',
-      outlineWidth: config.styleId === 'human-theater' ? 2.8 : 0,
+      fontSize: config.styleId === 'human-theater' ? 38 : 34,
+      fontWeight: config.styleId === 'human-theater' ? 'normal' : 'bold',
+      outlineWidth: config.styleId === 'human-theater' ? 3.8 : 0,
       outlineColor: '#000000',
       textColor: config.styleId === 'variety-meme' ? '#fef08a' : '#FFFFFF',
       fontFamily: config.styleId === 'human-theater' ? 'myeongjo' : 'gothic',
@@ -328,6 +334,7 @@ export function PhotoNewsCaptionView() {
           elements: prev.elements.map((e) =>
             e.type === 'titleBadge' ? { ...e, visible: true } : e
           ),
+          showStationLogo: true,
           selectedElementId: existing.id,
         };
       }
@@ -352,6 +359,7 @@ export function PhotoNewsCaptionView() {
       return {
         ...prev,
         elements: [...prev.elements, newBadge],
+        showStationLogo: true,
         selectedElementId: newBadge.id,
       };
     });
@@ -361,6 +369,9 @@ export function PhotoNewsCaptionView() {
   // 5. Presets & Samples Handlers
   const handleSelectSample = (sampleUrl: string) => {
     setImageSrc(sampleUrl);
+    if (sampleUrl === TRANSPARENT_CAPTION_SAMPLE_URL) {
+      setConfig((prev) => ({ ...prev, showStationLogo: false, showLiveBadge: false }));
+    }
     if (sampleUrl.includes('514888286974')) {
       setConfig({
         ...DEFAULT_NEWS_CAPTION_CONFIG,
@@ -502,7 +513,7 @@ export function PhotoNewsCaptionView() {
             title="방송 자막을 넣을 사진을 업로드하세요"
             subtitle="JPG, PNG, WebP 이미지를 드래그하거나 아래 예시 샘플을 클릭하여 즉시 테스트해 보세요."
             sampleTitle="📺 뉴스 & 다큐멘터리 감성 샘플 샷"
-            sampleSubtitle="원하는 분위기의 사진을 선택하면 바로 자막 스튜디오가 실행됩니다."
+            sampleSubtitle="사진 예제를 선택하거나 투명 배경에서 자막만 만들어 보세요."
           />
         </Box>
       ) : (
@@ -688,7 +699,17 @@ export function PhotoNewsCaptionView() {
                         component="img"
                         src={sample.url}
                         alt={sample.label}
-                        sx={{ width: 28, height: 20, borderRadius: 0.5, objectFit: 'cover' }}
+                        sx={{
+                          width: 28,
+                          height: 20,
+                          borderRadius: 0.5,
+                          objectFit: 'cover',
+                          backgroundColor: '#fff',
+                          backgroundImage:
+                            'linear-gradient(45deg, #ddd 25%, transparent 25%), linear-gradient(-45deg, #ddd 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ddd 75%), linear-gradient(-45deg, transparent 75%, #ddd 75%)',
+                          backgroundSize: '12px 12px',
+                          backgroundPosition: '0 0, 0 6px, 6px -6px, -6px 0',
+                        }}
                       />
                       <Typography
                         variant="caption"
@@ -741,6 +762,11 @@ export function PhotoNewsCaptionView() {
                       transition: isDraggingRef.current ? 'none' : 'transform 0.15s ease',
                       boxShadow: (theme) => theme.shadows[24],
                       borderRadius: 1,
+                      backgroundColor: '#fff',
+                      backgroundImage:
+                        'linear-gradient(45deg, #ddd 25%, transparent 25%), linear-gradient(-45deg, #ddd 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ddd 75%), linear-gradient(-45deg, transparent 75%, #ddd 75%)',
+                      backgroundSize: '24px 24px',
+                      backgroundPosition: '0 0, 0 12px, 12px -12px, -12px 0',
                       cursor: isDraggingRef.current
                         ? 'grabbing'
                         : hoveredElementId
@@ -1325,7 +1351,7 @@ export function PhotoNewsCaptionView() {
                           onClick={handleRestoreTitleBadge}
                           sx={{ mt: 1, fontWeight: 700, fontSize: '11px' }}
                         >
-                          + 상단 방송국 로고 / 'KBS 인간극장' 로고 복원하기
+                          + 상단 방송국 로고 / &apos;KBS 인간극장&apos; 로고 복원하기
                         </Button>
                       )}
                     </Card>

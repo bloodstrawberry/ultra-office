@@ -150,6 +150,11 @@ export function PhotoUploadWorkspace({
                     borderRadius: 0,
                     objectFit: 'cover',
                     flexShrink: 0,
+                    backgroundColor: '#fff',
+                    backgroundImage:
+                      'linear-gradient(45deg, #ddd 25%, transparent 25%), linear-gradient(-45deg, #ddd 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ddd 75%), linear-gradient(-45deg, transparent 75%, #ddd 75%)',
+                    backgroundSize: '16px 16px',
+                    backgroundPosition: '0 0, 0 8px, 8px -8px, -8px 0',
                   }}
                 />
                 <Box sx={{ minWidth: 0 }}>

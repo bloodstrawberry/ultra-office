@@ -90,6 +90,8 @@ export interface CaptionStylePreset {
 // Sample Images for 1-Click Testing
 // ----------------------------------------------------------------------
 
+export const TRANSPARENT_CAPTION_SAMPLE_URL = `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/photo/transparent-caption-canvas.svg`;
+
 export const NEWS_SAMPLE_IMAGES: NewsCaptionSampleImageItem[] = [
   {
     id: 'sample-fridge-cat',
@@ -110,16 +112,10 @@ export const NEWS_SAMPLE_IMAGES: NewsCaptionSampleImageItem[] = [
     url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=1200&auto=format&fit=crop&q=80',
   },
   {
-    id: 'sample-dramatic-face',
-    label: '😲 충격과 공포의 표정',
-    subLabel: 'YTN / CNN 긴급 속보 & 그것이 알고싶다',
-    url: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=1200&auto=format&fit=crop&q=80',
-  },
-  {
-    id: 'sample-peaceful-kitchen',
-    label: '🍳 주방 요리 & 자취생 일상',
-    subLabel: '인간극장 시골/자취 일상 다큐멘터리',
-    url: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=1200&auto=format&fit=crop&q=80',
+    id: 'sample-transparent-caption',
+    label: '✨ 투명 배경 자막',
+    subLabel: '사진 없이 자막만 투명 PNG로 저장',
+    url: TRANSPARENT_CAPTION_SAMPLE_URL,
   },
 ];
 
@@ -143,11 +139,11 @@ export function createDefaultElementsForStyle(
           name: '인물 정보',
           text: subText ?? '시능지(23) / 자취생',
           x: 0.5,
-          y: 0.81,
+          y: 0.8,
           align: 'center',
-          fontSize: 34,
-          fontWeight: 'bold',
-          outlineWidth: 2.8, // 첨부 사진에 맞춰 깔끔하고 또렷한 실선 외곽선 (기존 7px 블러에서 개선)
+          fontSize: 38,
+          fontWeight: 'normal',
+          outlineWidth: 3.8,
           outlineColor: '#000000',
           textColor: '#FFFFFF',
           fontFamily: 'myeongjo',
@@ -160,11 +156,11 @@ export function createDefaultElementsForStyle(
           name: '인터뷰 대사',
           text: headlineText ?? '"계란이 다 떨어졌다"',
           x: 0.5,
-          y: 0.89,
+          y: 0.86,
           align: 'center',
-          fontSize: 42,
-          fontWeight: 'bold',
-          outlineWidth: 2.8, // 첨부 사진에 맞춰 깔끔하고 또렷한 실선 외곽선
+          fontSize: 40,
+          fontWeight: 'normal',
+          outlineWidth: 3.8,
           outlineColor: '#000000',
           textColor: '#FFFFFF',
           fontFamily: 'myeongjo',
@@ -185,7 +181,7 @@ export function createDefaultElementsForStyle(
           outlineColor: '#000000',
           textColor: '#FFFFFF',
           fontFamily: 'myeongjo',
-          visible: true,
+          visible: false,
           isDeletable: true,
         },
       ];
@@ -625,8 +621,7 @@ export const CAPTION_STYLES: CaptionStylePreset[] = [
     id: 'human-theater',
     name: 'KBS 인간극장',
     channel: '휴먼 다큐멘터리',
-    description:
-      '명조체 서체 + 깔끔한 블랙 외곽선의 정통 다큐멘터리 인터뷰 자막 (첨부 이미지 스타일)',
+    description: '동일한 크기의 명조체 인물 정보와 대사, 또렷한 검은 외곽선의 인터뷰 자막',
     iconTag: '인간극장',
     themeColor: '#4f46e5',
     defaultConfig: {
@@ -636,13 +631,13 @@ export const CAPTION_STYLES: CaptionStylePreset[] = [
       locationText: '',
       fontFamily: 'myeongjo',
       fontSizeScale: 1.0,
-      outlineWidth: 2.8,
+      outlineWidth: 3.8,
       textAlign: 'center',
       bottomOffset: 12,
       enableLetterbox: false,
       letterboxSize: 10,
-      enableVignette: true,
-      showStationLogo: true,
+      enableVignette: false,
+      showStationLogo: false,
       showLiveBadge: false,
       textColor: '#FFFFFF',
       outlineColor: '#000000',
@@ -891,13 +886,13 @@ export const DEFAULT_NEWS_CAPTION_CONFIG: NewsCaptionConfig = {
   locationText: '',
   fontFamily: 'myeongjo',
   fontSizeScale: 1.0,
-  outlineWidth: 2.8,
+  outlineWidth: 3.8,
   textAlign: 'center',
   bottomOffset: 12,
   enableLetterbox: false,
   letterboxSize: 10,
-  enableVignette: true,
-  showStationLogo: true,
+  enableVignette: false,
+  showStationLogo: false,
   showLiveBadge: false,
   textColor: '#FFFFFF',
   outlineColor: '#000000',

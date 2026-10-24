@@ -40,6 +40,40 @@ export function getFontFamilyStack(fontChoice: FontFamilyChoice): string {
 // Text Outline & Fill Helper (Supports Multi-line & Crisp Stroke)
 // ----------------------------------------------------------------------
 
+function getCaptionLines(ctx: CanvasRenderingContext2D, text: string, maxWidth?: number): string[] {
+  if (!maxWidth) return text.split('\n');
+
+  return text.split('\n').flatMap((paragraph) => {
+    const lines: string[] = [];
+    let line = '';
+
+    for (const word of paragraph.split(/\s+/)) {
+      const candidate = line ? `${line} ${word}` : word;
+      if (line && ctx.measureText(candidate).width > maxWidth) {
+        lines.push(line);
+        line = word;
+      } else {
+        line = candidate;
+      }
+
+      while (line.length > 1 && ctx.measureText(line).width > maxWidth) {
+        let splitAt = 1;
+        while (
+          splitAt < line.length &&
+          ctx.measureText(line.slice(0, splitAt + 1)).width <= maxWidth
+        ) {
+          splitAt += 1;
+        }
+        lines.push(line.slice(0, splitAt));
+        line = line.slice(splitAt);
+      }
+    }
+
+    lines.push(line);
+    return lines;
+  });
+}
+
 export function drawOutlinedText(
   ctx: CanvasRenderingContext2D,
   text: string,
@@ -48,7 +82,9 @@ export function drawOutlinedText(
   fillColor: string,
   strokeColor: string,
   outlineWidth: number,
-  shadow = false
+  shadow = false,
+  lineHeightMultiplier = 1.28,
+  maxWidth?: number
 ) {
   ctx.save();
 
@@ -62,10 +98,10 @@ export function drawOutlinedText(
     ctx.shadowBlur = 0;
   }
 
-  const lines = text.split('\n');
+  const lines = getCaptionLines(ctx, text, maxWidth);
   const fontMatch = ctx.font.match(/(\d+)px/);
   const fontSize = fontMatch ? parseInt(fontMatch[1], 10) : 32;
-  const lineHeight = fontSize * 1.28;
+  const lineHeight = fontSize * lineHeightMultiplier;
 
   lines.forEach((line, idx) => {
     const lineY = y + idx * lineHeight;
@@ -139,14 +175,18 @@ export function getElementBounds(
     const fontSize = Math.round(el.fontSize * scale);
     ctx.font = `${el.fontWeight} ${fontSize}px ${fontStack}`;
 
-    const lines = el.text.split('\n');
+    const maxWidth =
+      config.styleId === 'human-theater' && (el.type === 'headline' || el.type === 'subText')
+        ? width * 0.94
+        : undefined;
+    const lines = getCaptionLines(ctx, el.text, maxWidth);
     let maxLineWidth = 0;
     for (const line of lines) {
       const w = ctx.measureText(line).width;
       if (w > maxLineWidth) maxLineWidth = w;
     }
 
-    const lineHeight = fontSize * 1.28;
+    const lineHeight = fontSize * (config.styleId === 'human-theater' ? 1.14 : 1.28);
     const actualTextHeight = (lines.length - 1) * lineHeight + fontSize * 1.15;
     const pad = Math.max(16 * scale, 12);
 
@@ -191,7 +231,8 @@ export function getElementBounds(
 export function renderNewsCaption(
   canvas: HTMLCanvasElement,
   image: HTMLImageElement,
-  config: NewsCaptionConfig
+  config: NewsCaptionConfig,
+  transparentBackground = false
 ): void {
   const width = image.naturalWidth || image.width || 1200;
   const height = image.naturalHeight || image.height || 800;
@@ -202,10 +243,14 @@ export function renderNewsCaption(
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
-  // 1. Draw base original image
-  ctx.drawImage(image, 0, 0, width, height);
-
-  renderNewsCaptionOverlay(ctx, width, height, config);
+  if (transparentBackground) {
+    // Keep every background pixel transparent, including style banners and vignette.
+    const scale = (width / 1200) * (config.fontSizeScale || 1.0);
+    renderCaptionElements(ctx, width, height, scale, config);
+  } else {
+    ctx.drawImage(image, 0, 0, width, height);
+    renderNewsCaptionOverlay(ctx, width, height, config);
+  }
 }
 
 /** Draw the broadcast graphics over an existing canvas, for reuse in other studios. */
@@ -273,7 +318,11 @@ function renderCaptionElements(
     const pxX = el.x * width;
     const pxY = el.y * height;
 
-    // Crisp outline without muddy shadow blur (matching user reference photo)
+    const isHumanTheater = config.styleId === 'human-theater';
+    const maxWidth =
+      isHumanTheater && (el.type === 'headline' || el.type === 'subText')
+        ? width * 0.94
+        : undefined;
     drawOutlinedText(
       ctx,
       el.text,
@@ -282,7 +331,9 @@ function renderCaptionElements(
       el.textColor,
       el.outlineColor,
       el.outlineWidth * scale,
-      false
+      isHumanTheater,
+      isHumanTheater ? 1.14 : 1.28,
+      maxWidth
     );
   }
 }
