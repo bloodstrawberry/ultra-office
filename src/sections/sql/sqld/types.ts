@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------
 
 export type SqldViewMode = 'practice' | 'editor';
-export type SqldNavigationFilter = 'all' | 'everWrong' | 'wrongOrUnanswered';
+export type SqldNavigationFilter = 'all' | 'everWrong' | 'latestWrong' | 'wrongOrUnanswered';
 
 export interface ConceptLink {
   id: string;
@@ -113,6 +113,20 @@ export interface UserProblemRecord {
   isRevealed: boolean;
   correctCount?: number;
   wrongCount?: number;
+  /** Last graded result, preserved when clearing the current answer. */
+  lastAttemptCorrect?: boolean;
+}
+
+export function getLastAttemptCorrect(record?: UserProblemRecord): boolean | undefined {
+  if (!record) return undefined;
+  if (typeof record.lastAttemptCorrect === 'boolean') return record.lastAttemptCorrect;
+  if (record.isSubmitted) return record.isCorrect;
+
+  // Older records only retain counts after a reset. Mixed results have unknown order.
+  const { correctCount, wrongCount } = getProblemAttemptCounts(record);
+  if (wrongCount > 0 && correctCount === 0) return false;
+  if (correctCount > 0 && wrongCount === 0) return true;
+  return undefined;
 }
 
 export interface ProblemAttemptCounts {

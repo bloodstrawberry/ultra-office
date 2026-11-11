@@ -14,7 +14,7 @@ import { useMemo, useState, useEffect, useCallback } from 'react';
 
 import { CONFIG } from 'src/global-config';
 
-import { createEmptyProblem, getProblemAttemptCounts } from './types';
+import { createEmptyProblem, getLastAttemptCorrect, getProblemAttemptCounts } from './types';
 
 // ----------------------------------------------------------------------
 
@@ -105,6 +105,7 @@ function getNavigationIndices(
 ): number[] {
   return problems.flatMap((_, index) => {
     const counts = getProblemAttemptCounts(records[index]);
+    if (filter === 'latestWrong' && getLastAttemptCorrect(records[index]) !== false) return [];
     if (filter === 'everWrong' && counts.wrongCount === 0) return [];
     if (filter === 'wrongOrUnanswered' && counts.wrongCount === 0 && counts.totalAttempts > 0) {
       return [];
@@ -225,6 +226,7 @@ export function useSqldPractice() {
                   isRevealed: false,
                   correctCount: counts.correctCount,
                   wrongCount: counts.wrongCount,
+                  lastAttemptCorrect: getLastAttemptCorrect(rec),
                 };
               }
             }
@@ -401,6 +403,7 @@ export function useSqldPractice() {
               selectedAnswers: updatedSelections,
               isSubmitted: isMultiple ? oldRecord.isSubmitted : true,
               isCorrect: isMultiple ? oldRecord.isCorrect : isCorrect,
+              lastAttemptCorrect: isMultiple ? getLastAttemptCorrect(oldRecord) : isCorrect,
               isRevealed: isMultiple ? oldRecord.isRevealed : true,
               correctCount: isMultiple
                 ? counts.correctCount
@@ -462,6 +465,7 @@ export function useSqldPractice() {
             selectedAnswers: selections,
             isSubmitted: true,
             isCorrect,
+            lastAttemptCorrect: isCorrect,
             isRevealed: true,
             correctCount: nextCorrectCount,
             wrongCount: nextWrongCount,
@@ -525,6 +529,7 @@ export function useSqldPractice() {
             isRevealed: false,
             correctCount: counts.correctCount,
             wrongCount: counts.wrongCount,
+            lastAttemptCorrect: getLastAttemptCorrect(oldRecord),
           },
         },
       };

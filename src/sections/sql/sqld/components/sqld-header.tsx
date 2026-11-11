@@ -175,6 +175,7 @@ export function SqldHeader({
             >
               <MenuItem value="all">전체 문제</MenuItem>
               <MenuItem value="everWrong">한 번이라도 틀린 문제</MenuItem>
+              <MenuItem value="latestWrong">최근에 틀린 문제</MenuItem>
               <MenuItem value="wrongOrUnanswered">오답 이력 또는 미풀이</MenuItem>
             </Select>
           </FormControl>
